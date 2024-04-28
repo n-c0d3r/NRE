@@ -5,7 +5,9 @@
 
 namespace nre {
 
-	F_level::F_level() {
+	F_level::F_level(const G_string& name) :
+		name_(name)
+	{
 
 	}
 	F_level::~F_level() {

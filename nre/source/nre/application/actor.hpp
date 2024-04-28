@@ -20,8 +20,10 @@ namespace nre {
 
 	private:
 		TK_valid<F_level> level_p_;
-		G_string name_;
 		typename TG_list<TK_valid<F_actor>>::iterator handle_;
+
+	protected:
+		G_string name_;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_level> level_p() const noexcept { return level_p_; }
