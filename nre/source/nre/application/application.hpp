@@ -48,6 +48,7 @@ namespace nre {
 
 		TU<F_render_system> render_system_p_;
 
+		eastl::chrono::system_clock::time_point start_;
 		eastl::chrono::system_clock::time_point frame_start_;
 		eastl::chrono::system_clock::time_point frame_end_;
 
@@ -62,6 +63,14 @@ namespace nre {
 
 		NCPP_FORCE_INLINE TKPA<F_surface> main_surface_p() const noexcept { return main_surface_p_; }
 
+		NCPP_FORCE_INLINE f64 start_seconds() const noexcept {
+
+			u64 nanoseconds = eastl::chrono::duration_cast<eastl::chrono::nanoseconds>(
+				frame_start_ - start_
+			).count();
+
+			return ((f64)nanoseconds) * 0.000000001;
+		}
 		NCPP_FORCE_INLINE f32 delta_seconds() const noexcept {
 
 			u64 nanoseconds = eastl::chrono::duration_cast<eastl::chrono::nanoseconds>(

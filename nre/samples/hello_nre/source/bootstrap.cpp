@@ -46,9 +46,7 @@ int main() {
 		auto main_frame_buffer_p = NRE_RENDER_SYSTEM()->main_frame_buffer_p();
 		auto main_rtv_p = main_frame_buffer_p->desc().color_attachment_p_vector[0];
 
-		static f64 t = 0.0;
-		t += f64(application_p->delta_seconds());
-		f32 c = sin(f32(t)) * 0.5f + 0.5f;
+		f32 c = sin(application_p->start_seconds()) * 0.5f + 0.5f;
 
 	  	main_command_list_p->clear_rtv(
 			main_rtv_p,

@@ -32,8 +32,9 @@ namespace nre {
 
 	void F_application::start() {
 
-		frame_start_ = eastl::chrono::high_resolution_clock::now();
-		frame_end_ = eastl::chrono::high_resolution_clock::now();
+		start_ = eastl::chrono::high_resolution_clock::now();
+		frame_start_ = start_;
+		frame_end_ = start_;
 
 		main_surface_p_->T_get_event<F_surface_destroy_event>().T_push_back_listener(
 			[this](auto& e){
