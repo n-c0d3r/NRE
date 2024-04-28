@@ -32,7 +32,10 @@ int main() {
 	});
 	NRE_APPLICATION_GAMEPLAY_TICK(application_p)([&](auto& e){
 
-		NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
+		NRE_TICK_BY_DURATION(1.0f)
+		{
+			NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
+		};
 
 	});
 	NRE_APPLICATION_RENDER_TICK(application_p)([&](auto& e){
@@ -43,9 +46,13 @@ int main() {
 		auto main_frame_buffer_p = NRE_RENDER_SYSTEM()->main_frame_buffer_p();
 		auto main_rtv_p = main_frame_buffer_p->desc().color_attachment_p_vector[0];
 
+		static f64 t = 0.0;
+		t += f64(application_p->delta_seconds());
+		f32 c = sin(f32(t)) * 0.5f + 0.5f;
+
 	  	main_command_list_p->clear_rtv(
 			main_rtv_p,
-		  	{ 0.0f, 1.0f, 1.0f, 1.0f }
+		  	{ 0.0f, c, 1.0f, 1.0f }
 	  	);
 
 	  	command_queue_p->execute_command_lists(

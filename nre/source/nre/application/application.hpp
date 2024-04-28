@@ -99,3 +99,35 @@ namespace nre {
 	__VA_ARGS__->T_get_event<nre::F_application_gameplay_tick_event>().T_push_back_listener
 #define NRE_APPLICATION_RENDER_TICK(...) \
 	__VA_ARGS__->T_get_event<nre::F_application_render_tick_event>().T_push_back_listener
+
+
+
+namespace nre::internal
+{
+	NCPP_FORCE_INLINE b8 tick_by_duration_check(f32& time, f32 duration)
+	{
+
+		if(time >= duration)
+		{
+			time = 0.0f;
+
+			return true;
+		}
+
+		return false;
+	}
+	struct F_tick_by_duration_caller
+	{
+		template<typename F__>
+		NCPP_FORCE_INLINE F_tick_by_duration_caller(F__&& func)
+		{
+			func();
+		}
+	};
+}
+
+#define NRE_TICK_BY_DURATION(...) \
+	static f32 ___nre_tick_by_duration_time___ ## NCPP_LINE = 0;\
+	___nre_tick_by_duration_time___ ## NCPP_LINE += NRE_APPLICATION()->delta_seconds();\
+	if(nre::internal::tick_by_duration_check(___nre_tick_by_duration_time___ ## NCPP_LINE, __VA_ARGS__))\
+		nre::internal::F_tick_by_duration_caller ___nre_tick_by_duration_caller___ ## NCPP_LINE = [&]()
