@@ -5,10 +5,15 @@
 #include <nre/application/events/application_shutdown_event.hpp>
 #include <nre/application/events/application_gameplay_tick_event.hpp>
 #include <nre/application/events/application_render_tick_event.hpp>
+#include <nre/rendering/render_system.hpp>
 
 
 
 namespace nre {
+
+	class F_render_system;
+
+
 
 	struct F_application_desc {
 
@@ -40,6 +45,8 @@ namespace nre {
 
 		TU<F_surface_manager> surface_manager_p_;
 		TK<F_surface> main_surface_p_;
+
+		TU<F_render_system> render_system_p_;
 
 		eastl::chrono::system_clock::time_point frame_start_;
 		eastl::chrono::system_clock::time_point frame_end_;
@@ -83,6 +90,7 @@ namespace nre {
 
 
 
+#define NRE_APPLICATION(...) (nre::F_application::instance_p())
 #define NRE_APPLICATION_STARTUP(...) \
 	__VA_ARGS__->T_get_event<nre::F_application_startup_event>().T_push_back_listener
 #define NRE_APPLICATION_SHUTDOWN(...) \

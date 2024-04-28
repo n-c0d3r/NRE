@@ -31,10 +31,29 @@ int main() {
 
 	});
 	NRE_APPLICATION_GAMEPLAY_TICK(application_p)([&](auto& e){
+
 		NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
+
 	});
 	NRE_APPLICATION_RENDER_TICK(application_p)([&](auto& e){
-	  	NCPP_INFO() << "application render tick, fps: " << T_cout_value(application_p->fps());
+
+		auto command_queue_p = NRE_RENDER_SYSTEM()->command_queue_p();
+		auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
+		auto swapchain_p = NRE_RENDER_SYSTEM()->swapchain_p();
+		auto main_frame_buffer_p = NRE_RENDER_SYSTEM()->main_frame_buffer_p();
+		auto main_rtv_p = main_frame_buffer_p->desc().color_attachment_p_vector[0];
+
+	  	main_command_list_p->clear_rtv(
+			main_rtv_p,
+		  	{ 0.0f, 1.0f, 1.0f, 1.0f }
+	  	);
+
+	  	command_queue_p->execute_command_lists(
+		  	NCPP_INIL_SPAN(
+				main_command_list_p
+		  	)
+	  	);
+
 	});
 
 	application_p->start();

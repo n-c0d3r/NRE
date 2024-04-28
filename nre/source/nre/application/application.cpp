@@ -20,8 +20,14 @@ namespace nre {
 		)
 	{
 		instance_ps = NCPP_KTHIS().no_requirements();
+
+		nrhi::initialize_system();
+
+		render_system_p_ = TU<F_render_system>()();
 	}
 	F_application::~F_application() {
+
+		nrhi::release_system();
 	}
 
 	void F_application::start() {
@@ -29,19 +35,32 @@ namespace nre {
 		frame_start_ = eastl::chrono::high_resolution_clock::now();
 		frame_end_ = eastl::chrono::high_resolution_clock::now();
 
+		main_surface_p_->T_get_event<F_surface_destroy_event>().T_push_back_listener(
+			[this](auto& e){
+			  	shutdown_event_.invoke();
+			  	render_system_p_.reset();
+			}
+		);
+
 		startup_event_.invoke();
 
 		surface_manager_p_->T_run([this](F_surface_manager& surface_manager){
 
-		  	gameplay_tick_event_.invoke();
-		  	render_tick_event_.invoke();
+		  	if(main_surface_p_) {
+
+				render_system_p_->main_frame_buffer_p()->update_viewport();
+
+				gameplay_tick_event_.invoke();
+				render_tick_event_.invoke();
+
+				render_system_p_->swapchain_p()->present();
+
+		  	}
 
 		  	frame_start_ = frame_end_;
 		  	frame_end_ = eastl::chrono::high_resolution_clock::now();
 
 		});
-
-		shutdown_event_.invoke();
 
 	}
 
