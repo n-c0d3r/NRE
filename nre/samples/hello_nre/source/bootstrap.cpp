@@ -24,13 +24,26 @@ int main() {
 		}
 	);
 
-	NRE_APPLICATION_STARTUP(application_p)([&](auto& e){
+	auto mesh_p = TU<F_mesh>()(
+		"ABC",
+		F_mesh_data {
+			{
+				{
+					.position = {}
+				}
+			},
+			{
+			}
+		}
+	);
+
+	NRE_APPLICATION_STARTUP(application_p)([&](auto&){
 
 	});
-	NRE_APPLICATION_SHUTDOWN(application_p)([&](auto& e){
+	NRE_APPLICATION_SHUTDOWN(application_p)([&](auto&){
 
 	});
-	NRE_APPLICATION_GAMEPLAY_TICK(application_p)([&](auto& e){
+	NRE_APPLICATION_GAMEPLAY_TICK(application_p)([&](auto&){
 
 		NRE_TICK_BY_DURATION(1.0f)
 		{
@@ -38,7 +51,7 @@ int main() {
 		};
 
 	});
-	NRE_APPLICATION_RENDER_TICK(application_p)([&](auto& e){
+	NRE_APPLICATION_RENDER_TICK(application_p)([&](auto&){
 
 		auto command_queue_p = NRE_RENDER_SYSTEM()->command_queue_p();
 		auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();

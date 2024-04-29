@@ -2,6 +2,7 @@
 
 #include <nre/prerequisites.hpp>
 #include <nre/rendering/vertex.hpp>
+#include <nre/rendering/render_system.hpp>
 
 
 
@@ -69,9 +70,9 @@ namespace nre {
 		}
 
 	public:
-		void build() {
+		void upload() {
 
-			const auto& data = mesh_p_->data();
+			auto& data = mesh_p_->data_;
 
 			if(vertex_buffer_p_)
 				vertex_buffer_p_.reset();
@@ -80,11 +81,21 @@ namespace nre {
 
 			if(data.vertices.size()) {
 
-//				vertex_buffer_p_ = H_buffer::T_create<F_vector4>(
-//					NCPP_FOREF_VALID(device_p),
-//					vertices,
-//					E_resource_bind_flag::VBV
-//				);
+				vertex_buffer_p_ = H_buffer::T_create<F_vertex>(
+					NRE_RENDER_SYSTEM()->device_p(),
+					data.vertices,
+					E_resource_bind_flag::VBV
+				);
+			}
+
+			if(data.indices.size()) {
+
+				index_buffer_p_ = H_buffer::T_create<u32>(
+					NRE_RENDER_SYSTEM()->device_p(),
+					data.indices,
+					E_format::R32_UINT,
+					E_resource_bind_flag::IBV
+				);
 			}
 		}
 
@@ -100,6 +111,9 @@ namespace nre {
 
 		using F_data = TF_mesh_data<F_vertex>;
 		using F_buffer = TF_mesh_buffer<F_vertex>;
+
+	public:
+		friend F_buffer;
 
 
 
@@ -121,10 +135,17 @@ namespace nre {
 			data_(data),
 			buffer_p_(TU<F_buffer>()(NCPP_KTHIS()))
 		{
-			buffer_p_->build();
+			buffer_p_->upload();
 		}
 		~TF_mesh() {
 
+		}
+
+	public:
+		void update(const F_data& data)
+		{
+			data_ = data;
+			buffer_p_->upload();
 		}
 
 	};
