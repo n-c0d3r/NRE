@@ -13,6 +13,8 @@ include(NCPP/Utilities/SetGlobal)
 # NRE linking options
 option(NRE_DLL "Build NRE as DLL or not" OFF)
 
+NCPP_SetGlobal(NRE_RESOURCES_DIR_PATH "${CMAKE_CURRENT_LIST_DIR}/resources")
+
 
 
 #####################################################################################

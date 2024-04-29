@@ -5,13 +5,13 @@
 #include <nre/application/events/application_shutdown_event.hpp>
 #include <nre/application/events/application_gameplay_tick_event.hpp>
 #include <nre/application/events/application_render_tick_event.hpp>
-#include <nre/rendering/render_system.hpp>
 
 
 
 namespace nre {
 
 	class F_render_system;
+	class F_asset_system;
 
 
 
@@ -47,6 +47,7 @@ namespace nre {
 		TK<F_surface> main_surface_p_;
 
 		TU<F_render_system> render_system_p_;
+		TU<F_asset_system> asset_system_p_;
 
 		eastl::chrono::system_clock::time_point start_;
 		eastl::chrono::system_clock::time_point frame_start_;

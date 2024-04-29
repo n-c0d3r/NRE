@@ -1,4 +1,6 @@
 #include <nre/application/application.hpp>
+#include <nre/rendering/render_system.hpp>
+#include <nre/asset/asset_system.hpp>
 
 
 
@@ -24,6 +26,7 @@ namespace nre {
 		nrhi::initialize_system();
 
 		render_system_p_ = TU<F_render_system>()();
+		asset_system_p_ = TU<F_asset_system>()();
 	}
 	F_application::~F_application() {
 
