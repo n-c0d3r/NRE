@@ -15,6 +15,8 @@ int main() {
         << NRE_VERSION_STR
         << E_log_color::RESET;
 
+
+
 	auto application_p = TU<F_application>()(
 		F_application_desc {
 			.main_surface_desc = {
@@ -24,23 +26,23 @@ int main() {
 		}
 	);
 
-	auto asset_p = NRE_ASSET_SYSTEM()->T_load_asset<F_text_asset>("demo.txt");
 
-	NRE_APPLICATION_STARTUP(application_p)([&](auto&){
 
-	});
-	NRE_APPLICATION_SHUTDOWN(application_p)([&](auto&){
+	NRE_APPLICATION_STARTUP(application_p) {
 
-	});
-	NRE_APPLICATION_GAMEPLAY_TICK(application_p)([&](auto&){
+	};
+	NRE_APPLICATION_SHUTDOWN(application_p) {
+
+	};
+	NRE_APPLICATION_GAMEPLAY_TICK(application_p) {
 
 		NRE_TICK_BY_DURATION(1.0f)
 		{
 			NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
 		};
 
-	});
-	NRE_APPLICATION_RENDER_TICK(application_p)([&](auto&){
+	};
+	NRE_APPLICATION_RENDER_TICK(application_p) {
 
 		auto command_queue_p = NRE_RENDER_SYSTEM()->command_queue_p();
 		auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
@@ -61,7 +63,7 @@ int main() {
 		  	)
 	  	);
 
-	});
+	};
 
 	application_p->start();
 

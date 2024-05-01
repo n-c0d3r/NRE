@@ -100,20 +100,9 @@ namespace nre {
 
 
 
-#define NRE_APPLICATION(...) (nre::F_application::instance_p())
-#define NRE_APPLICATION_STARTUP(...) \
-	__VA_ARGS__->T_get_event<nre::F_application_startup_event>().T_push_back_listener
-#define NRE_APPLICATION_SHUTDOWN(...) \
-	__VA_ARGS__->T_get_event<nre::F_application_shutdown_event>().T_push_back_listener
-#define NRE_APPLICATION_GAMEPLAY_TICK(...) \
-	__VA_ARGS__->T_get_event<nre::F_application_gameplay_tick_event>().T_push_back_listener
-#define NRE_APPLICATION_RENDER_TICK(...) \
-	__VA_ARGS__->T_get_event<nre::F_application_render_tick_event>().T_push_back_listener
-
-
-
 namespace nre::internal
 {
+
 	NCPP_FORCE_INLINE b8 tick_by_duration_check(f32& time, f32 duration)
 	{
 
@@ -134,7 +123,110 @@ namespace nre::internal
 			func();
 		}
 	};
+
+
+
+	struct F_application_startup_caller
+	{
+
+	private:
+		TK_valid<F_application> app_p_;
+
+	public:
+		NCPP_FORCE_INLINE F_application_startup_caller(TKPA_valid<F_application> app_p) :
+			app_p_(app_p)
+		{}
+		template<typename F__>
+		NCPP_FORCE_INLINE void operator = (F__&& functor) {
+
+			app_p_->T_get_event<nre::F_application_startup_event>().T_push_back_listener(
+				std::forward<F__>(functor)
+			);
+		}
+	};
+
+	struct F_application_shutdown_caller
+	{
+
+	private:
+		TK_valid<F_application> app_p_;
+
+	public:
+		NCPP_FORCE_INLINE F_application_shutdown_caller(TKPA_valid<F_application> app_p) :
+			app_p_(app_p)
+		{}
+		template<typename F__>
+		NCPP_FORCE_INLINE void operator = (F__&& functor) {
+
+			app_p_->T_get_event<nre::F_application_shutdown_event>().T_push_back_listener(
+				std::forward<F__>(functor)
+			);
+		}
+	};
+
+	struct F_application_gameplay_tick_caller
+	{
+
+	private:
+		TK_valid<F_application> app_p_;
+
+	public:
+		NCPP_FORCE_INLINE F_application_gameplay_tick_caller(TKPA_valid<F_application> app_p) :
+			app_p_(app_p)
+		{}
+		template<typename F__>
+		NCPP_FORCE_INLINE void operator = (F__&& functor) {
+
+			app_p_->T_get_event<nre::F_application_gameplay_tick_event>().T_push_back_listener(
+				std::forward<F__>(functor)
+			);
+		}
+	};
+
+	struct F_application_render_tick_caller
+	{
+
+	private:
+		TK_valid<F_application> app_p_;
+
+	public:
+		F_application_render_tick_caller(TKPA_valid<F_application> app_p) :
+			app_p_(app_p)
+		{}
+		template<typename F__>
+		void operator = (F__&& functor) {
+
+			app_p_->T_get_event<nre::F_application_render_tick_event>().T_push_back_listener(
+				std::forward<F__>(functor)
+			);
+		}
+	};
+
 }
+
+
+
+#define NRE_APPLICATION(...) (nre::F_application::instance_p())
+#define NRE_APPLICATION_STARTUP(...) \
+	nre::internal::F_application_startup_caller ___nre_application_startup___ ## NCPP_LINE ( \
+		NCPP_FOREF_VALID(__VA_ARGS__)                        \
+	); \
+	___nre_application_startup___ ## NCPP_LINE = [&](auto&)
+#define NRE_APPLICATION_SHUTDOWN(...) \
+	nre::internal::F_application_shutdown_caller ___nre_application_shutdown___ ## NCPP_LINE ( \
+		NCPP_FOREF_VALID(__VA_ARGS__)                        \
+	); \
+	___nre_application_shutdown___ ## NCPP_LINE = [&](auto&)
+#define NRE_APPLICATION_GAMEPLAY_TICK(...) \
+	nre::internal::F_application_gameplay_tick_caller ___nre_application_gameplay_tick___ ## NCPP_LINE ( \
+		NCPP_FOREF_VALID(__VA_ARGS__)                        \
+	); \
+	___nre_application_gameplay_tick___ ## NCPP_LINE = [&](auto&)
+#define NRE_APPLICATION_RENDER_TICK(...) \
+	nre::internal::F_application_render_tick_caller ___nre_application_render_tick___ ## NCPP_LINE ( \
+		NCPP_FOREF_VALID(__VA_ARGS__)                        \
+	); \
+	___nre_application_render_tick___ ## NCPP_LINE = [&](auto&)
 
 #define NRE_TICK_BY_DURATION(...) \
 	static f32 ___nre_tick_by_duration_time___ ## NCPP_LINE = 0;\
