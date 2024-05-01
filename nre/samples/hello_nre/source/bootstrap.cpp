@@ -24,18 +24,7 @@ int main() {
 		}
 	);
 
-	auto mesh_p = TU<F_mesh>()(
-		"ABC",
-		F_mesh_data {
-			{
-				{
-					.position = {}
-				}
-			},
-			{
-			}
-		}
-	);
+	auto asset_p = NRE_ASSET_SYSTEM()->T_load_asset<F_text_asset>("demo.txt");
 
 	NRE_APPLICATION_STARTUP(application_p)([&](auto&){
 
