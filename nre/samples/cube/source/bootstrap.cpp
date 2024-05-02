@@ -204,10 +204,11 @@ int main() {
 	};
 	NRE_APPLICATION_SHUTDOWN(application_p) {
 
+		// these objects are depends on render device that is destroyed when the main surface closed (before the end of the main function),
+		// so we need to release them before the application releases
 		vbuffer_p.reset();
 		ibuffer_p.reset();
 		cbuffer_p.reset();
-
 		vshader_p.reset();
 		pshader_p.reset();
 		pipeline_state_p.reset();
