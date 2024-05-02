@@ -49,4 +49,3 @@ namespace nre {
 #define NRE_RENDER_DEVICE(...) (NRE_RENDER_SYSTEM()->device_p())
 #define NRE_RENDER_SWAPCHAIN(...) (NRE_RENDER_SYSTEM()->swapchain_p())
 #define NRE_RENDER_COMMAND_QUEUE(...) (NRE_RENDER_SYSTEM()->command_queue_p())
-#define NRE_RENDER_SURFACE(...) (NRE_RENDER_SYSTEM()->swapchain_p()->surface_p())
