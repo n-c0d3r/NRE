@@ -189,7 +189,6 @@ int main() {
 	auto pipeline_state_p = H_graphics_pipeline_state::create(
 		NRE_RENDER_DEVICE(),
 		{
-			.primitive_topology = E_primitive_topology::TRIANGLE_LIST,
 			.shader_p_vector = {
 				NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
 				NCPP_FHANDLE_VALID_AS_OREF(pshader_p)
@@ -205,7 +204,7 @@ int main() {
 	NRE_APPLICATION_SHUTDOWN(application_p) {
 
 		// these objects are depends on render device that is destroyed when the main surface closed (before the end of the main function),
-		// so we need to release them before the application releases
+		// so we need to release them before the application is released
 		vbuffer_p.reset();
 		ibuffer_p.reset();
 		cbuffer_p.reset();
