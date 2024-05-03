@@ -30,7 +30,7 @@ int main() {
 
 	f32 object_rotate_speed = 1.0f;
 	f32 camera_move_speed = 4.0f;
-	f32 camera_rotate_speed = 2.0_pi;
+	f32 camera_rotate_speed = 0.5_pi;
 
 	F_matrix4x4 object_transform = T_make_transform(
 		F_vector3 { 1.0f, 1.0f, 1.0f },
@@ -235,21 +235,17 @@ int main() {
 
 	F_vector2 movement_input = F_vector2::zero();
 
-	b8 mouse_move = false;
-	F_vector2_i mouse_delta_pos = F_vector2_i::zero();
-	F_vector2_i old_mouse_pos;
 	F_vector2_i center_mouse_pos = (
 		NRE_MAIN_SURFACE()->desc().offset
 		+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
 	);
-
 	b8 mouse_lock = true;
 
 
 
 	// surface, mouse, keyboard events
 	{
-		NRE_KEYBOARD_MANAGER()->T_get_event<F_key_down_event>().T_push_back_listener(
+		NRE_KEYBOARD()->T_get_event<F_key_down_event>().T_push_back_listener(
 			[&](auto& e) {
 
 				auto& casted_e = (F_key_down_event&)e;
@@ -282,12 +278,11 @@ int main() {
 					break;
 				case E_keycode::ESCAPE:
 					mouse_lock = false;
-					mouse_move = false;
 					break;
 				}
 			}
 		);
-		NRE_KEYBOARD_MANAGER()->T_get_event<F_key_up_event>().T_push_back_listener(
+		NRE_KEYBOARD()->T_get_event<F_key_up_event>().T_push_back_listener(
 			[&](auto& e) {
 
 				auto& casted_e = (F_key_down_event&)e;
@@ -309,27 +304,10 @@ int main() {
 				}
 			}
 		);
-		NRE_MOUSE_MANAGER()->T_get_event<F_mouse_move_event>().T_push_back_listener(
-			[&](auto& e) {
-
-				auto& casted_e = (F_mouse_move_event&)e;
-
-				F_vector2_i mouse_pos = casted_e.position();
-
-				if(mouse_move)
-					mouse_delta_pos = mouse_pos - old_mouse_pos;
-				else
-					mouse_delta_pos = F_vector2_i::zero();
-
-				mouse_move = true;
-				old_mouse_pos = mouse_pos;
-			}
-		);
-		NRE_MOUSE_MANAGER()->T_get_event<F_mouse_button_down_event>().T_push_back_listener(
+		NRE_MOUSE()->T_get_event<F_mouse_button_down_event>().T_push_back_listener(
 			[&](auto& e) {
 
 				mouse_lock = true;
-				mouse_move = false;
 			}
 		);
 	}
@@ -360,30 +338,10 @@ int main() {
 				NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
 			};
 
-			// pre update mouse
+			NRE_TICK_BY_DURATION(0.2f)
 			{
-				if(mouse_lock)
-				{
-					center_mouse_pos = (
-						NRE_MAIN_SURFACE()->desc().offset
-						+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
-					);
-
-					RECT rect;
-					rect.left = NRE_MAIN_SURFACE()->desc().offset.x;
-					rect.top = NRE_MAIN_SURFACE()->desc().offset.y;
-					rect.right = NRE_MAIN_SURFACE()->desc().offset.x + NRE_MAIN_SURFACE()->desc().size.x;
-					rect.bottom = NRE_MAIN_SURFACE()->desc().offset.y + NRE_MAIN_SURFACE()->desc().size.y;
-
-					ClipCursor(&rect);
-
-					auto mouse_pos = NRE_MOUSE_MANAGER()->mouse_position();
-					// if(length(center_mouse_pos - mouse_pos) >= 10.0f) {
-					// 	mouse_move = false;
-					// 	NRE_MOUSE_MANAGER()->set_mouse_position(center_mouse_pos);
-					// }
-				}
-			}
+				NCPP_INFO() << NRE_MOUSE()->delta_position().x << " " << NRE_MOUSE()->delta_position().y;
+			};
 
 			// update controller input
 			{
@@ -406,6 +364,7 @@ int main() {
 			}
 
 			// move and rotate camera
+			if(mouse_lock)
 			{
 				// move camera
 				F_vector3 local_move_dir = F_vector3{
@@ -417,7 +376,7 @@ int main() {
 				) * camera_container_transform;
 
 				// rotate camera
-				F_vector2 rotate_angles = F_vector2(mouse_delta_pos) * camera_rotate_speed * application_p->delta_seconds();
+				F_vector2 rotate_angles = F_vector2(NRE_MOUSE()->delta_position()) * camera_rotate_speed * application_p->delta_seconds();
 				rotate_angles = rotate_angles.yx();
 				camera_container_transform *= T_make_rotation(
 					F_vector3{
@@ -438,11 +397,19 @@ int main() {
 				camera_transform = camera_container_transform * camera_local_transform;
 			}
 
-			// late update mouse
+			// update mouse
 			{
-				NRE_MOUSE_MANAGER()->set_mouse_visible(!mouse_lock);
+				NRE_MOUSE()->set_mouse_visible(!mouse_lock);
 
-				mouse_delta_pos = F_vector2_i::zero();
+				if(mouse_lock)
+				{
+					center_mouse_pos = (
+						NRE_MAIN_SURFACE()->desc().offset
+						+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
+					);
+
+					NRE_MOUSE()->set_mouse_position(center_mouse_pos);
+				}
 			}
 
 		};
