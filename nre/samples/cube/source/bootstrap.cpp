@@ -30,7 +30,7 @@ int main() {
 
 	f32 object_rotate_speed = 1.0f;
 	f32 camera_move_speed = 4.0f;
-	f32 camera_rotate_speed = 0.5_pi;
+	f32 camera_rotate_speed = 1.0_pi;
 
 	F_matrix4x4 object_transform = T_make_transform(
 		F_vector3 { 1.0f, 1.0f, 1.0f },
@@ -371,7 +371,7 @@ int main() {
 				) * camera_container_transform;
 
 				// rotate camera
-				F_vector2 rotate_angles = F_vector2(NRE_MOUSE()->delta_position()) * camera_rotate_speed * application_p->delta_seconds();
+				F_vector2 rotate_angles = F_vector2(NRE_MOUSE()->delta_position()) * camera_rotate_speed / F_vector2(NRE_MAIN_SURFACE()->desc().size);// * application_p->delta_seconds();
 				rotate_angles = rotate_angles.yx();
 				camera_container_transform *= T_make_rotation(
 					F_vector3{
