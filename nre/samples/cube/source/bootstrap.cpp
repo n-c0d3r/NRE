@@ -369,11 +369,19 @@ int main() {
 						+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
 					);
 
+					RECT rect;
+					rect.left = NRE_MAIN_SURFACE()->desc().offset.x;
+					rect.top = NRE_MAIN_SURFACE()->desc().offset.y;
+					rect.right = NRE_MAIN_SURFACE()->desc().offset.x + NRE_MAIN_SURFACE()->desc().size.x;
+					rect.bottom = NRE_MAIN_SURFACE()->desc().offset.y + NRE_MAIN_SURFACE()->desc().size.y;
+
+					ClipCursor(&rect);
+
 					auto mouse_pos = NRE_MOUSE_MANAGER()->mouse_position();
-					if(length(center_mouse_pos - mouse_pos) >= 200.0f) {
-						mouse_move = false;
-						NRE_MOUSE_MANAGER()->set_mouse_position(center_mouse_pos);
-					}
+					// if(length(center_mouse_pos - mouse_pos) >= 10.0f) {
+					// 	mouse_move = false;
+					// 	NRE_MOUSE_MANAGER()->set_mouse_position(center_mouse_pos);
+					// }
 				}
 			}
 
@@ -397,8 +405,9 @@ int main() {
 				);
 			}
 
-			// move camera
+			// move and rotate camera
 			{
+				// move camera
 				F_vector3 local_move_dir = F_vector3{
 					movement_input * camera_move_speed * application_p->delta_seconds(),
 					0.0f
@@ -407,9 +416,9 @@ int main() {
 					camera_transform.tl3x3() * local_move_dir
 				) * camera_container_transform;
 
+				// rotate camera
 				F_vector2 rotate_angles = F_vector2(mouse_delta_pos) * camera_rotate_speed * application_p->delta_seconds();
 				rotate_angles = rotate_angles.yx();
-
 				camera_container_transform *= T_make_rotation(
 					F_vector3{
 						0.0f,
@@ -425,6 +434,7 @@ int main() {
 					}
 				);
 
+				// apply to camera world transform
 				camera_transform = camera_container_transform * camera_local_transform;
 			}
 
