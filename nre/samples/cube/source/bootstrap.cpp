@@ -28,18 +28,26 @@ int main() {
 
 
 
-	f32 rotate_speed = 1.0f;
+	f32 object_rotate_speed = 1.0f;
+	f32 camera_move_speed = 4.0f;
+	f32 camera_rotate_speed = 2.0_pi;
 
 	F_matrix4x4 object_transform = T_make_transform(
 		F_vector3 { 1.0f, 1.0f, 1.0f },
 		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
 		F_vector3 { 0.0f, 0.0f, 5.0f }
-		);
-	F_matrix4x4 camera_transform = T_make_transform(
+	);
+	F_matrix4x4 camera_container_transform = T_make_transform(
 		F_vector3 { 1.0f, 1.0f, 1.0f },
 		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
 		F_vector3 { 0.0f, 0.0f, -5.0f }
 	);
+	F_matrix4x4 camera_local_transform = T_make_transform(
+		F_vector3 { 1.0f, 1.0f, 1.0f },
+		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
+		F_vector3 { 0.0f, 0.0f, 0.0f }
+	);
+	F_matrix4x4 camera_transform = camera_container_transform * camera_local_transform;
 
 	F_matrix4x4 projection_matrix;
 
@@ -219,6 +227,26 @@ int main() {
 
 
 
+	// constroller input
+	b8 go_forward = false;
+	b8 go_backward = false;
+	b8 go_right = false;
+	b8 go_left = false;
+
+	F_vector2 movement_input = F_vector2::zero();
+
+	b8 mouse_move = false;
+	F_vector2_i mouse_delta_pos = F_vector2_i::zero();
+	F_vector2_i old_mouse_pos;
+	F_vector2_i center_mouse_pos = (
+		NRE_MAIN_SURFACE()->desc().offset
+		+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
+	);
+
+	b8 mouse_lock = true;
+
+
+
 	// surface, mouse, keyboard events
 	{
 		NRE_KEYBOARD_MANAGER()->T_get_event<F_key_down_event>().T_push_back_listener(
@@ -234,13 +262,74 @@ int main() {
 				case E_keycode::_2:
 					pipeline_state_p = wireframe_pipeline_state_p;
 					break;
-				case E_keycode::UP:
-					rotate_speed += 0.5f;
+				case E_keycode::ARROW_UP:
+					object_rotate_speed += 0.5f;
 					break;
-				case E_keycode::DOWN:
-					rotate_speed -= 0.5f;
+				case E_keycode::ARROW_DOWN:
+					object_rotate_speed -= 0.5f;
+					break;
+				case E_keycode::W:
+					go_forward = true;
+					break;
+				case E_keycode::S:
+					go_backward = true;
+					break;
+				case E_keycode::D:
+					go_right = true;
+					break;
+				case E_keycode::A:
+					go_left = true;
+					break;
+				case E_keycode::ESCAPE:
+					mouse_lock = false;
+					mouse_move = false;
 					break;
 				}
+			}
+		);
+		NRE_KEYBOARD_MANAGER()->T_get_event<F_key_up_event>().T_push_back_listener(
+			[&](auto& e) {
+
+				auto& casted_e = (F_key_down_event&)e;
+
+				switch (casted_e.keycode())
+				{
+				case E_keycode::W:
+					go_forward = false;
+					break;
+				case E_keycode::S:
+					go_backward = false;
+					break;
+				case E_keycode::D:
+					go_right = false;
+					break;
+				case E_keycode::A:
+					go_left = false;
+					break;
+				}
+			}
+		);
+		NRE_MOUSE_MANAGER()->T_get_event<F_mouse_move_event>().T_push_back_listener(
+			[&](auto& e) {
+
+				auto& casted_e = (F_mouse_move_event&)e;
+
+				F_vector2_i mouse_pos = casted_e.position();
+
+				if(mouse_move)
+					mouse_delta_pos = mouse_pos - old_mouse_pos;
+				else
+					mouse_delta_pos = F_vector2_i::zero();
+
+				mouse_move = true;
+				old_mouse_pos = mouse_pos;
+			}
+		);
+		NRE_MOUSE_MANAGER()->T_get_event<F_mouse_button_down_event>().T_push_back_listener(
+			[&](auto& e) {
+
+				mouse_lock = true;
+				mouse_move = false;
 			}
 		);
 	}
@@ -271,14 +360,79 @@ int main() {
 				NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
 			};
 
+			// pre update mouse
+			{
+				if(mouse_lock)
+				{
+					center_mouse_pos = (
+						NRE_MAIN_SURFACE()->desc().offset
+						+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
+					);
+
+					auto mouse_pos = NRE_MOUSE_MANAGER()->mouse_position();
+					if(length(center_mouse_pos - mouse_pos) >= 200.0f) {
+						mouse_move = false;
+						NRE_MOUSE_MANAGER()->set_mouse_position(center_mouse_pos);
+					}
+				}
+			}
+
+			// update controller input
+			{
+				movement_input = F_vector2 {
+					f32(go_right)
+					- f32(go_left),
+					f32(go_forward)
+					- f32(go_backward)
+				};
+			}
+
 			// rotate object
 			{
 				object_transform *= T_make_rotation(
-					rotate_speed * F_vector3 { 0.0f, application_p->delta_seconds(), 0.0f }
+					object_rotate_speed * F_vector3 { 0.0f, application_p->delta_seconds(), 0.0f }
 				);
 				object_transform *= T_make_rotation(
-					rotate_speed * F_vector3 { application_p->delta_seconds(), 0.0f, -application_p->delta_seconds() * 0.4f }
+					object_rotate_speed * F_vector3 { application_p->delta_seconds(), 0.0f, -application_p->delta_seconds() * 0.4f }
 				);
+			}
+
+			// move camera
+			{
+				F_vector3 local_move_dir = F_vector3{
+					movement_input * camera_move_speed * application_p->delta_seconds(),
+					0.0f
+				}.xzy();
+				camera_container_transform = make_translation(
+					camera_transform.tl3x3() * local_move_dir
+				) * camera_container_transform;
+
+				F_vector2 rotate_angles = F_vector2(mouse_delta_pos) * camera_rotate_speed * application_p->delta_seconds();
+				rotate_angles = rotate_angles.yx();
+
+				camera_container_transform *= T_make_rotation(
+					F_vector3{
+						0.0f,
+						rotate_angles.y,
+						0.0f
+					}
+				);
+				camera_local_transform *= T_make_rotation(
+					F_vector3{
+						rotate_angles.x,
+						0.0f,
+						0.0f
+					}
+				);
+
+				camera_transform = camera_container_transform * camera_local_transform;
+			}
+
+			// late update mouse
+			{
+				NRE_MOUSE_MANAGER()->set_mouse_visible(!mouse_lock);
+
+				mouse_delta_pos = F_vector2_i::zero();
 			}
 
 		};

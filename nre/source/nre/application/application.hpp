@@ -212,28 +212,28 @@ namespace nre::internal
 #define NRE_KEYBOARD_MANAGER(...) (&(nsurface::F_keyboard_manager::instance()))
 #define NRE_MAIN_SURFACE(...) (NRE_APPLICATION()->main_surface_p())
 #define NRE_APPLICATION_STARTUP(...) \
-	nre::internal::F_application_startup_caller ___nre_application_startup___ ## NCPP_LINE ( \
+	nre::internal::F_application_startup_caller NCPP_GLUE(___nre_application_startup___, NCPP_LINE) ( \
 		NCPP_FOREF_VALID(__VA_ARGS__)                        \
 	); \
-	___nre_application_startup___ ## NCPP_LINE = [&](auto&)
+	NCPP_GLUE(___nre_application_startup___, NCPP_LINE) = [&](auto&)
 #define NRE_APPLICATION_SHUTDOWN(...) \
-	nre::internal::F_application_shutdown_caller ___nre_application_shutdown___ ## NCPP_LINE ( \
+	nre::internal::F_application_shutdown_caller NCPP_GLUE(___nre_application_shutdown___, NCPP_LINE) ( \
 		NCPP_FOREF_VALID(__VA_ARGS__)                        \
 	); \
-	___nre_application_shutdown___ ## NCPP_LINE = [&](auto&)
+	NCPP_GLUE(___nre_application_shutdown___, NCPP_LINE) = [&](auto&)
 #define NRE_APPLICATION_GAMEPLAY_TICK(...) \
-	nre::internal::F_application_gameplay_tick_caller ___nre_application_gameplay_tick___ ## NCPP_LINE ( \
+	nre::internal::F_application_gameplay_tick_caller NCPP_GLUE(___nre_application_gameplay_tick___, NCPP_LINE) ( \
 		NCPP_FOREF_VALID(__VA_ARGS__)                        \
 	); \
-	___nre_application_gameplay_tick___ ## NCPP_LINE = [&](auto&)
+	NCPP_GLUE(___nre_application_gameplay_tick___, NCPP_LINE) = [&](auto&)
 #define NRE_APPLICATION_RENDER_TICK(...) \
-	nre::internal::F_application_render_tick_caller ___nre_application_render_tick___ ## NCPP_LINE ( \
+	nre::internal::F_application_render_tick_caller NCPP_GLUE(___nre_application_render_tick___, NCPP_LINE) ( \
 		NCPP_FOREF_VALID(__VA_ARGS__)                        \
 	); \
-	___nre_application_render_tick___ ## NCPP_LINE = [&](auto&)
+	NCPP_GLUE(___nre_application_render_tick___, NCPP_LINE) = [&](auto&)
 
 #define NRE_TICK_BY_DURATION(...) \
-	static f32 ___nre_tick_by_duration_time___ ## NCPP_LINE = 0;\
-	___nre_tick_by_duration_time___ ## NCPP_LINE += NRE_APPLICATION()->delta_seconds();\
-	if(nre::internal::tick_by_duration_check(___nre_tick_by_duration_time___ ## NCPP_LINE, __VA_ARGS__))\
-		nre::internal::F_tick_by_duration_caller ___nre_tick_by_duration_caller___ ## NCPP_LINE = [&]()
+	static f32 NCPP_GLUE(___nre_tick_by_duration_time___, NCPP_LINE) = 0;\
+	NCPP_GLUE(___nre_tick_by_duration_time___, NCPP_LINE) += NRE_APPLICATION()->delta_seconds();\
+	if(nre::internal::tick_by_duration_check(NCPP_GLUE(___nre_tick_by_duration_time___, NCPP_LINE), __VA_ARGS__))\
+		nre::internal::F_tick_by_duration_caller NCPP_GLUE(___nre_tick_by_duration_caller___, NCPP_LINE) = [&]()
