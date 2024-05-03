@@ -338,11 +338,6 @@ int main() {
 				NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
 			};
 
-			NRE_TICK_BY_DURATION(0.2f)
-			{
-				NCPP_INFO() << NRE_MOUSE()->delta_position().x << " " << NRE_MOUSE()->delta_position().y;
-			};
-
 			// update controller input
 			{
 				movement_input = F_vector2 {
