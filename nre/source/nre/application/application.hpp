@@ -207,6 +207,9 @@ namespace nre::internal
 
 
 #define NRE_APPLICATION(...) (nre::F_application::instance_p())
+#define NRE_SURFACE_MANAGER(...) (&(nsurface::F_surface_manager::instance()))
+#define NRE_MOUSE_MANAGER(...) (&(nsurface::F_mouse_manager::instance()))
+#define NRE_KEYBOARD_MANAGER(...) (&(nsurface::F_keyboard_manager::instance()))
 #define NRE_MAIN_SURFACE(...) (NRE_APPLICATION()->main_surface_p())
 #define NRE_APPLICATION_STARTUP(...) \
 	nre::internal::F_application_startup_caller ___nre_application_startup___ ## NCPP_LINE ( \

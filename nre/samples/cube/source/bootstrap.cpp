@@ -219,9 +219,9 @@ int main() {
 
 
 
-	// surface events
+	// surface, mouse, keyboard events
 	{
-		NRE_MAIN_SURFACE()->T_get_event<F_key_down_event>().T_push_back_listener(
+		NRE_KEYBOARD_MANAGER()->T_get_event<F_key_down_event>().T_push_back_listener(
 			[&](auto& e) {
 
 				auto& casted_e = (F_key_down_event&)e;
