@@ -360,23 +360,6 @@ int main() {
 				NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
 			};
 
-			// pre update mouse
-			{
-				if(mouse_lock)
-				{
-					center_mouse_pos = (
-						NRE_MAIN_SURFACE()->desc().offset
-						+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
-					);
-
-					auto mouse_pos = NRE_MOUSE_MANAGER()->mouse_position();
-					if(length(center_mouse_pos - mouse_pos) >= 200.0f) {
-						mouse_move = false;
-						NRE_MOUSE_MANAGER()->set_mouse_position(center_mouse_pos);
-					}
-				}
-			}
-
 			// update controller input
 			{
 				movement_input = F_vector2 {
@@ -397,8 +380,9 @@ int main() {
 				);
 			}
 
-			// move camera
+			// move and rotate camera
 			{
+				// move camera
 				F_vector3 local_move_dir = F_vector3{
 					movement_input * camera_move_speed * application_p->delta_seconds(),
 					0.0f
@@ -407,9 +391,9 @@ int main() {
 					camera_transform.tl3x3() * local_move_dir
 				) * camera_container_transform;
 
+				// rotate camera
 				F_vector2 rotate_angles = F_vector2(mouse_delta_pos) * camera_rotate_speed * application_p->delta_seconds();
 				rotate_angles = rotate_angles.yx();
-
 				camera_container_transform *= T_make_rotation(
 					F_vector3{
 						0.0f,
@@ -425,11 +409,26 @@ int main() {
 					}
 				);
 
+				// apply to camera world transform
 				camera_transform = camera_container_transform * camera_local_transform;
 			}
 
 			// late update mouse
 			{
+				if(mouse_lock)
+				{
+					center_mouse_pos = (
+						NRE_MAIN_SURFACE()->desc().offset
+						+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
+					);
+
+					auto mouse_pos = NRE_MOUSE_MANAGER()->mouse_position();
+					if(length(center_mouse_pos - mouse_pos) >= 200.0f) {
+						mouse_move = false;
+						NRE_MOUSE_MANAGER()->set_mouse_position(center_mouse_pos);
+					}
+				}
+
 				NRE_MOUSE_MANAGER()->set_mouse_visible(!mouse_lock);
 
 				mouse_delta_pos = F_vector2_i::zero();
