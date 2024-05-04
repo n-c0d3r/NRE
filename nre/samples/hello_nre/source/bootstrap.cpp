@@ -38,7 +38,7 @@ int main() {
 
 		NRE_TICK_BY_DURATION(1.0f)
 		{
-			NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
+			NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());
 		};
 
 	};

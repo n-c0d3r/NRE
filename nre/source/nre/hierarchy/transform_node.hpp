@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <nre/application/actor_component.hpp>
+#include <nre/actor/actor_component.hpp>
 
 
 
@@ -30,6 +30,7 @@ namespace nre {
 
 
 	public:
+		F_transform_node(TKPA_valid<F_actor> actor_p, PA_matrix4x4 initial_transform);
 		F_transform_node(TKPA_valid<F_actor> actor_p);
 		virtual ~F_transform_node();
 

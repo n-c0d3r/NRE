@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nre/application/actor_component.hpp>
+#include <nre/actor/actor_component.hpp>
 
 
 

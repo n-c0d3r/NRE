@@ -1,6 +1,6 @@
 #include <nre/rendering/camera.hpp>
 #include <nre/hierarchy/transform_node.hpp>
-#include <nre/application/actor.hpp>
+#include <nre/actor/actor.hpp>
 
 
 

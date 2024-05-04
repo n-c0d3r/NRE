@@ -1,0 +1,22 @@
+﻿#include <nre/actor/actor_component.hpp>
+#include <nre/actor/actor.hpp>
+
+
+
+namespace nre {
+
+	A_actor_component::A_actor_component(TK_valid<F_actor> actor_p) :
+		actor_p_(actor_p)
+	{
+	}
+	A_actor_component::~A_actor_component() {
+	}
+
+	void A_actor_component::gameplay_tick() {
+
+	}
+	void A_actor_component::render_tick() {
+
+	}
+
+}

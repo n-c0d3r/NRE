@@ -23,6 +23,8 @@ namespace nre {
 
 	protected:
 		G_string name_;
+		typename F_event::F_listener_handle gameplay_tick_event_listener_handle_;
+		typename F_event::F_listener_handle render_tick_event_listener_handle_;
 
 	public:
 		NCPP_FORCE_INLINE const G_string& name() const noexcept { return name_; }
@@ -59,6 +61,14 @@ namespace nre {
 			return keyed_actor_p;
 		}
 		void destroy_actor(TKPA_valid<F_actor> actor_p);
+
+	private:
+		void gameplay_tick_internal();
+		void render_tick_internal();
+
+	private:
+		void register_event_listeners();
+		void deregister_event_listeners();
 
 	};
 

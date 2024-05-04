@@ -1,5 +1,6 @@
-#include <nre/application/actor.hpp>
-#include <nre/application/level.hpp>
+#include <nre/actor/actor.hpp>
+#include <nre/actor/actor_component.hpp>
+#include <nre/actor/level.hpp>
 
 
 
@@ -20,9 +21,17 @@ namespace nre {
 
 	void F_actor::gameplay_tick() {
 
+		for(auto& component_p : component_vector_)
+		{
+			component_p->gameplay_tick();
+		}
 	}
 	void F_actor::render_tick() {
 
+		for(auto& component_p : component_vector_)
+		{
+			component_p->render_tick();
+		}
 	}
 
 }

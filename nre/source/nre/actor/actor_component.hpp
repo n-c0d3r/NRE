@@ -33,6 +33,10 @@ namespace nre {
 	public:
 		NCPP_DISABLE_COPY(A_actor_component);
 
+	protected:
+		virtual void gameplay_tick();
+		virtual void render_tick();
+
 	};
 
 }

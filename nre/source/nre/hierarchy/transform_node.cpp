@@ -4,6 +4,11 @@
 
 namespace nre {
 
+	F_transform_node::F_transform_node(TKPA_valid<F_actor> actor_p, PA_matrix4x4 initial_transform) :
+		A_actor_component(actor_p),
+		transform(initial_transform)
+	{
+	}
 	F_transform_node::F_transform_node(TKPA_valid<F_actor> actor_p) :
 		A_actor_component(actor_p),
 		transform(T_identity<F_matrix4x4>())

@@ -34,18 +34,6 @@ int main() {
 		F_vector3 { 0.0f, 0.0f, 5.0f }
 	);
 
-	F_matrix4x4 camera_container_transform = T_make_transform(
-		F_vector3 { 1.0f, 1.0f, 1.0f },
-		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
-		F_vector3 { 0.0f, 0.0f, -5.0f }
-	);
-	F_matrix4x4 camera_local_transform = T_make_transform(
-		F_vector3 { 1.0f, 1.0f, 1.0f },
-		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
-		F_vector3 { 0.0f, 0.0f, 0.0f }
-	);
-	F_matrix4x4 camera_transform = camera_container_transform * camera_local_transform;
-
 	F_matrix4x4 projection_matrix;
 
 	F_vector4 clear_color = { 0.3f, 0.3f, 0.3f, 1.0f };
@@ -224,18 +212,6 @@ int main() {
 
 	// movement settings
 	f32 object_rotate_speed = 1.0f;
-	f32 camera_move_speed = 4.0f;
-	f32 camera_rotate_speed = 1.0_pi;
-
-	// camera movement input
-	b8 go_forward = false;
-	b8 go_backward = false;
-	b8 go_right = false;
-	b8 go_left = false;
-	F_vector2 movement_input = F_vector2::zero();
-
-	// camera rotation input and mouse state
-	b8 mouse_lock = false;
 
 
 
@@ -260,63 +236,23 @@ int main() {
 				case E_keycode::ARROW_DOWN:
 					object_rotate_speed -= 0.5f;
 					break;
-				case E_keycode::W:
-					go_forward = true;
-					break;
-				case E_keycode::S:
-					go_backward = true;
-					break;
-				case E_keycode::D:
-					go_right = true;
-					break;
-				case E_keycode::A:
-					go_left = true;
-					break;
-				case E_keycode::ESCAPE:
-					mouse_lock = false;
-					break;
 				}
-			}
-		);
-		NRE_KEYBOARD()->T_get_event<F_key_up_event>().T_push_back_listener(
-			[&](auto& e) {
-
-				auto& casted_e = (F_key_down_event&)e;
-
-				switch (casted_e.keycode())
-				{
-				case E_keycode::W:
-					go_forward = false;
-					break;
-				case E_keycode::S:
-					go_backward = false;
-					break;
-				case E_keycode::D:
-					go_right = false;
-					break;
-				case E_keycode::A:
-					go_left = false;
-					break;
-				}
-			}
-		);
-		NRE_MOUSE()->T_get_event<F_mouse_button_down_event>().T_push_back_listener(
-			[&](auto& e) {
-
-				mouse_lock = true;
 			}
 		);
 	}
 
+
+
+	// create level
 	auto level_p = TU<F_level>()();
 
-	auto actor1_p = level_p->T_create_actor();
-	auto transform_node1_p = actor1_p->template T_add_component<F_transform_node>();
-	auto camera1_p = actor1_p->template T_add_component<F_camera>();
+	// create spectator
+	auto spectator_actor_p = level_p->T_create_actor();
+	spectator_actor_p->template T_add_component<F_transform_node>();
+	spectator_actor_p->template T_add_component<F_camera>();
+	auto spectator_p = spectator_actor_p->template T_add_component<F_spectator>();
 
-	auto actor2_p = level_p->T_create_actor();
-	auto transform_node2_p = actor2_p->template T_add_component<F_transform_node>();
-	transform_node2_p->set_parent_p(transform_node1_p.no_requirements());
+
 
 	// application events
 	{
@@ -332,23 +268,14 @@ int main() {
 			pshader_p.reset();
 			solid_pipeline_state_p.reset();
 			wireframe_pipeline_state_p.reset();
+		  	level_p.reset();
 		};
 		NRE_APPLICATION_GAMEPLAY_TICK(application_p) {
 
 			NRE_TICK_BY_DURATION(1.0f)
 			{
-				NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
+				NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());
 			};
-
-			// update controller input
-			{
-				movement_input = F_vector2 {
-					f32(go_right)
-					- f32(go_left),
-					f32(go_forward)
-					- f32(go_backward)
-				};
-			}
 
 			// rotate object
 			{
@@ -366,57 +293,6 @@ int main() {
 						-application_p->delta_seconds() * 0.4f
 					}
 				);
-			}
-
-			// move and rotate camera
-			if(mouse_lock)
-			{
-				// move camera
-				F_vector3 local_move_dir = F_vector3{
-					movement_input * camera_move_speed * application_p->delta_seconds(),
-					0.0f
-				}.xzy();
-				camera_container_transform = make_translation(
-					camera_transform.tl3x3() * local_move_dir
-				) * camera_container_transform;
-
-				// rotate camera
-				F_vector2 rotate_angles = (
-					F_vector2(NRE_MOUSE()->delta_position())
-					/ F_vector2(NRE_MAIN_SURFACE()->desc().size)
-					* camera_rotate_speed
-				);
-				rotate_angles = rotate_angles.yx();
-				camera_container_transform *= T_make_rotation(
-					F_vector3{
-						0.0f,
-						rotate_angles.y,
-						0.0f
-					}
-				);
-				camera_local_transform *= T_make_rotation(
-					F_vector3{
-						rotate_angles.x,
-						0.0f,
-						0.0f
-					}
-				);
-
-				// apply to camera world transform
-				camera_transform = camera_container_transform * camera_local_transform;
-			}
-
-			// update mouse
-			{
-				NRE_MOUSE()->set_mouse_visible(!mouse_lock);
-
-				if(mouse_lock)
-				{
-					NRE_MOUSE()->set_mouse_position(
-						NRE_MAIN_SURFACE()->desc().offset
-						+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
-					);
-				}
 			}
 
 		};
@@ -443,7 +319,9 @@ int main() {
 					100.0f
 				);
 				uniform_data.object_transform = object_transform;
-				uniform_data.view_transform = invert(camera_transform);
+				uniform_data.view_transform = invert(
+					spectator_p->transform_node_p()->transform
+				);
 				uniform_data.projection_matrix = projection_matrix;
 
 				// upload to GPU

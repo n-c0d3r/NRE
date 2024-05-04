@@ -107,7 +107,7 @@ namespace nre {
 			);
 		}
 
-	public:
+	protected:
 		virtual void gameplay_tick();
 		virtual void render_tick();
 
