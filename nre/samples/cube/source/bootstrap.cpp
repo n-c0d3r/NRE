@@ -185,15 +185,13 @@ int main() {
 
 	auto vshader_p = H_vertex_shader::create(
 		NRE_RENDER_DEVICE(),
-		{
-			.blob_p = shader_class_p->shader_blob_p("vmain")
-		}
-		);
+		NCPP_FOREF_VALID(shader_class_p),
+		"vmain"
+	);
 	auto pshader_p = H_pixel_shader::create(
 		NRE_RENDER_DEVICE(),
-		{
-			.blob_p = shader_class_p->shader_blob_p("pmain")
-		}
+		NCPP_FOREF_VALID(shader_class_p),
+		"pmain"
 	);
 
 	auto solid_pipeline_state_p = H_graphics_pipeline_state::create(
