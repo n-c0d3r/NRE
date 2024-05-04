@@ -347,10 +347,18 @@ int main() {
 			// rotate object
 			{
 				object_transform *= T_make_rotation(
-					object_rotate_speed * F_vector3 { 0.0f, application_p->delta_seconds(), 0.0f }
+					object_rotate_speed * F_vector3 {
+						0.0f,
+						application_p->delta_seconds(),
+						0.0f
+					}
 				);
 				object_transform *= T_make_rotation(
-					object_rotate_speed * F_vector3 { application_p->delta_seconds(), 0.0f, -application_p->delta_seconds() * 0.4f }
+					object_rotate_speed * F_vector3 {
+						application_p->delta_seconds(),
+						0.0f,
+						-application_p->delta_seconds() * 0.4f
+					}
 				);
 			}
 
