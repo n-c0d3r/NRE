@@ -417,9 +417,9 @@ int main() {
 		NRE_APPLICATION_RENDER_TICK(application_p) {
 
 			// get some essential objects
-			auto command_queue_p = NRE_RENDER_SYSTEM()->command_queue_p();
+			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
-			auto swapchain_p = NRE_RENDER_SYSTEM()->swapchain_p();
+			auto swapchain_p = NRE_RENDER_SWAPCHAIN();
 			auto main_frame_buffer_p = NRE_RENDER_SYSTEM()->main_frame_buffer_p();
 			auto main_rtv_p = main_frame_buffer_p->desc().color_attachments[0];
 
