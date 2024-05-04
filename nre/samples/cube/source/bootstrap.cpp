@@ -28,13 +28,12 @@ int main() {
 
 
 
+	f32 object_rotate_speed = 1.0f;
 	F_matrix4x4 object_transform = T_make_transform(
 		F_vector3 { 1.0f, 1.0f, 1.0f },
 		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
 		F_vector3 { 0.0f, 0.0f, 5.0f }
 	);
-
-	F_matrix4x4 projection_matrix;
 
 	F_vector4 clear_color = { 0.3f, 0.3f, 0.3f, 1.0f };
 
@@ -130,11 +129,6 @@ int main() {
 
 
 
-	// movement settings
-	f32 object_rotate_speed = 1.0f;
-
-
-
 	// surface, mouse, keyboard events
 	{
 		NRE_KEYBOARD()->T_get_event<F_key_down_event>().T_push_back_listener(
@@ -169,7 +163,7 @@ int main() {
 	// create spectator
 	auto spectator_actor_p = level_p->T_create_actor();
 	spectator_actor_p->template T_add_component<F_transform_node>();
-	spectator_actor_p->template T_add_component<F_camera>();
+	auto camera_p = spectator_actor_p->template T_add_component<F_camera>();
 	auto spectator_p = spectator_actor_p->template T_add_component<F_spectator>();
 
 
@@ -231,16 +225,11 @@ int main() {
 			// update dynamic data from CPU to GPU
 			{
 				// prepare data
-				projection_matrix = T_projection_matrix(
-					F_vector2 { 0.5_pi, NRE_MAIN_SURFACE()->aspect_ratio() },
-					1.0f,
-					100.0f
-				);
 				uniform_data.object_transform = object_transform;
 				uniform_data.view_transform = invert(
 					spectator_p->transform_node_p()->transform
 				);
-				uniform_data.projection_matrix = projection_matrix;
+				uniform_data.projection_matrix = camera_p->projection_matrix();
 
 				// upload to GPU
 				main_command_list_p->update_resource_data(

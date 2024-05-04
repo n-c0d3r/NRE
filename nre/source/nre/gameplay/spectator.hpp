@@ -40,7 +40,7 @@ namespace nre {
 		virtual ~F_spectator();
 
 	protected:
-		virtual void gameplay_tick();
+		virtual void gameplay_tick() override;
 
 	private:
 		void register_event_listeners();
