@@ -57,6 +57,10 @@ int main() {
 					{
 						.name = "POSITION",
 						.format = E_format::R32G32B32_FLOAT
+					},
+					{
+						.name = "NORMAL",
+						.format = E_format::R32G32B32_FLOAT
 					}
 				}
 			}

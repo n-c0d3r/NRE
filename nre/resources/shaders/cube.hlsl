@@ -7,15 +7,26 @@ cbuffer uniform_data : register(b0) {
 
 }
 
-float4 vmain(float3 local_position : POSITION) : SV_POSITION {
+struct F_vertex_to_pixel {
+
+    float4 clip_position : SV_POSITION;
+    float3 local_normal : NORMAL;
+
+};
+
+F_vertex_to_pixel vmain(float3 local_position : POSITION, float3 local_normal : NORMAL) {
 
     float3 world_position = mul(object_transform, float4(local_position, 1.0f)).xyz;
     float3 view_space_position = mul(view_transform, float4(world_position, 1.0f)).xyz;
 
-    return mul(projection_matrix, float4(view_space_position, 1.0f));
+    F_vertex_to_pixel output;
+    output.clip_position = mul(projection_matrix, float4(view_space_position, 1.0f));
+    output.local_normal = local_normal;
+
+    return output;
 }
 
-float4 pmain(float4 clip_position : SV_POSITION) : SV_TARGET {
+float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
-    return float4(1, 1, 1, 1);
+    return float4(input.local_normal, 1);
 }
