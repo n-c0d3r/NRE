@@ -37,6 +37,7 @@ int main() {
 		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
 		F_vector3 { 0.0f, 0.0f, 5.0f }
 	);
+
 	F_matrix4x4 camera_container_transform = T_make_transform(
 		F_vector3 { 1.0f, 1.0f, 1.0f },
 		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
