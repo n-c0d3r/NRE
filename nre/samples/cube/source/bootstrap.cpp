@@ -336,6 +336,8 @@ int main() {
 			NRE_TICK_BY_DURATION(1.0f)
 			{
 				NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
+
+				log_memory_stats();
 			};
 
 			// update controller input
@@ -371,7 +373,11 @@ int main() {
 				) * camera_container_transform;
 
 				// rotate camera
-				F_vector2 rotate_angles = F_vector2(NRE_MOUSE()->delta_position()) * camera_rotate_speed / F_vector2(NRE_MAIN_SURFACE()->desc().size);// * application_p->delta_seconds();
+				F_vector2 rotate_angles = (
+					F_vector2(NRE_MOUSE()->delta_position())
+					/ F_vector2(NRE_MAIN_SURFACE()->desc().size)
+					* camera_rotate_speed
+				);
 				rotate_angles = rotate_angles.yx();
 				camera_container_transform *= T_make_rotation(
 					F_vector3{
@@ -481,11 +487,11 @@ int main() {
 			}
 
 			// submit command lists to GPU
-	  		command_queue_p->execute_command_lists(
-		  		NCPP_INIL_SPAN(
-					main_command_list_p
-		  		)
-	  		);
+			command_queue_p->execute_command_lists(
+				NCPP_INIL_SPAN(
+				  main_command_list_p
+				)
+			);
 
 		};
 	}
