@@ -235,7 +235,7 @@ int main() {
 	F_vector2 movement_input = F_vector2::zero();
 
 	// camera rotation input and mouse state
-	b8 mouse_lock = true;
+	b8 mouse_lock = false;
 
 
 
@@ -308,7 +308,15 @@ int main() {
 		);
 	}
 
+	auto level_p = TU<F_level>()();
 
+	auto actor1_p = level_p->T_create_actor();
+	auto transform_node1_p = actor1_p->template T_add_component<F_transform_node>();
+	auto camera1_p = actor1_p->template T_add_component<F_camera>();
+
+	auto actor2_p = level_p->T_create_actor();
+	auto transform_node2_p = actor2_p->template T_add_component<F_transform_node>();
+	transform_node2_p->set_parent_p(transform_node1_p.no_requirements());
 
 	// application events
 	{
@@ -330,8 +338,6 @@ int main() {
 			NRE_TICK_BY_DURATION(1.0f)
 			{
 				NCPP_INFO() << "application gameplay tick, fps: " << T_cout_value(application_p->fps());
-
-				log_memory_stats();
 			};
 
 			// update controller input

@@ -7,7 +7,7 @@
 
 namespace nre {
 
-	class A_asset {
+	class NRE_API A_asset {
 
 	public:
 		friend class F_asset_system;
@@ -19,6 +19,9 @@ namespace nre {
 
 	public:
 		virtual ~A_asset();
+
+	public:
+		NCPP_DISABLE_COPY(A_asset);
 
 	protected:
 		virtual void build(const F_asset_buffer& buffer) = 0;

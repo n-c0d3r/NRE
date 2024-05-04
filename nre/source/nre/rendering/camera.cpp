@@ -1,26 +1,17 @@
 #include <nre/rendering/camera.hpp>
+#include <nre/hierarchy/transform_node.hpp>
+#include <nre/application/actor.hpp>
 
 
 
 namespace nre {
 
-	F_camera::F_camera(const G_string& name) {
-
+	F_camera::F_camera(TKPA_valid<F_actor> actor_p) :
+		A_actor_component(actor_p),
+		transform_node_p_(actor_p->template T_get_component<F_transform_node>())
+	{
 	}
 	F_camera::~F_camera() {
-
-	}
-
-
-
-	F_camera_actor::F_camera_actor(TK_valid<F_level> level_p, const G_string& name) :
-		F_actor(level_p, name),
-		camera_p_(TU<F_camera>()(name))
-	{
-
-	}
-	F_camera_actor::~F_camera_actor() {
-
 	}
 
 }

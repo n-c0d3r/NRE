@@ -11,7 +11,7 @@ namespace nre {
 
 
 
-	class F_level {
+	class NRE_API F_level final {
 
 	public:
 		friend class F_actor;
@@ -19,14 +19,14 @@ namespace nre {
 
 
 	private:
-		TG_list<TK_valid<F_actor>> actor_p_list_;
+		TG_list<TU<F_actor>> actor_p_list_;
 
 	protected:
 		G_string name_;
 
 	public:
-		NCPP_FORCE_INLINE const TG_list<TK_valid<F_actor>>& actor_p_list() const noexcept { return actor_p_list_; }
 		NCPP_FORCE_INLINE const G_string& name() const noexcept { return name_; }
+		NCPP_FORCE_INLINE void set_name(V_string value) noexcept { name_ = value; }
 
 
 
@@ -34,9 +34,31 @@ namespace nre {
 		F_level(const G_string& name = "No name");
 		~F_level();
 
-	private:
-		typename TG_list<TK_valid<F_actor>>::iterator push_actor(TK_valid<F_actor> actor_p);
-		void pop_actor(TK_valid<F_actor> actor_p);
+	public:
+		NCPP_DISABLE_COPY(F_level);
+
+	public:
+		template<typename F_actor__ = F_actor, typename... F_args__>
+		requires T_is_object_down_castable<F_actor__, F_actor>
+			&& requires(F_args__&&&... args)
+			{
+				F_actor__(TK_valid<F_level>(), std::forward<F_args__>(args)...);
+			}
+		TK_valid<F_actor__> T_create_actor(F_args__&&... args)
+		{
+			auto actor_p = TU<F_actor__>()(
+				NCPP_KTHIS(),
+				std::forward<F_args__>(args)...
+			);
+
+			auto keyed_actor_p = NCPP_FOREF_VALID(actor_p);
+
+			actor_p_list_.push_back(std::move(actor_p));
+			keyed_actor_p->handle_ = --(actor_p_list_.end());
+
+			return keyed_actor_p;
+		}
+		void destroy_actor(TKPA_valid<F_actor> actor_p);
 
 	};
 

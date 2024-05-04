@@ -70,6 +70,9 @@ namespace nre {
 		}
 
 	public:
+		NCPP_DISABLE_COPY(TF_mesh_buffer);
+
+	public:
 		void upload() {
 
 			auto& data = mesh_p_->data_;
@@ -124,6 +127,7 @@ namespace nre {
 
 	public:
 		NCPP_FORCE_INLINE const G_string& name() const noexcept { return name_; }
+		NCPP_FORCE_INLINE void set_name(V_string value) noexcept { name_ = value; }
 		NCPP_FORCE_INLINE const F_data& data() const noexcept { return data_; }
 		NCPP_FORCE_INLINE TKPA_valid<F_buffer> buffer_p() const noexcept { return NCPP_FOREF_VALID(buffer_p_); }
 
@@ -140,6 +144,9 @@ namespace nre {
 		~TF_mesh() {
 
 		}
+
+	public:
+		NCPP_DISABLE_COPY(TF_mesh);
 
 	public:
 		void update(const F_data& data)

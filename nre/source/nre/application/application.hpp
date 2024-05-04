@@ -92,6 +92,9 @@ namespace nre {
 		~F_application();
 
 	public:
+		NCPP_DISABLE_COPY(F_application);
+
+	public:
 		void start();
 
 	};

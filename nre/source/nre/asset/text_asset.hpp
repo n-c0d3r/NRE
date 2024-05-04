@@ -7,7 +7,7 @@
 
 namespace nre {
 
-	class F_text_asset : public A_asset {
+	class NRE_API F_text_asset : public A_asset {
 
 	public:
 		G_wstring content;
@@ -17,6 +17,9 @@ namespace nre {
 	public:
 		F_text_asset();
 		~F_text_asset();
+
+	public:
+		NCPP_DISABLE_COPY(F_text_asset);
 
 	public:
 		virtual void build(const F_asset_buffer& buffer) override;

@@ -7,13 +7,22 @@ namespace nre {
 
 	F_actor::F_actor(TK_valid<F_level> level_p, const G_string& name) :
 		level_p_(level_p),
-		name_(name),
-		handle_(level_p->push_actor(NCPP_KTHIS()))
+		name_(name)
 	{
 	}
 	F_actor::~F_actor() {
 
-		level_p_->pop_actor(NCPP_KTHIS());
+		for(i32 i = component_vector_.size() - 1; i >= 0; --i)
+		{
+			component_vector_[i].reset();
+		}
+	}
+
+	void F_actor::gameplay_tick() {
+
+	}
+	void F_actor::render_tick() {
+
 	}
 
 }

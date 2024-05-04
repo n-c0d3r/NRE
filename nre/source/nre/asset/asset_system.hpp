@@ -28,6 +28,9 @@ namespace nre {
 		F_asset_system();
 		~F_asset_system();
 
+	public:
+		NCPP_DISABLE_COPY(F_asset_system);
+
 	private:
 		std::optional<G_string> find_absolute_path(const G_string& path);
 
