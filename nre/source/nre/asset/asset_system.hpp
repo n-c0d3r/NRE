@@ -45,23 +45,31 @@ namespace nre {
 
 				const auto& abs_path = abs_path_opt.value();
 
-				std::ifstream fstream(abs_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-
-				std::ifstream::pos_type file_size = fstream.tellg();
-				fstream.seekg(0, std::ios::beg);
-
-				if (file_size == -1)
-					return {};
-
-				F_asset_buffer asset_buffer;
-				if (file_size)
-				{
-					asset_buffer.resize(file_size);
-					fstream.read((char*)asset_buffer.data(), file_size);
-				}
-
 				auto asset_p = TS<F_asset__>()();
-				asset_p->build(asset_buffer);
+
+				if(asset_p->use_manual_build())
+				{
+					asset_p->manual_build(abs_path);
+				}
+				else
+				{
+					std::ifstream fstream(abs_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+
+					std::ifstream::pos_type file_size = fstream.tellg();
+					fstream.seekg(0, std::ios::beg);
+
+					if (file_size == -1)
+						return {};
+
+					F_asset_buffer asset_buffer;
+					if (file_size)
+					{
+						asset_buffer.resize(file_size);
+						fstream.read((char*)asset_buffer.data(), file_size);
+					}
+
+					asset_p->build(asset_buffer);
+				}
 
 				return std::move(asset_p);
 			}

@@ -11,7 +11,7 @@ namespace nre {
 		F_vector3_f32 position;
 		F_vector3_f32 normal;
 		F_vector3_f32 tangent;
-		F_vector3_f32 uv;
+		F_vector4_f32 uv;
 
 	};
 

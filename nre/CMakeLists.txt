@@ -80,8 +80,9 @@ target_precompile_headers(nre
 
 target_include_directories(nre
     PUBLIC 
-        ${CMAKE_CURRENT_SOURCE_DIR}/source
-        ${CMAKE_CURRENT_BINARY_DIR}/generated_files
+        "${CMAKE_CURRENT_SOURCE_DIR}/source"
+        "${CMAKE_CURRENT_BINARY_DIR}/generated_files"
+        "${NRE_SUBMODULES_DIR}/OBJ-Loader/Source"
 )
 
 target_link_libraries(nre

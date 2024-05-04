@@ -24,7 +24,9 @@ namespace nre {
 		NCPP_DISABLE_COPY(A_asset);
 
 	protected:
-		virtual void build(const F_asset_buffer& buffer) = 0;
+		virtual void build(const F_asset_buffer& buffer);
+		virtual void manual_build(V_string path);
+		virtual b8 use_manual_build();
 
 	};
 

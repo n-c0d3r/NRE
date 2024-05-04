@@ -17,6 +17,16 @@ namespace nre {
 
 
 
+	struct F_submesh_header
+	{
+		u32 vertex_count = 0;
+		u32 index_count = 0;
+		u32 base_vertex_location = 0;
+		u32 base_index_location = 0;
+	};
+
+
+
 	template<typename F_vertex__ = F_vertex>
 	struct TF_mesh_data {
 
@@ -25,12 +35,42 @@ namespace nre {
 
 		using F_vertex_vector = TG_vector<F_vertex>;
 		using F_index_vector = TG_vector<u32>;
+		using F_submesh_header_vector = TG_vector<F_submesh_header>;
 
 
 
 	public:
 		F_vertex_vector vertices;
 		F_index_vector indices;
+		F_submesh_header_vector submesh_headers;
+
+	};
+
+	template<typename F_vertex__ = F_vertex>
+	struct TH_mesh_data {
+
+	public:
+		using F_data = TF_mesh_data<F_vertex__>;
+
+
+
+	public:
+		static F_data create(
+			const TG_vector<F_vertex__>& vertices,
+			const TG_vector<u32>& indices
+		)
+		{
+			return {
+				vertices,
+				indices,
+				{
+					F_submesh_header {
+						.vertex_count = vertices.size(),
+						.index_count = indices.size()
+					}
+				}
+			};
+		}
 
 	};
 
@@ -43,24 +83,24 @@ namespace nre {
 		using F_vertex = F_vertex__;
 
 		using F_data = TF_mesh_data<F_vertex>;
-		using TF_mesh = TF_mesh<F_vertex>;
+		using F_mesh = TF_mesh<F_vertex>;
 
 
 
 	private:
-		TK_valid<TF_mesh> mesh_p_;
+		TK_valid<F_mesh> mesh_p_;
 		U_buffer_handle vertex_buffer_p_;
 		U_buffer_handle index_buffer_p_;
 
 	public:
-		NCPP_FORCE_INLINE TKPA_valid<TF_mesh> mesh_p() const noexcept { return mesh_p_; }
-		NCPP_FORCE_INLINE K_buffer_handle vertex_buffer_p() const noexcept { return NCPP_FOREF_VALID(vertex_buffer_p_); }
-		NCPP_FORCE_INLINE K_buffer_handle index_buffer_p() const noexcept { return NCPP_FOREF_VALID(index_buffer_p_); }
+		NCPP_FORCE_INLINE TKPA_valid<F_mesh> mesh_p() const noexcept { return mesh_p_; }
+		NCPP_FORCE_INLINE K_buffer_handle vertex_buffer_p() const noexcept { return vertex_buffer_p_.keyed(); }
+		NCPP_FORCE_INLINE K_buffer_handle index_buffer_p() const noexcept { return index_buffer_p_.keyed(); }
 
 
 
 	public:
-		TF_mesh_buffer(TKPA_valid<TF_mesh> mesh_p) :
+		TF_mesh_buffer(TKPA_valid<F_mesh> mesh_p) :
 			mesh_p_(mesh_p)
 		{
 
@@ -75,7 +115,7 @@ namespace nre {
 	public:
 		void upload() {
 
-			auto& data = mesh_p_->data_;
+			auto& data = mesh_p_->data;
 
 			if(vertex_buffer_p_)
 				vertex_buffer_p_.reset();
@@ -122,24 +162,21 @@ namespace nre {
 
 	private:
 		G_string name_;
-		F_data data_;
-		TU<F_buffer> buffer_p_;
+
+	public:
+		F_data data;
 
 	public:
 		NCPP_FORCE_INLINE const G_string& name() const noexcept { return name_; }
 		NCPP_FORCE_INLINE void set_name(V_string value) noexcept { name_ = value; }
-		NCPP_FORCE_INLINE const F_data& data() const noexcept { return data_; }
-		NCPP_FORCE_INLINE TKPA_valid<F_buffer> buffer_p() const noexcept { return NCPP_FOREF_VALID(buffer_p_); }
 
 
 
 	public:
-		TF_mesh(const G_string& name, const F_data& data = {}) :
+		TF_mesh(const F_data& data_in = {}, const G_string& name = "") :
 			name_(name),
-			data_(data),
-			buffer_p_(TU<F_buffer>()(NCPP_KTHIS()))
+			data(data_in)
 		{
-			buffer_p_->upload();
 		}
 		~TF_mesh() {
 
@@ -148,18 +185,12 @@ namespace nre {
 	public:
 		NCPP_DISABLE_COPY(TF_mesh);
 
-	public:
-		void update(const F_data& data)
-		{
-			data_ = data;
-			buffer_p_->upload();
-		}
-
 	};
 
 
 
 	using F_mesh_data = TF_mesh_data<>;
+	using H_mesh_data = TH_mesh_data<>;
 	using F_mesh_buffer = TF_mesh_buffer<>;
 	using F_mesh = TF_mesh<>;
 

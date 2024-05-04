@@ -1,0 +1,34 @@
+#pragma once
+
+#include <nre/prerequisites.hpp>
+#include <nre/asset/asset.hpp>
+#include <nre/rendering/mesh.hpp>
+
+
+
+namespace nre {
+
+	class NRE_API F_obj_mesh_asset : public A_asset {
+
+	private:
+		TU<F_mesh> mesh_p_;
+
+	public:
+		NCPP_FORCE_INLINE TK_valid<F_mesh> mesh_p() const noexcept { return NCPP_FOREF_VALID(mesh_p_); }
+
+
+
+	public:
+		F_obj_mesh_asset();
+		~F_obj_mesh_asset();
+
+	public:
+		NCPP_DISABLE_COPY(F_obj_mesh_asset);
+
+	public:
+		virtual void manual_build(V_string path) override;
+		virtual b8 use_manual_build() override ;
+
+	};
+
+}

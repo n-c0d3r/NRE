@@ -38,6 +38,10 @@ int main() {
 
 	F_vector4 clear_color = { 0.3f, 0.3f, 0.3f, 1.0f };
 
+	auto cube_asset_p = NRE_ASSET_SYSTEM()->T_load_asset<F_obj_mesh_asset>("models/cube.obj");
+	auto cube_buffer_p = TU<F_mesh_buffer>()(cube_asset_p->mesh_p());
+	cube_buffer_p->upload();
+
 	TG_vector<F_vertex> vertices = {
 		{
 			.position = { -0.5f, -0.5f, -0.5f }
