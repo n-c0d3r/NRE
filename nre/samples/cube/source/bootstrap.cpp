@@ -42,94 +42,6 @@ int main() {
 	auto cube_buffer_p = TU<F_mesh_buffer>()(cube_asset_p->mesh_p());
 	cube_buffer_p->upload();
 
-	TG_vector<F_vertex> vertices = {
-		{
-			.position = { -0.5f, -0.5f, -0.5f }
-		},
-		{
-			.position = { -0.5f, -0.5f, 0.5f }
-		},
-		{
-			.position = { -0.5f, 0.5f, -0.5f }
-		},
-		{
-			.position = { -0.5f, 0.5f, 0.5f }
-		},
-		{
-			.position = { 0.5f, -0.5f, -0.5f }
-		},
-		{
-			.position = { 0.5f, -0.5f, 0.5f }
-		},
-		{
-			.position = { 0.5f, 0.5f, -0.5f }
-		},
-		{
-			.position = { 0.5f, 0.5f, 0.5f }
-		}
-	};
-	U_buffer_handle vbuffer_p = H_buffer::T_create<F_vertex>(
-		NRE_RENDER_DEVICE(),
-		vertices,
-		E_resource_bind_flag::VBV
-	);
-
-	TG_vector<u32> indices = {
-		// forward face
-		((1) * 4 + (0) * 2 + (1)),
-		((0) * 4 + (1) * 2 + (1)),
-		((0) * 4 + (0) * 2 + (1)),
-		((1) * 4 + (0) * 2 + (1)),
-		((1) * 4 + (1) * 2 + (1)),
-		((0) * 4 + (1) * 2 + (1)),
-
-		// back face
-		((1) * 4 + (0) * 2 + (0)),
-		((0) * 4 + (0) * 2 + (0)),
-		((0) * 4 + (1) * 2 + (0)),
-		((1) * 4 + (0) * 2 + (0)),
-		((0) * 4 + (1) * 2 + (0)),
-		((1) * 4 + (1) * 2 + (0)),
-
-		// right face
-		((1) * 4 + (0) * 2 + (1)),
-		((1) * 4 + (0) * 2 + (0)),
-		((1) * 4 + (1) * 2 + (0)),
-		((1) * 4 + (0) * 2 + (1)),
-		((1) * 4 + (1) * 2 + (0)),
-		((1) * 4 + (1) * 2 + (1)),
-
-		// left face
-		((0) * 4 + (0) * 2 + (1)),
-		((0) * 4 + (1) * 2 + (0)),
-		((0) * 4 + (0) * 2 + (0)),
-		((0) * 4 + (0) * 2 + (1)),
-		((0) * 4 + (1) * 2 + (1)),
-		((0) * 4 + (1) * 2 + (0)),
-
-		// up face
-		((1) * 4 + (1) * 2 + (0)),
-		((0) * 4 + (1) * 2 + (0)),
-		((0) * 4 + (1) * 2 + (1)),
-		((1) * 4 + (1) * 2 + (0)),
-		((0) * 4 + (1) * 2 + (1)),
-		((1) * 4 + (1) * 2 + (1)),
-
-		// down face
-		((1) * 4 + (0) * 2 + (0)),
-		((0) * 4 + (0) * 2 + (1)),
-		((0) * 4 + (0) * 2 + (0)),
-		((1) * 4 + (0) * 2 + (0)),
-		((1) * 4 + (0) * 2 + (1)),
-		((0) * 4 + (0) * 2 + (1))
-	};
-	U_buffer_handle ibuffer_p = H_buffer::T_create<u32>(
-		NRE_RENDER_DEVICE(),
-		indices,
-		E_format::R32_UINT,
-		E_resource_bind_flag::IBV
-	);
-
 	F_uniform_data uniform_data;
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
 		NRE_RENDER_DEVICE(),
@@ -265,8 +177,6 @@ int main() {
 		NRE_APPLICATION_SHUTDOWN(application_p) {
 			// these objects are depends on render device that is destroyed when the main surface closed (before the end of the main function),
 			// so we need to release them before the application is released
-			vbuffer_p.reset();
-			ibuffer_p.reset();
 			cbuffer_p.reset();
 			vshader_p.reset();
 			pshader_p.reset();
@@ -345,12 +255,12 @@ int main() {
 				);
 
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FHANDLE_VALID(vbuffer_p),
+					cube_buffer_p->vertex_buffer_p(),
 					0,
 					0
 				);
 				main_command_list_p->ZIA_bind_index_buffer(
-					NCPP_FHANDLE_VALID(ibuffer_p),
+					cube_buffer_p->index_buffer_p(),
 					0
 				);
 
@@ -369,7 +279,7 @@ int main() {
 				);
 
 				main_command_list_p->draw_indexed(
-					indices.size(),
+					cube_asset_p->mesh_p()->data.indices.size(),
 					0,
 					0
 				);
