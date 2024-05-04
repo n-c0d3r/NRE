@@ -469,7 +469,7 @@ int main() {
 				main_command_list_p->ZVS_bind_constant_buffer(
 					NCPP_FHANDLE_VALID(cbuffer_p),
 					0
-					);
+				);
 
 				main_command_list_p->ZPS_bind_constant_buffer(
 					NCPP_FHANDLE_VALID(cbuffer_p),
