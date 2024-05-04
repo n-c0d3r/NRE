@@ -28,10 +28,6 @@ int main() {
 
 
 
-	f32 object_rotate_speed = 1.0f;
-	f32 camera_move_speed = 4.0f;
-	f32 camera_rotate_speed = 1.0_pi;
-
 	F_matrix4x4 object_transform = T_make_transform(
 		F_vector3 { 1.0f, 1.0f, 1.0f },
 		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
@@ -226,18 +222,19 @@ int main() {
 
 
 
-	// constroller input
+	// movement settings
+	f32 object_rotate_speed = 1.0f;
+	f32 camera_move_speed = 4.0f;
+	f32 camera_rotate_speed = 1.0_pi;
+
+	// camera movement input
 	b8 go_forward = false;
 	b8 go_backward = false;
 	b8 go_right = false;
 	b8 go_left = false;
-
 	F_vector2 movement_input = F_vector2::zero();
 
-	F_vector2_i center_mouse_pos = (
-		NRE_MAIN_SURFACE()->desc().offset
-		+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
-	);
+	// camera rotation input and mouse state
 	b8 mouse_lock = true;
 
 
@@ -316,10 +313,8 @@ int main() {
 	// application events
 	{
 		NRE_APPLICATION_STARTUP(application_p) {
-
 		};
 		NRE_APPLICATION_SHUTDOWN(application_p) {
-
 			// these objects are depends on render device that is destroyed when the main surface closed (before the end of the main function),
 			// so we need to release them before the application is released
 			vbuffer_p.reset();
@@ -403,18 +398,17 @@ int main() {
 
 				if(mouse_lock)
 				{
-					center_mouse_pos = (
+					NRE_MOUSE()->set_mouse_position(
 						NRE_MAIN_SURFACE()->desc().offset
 						+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
 					);
-
-					NRE_MOUSE()->set_mouse_position(center_mouse_pos);
 				}
 			}
 
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p) {
 
+			// get some essential objects
 			auto command_queue_p = NRE_RENDER_SYSTEM()->command_queue_p();
 			auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
 			auto swapchain_p = NRE_RENDER_SYSTEM()->swapchain_p();
