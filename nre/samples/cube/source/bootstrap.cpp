@@ -332,7 +332,7 @@ int main() {
 				);
 
 				main_command_list_p->draw_indexed(
-					cube_asset_p->mesh_p()->data.indices.size(),
+					cube_asset_p->mesh_p()->index_count(),
 					0,
 					0
 				);

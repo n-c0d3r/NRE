@@ -106,6 +106,7 @@ namespace nre {
 		NCPP_FORCE_INLINE TKPA_valid<A_mesh> mesh_p() const noexcept { return mesh_p_; }
 
 		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const = 0;
+		virtual TG_span<K_buffer_handle> vertex_buffer_p_span() const = 0;
 		virtual K_buffer_handle index_buffer_p() const = 0;
 
 
@@ -134,6 +135,7 @@ namespace nre {
 
 	public:
 		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const override { return vertex_buffer_p_array_[index].keyed(); }
+		virtual TG_span<K_buffer_handle> vertex_buffer_p_span() const override { return vertex_buffer_p_array_; }
 		virtual K_buffer_handle index_buffer_p() const override { return index_buffer_p_.keyed(); }
 
 
@@ -213,6 +215,13 @@ namespace nre {
 	class A_mesh
 	{
 
+	public:
+		virtual u32 vertex_channel_count() const = 0;
+		virtual u32 vertex_count() const = 0;
+		virtual u32 index_count() const = 0;
+
+
+
 	protected:
 		A_mesh() = default;
 
@@ -242,6 +251,18 @@ namespace nre {
 	public:
 		NCPP_FORCE_INLINE const G_string& name() const noexcept { return name_; }
 		NCPP_FORCE_INLINE void set_name(V_string value) noexcept { name_ = value; }
+		virtual u32 vertex_channel_count() const override
+		{
+			return sizeof...(F_vertex_channel_datas__);
+		}
+		virtual u32 vertex_count() const override
+		{
+			return data.vertex_count();
+		}
+		virtual u32 index_count() const override
+		{
+			return data.indices.size();
+		}
 
 
 
