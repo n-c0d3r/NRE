@@ -8,6 +8,9 @@
 
 namespace nre {
 
+	class A_mesh_buffer;
+	class A_mesh;
+
 	template<typename... F_vertex_channel_datas__>
 	struct TF_mesh_data;
 	template<typename... F_vertex_channel_datas__>
@@ -31,7 +34,7 @@ namespace nre {
 	struct TF_mesh_data {
 
 	public:
-		using F_vertex_channel_data_tuple = TG_tuple<F_vertex_channel_datas__...>;
+		using F_vertex_channel_data_targ_list = TF_template_targ_list<F_vertex_channel_datas__...>;
 
 		using F_vertex_channels = TG_tuple<TG_vector<F_vertex_channel_datas__>...>;
 		using F_indices = TG_vector<u32>;
@@ -56,6 +59,8 @@ namespace nre {
 	struct TH_mesh_data {
 
 	public:
+		using F_vertex_channel_data_targ_list = TF_template_targ_list<F_vertex_channel_datas__...>;
+
 		using F_data = TF_mesh_data<F_vertex_channel_datas__...>;
 
 
@@ -94,14 +99,19 @@ namespace nre {
 	class A_mesh_buffer
 	{
 
+	protected:
+		TK_valid<A_mesh> mesh_p_;
+
 	public:
+		NCPP_FORCE_INLINE TKPA_valid<A_mesh> mesh_p() const noexcept { return mesh_p_; }
+
 		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const = 0;
 		virtual K_buffer_handle index_buffer_p() const = 0;
 
 
 
 	protected:
-		A_mesh_buffer() = default;
+		A_mesh_buffer(TKPA_valid<A_mesh> mesh_p);
 
 	public:
 		virtual ~A_mesh_buffer() = default;
@@ -111,18 +121,18 @@ namespace nre {
 	class TF_mesh_buffer : public A_mesh_buffer {
 
 	public:
+		using F_vertex_channel_data_targ_list = TF_template_targ_list<F_vertex_channel_datas__...>;
+
 		using F_data = TF_mesh_data<F_vertex_channel_datas__...>;
 		using F_mesh = TF_mesh<F_vertex_channel_datas__...>;
 
 
 
 	private:
-		TK_valid<F_mesh> mesh_p_;
 		TG_array<U_buffer_handle, sizeof...(F_vertex_channel_datas__)> vertex_buffer_p_array_;
 		U_buffer_handle index_buffer_p_;
 
 	public:
-		NCPP_FORCE_INLINE TKPA_valid<F_mesh> mesh_p() const noexcept { return mesh_p_; }
 		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const override { return vertex_buffer_p_array_[index].keyed(); }
 		virtual K_buffer_handle index_buffer_p() const override { return index_buffer_p_.keyed(); }
 
@@ -130,7 +140,7 @@ namespace nre {
 
 	public:
 		TF_mesh_buffer(TKPA_valid<F_mesh> mesh_p) :
-			mesh_p_(mesh_p)
+			A_mesh_buffer(mesh_p)
 		{
 
 		}
@@ -144,7 +154,7 @@ namespace nre {
 	public:
 		void upload() {
 
-			auto& data = mesh_p_->data;
+			auto& data = mesh_p_.T_cast<F_mesh>()->data;
 
 			using F_vertex_channel_indices = TF_template_targ_list<F_vertex_channel_datas__...>::F_indices;
 
@@ -200,8 +210,19 @@ namespace nre {
 
 
 
+	class A_mesh
+	{
+
+	protected:
+		A_mesh() = default;
+
+	public:
+		virtual ~A_mesh() = default;
+
+	};
+
 	template<typename... F_vertex_channel_datas__>
-	class TF_mesh {
+	class TF_mesh : public A_mesh {
 
 	public:
 		using F_data = TF_mesh_data<F_vertex_channel_datas__...>;
