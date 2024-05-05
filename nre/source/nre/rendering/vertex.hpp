@@ -15,4 +15,9 @@ namespace nre {
 
 	};
 
+	using F_vertex_position = F_vector3_f32;
+	using F_vertex_normal = F_vector3_f32;
+	using F_vertex_tangent = F_vector3_f32;
+	using F_vertex_uv = F_vector4_f32;
+
 }

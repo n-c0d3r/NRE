@@ -52,11 +52,13 @@ int main() {
 	F_input_assembler_desc input_assembler_desc = {
 		.vertex_attribute_groups = {
 			{
-				{
+				{ // vertex position buffer
 					{
 						.name = "POSITION",
 						.format = E_format::R32G32B32_FLOAT
-					},
+					}
+				},
+				{ // vertex normal buffer
 					{
 						.name = "NORMAL",
 						.format = E_format::R32G32B32_FLOAT
@@ -248,9 +250,14 @@ int main() {
 				);
 
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					cube_buffer_p->vertex_buffer_p(),
+					cube_buffer_p->vertex_buffer_p(0), // vertex position buffer
 					0,
 					0
+					);
+				main_command_list_p->ZIA_bind_vertex_buffer(
+					cube_buffer_p->vertex_buffer_p(1), // vertex normal buffer
+					0,
+					1
 				);
 				main_command_list_p->ZIA_bind_index_buffer(
 					cube_buffer_p->index_buffer_p(),

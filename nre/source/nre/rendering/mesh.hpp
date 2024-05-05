@@ -8,11 +8,11 @@
 
 namespace nre {
 
-	template<typename F_vertex__>
+	template<typename... F_vertex_channel_datas__>
 	struct TF_mesh_data;
-	template<typename F_vertex__>
+	template<typename... F_vertex_channel_datas__>
 	class TF_mesh_buffer;
-	template<typename F_vertex__>
+	template<typename... F_vertex_channel_datas__>
 	class TF_mesh;
 
 
@@ -27,75 +27,104 @@ namespace nre {
 
 
 
-	template<typename F_vertex__ = F_vertex>
+	template<typename... F_vertex_channel_datas__>
 	struct TF_mesh_data {
 
 	public:
-		using F_vertex = F_vertex__;
+		using F_vertex_channel_data_tuple = TG_tuple<F_vertex_channel_datas__...>;
 
-		using F_vertex_vector = TG_vector<F_vertex>;
-		using F_index_vector = TG_vector<u32>;
+		using F_vertex_channels = TG_tuple<TG_vector<F_vertex_channel_datas__>...>;
+		using F_indices = TG_vector<u32>;
 		using F_submesh_header_vector = TG_vector<F_submesh_header>;
 
 
 
 	public:
-		F_vertex_vector vertices;
-		F_index_vector indices;
+		F_vertex_channels vertex_channels;
+		F_indices indices;
 		F_submesh_header_vector submesh_headers;
+
+	public:
+		NCPP_FORCE_INLINE u32 vertex_count() const noexcept
+		{
+			return eastl::get<0>(vertex_channels).size();
+		}
 
 	};
 
-	template<typename F_vertex__ = F_vertex>
+	template<typename... F_vertex_channel_datas__>
 	struct TH_mesh_data {
 
 	public:
-		using F_data = TF_mesh_data<F_vertex__>;
+		using F_data = TF_mesh_data<F_vertex_channel_datas__...>;
 
 
 
 	public:
 		static F_data create(
-			const TG_vector<F_vertex__>& vertices,
-			const TG_vector<u32>& indices
+			const TG_vector<F_vertex_channel_datas__>&... vertex_channels,
+			const typename F_data::F_indices& indices
 		)
 		{
 			return {
-				vertices,
+				vertex_channels...,
 				indices,
 				{
 					F_submesh_header {
-						.vertex_count = vertices.size(),
+						.vertex_count = get_first_vertex_channel_internal(vertex_channels).size(),
 						.index_count = indices.size()
 					}
 				}
 			};
 		}
 
+	private:
+		static const TG_vector<TF_first_template_targ<F_vertex_channel_datas__...>>& get_first_vertex_channel_internal(
+			const auto& first_vertex_channel,
+			const auto&... rest_vertex_channels
+		)
+		{
+			return first_vertex_channel;
+		}
+
 	};
 
 
 
-	template<typename F_vertex__ = F_vertex>
-	class TF_mesh_buffer {
+	class A_mesh_buffer
+	{
 
 	public:
-		using F_vertex = F_vertex__;
+		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const = 0;
+		virtual K_buffer_handle index_buffer_p() const = 0;
 
-		using F_data = TF_mesh_data<F_vertex>;
-		using F_mesh = TF_mesh<F_vertex>;
+
+
+	protected:
+		A_mesh_buffer() = default;
+
+	public:
+		virtual ~A_mesh_buffer() = default;
+	};
+
+	template<typename... F_vertex_channel_datas__>
+	class TF_mesh_buffer : public A_mesh_buffer {
+
+	public:
+		using F_data = TF_mesh_data<F_vertex_channel_datas__...>;
+		using F_mesh = TF_mesh<F_vertex_channel_datas__...>;
 
 
 
 	private:
 		TK_valid<F_mesh> mesh_p_;
-		U_buffer_handle vertex_buffer_p_;
+		TG_array<U_buffer_handle, sizeof...(F_vertex_channel_datas__)> vertex_buffer_p_array_;
 		U_buffer_handle index_buffer_p_;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_mesh> mesh_p() const noexcept { return mesh_p_; }
-		NCPP_FORCE_INLINE K_buffer_handle vertex_buffer_p() const noexcept { return vertex_buffer_p_.keyed(); }
-		NCPP_FORCE_INLINE K_buffer_handle index_buffer_p() const noexcept { return index_buffer_p_.keyed(); }
+		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const override { return vertex_buffer_p_array_[index].keyed(); }
+		virtual K_buffer_handle index_buffer_p() const override { return index_buffer_p_.keyed(); }
 
 
 
@@ -117,18 +146,19 @@ namespace nre {
 
 			auto& data = mesh_p_->data;
 
-			if(vertex_buffer_p_)
-				vertex_buffer_p_.reset();
+			using F_vertex_channel_indices = TF_template_targ_list<F_vertex_channel_datas__...>::F_indices;
+
+			for(auto& vertex_buffer_p : vertex_buffer_p_array_)
+			{
+				if(vertex_buffer_p)
+					vertex_buffer_p.reset();
+			}
 			if(index_buffer_p_)
 				index_buffer_p_.reset();
 
-			if(data.vertices.size()) {
-
-				vertex_buffer_p_ = H_buffer::T_create<F_vertex>(
-					NRE_RENDER_SYSTEM()->device_p(),
-					data.vertices,
-					E_resource_bind_flag::VBV
-				);
+			if(data.vertex_count())
+			{
+				TF_upload_vertex_buffers_helper<F_vertex_channel_indices>::invoke(*this, data);
 			}
 
 			if(data.indices.size()) {
@@ -142,18 +172,40 @@ namespace nre {
 			}
 		}
 
+	private:
+		template<typename F__>
+		struct TF_upload_vertex_buffers_helper;
+
+	};
+
+	template<typename... F_vertex_channel_datas__>
+	template<sz... indices>
+	struct TF_mesh_buffer<F_vertex_channel_datas__...>::TF_upload_vertex_buffers_helper<TF_template_varg_list<indices...>>
+	{
+		static void invoke(TF_mesh_buffer<F_vertex_channel_datas__...>& mesh_buffer, TF_mesh_data<F_vertex_channel_datas__...>& data)
+		{
+			using F_vertex_channel_data_targ_list = TF_template_targ_list<F_vertex_channel_datas__...>;
+
+			mesh_buffer.vertex_buffer_p_array_ = {
+				(
+					H_buffer::T_create<F_vertex_channel_data_targ_list::template TF_at<indices>>(
+						NRE_RENDER_SYSTEM()->device_p(),
+						eastl::get<indices>(data.vertex_channels),
+						E_resource_bind_flag::VBV
+					)
+				)...
+			};
+		}
 	};
 
 
 
-	template<typename F_vertex__ = F_vertex>
+	template<typename... F_vertex_channel_datas__>
 	class TF_mesh {
 
 	public:
-		using F_vertex = F_vertex__;
-
-		using F_data = TF_mesh_data<F_vertex>;
-		using F_buffer = TF_mesh_buffer<F_vertex>;
+		using F_data = TF_mesh_data<F_vertex_channel_datas__...>;
+		using F_buffer = TF_mesh_buffer<F_vertex_channel_datas__...>;
 
 	public:
 		friend F_buffer;
@@ -189,9 +241,29 @@ namespace nre {
 
 
 
-	using F_mesh_data = TF_mesh_data<>;
-	using H_mesh_data = TH_mesh_data<>;
-	using F_mesh_buffer = TF_mesh_buffer<>;
-	using F_mesh = TF_mesh<>;
+	using F_mesh_data = TF_mesh_data<
+		F_vertex_position,
+		F_vertex_normal,
+		F_vertex_tangent,
+		F_vertex_uv
+	>;
+	using H_mesh_data = TH_mesh_data<
+		F_vertex_position,
+		F_vertex_normal,
+		F_vertex_tangent,
+		F_vertex_uv
+	>;
+	using F_mesh_buffer = TF_mesh_buffer<
+		F_vertex_position,
+		F_vertex_normal,
+		F_vertex_tangent,
+		F_vertex_uv
+	>;
+	using F_mesh = TF_mesh<
+		F_vertex_position,
+		F_vertex_normal,
+		F_vertex_tangent,
+		F_vertex_uv
+	>;
 
 }

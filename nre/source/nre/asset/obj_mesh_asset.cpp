@@ -19,7 +19,10 @@ namespace nre {
 
 		if(loader.LoadFile(path->c_str()))
 		{
-			TG_vector<F_vertex> vertices;
+			TG_vector<F_vertex_position> vertex_positions;
+			TG_vector<F_vertex_normal> vertex_normals;
+			TG_vector<F_vertex_tangent> vertex_tangents;
+			TG_vector<F_vertex_uv> vertex_uvs;
 			TG_vector<u32> indices;
 			TG_vector<F_submesh_header> submesh_headers;
 
@@ -31,7 +34,10 @@ namespace nre {
 				index_count += loaded_mesh.Indices.size();
 			}
 
-			vertices.resize(vertex_count);
+			vertex_positions.resize(vertex_count);
+			vertex_normals.resize(vertex_count);
+			vertex_tangents.resize(vertex_count);
+			vertex_uvs.resize(vertex_count);
 			indices.resize(index_count);
 			submesh_headers.resize(loader.LoadedMeshes.size());
 
@@ -44,11 +50,10 @@ namespace nre {
 				for(u32 j = 0; j < loaded_mesh.Vertices.size(); ++j)
 				{
 					const auto& vertex = loaded_mesh.Vertices[j];
-					vertices[base_vertex_location + j] = F_vertex {
-						.position = { vertex.Position.X, vertex.Position.Y, vertex.Position.Z },
-						.normal = { vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z },
-						.uv = { vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y, 0.0f, 0.0f }
-					};
+					vertex_positions[base_vertex_location + j] = F_vertex_position { vertex.Position.X, vertex.Position.Y, vertex.Position.Z };
+					vertex_normals[base_vertex_location + j] = F_vertex_normal { vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z };
+					vertex_tangents[base_vertex_location + j] = F_vertex_tangent::zero();
+					vertex_uvs[base_vertex_location + j] = F_vertex_uv { vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y, 0.0f, 0.0f };
 				}
 				memcpy(
 					(u32*)(indices.data() + base_index_location),
@@ -67,7 +72,12 @@ namespace nre {
 			}
 
 			F_mesh_data mesh_data = {
-				std::move(vertices),
+				{
+					std::move(vertex_positions),
+					std::move(vertex_normals),
+					std::move(vertex_tangents),
+					std::move(vertex_uvs),
+				},
 				std::move(indices),
 				std::move(submesh_headers)
 			};
