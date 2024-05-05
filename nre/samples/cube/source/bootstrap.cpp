@@ -32,7 +32,7 @@ int main() {
 	F_matrix4x4 object_transform = T_make_transform(
 		F_vector3 { 1.0f, 1.0f, 1.0f },
 		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
-		F_vector3 { 0.0f, 0.0f, 5.0f }
+		F_vector3 { 0.0f, 0.0f, 0.0f }
 	);
 
 	F_vector4 clear_color = { 0.3f, 0.3f, 0.3f, 1.0f };
@@ -63,6 +63,12 @@ int main() {
 						.name = "NORMAL",
 						.format = E_format::R32G32B32_FLOAT
 					}
+				},
+				{ // vertex uv buffer
+					{
+						.name = "UV",
+						.format = E_format::R32G32B32A32_FLOAT
+					}
 				}
 			}
 		}
@@ -82,7 +88,25 @@ int main() {
 			},
 			F_shader_kernel_desc {
 				.blob_desc = {
-					.name = "pmain",
+					.name = "pmain_white",
+					.type = E_shader_type::PIXEL
+				}
+			},
+			F_shader_kernel_desc {
+				.blob_desc = {
+					.name = "pmain_show_world_position",
+					.type = E_shader_type::PIXEL
+				}
+			},
+			F_shader_kernel_desc {
+				.blob_desc = {
+					.name = "pmain_show_world_normal",
+					.type = E_shader_type::PIXEL
+				}
+			},
+			F_shader_kernel_desc {
+				.blob_desc = {
+					.name = "pmain_show_uv",
 					.type = E_shader_type::PIXEL
 				}
 			}
@@ -94,40 +118,90 @@ int main() {
 		NCPP_FOREF_VALID(shader_class_p),
 		"vmain"
 	);
-	auto pshader_p = H_pixel_shader::create(
+	auto white_pshader_p = H_pixel_shader::create(
 		NRE_RENDER_DEVICE(),
 		NCPP_FOREF_VALID(shader_class_p),
-		"pmain"
+		"pmain_white"
+		);
+	auto show_world_position_pshader_p = H_pixel_shader::create(
+		NRE_RENDER_DEVICE(),
+		NCPP_FOREF_VALID(shader_class_p),
+		"pmain_show_world_position"
+		);
+	auto show_world_normal_pshader_p = H_pixel_shader::create(
+		NRE_RENDER_DEVICE(),
+		NCPP_FOREF_VALID(shader_class_p),
+		"pmain_show_world_normal"
+		);
+	auto show_uv_pshader_p = H_pixel_shader::create(
+		NRE_RENDER_DEVICE(),
+		NCPP_FOREF_VALID(shader_class_p),
+		"pmain_show_uv"
 	);
 
-	auto solid_pipeline_state_p = H_graphics_pipeline_state::create(
-		NRE_RENDER_DEVICE(),
-		{
-			.rasterizer_desc = {
-				.cull_mode = E_cull_mode::BACK,
-				.fill_mode = E_fill_mode::SOLID
-			},
-			.shader_p_vector = {
-				NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
-				NCPP_FHANDLE_VALID_AS_OREF(pshader_p)
+	TG_vector<U_graphics_pipeline_state_handle> pipeline_state_p_vector;
+	pipeline_state_p_vector.push_back(
+		H_graphics_pipeline_state::create(
+			NRE_RENDER_DEVICE(),
+			{
+				.rasterizer_desc = {
+					.cull_mode = E_cull_mode::BACK,
+					.fill_mode = E_fill_mode::SOLID
+				},
+				.shader_p_vector = {
+					NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
+					NCPP_FHANDLE_VALID_AS_OREF(white_pshader_p)
+				}
 			}
-		}
+		)
 	);
-	auto wireframe_pipeline_state_p = H_graphics_pipeline_state::create(
-		NRE_RENDER_DEVICE(),
-		{
-			.rasterizer_desc = {
-				.cull_mode = E_cull_mode::NONE,
-				.fill_mode = E_fill_mode::WIREFRAME
-			},
-			.shader_p_vector = {
-				NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
-				NCPP_FHANDLE_VALID_AS_OREF(pshader_p)
+	pipeline_state_p_vector.push_back(
+		H_graphics_pipeline_state::create(
+			NRE_RENDER_DEVICE(),
+			{
+				.rasterizer_desc = {
+					.cull_mode = E_cull_mode::BACK,
+					.fill_mode = E_fill_mode::SOLID
+				},
+				.shader_p_vector = {
+					NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
+					NCPP_FHANDLE_VALID_AS_OREF(show_world_position_pshader_p)
+				}
 			}
-		}
+		)
+	);
+	pipeline_state_p_vector.push_back(
+		H_graphics_pipeline_state::create(
+			NRE_RENDER_DEVICE(),
+			{
+				.rasterizer_desc = {
+					.cull_mode = E_cull_mode::BACK,
+					.fill_mode = E_fill_mode::SOLID
+				},
+				.shader_p_vector = {
+					NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
+					NCPP_FHANDLE_VALID_AS_OREF(show_world_normal_pshader_p)
+				}
+			}
+		)
+	);
+	pipeline_state_p_vector.push_back(
+		H_graphics_pipeline_state::create(
+			NRE_RENDER_DEVICE(),
+			{
+				.rasterizer_desc = {
+					.cull_mode = E_cull_mode::BACK,
+					.fill_mode = E_fill_mode::SOLID
+				},
+				.shader_p_vector = {
+					NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
+					NCPP_FHANDLE_VALID_AS_OREF(show_uv_pshader_p)
+				}
+			}
+		)
 	);
 
-	auto pipeline_state_p = NCPP_FHANDLE_VALID(solid_pipeline_state_p);
+	auto pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[0]);
 
 
 
@@ -141,10 +215,16 @@ int main() {
 				switch (casted_e.keycode())
 				{
 				case E_keycode::_1:
-					pipeline_state_p = solid_pipeline_state_p;
+					pipeline_state_p = pipeline_state_p_vector[0];
 					break;
 				case E_keycode::_2:
-					pipeline_state_p = wireframe_pipeline_state_p;
+					pipeline_state_p = pipeline_state_p_vector[1];
+					break;
+				case E_keycode::_3:
+					pipeline_state_p = pipeline_state_p_vector[2];
+					break;
+				case E_keycode::_4:
+					pipeline_state_p = pipeline_state_p_vector[3];
 					break;
 				case E_keycode::ARROW_UP:
 					object_rotate_speed += 0.5f;
@@ -164,9 +244,11 @@ int main() {
 
 	// create spectator
 	auto spectator_actor_p = level_p->T_create_actor();
-	spectator_actor_p->template T_add_component<F_transform_node>();
-	auto camera_p = spectator_actor_p->template T_add_component<F_camera>();
+	auto spectator_transform_node_p = spectator_actor_p->template T_add_component<F_transform_node>();
+	auto spectator_camera_p = spectator_actor_p->template T_add_component<F_camera>();
 	auto spectator_p = spectator_actor_p->template T_add_component<F_spectator>();
+
+	spectator_p->position = F_vector3 { 0.0f, 0.0f, -10.0f };
 
 
 
@@ -179,9 +261,11 @@ int main() {
 			// so we need to release them before the application is released
 			cbuffer_p.reset();
 			vshader_p.reset();
-			pshader_p.reset();
-			solid_pipeline_state_p.reset();
-			wireframe_pipeline_state_p.reset();
+			white_pshader_p.reset();
+			show_world_position_pshader_p.reset();
+			show_world_normal_pshader_p.reset();
+			show_uv_pshader_p.reset();
+			pipeline_state_p_vector.clear();
 		  	level_p.reset();
 		};
 		NRE_APPLICATION_GAMEPLAY_TICK(application_p) {
@@ -231,7 +315,7 @@ int main() {
 				uniform_data.view_transform = invert(
 					spectator_p->transform_node_p()->transform
 				);
-				uniform_data.projection_matrix = camera_p->projection_matrix();
+				uniform_data.projection_matrix = spectator_camera_p->projection_matrix();
 
 				// upload to GPU
 				main_command_list_p->update_resource_data(
@@ -253,11 +337,16 @@ int main() {
 					cube_buffer_p->vertex_buffer_p(0), // vertex position buffer
 					0,
 					0
-					);
+				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
 					cube_buffer_p->vertex_buffer_p(1), // vertex normal buffer
 					0,
 					1
+				);
+				main_command_list_p->ZIA_bind_vertex_buffer(
+					cube_buffer_p->vertex_buffer_p(3), // vertex normal buffer
+					0,
+					2
 				);
 				main_command_list_p->ZIA_bind_index_buffer(
 					cube_buffer_p->index_buffer_p(),
