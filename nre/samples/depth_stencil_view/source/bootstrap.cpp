@@ -203,6 +203,42 @@ int main() {
 
 	// surface, mouse, keyboard events
 	{
+		NRE_MAIN_SURFACE()->T_get_event<F_surface_resize_event>().T_push_back_listener(
+			[&](auto& e) {
+
+				// release objects
+				frame_buffer_p.reset();
+				dsv_p.reset();
+				depth_texture_2d_p.reset();
+
+				// re-create objects
+				depth_texture_2d_p = H_texture::create_2d(
+					NRE_RENDER_DEVICE(),
+					{},
+					NRE_MAIN_SURFACE()->desc().size.x,
+					NRE_MAIN_SURFACE()->desc().size.y,
+					E_format::D32_FLOAT,
+					1,
+					{},
+					E_resource_bind_flag::DSV
+				);
+				dsv_p = H_resource_view::create_dsv(
+					NRE_RENDER_DEVICE(),
+					{
+						.resource_p = NCPP_FHANDLE_VALID_AS_OREF(depth_texture_2d_p)
+					}
+				);
+				frame_buffer_p = H_frame_buffer::create(
+					NRE_RENDER_DEVICE(),
+					{
+						.color_attachments = {
+							NRE_RENDER_SWAPCHAIN()->back_rtv_p()
+						},
+						.depth_stencil_attachment = dsv_p
+					}
+				);
+			}
+		);
 		NRE_KEYBOARD()->T_get_event<F_key_down_event>().T_push_back_listener(
 			[&](auto& e) {
 
