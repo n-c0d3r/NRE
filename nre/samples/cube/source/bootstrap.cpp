@@ -38,7 +38,7 @@ int main() {
 	F_vector4 clear_color = { 0.3f, 0.3f, 0.3f, 1.0f };
 
 	auto cube_asset_p = NRE_ASSET_SYSTEM()->T_load_asset<F_obj_mesh_asset>("models/cube.obj");
-	auto cube_buffer_p = TU<F_mesh_buffer>()(cube_asset_p->mesh_p());
+	auto cube_buffer_p = TU<F_static_mesh_buffer>()(cube_asset_p->mesh_p());
 	cube_buffer_p->upload();
 
 	F_uniform_data uniform_data;
@@ -182,16 +182,16 @@ int main() {
 				switch (casted_e.keycode())
 				{
 				case E_keycode::_1:
-					pipeline_state_p = pipeline_state_p_vector[0];
+					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[0]);
 					break;
 				case E_keycode::_2:
-					pipeline_state_p = pipeline_state_p_vector[1];
+					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[1]);
 					break;
 				case E_keycode::_3:
-					pipeline_state_p = pipeline_state_p_vector[2];
+					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[2]);
 					break;
 				case E_keycode::_4:
-					pipeline_state_p = pipeline_state_p_vector[3];
+					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[3]);
 					break;
 				case E_keycode::ARROW_UP:
 					object_rotate_speed += 0.5f;
@@ -298,22 +298,22 @@ int main() {
 				);
 
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					cube_buffer_p->vertex_buffer_p(0), // vertex position buffer
+					NCPP_FHANDLE_VALID(cube_buffer_p->vertex_buffer_p(0)), // vertex position buffer
 					0,
 					0
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					cube_buffer_p->vertex_buffer_p(1), // vertex normal buffer
+					NCPP_FHANDLE_VALID(cube_buffer_p->vertex_buffer_p(1)), // vertex normal buffer
 					0,
 					1
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					cube_buffer_p->vertex_buffer_p(3), // vertex normal buffer
+					NCPP_FHANDLE_VALID(cube_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
 					0,
 					2
 				);
 				main_command_list_p->ZIA_bind_index_buffer(
-					cube_buffer_p->index_buffer_p(),
+					NCPP_FHANDLE_VALID(cube_buffer_p->index_buffer_p()),
 					0
 				);
 
@@ -332,7 +332,7 @@ int main() {
 				);
 
 				main_command_list_p->draw_indexed(
-					cube_asset_p->mesh_p()->index_count(),
+					cube_asset_p->mesh_p()->indices().size(),
 					0,
 					0
 				);

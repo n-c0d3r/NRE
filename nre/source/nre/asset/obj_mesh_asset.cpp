@@ -1,5 +1,5 @@
 #include <nre/asset/obj_mesh_asset.hpp>
-#include <nre/rendering/mesh.hpp>
+#include <nre/rendering/static_mesh.hpp>
 #include <OBJ_Loader.h>
 
 
@@ -24,7 +24,7 @@ namespace nre {
 			TG_vector<F_vertex_tangent> vertex_tangents;
 			TG_vector<F_vertex_uv> vertex_uvs;
 			TG_vector<u32> indices;
-			TG_vector<F_submesh_header> submesh_headers;
+			TG_vector<F_static_submesh_header> submesh_headers;
 
 			u32 vertex_count = 0;
 			u32 index_count = 0;
@@ -71,18 +71,16 @@ namespace nre {
 				base_index_location += loaded_mesh.Indices.size();
 			}
 
-			F_mesh_data mesh_data = {
-				{
+			mesh_p_ = TU<F_static_mesh>()(
+				typename F_static_mesh::F_vertex_channels {
 					std::move(vertex_positions),
 					std::move(vertex_normals),
 					std::move(vertex_tangents),
-					std::move(vertex_uvs),
+					std::move(vertex_uvs)
 				},
 				std::move(indices),
 				std::move(submesh_headers)
-			};
-
-			mesh_p_ = TU<F_mesh>()(mesh_data);
+			);
 		}
 	}
 	b8 F_obj_mesh_asset::use_manual_build()
