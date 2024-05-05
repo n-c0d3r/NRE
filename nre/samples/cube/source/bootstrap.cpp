@@ -118,88 +118,55 @@ int main() {
 		NCPP_FOREF_VALID(shader_class_p),
 		"vmain"
 	);
-	auto white_pshader_p = H_pixel_shader::create(
-		NRE_RENDER_DEVICE(),
-		NCPP_FOREF_VALID(shader_class_p),
-		"pmain_white"
-		);
-	auto show_world_position_pshader_p = H_pixel_shader::create(
-		NRE_RENDER_DEVICE(),
-		NCPP_FOREF_VALID(shader_class_p),
-		"pmain_show_world_position"
-		);
-	auto show_world_normal_pshader_p = H_pixel_shader::create(
-		NRE_RENDER_DEVICE(),
-		NCPP_FOREF_VALID(shader_class_p),
-		"pmain_show_world_normal"
-		);
-	auto show_uv_pshader_p = H_pixel_shader::create(
-		NRE_RENDER_DEVICE(),
-		NCPP_FOREF_VALID(shader_class_p),
-		"pmain_show_uv"
+	TG_vector<U_pixel_shader_handle> pshader_p_vector;
+	pshader_p_vector.push_back(
+		H_pixel_shader::create(
+			NRE_RENDER_DEVICE(),
+			NCPP_FOREF_VALID(shader_class_p),
+			"pmain_white"
+		)
+	);
+	pshader_p_vector.push_back(
+		H_pixel_shader::create(
+			NRE_RENDER_DEVICE(),
+			NCPP_FOREF_VALID(shader_class_p),
+			"pmain_show_world_position"
+		)
+	);
+	pshader_p_vector.push_back(
+		H_pixel_shader::create(
+			NRE_RENDER_DEVICE(),
+			NCPP_FOREF_VALID(shader_class_p),
+			"pmain_show_world_normal"
+		)
+	);
+	pshader_p_vector.push_back(
+		H_pixel_shader::create(
+			NRE_RENDER_DEVICE(),
+			NCPP_FOREF_VALID(shader_class_p),
+			"pmain_show_uv"
+		)
 	);
 
 	TG_vector<U_graphics_pipeline_state_handle> pipeline_state_p_vector;
-	pipeline_state_p_vector.push_back(
-		H_graphics_pipeline_state::create(
-			NRE_RENDER_DEVICE(),
-			{
-				.rasterizer_desc = {
-					.cull_mode = E_cull_mode::BACK,
-					.fill_mode = E_fill_mode::SOLID
-				},
-				.shader_p_vector = {
-					NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
-					NCPP_FHANDLE_VALID_AS_OREF(white_pshader_p)
+	for(const auto& pshader_p : pshader_p_vector)
+	{
+		pipeline_state_p_vector.push_back(
+			H_graphics_pipeline_state::create(
+				NRE_RENDER_DEVICE(),
+				{
+					.rasterizer_desc = {
+						.cull_mode = E_cull_mode::BACK,
+						.fill_mode = E_fill_mode::SOLID
+					},
+					.shader_p_vector = {
+						NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
+						NCPP_FHANDLE_VALID_AS_OREF(pshader_p)
+					}
 				}
-			}
-		)
-	);
-	pipeline_state_p_vector.push_back(
-		H_graphics_pipeline_state::create(
-			NRE_RENDER_DEVICE(),
-			{
-				.rasterizer_desc = {
-					.cull_mode = E_cull_mode::BACK,
-					.fill_mode = E_fill_mode::SOLID
-				},
-				.shader_p_vector = {
-					NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
-					NCPP_FHANDLE_VALID_AS_OREF(show_world_position_pshader_p)
-				}
-			}
-		)
-	);
-	pipeline_state_p_vector.push_back(
-		H_graphics_pipeline_state::create(
-			NRE_RENDER_DEVICE(),
-			{
-				.rasterizer_desc = {
-					.cull_mode = E_cull_mode::BACK,
-					.fill_mode = E_fill_mode::SOLID
-				},
-				.shader_p_vector = {
-					NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
-					NCPP_FHANDLE_VALID_AS_OREF(show_world_normal_pshader_p)
-				}
-			}
-		)
-	);
-	pipeline_state_p_vector.push_back(
-		H_graphics_pipeline_state::create(
-			NRE_RENDER_DEVICE(),
-			{
-				.rasterizer_desc = {
-					.cull_mode = E_cull_mode::BACK,
-					.fill_mode = E_fill_mode::SOLID
-				},
-				.shader_p_vector = {
-					NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
-					NCPP_FHANDLE_VALID_AS_OREF(show_uv_pshader_p)
-				}
-			}
-		)
-	);
+			)
+		);
+	}
 
 	auto pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[0]);
 
@@ -261,10 +228,7 @@ int main() {
 			// so we need to release them before the application is released
 			cbuffer_p.reset();
 			vshader_p.reset();
-			white_pshader_p.reset();
-			show_world_position_pshader_p.reset();
-			show_world_normal_pshader_p.reset();
-			show_uv_pshader_p.reset();
+			pshader_p_vector.clear();
 			pipeline_state_p_vector.clear();
 		  	level_p.reset();
 		};
