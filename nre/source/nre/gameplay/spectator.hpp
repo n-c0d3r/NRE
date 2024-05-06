@@ -25,7 +25,7 @@ namespace nre {
 	public:
 		f32 move_speed = 4.0f;
 		f32 rotate_speed = 1.0_pi;
-		b8 mouse_lock = true;
+		b8 mouse_lock = false;
 
 		F_vector3 position = F_vector3::zero();
 		F_vector3 euler_angles = F_vector3::zero();

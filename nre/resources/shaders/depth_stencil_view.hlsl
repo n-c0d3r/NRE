@@ -38,7 +38,7 @@ F_vertex_to_pixel vmain(
 float4 pmain_lambert_lighting(F_vertex_to_pixel input) : SV_TARGET {
 
     float t = dot(input.world_normal, float3(0, 1, 0));
-    return float4(1, 1, 1, 1) * lerp(0.7f, 0.15f, t * 0.5f + 0.5f);
+    return float4(1, 1, 1, 1) * lerp(0.075f, 0.7f, t * 0.5f + 0.5f);
 }
 float4 pmain_show_world_position(F_vertex_to_pixel input) : SV_TARGET {
 

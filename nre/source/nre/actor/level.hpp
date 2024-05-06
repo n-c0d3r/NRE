@@ -53,7 +53,7 @@ namespace nre {
 				std::forward<F_args__>(args)...
 			);
 
-			auto keyed_actor_p = NCPP_FOREF_VALID(actor_p);
+			auto keyed_actor_p = NCPP_FOH_VALID(actor_p);
 
 			actor_p_list_.push_back(std::move(actor_p));
 			keyed_actor_p->handle_ = --(actor_p_list_.end());

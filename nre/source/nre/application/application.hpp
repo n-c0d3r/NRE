@@ -216,22 +216,22 @@ namespace nre::internal
 #define NRE_MAIN_SURFACE(...) (NRE_APPLICATION()->main_surface_p())
 #define NRE_APPLICATION_STARTUP(...) \
 	nre::internal::F_application_startup_caller NCPP_GLUE(___nre_application_startup___, NCPP_LINE) ( \
-		NCPP_FOREF_VALID(__VA_ARGS__)                        \
+		NCPP_FOH_VALID(__VA_ARGS__)                        \
 	); \
 	NCPP_GLUE(___nre_application_startup___, NCPP_LINE) = [&](auto&)
 #define NRE_APPLICATION_SHUTDOWN(...) \
 	nre::internal::F_application_shutdown_caller NCPP_GLUE(___nre_application_shutdown___, NCPP_LINE) ( \
-		NCPP_FOREF_VALID(__VA_ARGS__)                        \
+		NCPP_FOH_VALID(__VA_ARGS__)                        \
 	); \
 	NCPP_GLUE(___nre_application_shutdown___, NCPP_LINE) = [&](auto&)
 #define NRE_APPLICATION_GAMEPLAY_TICK(...) \
 	nre::internal::F_application_gameplay_tick_caller NCPP_GLUE(___nre_application_gameplay_tick___, NCPP_LINE) ( \
-		NCPP_FOREF_VALID(__VA_ARGS__)                        \
+		NCPP_FOH_VALID(__VA_ARGS__)                        \
 	); \
 	NCPP_GLUE(___nre_application_gameplay_tick___, NCPP_LINE) = [&](auto&)
 #define NRE_APPLICATION_RENDER_TICK(...) \
 	nre::internal::F_application_render_tick_caller NCPP_GLUE(___nre_application_render_tick___, NCPP_LINE) ( \
-		NCPP_FOREF_VALID(__VA_ARGS__)                        \
+		NCPP_FOH_VALID(__VA_ARGS__)                        \
 	); \
 	NCPP_GLUE(___nre_application_render_tick___, NCPP_LINE) = [&](auto&)
 

@@ -115,35 +115,35 @@ int main() {
 
 	auto vshader_p = H_vertex_shader::create(
 		NRE_RENDER_DEVICE(),
-		NCPP_FOREF_VALID(shader_class_p),
+		NCPP_FOH_VALID(shader_class_p),
 		"vmain"
 	);
 	TG_vector<U_pixel_shader_handle> pshader_p_vector;
 	pshader_p_vector.push_back(
 		H_pixel_shader::create(
 			NRE_RENDER_DEVICE(),
-			NCPP_FOREF_VALID(shader_class_p),
+			NCPP_FOH_VALID(shader_class_p),
 			"pmain_white"
 		)
 	);
 	pshader_p_vector.push_back(
 		H_pixel_shader::create(
 			NRE_RENDER_DEVICE(),
-			NCPP_FOREF_VALID(shader_class_p),
+			NCPP_FOH_VALID(shader_class_p),
 			"pmain_show_world_position"
 		)
 	);
 	pshader_p_vector.push_back(
 		H_pixel_shader::create(
 			NRE_RENDER_DEVICE(),
-			NCPP_FOREF_VALID(shader_class_p),
+			NCPP_FOH_VALID(shader_class_p),
 			"pmain_show_world_normal"
 		)
 	);
 	pshader_p_vector.push_back(
 		H_pixel_shader::create(
 			NRE_RENDER_DEVICE(),
-			NCPP_FOREF_VALID(shader_class_p),
+			NCPP_FOH_VALID(shader_class_p),
 			"pmain_show_uv"
 		)
 	);
@@ -160,15 +160,15 @@ int main() {
 						.fill_mode = E_fill_mode::SOLID
 					},
 					.shader_p_vector = {
-						NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
-						NCPP_FHANDLE_VALID_AS_OREF(pshader_p)
+						NCPP_AOH_VALID(vshader_p),
+						NCPP_AOH_VALID(pshader_p)
 					}
 				}
 			)
 		);
 	}
 
-	auto pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[0]);
+	auto pipeline_state_p = NCPP_FOH_VALID(pipeline_state_p_vector[0]);
 
 
 
@@ -182,16 +182,16 @@ int main() {
 				switch (casted_e.keycode())
 				{
 				case E_keycode::_1:
-					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[0]);
+					pipeline_state_p = NCPP_FOH_VALID(pipeline_state_p_vector[0]);
 					break;
 				case E_keycode::_2:
-					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[1]);
+					pipeline_state_p = NCPP_FOH_VALID(pipeline_state_p_vector[1]);
 					break;
 				case E_keycode::_3:
-					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[2]);
+					pipeline_state_p = NCPP_FOH_VALID(pipeline_state_p_vector[2]);
 					break;
 				case E_keycode::_4:
-					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[3]);
+					pipeline_state_p = NCPP_FOH_VALID(pipeline_state_p_vector[3]);
 					break;
 				case E_keycode::ARROW_UP:
 					object_rotate_speed += 0.5f;
@@ -283,7 +283,7 @@ int main() {
 
 				// upload to GPU
 				main_command_list_p->update_resource_data(
-					NCPP_FHANDLE_VALID_AS_OREF(cbuffer_p),
+					NCPP_AOH_VALID(cbuffer_p),
 					&uniform_data,
 					sizeof(F_uniform_data)
 				);
@@ -294,41 +294,41 @@ int main() {
 				main_command_list_p->clear_state();
 
 				main_command_list_p->bind_graphics_pipeline_state(
-					NCPP_FHANDLE_VALID(pipeline_state_p)
+					NCPP_FOH_VALID(pipeline_state_p)
 				);
 
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FHANDLE_VALID(cube_buffer_p->vertex_buffer_p(0)), // vertex position buffer
+					NCPP_FOH_VALID(cube_buffer_p->vertex_buffer_p(0)), // vertex position buffer
 					0,
 					0
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FHANDLE_VALID(cube_buffer_p->vertex_buffer_p(1)), // vertex normal buffer
+					NCPP_FOH_VALID(cube_buffer_p->vertex_buffer_p(1)), // vertex normal buffer
 					0,
 					1
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FHANDLE_VALID(cube_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
+					NCPP_FOH_VALID(cube_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
 					0,
 					2
 				);
 				main_command_list_p->ZIA_bind_index_buffer(
-					NCPP_FHANDLE_VALID(cube_buffer_p->index_buffer_p()),
+					NCPP_FOH_VALID(cube_buffer_p->index_buffer_p()),
 					0
 				);
 
 				main_command_list_p->ZVS_bind_constant_buffer(
-					NCPP_FHANDLE_VALID(cbuffer_p),
+					NCPP_FOH_VALID(cbuffer_p),
 					0
 				);
 
 				main_command_list_p->ZPS_bind_constant_buffer(
-					NCPP_FHANDLE_VALID(cbuffer_p),
+					NCPP_FOH_VALID(cbuffer_p),
 					0
 				);
 
 				main_command_list_p->ZOM_bind_frame_buffer(
-					NCPP_FOREF_VALID(main_frame_buffer_p)
+					NCPP_FOH_VALID(main_frame_buffer_p)
 				);
 
 				main_command_list_p->draw_indexed(
@@ -340,7 +340,7 @@ int main() {
 
 			// submit command lists to GPU
 			command_queue_p->execute_command_list(
-				NCPP_FOREF_VALID(main_command_list_p)
+				NCPP_FOH_VALID(main_command_list_p)
 			);
 
 		};

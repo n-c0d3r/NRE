@@ -62,7 +62,7 @@ int main() {
 	auto dsv_p = H_resource_view::create_dsv(
 		NRE_RENDER_DEVICE(),
 		{
-			.resource_p = NCPP_FHANDLE_VALID_AS_OREF(depth_texture_2d_p)
+			.resource_p = NCPP_AOH_VALID(depth_texture_2d_p)
 		}
 	);
 	auto frame_buffer_p = H_frame_buffer::create(
@@ -141,35 +141,35 @@ int main() {
 
 	auto vshader_p = H_vertex_shader::create(
 		NRE_RENDER_DEVICE(),
-		NCPP_FOREF_VALID(shader_class_p),
+		NCPP_FOH_VALID(shader_class_p),
 		"vmain"
 	);
 	TG_vector<U_pixel_shader_handle> pshader_p_vector;
 	pshader_p_vector.push_back(
 		H_pixel_shader::create(
 			NRE_RENDER_DEVICE(),
-			NCPP_FOREF_VALID(shader_class_p),
+			NCPP_FOH_VALID(shader_class_p),
 			"pmain_lambert_lighting"
 		)
 	);
 	pshader_p_vector.push_back(
 		H_pixel_shader::create(
 			NRE_RENDER_DEVICE(),
-			NCPP_FOREF_VALID(shader_class_p),
+			NCPP_FOH_VALID(shader_class_p),
 			"pmain_show_world_position"
 		)
 	);
 	pshader_p_vector.push_back(
 		H_pixel_shader::create(
 			NRE_RENDER_DEVICE(),
-			NCPP_FOREF_VALID(shader_class_p),
+			NCPP_FOH_VALID(shader_class_p),
 			"pmain_show_world_normal"
 		)
 	);
 	pshader_p_vector.push_back(
 		H_pixel_shader::create(
 			NRE_RENDER_DEVICE(),
-			NCPP_FOREF_VALID(shader_class_p),
+			NCPP_FOH_VALID(shader_class_p),
 			"pmain_show_uv"
 		)
 	);
@@ -189,17 +189,15 @@ int main() {
 						.fill_mode = E_fill_mode::SOLID
 					},
 					.shader_p_vector = {
-						NCPP_FHANDLE_VALID_AS_OREF(vshader_p),
-						NCPP_FHANDLE_VALID_AS_OREF(pshader_p)
+						NCPP_AOH_VALID(vshader_p),
+						NCPP_AOH_VALID(pshader_p)
 					}
 				}
 			)
 		);
 	}
 
-	auto pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[0]);
-
-
+	auto pipeline_state_p = NCPP_FOH_VALID(pipeline_state_p_vector[0]);
 
 	// surface, mouse, keyboard events
 	{
@@ -208,12 +206,10 @@ int main() {
 
 				// release objects
 				frame_buffer_p.reset();
-				dsv_p.reset();
-				depth_texture_2d_p.reset();
 
 				// re-create objects
-				depth_texture_2d_p = H_texture::create_2d(
-					NRE_RENDER_DEVICE(),
+				H_texture::rebuild_2d(
+					NCPP_FOH_VALID(depth_texture_2d_p),
 					{},
 					NRE_MAIN_SURFACE()->desc().size.x,
 					NRE_MAIN_SURFACE()->desc().size.y,
@@ -222,12 +218,7 @@ int main() {
 					{},
 					E_resource_bind_flag::DSV
 				);
-				dsv_p = H_resource_view::create_dsv(
-					NRE_RENDER_DEVICE(),
-					{
-						.resource_p = NCPP_FHANDLE_VALID_AS_OREF(depth_texture_2d_p)
-					}
-				);
+				dsv_p->rebuild();
 				frame_buffer_p = H_frame_buffer::create(
 					NRE_RENDER_DEVICE(),
 					{
@@ -247,16 +238,16 @@ int main() {
 				switch (casted_e.keycode())
 				{
 				case E_keycode::_1:
-					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[0]);
+					pipeline_state_p = NCPP_FOH_VALID(pipeline_state_p_vector[0]);
 					break;
 				case E_keycode::_2:
-					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[1]);
+					pipeline_state_p = NCPP_FOH_VALID(pipeline_state_p_vector[1]);
 					break;
 				case E_keycode::_3:
-					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[2]);
+					pipeline_state_p = NCPP_FOH_VALID(pipeline_state_p_vector[2]);
 					break;
 				case E_keycode::_4:
-					pipeline_state_p = NCPP_FHANDLE_VALID(pipeline_state_p_vector[3]);
+					pipeline_state_p = NCPP_FOH_VALID(pipeline_state_p_vector[3]);
 					break;
 				case E_keycode::ARROW_UP:
 					object_rotate_speed += 0.5f;
@@ -292,6 +283,9 @@ int main() {
 		NRE_APPLICATION_SHUTDOWN(application_p) {
 			// these objects are depends on render device that is destroyed when the main surface closed (before the end of the main function),
 			// so we need to release them before the application is released
+			frame_buffer_p.reset();
+			dsv_p.reset();
+			depth_texture_2d_p.reset();
 			cbuffer_p.reset();
 			vshader_p.reset();
 			pshader_p_vector.clear();
@@ -330,7 +324,7 @@ int main() {
 			{
 				main_command_list_p->clear_rtv(main_rtv_p, clear_color);
 				main_command_list_p->clear_dsv(
-					NCPP_FHANDLE_VALID(dsv_p),
+					NCPP_FOH_VALID(dsv_p),
 					E_clear_flag::DEPTH,
 					1.0f,
 					0
@@ -348,7 +342,7 @@ int main() {
 
 				// upload to GPU
 				main_command_list_p->update_resource_data(
-					NCPP_FHANDLE_VALID_AS_OREF(cbuffer_p),
+					NCPP_AOH_VALID(cbuffer_p),
 					&uniform_data,
 					sizeof(F_uniform_data)
 				);
@@ -359,41 +353,41 @@ int main() {
 				main_command_list_p->clear_state();
 
 				main_command_list_p->bind_graphics_pipeline_state(
-					NCPP_FHANDLE_VALID(pipeline_state_p)
+					NCPP_FOH_VALID(pipeline_state_p)
 				);
 
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FHANDLE_VALID(ship_buffer_p->vertex_buffer_p(0)), // vertex position buffer
+					NCPP_FOH_VALID(ship_buffer_p->vertex_buffer_p(0)), // vertex position buffer
 					0,
 					0
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FHANDLE_VALID(ship_buffer_p->vertex_buffer_p(1)), // vertex normal buffer
+					NCPP_FOH_VALID(ship_buffer_p->vertex_buffer_p(1)), // vertex normal buffer
 					0,
 					1
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FHANDLE_VALID(ship_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
+					NCPP_FOH_VALID(ship_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
 					0,
 					2
 				);
 				main_command_list_p->ZIA_bind_index_buffer(
-					NCPP_FHANDLE_VALID(ship_buffer_p->index_buffer_p()),
+					NCPP_FOH_VALID(ship_buffer_p->index_buffer_p()),
 					0
 				);
 
 				main_command_list_p->ZVS_bind_constant_buffer(
-					NCPP_FHANDLE_VALID(cbuffer_p),
+					NCPP_FOH_VALID(cbuffer_p),
 					0
 				);
 
 				main_command_list_p->ZPS_bind_constant_buffer(
-					NCPP_FHANDLE_VALID(cbuffer_p),
+					NCPP_FOH_VALID(cbuffer_p),
 					0
 				);
 
 				main_command_list_p->ZOM_bind_frame_buffer(
-					NCPP_FOREF_VALID(frame_buffer_p)
+					NCPP_FOH_VALID(frame_buffer_p)
 				);
 
 				main_command_list_p->draw_indexed(
@@ -405,7 +399,7 @@ int main() {
 
 			// submit command lists to GPU
 			command_queue_p->execute_command_list(
-				NCPP_FOREF_VALID(main_command_list_p)
+				NCPP_FOH_VALID(main_command_list_p)
 			);
 
 		};

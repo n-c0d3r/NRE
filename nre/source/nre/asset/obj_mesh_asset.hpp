@@ -14,7 +14,7 @@ namespace nre {
 		TU<F_static_mesh> mesh_p_;
 
 	public:
-		NCPP_FORCE_INLINE TK_valid<F_static_mesh> mesh_p() const noexcept { return NCPP_FOREF_VALID(mesh_p_); }
+		NCPP_FORCE_INLINE TK_valid<F_static_mesh> mesh_p() const noexcept { return NCPP_FOH_VALID(mesh_p_); }
 
 
 

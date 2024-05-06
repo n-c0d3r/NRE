@@ -27,11 +27,11 @@ namespace nre {
 		TU<A_frame_buffer> main_frame_buffer_p_;
 
 	public:
-		NCPP_FORCE_INLINE TK_valid<A_device> device_p() const noexcept { return NCPP_FOREF_VALID(device_p_); }
-		NCPP_FORCE_INLINE TK_valid<A_command_queue> command_queue_p() const noexcept { return NCPP_FOREF_VALID(command_queue_p_); }
-		NCPP_FORCE_INLINE TK_valid<A_command_list> main_command_list_p() const noexcept { return NCPP_FOREF_VALID(main_command_list_p_); }
-		NCPP_FORCE_INLINE TK_valid<A_swapchain> swapchain_p() const noexcept { return NCPP_FOREF_VALID(swapchain_p_); }
-		NCPP_FORCE_INLINE TK_valid<A_frame_buffer> main_frame_buffer_p() const noexcept { return NCPP_FOREF_VALID(main_frame_buffer_p_); }
+		NCPP_FORCE_INLINE TK_valid<A_device> device_p() const noexcept { return NCPP_FOH_VALID(device_p_); }
+		NCPP_FORCE_INLINE TK_valid<A_command_queue> command_queue_p() const noexcept { return NCPP_FOH_VALID(command_queue_p_); }
+		NCPP_FORCE_INLINE TK_valid<A_command_list> main_command_list_p() const noexcept { return NCPP_FOH_VALID(main_command_list_p_); }
+		NCPP_FORCE_INLINE TK_valid<A_swapchain> swapchain_p() const noexcept { return NCPP_FOH_VALID(swapchain_p_); }
+		NCPP_FORCE_INLINE TK_valid<A_frame_buffer> main_frame_buffer_p() const noexcept { return NCPP_FOH_VALID(main_frame_buffer_p_); }
 
 
 

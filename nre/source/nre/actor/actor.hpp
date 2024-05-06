@@ -71,7 +71,7 @@ namespace nre {
 				std::forward<F_args__>(args)...
 			);
 
-			auto keyed_component_p = NCPP_FOREF_VALID(component_p);
+			auto keyed_component_p = NCPP_FOH_VALID(component_p);
 
 			component_map_[T_type_hash_code<F_component__>] = keyed_component_p.no_requirements();
 			component_vector_.push_back(std::move(component_p));
@@ -86,7 +86,7 @@ namespace nre {
 				<< T_cout_value(T_type_fullname<F_component__>())
 				<< " was not added";
 
-			return NCPP_FOREF_VALID(
+			return NCPP_FOH_VALID(
 				component_map_.find(T_type_hash_code<F_component__>)->second
 				.T_cast<F_component__>()
 			);
@@ -101,7 +101,7 @@ namespace nre {
 				return eastl::nullopt;
 			}
 
-			return NCPP_FOREF_VALID(
+			return NCPP_FOH_VALID(
 				it->second
 				.T_cast<F_component__>()
 			);
