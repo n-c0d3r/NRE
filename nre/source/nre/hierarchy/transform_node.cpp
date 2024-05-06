@@ -16,11 +16,17 @@ namespace nre {
 	}
 	F_transform_node::~F_transform_node() {
 
-		set_parent_p(
-			TK<F_transform_node>(null)
-		);
+		set_parent_p(null);
 	}
 
+	void F_transform_node::set_parent_p(F_null)
+	{
+		if(parent_node_p_)
+		{
+			parent_node_p_->remove_child_internal(NCPP_KTHIS());
+		}
+		parent_node_p_ = null;
+	}
 	void F_transform_node::set_parent_p(TKPA<F_transform_node> parent_node_p)
 	{
 		if(parent_node_p_)

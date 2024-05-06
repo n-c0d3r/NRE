@@ -34,6 +34,7 @@ namespace nre {
 		virtual ~F_transform_node();
 
 	public:
+		void set_parent_p(F_null);
 		void set_parent_p(TKPA<F_transform_node> parent_node_p);
 		void set_parent_p(TKPA_valid<F_transform_node> parent_node_p);
 
