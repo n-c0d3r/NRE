@@ -115,7 +115,7 @@ namespace nre {
 			+ move_input.y * last_transform.forward.xyz()
 		);
 
-		F_vector2_i surface_size = NRE_MAIN_SURFACE()->desc().size;
+		F_vector2_u surface_size = NRE_MAIN_SURFACE()->desc().size;
 
 		// re-compute position and rotation
 		if(mouse_lock)

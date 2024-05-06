@@ -1,4 +1,3 @@
-
 #include <nre/.hpp>
 
 using namespace nre;
@@ -69,7 +68,7 @@ int main() {
 		NRE_RENDER_DEVICE(),
 		{
 			.color_attachments = {
-				NRE_RENDER_SWAPCHAIN()->back_rtv_p()
+				NRE_MAIN_SWAPCHAIN()->back_rtv_p()
 			},
 			.depth_stencil_attachment = dsv_p
 		}
@@ -304,7 +303,6 @@ int main() {
 			// get some essential objects
 			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
-			auto swapchain_p = NRE_RENDER_SWAPCHAIN();
 			auto main_frame_buffer_p = NRE_RENDER_SYSTEM()->main_frame_buffer_p();
 			auto main_rtv_p = main_frame_buffer_p->desc().color_attachments[0];
 
@@ -326,7 +324,7 @@ int main() {
 				uniform_data.view_transform = invert(
 					spectator_p->transform_node_p()->transform
 				);
-				uniform_data.projection_matrix = spectator_camera_p->projection_matrix();
+				uniform_data.projection_matrix = spectator_camera_p->render_view_p()->projection_matrix;
 
 				// upload to GPU
 				main_command_list_p->update_resource_data(

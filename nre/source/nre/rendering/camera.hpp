@@ -7,6 +7,7 @@
 namespace nre {
 
 	class F_transform_node;
+	class F_render_view;
 
 
 
@@ -14,10 +15,9 @@ namespace nre {
 
 	private:
 		TK_valid<F_transform_node> transform_node_p_;
-		F_matrix4x4 projection_matrix_ = T_identity<F_matrix4x4>();
+		TU<F_render_view> render_view_p_;
 
 	public:
-		eastl::optional<TK<F_surface>> surface_p_opt;
 		E_projection_type projection_type = E_projection_type::PERSPECTIVE;
 		f32 vertical_fov = 0.5_pi;
 		f32 near_plane = 1.0f;
@@ -25,19 +25,20 @@ namespace nre {
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_transform_node> transform_node_p() const noexcept { return transform_node_p_; }
-		NCPP_FORCE_INLINE PA_matrix4x4 projection_matrix() const noexcept { return projection_matrix_; }
+		NCPP_FORCE_INLINE TK_valid<F_render_view> render_view_p() const noexcept { return NCPP_FOH_VALID(render_view_p_); }
 
 
 
 	public:
 		F_camera(TKPA_valid<F_actor> actor_p);
+		F_camera(TKPA_valid<F_actor> actor_p, KPA_rtv_handle rtv_p);
 		virtual ~F_camera();
 
 	protected:
 		virtual void gameplay_tick() override;
 
 	private:
-		void update_projection_matrix();
+		void update_render_target();
 
 	};
 

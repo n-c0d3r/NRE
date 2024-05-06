@@ -11,7 +11,6 @@ namespace nre {
 	public:
 		using F_child_node_p_list = TG_list<TK_valid<F_transform_node>>;
 		using F_handle = typename F_child_node_p_list::iterator;
-		using F_node_p_opt = eastl::optional<TK<F_transform_node>>;
 
 
 
@@ -21,11 +20,11 @@ namespace nre {
 	private:
 		F_child_node_p_list child_node_p_list_;
 		F_handle handle_;
-		F_node_p_opt parent_node_p_opt_;
+		TK<F_transform_node> parent_node_p_;
 
 	public:
 		NCPP_FORCE_INLINE const F_child_node_p_list& child_node_p_list() const noexcept { return child_node_p_list_; }
-		NCPP_FORCE_INLINE const F_node_p_opt& parent_node_p_opt() const noexcept { return parent_node_p_opt_; }
+		NCPP_FORCE_INLINE TKPA<F_transform_node> parent_node_p() const noexcept { return parent_node_p_; }
 
 
 
@@ -35,7 +34,8 @@ namespace nre {
 		virtual ~F_transform_node();
 
 	public:
-		void set_parent_p(const F_node_p_opt& parent_node_p_opt);
+		void set_parent_p(TKPA<F_transform_node> parent_node_p);
+		void set_parent_p(TKPA_valid<F_transform_node> parent_node_p);
 
 	private:
 		void add_child_internal(TKPA_valid<F_transform_node> child_node_p);

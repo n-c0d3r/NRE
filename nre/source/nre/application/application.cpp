@@ -57,7 +57,7 @@ namespace nre {
 				gameplay_tick_event_.invoke();
 				render_tick_event_.invoke();
 
-				render_system_p_->swapchain_p()->present();
+				render_system_p_->main_swapchain_p()->present();
 
 		  	}
 

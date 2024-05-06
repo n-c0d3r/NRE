@@ -16,23 +16,33 @@ namespace nre {
 	}
 	F_transform_node::~F_transform_node() {
 
-		set_parent_p(eastl::nullopt);
+		set_parent_p(
+			TK<F_transform_node>(null)
+		);
 	}
 
-	void F_transform_node::set_parent_p(const F_node_p_opt& parent_node_p_opt)
+	void F_transform_node::set_parent_p(TKPA<F_transform_node> parent_node_p)
 	{
-		if(parent_node_p_opt_)
+		if(parent_node_p_)
 		{
-			auto parent_node_p = parent_node_p_opt_.value();
-
-			if(parent_node_p)
-				parent_node_p_opt_.value()->remove_child_internal(NCPP_KTHIS());
+			parent_node_p_->remove_child_internal(NCPP_KTHIS());
 		}
 
-		if(parent_node_p_opt)
-			parent_node_p_opt.value()->add_child_internal(NCPP_KTHIS());
+		if(parent_node_p)
+			parent_node_p->add_child_internal(NCPP_KTHIS());
 
-		parent_node_p_opt_ = parent_node_p_opt;
+		parent_node_p_ = parent_node_p;
+	}
+	void F_transform_node::set_parent_p(TKPA_valid<F_transform_node> parent_node_p)
+	{
+		if(parent_node_p_)
+		{
+			parent_node_p_->remove_child_internal(NCPP_KTHIS());
+		}
+
+		parent_node_p->add_child_internal(NCPP_KTHIS());
+
+		parent_node_p_ = parent_node_p.no_requirements();
 	}
 
 	void F_transform_node::add_child_internal(TKPA_valid<F_transform_node> child_node_p)

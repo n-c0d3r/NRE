@@ -1,4 +1,5 @@
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_view.hpp>
 #include <nre/application/application.hpp>
 
 
@@ -32,7 +33,7 @@ namespace nre {
 			}
 		);
 
-		swapchain_p_ = H_swapchain::create(
+		main_swapchain_p_ = H_swapchain::create(
 			NCPP_FOH_VALID(command_queue_p_),
 			NCPP_FOH_VALID(
 				NRE_APPLICATION()->main_surface_p()
@@ -45,7 +46,7 @@ namespace nre {
 			NCPP_FOH_VALID(device_p_),
 			{
 				.color_attachments = {
-					swapchain_p_->back_rtv_p()
+					main_swapchain_p_->back_rtv_p()
 				}
 			}
 		);
