@@ -216,6 +216,7 @@ int main() {
 	auto spectator_p = spectator_actor_p->template T_add_component<F_spectator>();
 
 	spectator_p->position = F_vector3 { 0.0f, 0.0f, -10.0f };
+	spectator_p->move_speed = 4.0f;
 
 
 
