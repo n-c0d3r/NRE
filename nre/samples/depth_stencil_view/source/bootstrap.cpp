@@ -204,10 +204,6 @@ int main() {
 		NRE_MAIN_SURFACE()->T_get_event<F_surface_resize_event>().T_push_back_listener(
 			[&](auto& e) {
 
-				// release objects
-				frame_buffer_p.reset();
-
-				// re-create objects
 				H_texture::rebuild_2d(
 					NCPP_FOH_VALID(depth_texture_2d_p),
 					{},
@@ -219,15 +215,7 @@ int main() {
 					E_resource_bind_flag::DSV
 				);
 				dsv_p->rebuild();
-				frame_buffer_p = H_frame_buffer::create(
-					NRE_RENDER_DEVICE(),
-					{
-						.color_attachments = {
-							NRE_RENDER_SWAPCHAIN()->back_rtv_p()
-						},
-						.depth_stencil_attachment = dsv_p
-					}
-				);
+				frame_buffer_p->rebuild();
 			}
 		);
 		NRE_KEYBOARD()->T_get_event<F_key_down_event>().T_push_back_listener(

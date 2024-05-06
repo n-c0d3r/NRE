@@ -49,6 +49,13 @@ namespace nre {
 				}
 			}
 		);
+
+		NRE_MAIN_SURFACE()->T_get_event<F_surface_resize_event>().T_push_back_listener(
+			[this](auto& e) {
+
+				main_frame_buffer_p()->rebuild();
+			}
+		);
 	}
 	F_render_system::~F_render_system() {
 

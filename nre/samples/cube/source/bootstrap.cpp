@@ -88,7 +88,7 @@ int main() {
 			},
 			F_shader_kernel_desc {
 				.blob_desc = {
-					.name = "pmain_white",
+					.name = "pmain_lambert_lighting",
 					.type = E_shader_type::PIXEL
 				}
 			},
@@ -123,7 +123,7 @@ int main() {
 		H_pixel_shader::create(
 			NRE_RENDER_DEVICE(),
 			NCPP_FOH_VALID(shader_class_p),
-			"pmain_white"
+			"pmain_lambert_lighting"
 		)
 	);
 	pshader_p_vector.push_back(
