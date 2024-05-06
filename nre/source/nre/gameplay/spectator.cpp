@@ -26,6 +26,11 @@ namespace nre {
 
 	void F_spectator::register_event_listeners()
 	{
+		main_surface_focus_end_event_listener_handle_ = NRE_MAIN_SURFACE()->T_get_event<F_surface_focus_end_event>().T_push_back_listener(
+			[this](auto& e) {
+				mouse_lock = false;
+			}
+		);
 		key_down_event_listener_handle_ = NRE_KEYBOARD()->T_get_event<F_key_down_event>().T_push_back_listener(
 			[this](auto& e) {
 				auto& casted_e = (F_key_down_event&)e;
@@ -80,9 +85,12 @@ namespace nre {
 	}
 	void F_spectator::deregister_event_listeners()
 	{
+		NRE_MAIN_SURFACE()->T_get_event<F_surface_focus_end_event>().remove_listener(
+			main_surface_focus_end_event_listener_handle_
+		);
 		NRE_KEYBOARD()->T_get_event<F_key_down_event>().remove_listener(
 			key_down_event_listener_handle_
-			);
+		);
 		NRE_KEYBOARD()->T_get_event<F_key_up_event>().remove_listener(
 			key_up_event_listener_handle_
 		);

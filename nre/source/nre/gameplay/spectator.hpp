@@ -14,6 +14,7 @@ namespace nre {
 
 	private:
 		TK_valid<F_transform_node> transform_node_p_;
+		typename F_event::F_listener_handle main_surface_focus_end_event_listener_handle_;
 		typename F_event::F_listener_handle key_down_event_listener_handle_;
 		typename F_event::F_listener_handle key_up_event_listener_handle_;
 		typename F_event::F_listener_handle mouse_button_down_event_listener_handle_;
