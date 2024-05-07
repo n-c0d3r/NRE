@@ -27,7 +27,7 @@ int main() {
 
 
 
-	f32 object_rotate_speed = 1.0f;
+	f32 object_rotate_speed = 0.15f;
 	F_matrix4x4 object_transform = T_make_transform(
 		F_vector3 { 1.0f, 1.0f, 1.0f },
 		F_vector3 { 0.0_pi, 0.0_pi, 0.0_pi },
@@ -259,7 +259,7 @@ int main() {
 	auto spectator_p = spectator_actor_p->template T_add_component<F_spectator>();
 
 	spectator_p->position = F_vector3 { 0.0f, 0.0f, -2.0f };
-	spectator_camera_p->near_plane = 0.1f;
+	spectator_camera_p->near_plane = 0.01f;
 
 
 
