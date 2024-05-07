@@ -11,7 +11,7 @@ namespace nre {
 
 	}
 
-	void F_u8_text_asset::build(const F_asset_buffer& buffer) {
+	void F_u8_text_asset::build(const G_string& abs_path, const F_asset_buffer& buffer) {
 
 		 content = str_from_buffer(buffer);
 	}

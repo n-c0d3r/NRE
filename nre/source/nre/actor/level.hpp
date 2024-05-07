@@ -28,7 +28,7 @@ namespace nre {
 
 	public:
 		NCPP_FORCE_INLINE const G_string& name() const noexcept { return name_; }
-		NCPP_FORCE_INLINE void set_name(V_string value) noexcept { name_ = value; }
+		NCPP_FORCE_INLINE void set_name(const G_string& value) noexcept { name_ = value; }
 
 
 

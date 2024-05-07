@@ -186,7 +186,7 @@ namespace nre {
 
 	public:
 		NCPP_FORCE_INLINE const G_string& name() const noexcept { return name_; }
-		NCPP_FORCE_INLINE void set_name(V_string value) noexcept { name_ = value; }
+		NCPP_FORCE_INLINE void set_name(const G_string& value) noexcept { name_ = value; }
 		NCPP_FORCE_INLINE const F_indices& indices() const noexcept { return indices_; }
 		NCPP_FORCE_INLINE const F_static_submesh_headers& submesh_headers() const noexcept { return submesh_headers_; }
 		NCPP_FORCE_INLINE u32 vertex_count() const noexcept { return vertex_count_; }
@@ -196,7 +196,7 @@ namespace nre {
 
 	protected:
 		A_static_mesh(
-			V_string name,
+			const G_string& name,
 			F_indices indices,
 			F_static_submesh_headers submesh_headers
 		);
@@ -230,7 +230,7 @@ namespace nre {
 
 
 	public:
-		TF_static_mesh(V_string name = "") :
+		TF_static_mesh(const G_string& name = "") :
 			A_static_mesh(
 				name,
 				{},
@@ -244,7 +244,7 @@ namespace nre {
 			const F_vertex_channels& vertex_channels,
 			const F_indices& indices,
 			const F_static_submesh_headers& submesh_headers,
-			V_string name = ""
+			const G_string& name = ""
 		) :
 			A_static_mesh(
 				name,

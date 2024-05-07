@@ -68,7 +68,7 @@ namespace nre {
 						fstream.read((char*)asset_buffer.data(), file_size);
 					}
 
-					asset_p->build(asset_buffer);
+					asset_p->build(abs_path, asset_buffer);
 				}
 
 				return std::move(asset_p);

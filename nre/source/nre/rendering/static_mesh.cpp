@@ -6,7 +6,7 @@ namespace nre
 {
 
 	A_static_mesh::A_static_mesh(
-		V_string name,
+		const G_string& name,
 		F_indices indices,
 		F_static_submesh_headers submesh_headers
 	) :

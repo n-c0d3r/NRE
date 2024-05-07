@@ -13,11 +13,11 @@ namespace nre {
 
 	}
 
-	void F_obj_mesh_asset::manual_build(V_string path) {
+	void F_obj_mesh_asset::manual_build(const G_string& path) {
 
 		objl::Loader loader;
 
-		if(loader.LoadFile(path->c_str()))
+		if(loader.LoadFile(path.c_str()))
 		{
 			TG_vector<F_vertex_position> vertex_positions;
 			TG_vector<F_vertex_normal> vertex_normals;

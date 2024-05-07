@@ -26,7 +26,7 @@ namespace nre {
 		NCPP_DISABLE_COPY(F_obj_mesh_asset);
 
 	public:
-		virtual void manual_build(V_string path) override;
+		virtual void manual_build(const G_string& path) override;
 		virtual b8 use_manual_build() override ;
 
 	};
