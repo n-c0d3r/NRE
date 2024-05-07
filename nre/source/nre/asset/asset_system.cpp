@@ -58,35 +58,4 @@ namespace nre {
 
 	}
 
-	std::optional<G_string> F_asset_system::find_absolute_path(const G_string& path) {
-
-		// cwd path
-		if (is_file_exists(path))
-		{
-			return path;
-		}
-
-		// cwd resources dir
-		{
-			G_string absolute_path = connect_paths(path, "./resources/");
-
-			if (is_file_exists(absolute_path))
-			{
-				return absolute_path;
-			}
-		}
-
-		// NRE resources dir
-		{
-			G_string absolute_path = connect_paths(path, NRE_RESOURCES_DIR_PATH);
-
-			if (is_file_exists(absolute_path))
-			{
-				return absolute_path;
-			}
-		}
-
-		return std::nullopt;
-	}
-
 }

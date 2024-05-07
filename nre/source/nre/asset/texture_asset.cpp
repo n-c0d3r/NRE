@@ -1,0 +1,1 @@
+﻿#include <nre/asset/texture_asset.hpp>

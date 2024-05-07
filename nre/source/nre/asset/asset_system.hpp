@@ -2,6 +2,7 @@
 
 #include <nre/prerequisites.hpp>
 #include <nre/asset/asset_buffer.hpp>
+#include <nre/asset/path.hpp>
 
 
 
@@ -31,15 +32,12 @@ namespace nre {
 	public:
 		NCPP_DISABLE_COPY(F_asset_system);
 
-	private:
-		std::optional<G_string> find_absolute_path(const G_string& path);
-
 	public:
 		template<typename F_asset__>
 		requires T_is_object_down_castable<F_asset__, A_asset>
 		TS<F_asset__> T_load_asset(const G_string& path) {
 
-			std::optional<G_string> abs_path_opt = find_absolute_path(path);
+			eastl::optional<G_string> abs_path_opt = find_absolute_path(path);
 
 			if(abs_path_opt) {
 
