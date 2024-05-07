@@ -13,3 +13,9 @@
 [submodule "submodules/OBJ-Loader"]
 	path = submodules/OBJ-Loader
 	url = https://github.com/Bly7/OBJ-Loader
+[submodule "submodules/libpng"]
+	path = submodules/libpng
+	url = https://github.com/pnggroup/libpng
+[submodule "submodules/zlib"]
+	path = submodules/zlib
+	url = https://github.com/madler/zlib

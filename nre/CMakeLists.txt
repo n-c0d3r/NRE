@@ -78,11 +78,14 @@ target_precompile_headers(nre
         source/nre/prerequisites.hpp
 )
 
+get_target_property(LIBPNG_BINARY_DIR png_static BINARY_DIR)
+
 target_include_directories(nre
     PUBLIC 
         "${CMAKE_CURRENT_SOURCE_DIR}/source"
         "${CMAKE_CURRENT_BINARY_DIR}/generated_files"
         "${NRE_SUBMODULES_DIR}/OBJ-Loader/Source"
+        "${LIBPNG_BINARY_DIR}"
 )
 
 target_link_libraries(nre
@@ -91,6 +94,8 @@ target_link_libraries(nre
         nmath
         nsurface
         nrhi
+        png_static
+        ZLIB::ZLIB
 )
 
 # MSVC compile options
@@ -115,6 +120,8 @@ add_dependencies(nre
     nmath
     nsurface
     nrhi
+    png_static
+    ZLIB::ZLIB
 )
 
 
