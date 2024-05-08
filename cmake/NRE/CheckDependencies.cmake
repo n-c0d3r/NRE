@@ -67,33 +67,7 @@ if(NOT EXISTS "${NRE_SUBMODULES_DIR}/OBJ-Loader")
     elseif(UNIX)
         execute_process(COMMAND "${NRE_SCRIPTS_DIR}/check_submodules.sh")
     endif()
-endif()    
-
-#####################################################################################
-#   zlib checking
-#####################################################################################
-if(NOT TARGET zlib)
-    if(NOT EXISTS "${NRE_SUBMODULES_DIR}/zlib")
-        if(WIN32)
-            execute_process(COMMAND "${NRE_SCRIPTS_DIR}/check_submodules.bat")
-        elseif(UNIX)
-            execute_process(COMMAND "${NRE_SCRIPTS_DIR}/check_submodules.sh")
-        endif()
-    endif()  
 endif()
-
-#####################################################################################
-#   libpng checking
-#####################################################################################
-if(NOT TARGET libpng)
-    if(NOT EXISTS "${NRE_SUBMODULES_DIR}/libpng")
-        if(WIN32)
-            execute_process(COMMAND "${NRE_SCRIPTS_DIR}/check_submodules.bat")
-        elseif(UNIX)
-            execute_process(COMMAND "${NRE_SCRIPTS_DIR}/check_submodules.sh")
-        endif()
-    endif()   
-endif()   
 
 
 

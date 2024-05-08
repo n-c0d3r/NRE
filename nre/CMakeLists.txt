@@ -4,6 +4,7 @@
 #####################################################################################
 include(NCPP/ConfigureCompiler)
 include(NCPP/Utilities/SetGlobal)
+include(NCPP/Utilities/ApplyGlobal)
 
 
 
@@ -66,6 +67,14 @@ add_library(nre ${nreLinkingMode}
 
 
 #####################################################################################
+#   Add third party
+#####################################################################################
+NCPP_SetGlobal(NRE_THIRD_PARTY_TARGETS "")
+add_subdirectory(third_party)
+
+
+
+#####################################################################################
 #   nre target settings
 #####################################################################################
 set_target_properties(nre
@@ -78,14 +87,11 @@ target_precompile_headers(nre
         source/nre/prerequisites.hpp
 )
 
-get_target_property(LIBPNG_BINARY_DIR png_static BINARY_DIR)
-
 target_include_directories(nre
     PUBLIC 
         "${CMAKE_CURRENT_SOURCE_DIR}/source"
         "${CMAKE_CURRENT_BINARY_DIR}/generated_files"
         "${NRE_SUBMODULES_DIR}/OBJ-Loader/Source"
-        "${LIBPNG_BINARY_DIR}"
 )
 
 target_link_libraries(nre
@@ -94,8 +100,7 @@ target_link_libraries(nre
         nmath
         nsurface
         nrhi
-        png_static
-        ZLIB::ZLIB
+        ${NRE_THIRD_PARTY_TARGETS}
 )
 
 # MSVC compile options
@@ -120,8 +125,7 @@ add_dependencies(nre
     nmath
     nsurface
     nrhi
-    png_static
-    ZLIB::ZLIB
+    ${NRE_THIRD_PARTY_TARGETS}
 )
 
 

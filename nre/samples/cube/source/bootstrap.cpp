@@ -41,6 +41,8 @@ int main() {
 	auto cube_buffer_p = TU<F_static_mesh_buffer>()(cube_asset_p->mesh_p());
 	cube_buffer_p->upload();
 
+	auto texture_asset_p = NRE_ASSET_SYSTEM()->T_load_asset<F_texture_2d_asset>("textures/iron_man.png");
+
 	F_uniform_data uniform_data;
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
 		NRE_RENDER_DEVICE(),

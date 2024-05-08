@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.12)
 #####################################################################################
 #   Project NRE
 #####################################################################################
-project(nre LANGUAGES C CXX OBJC OBJCXX)
+project(nre LANGUAGES C CXX OBJC OBJCXX ASM)
 
 
 
@@ -26,7 +26,7 @@ set(NRE_SUBMODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules")
 set(NRE_CMAKE_MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(NRE_DEPENDENCIES_DIR "${CMAKE_CURRENT_BINARY_DIR}/dependencies")
 set(NRE_GENERATED_FILES_DIR "${CMAKE_CURRENT_BINARY_DIR}/nre/generated_files/nre")
-set(NRE_THIRD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party")
+set(NRE_THIRD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/nre/third_party")
 
 
 
