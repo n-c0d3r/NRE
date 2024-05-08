@@ -1,1 +1,0 @@
-﻿#include <nre/asset/texture_cube_asset.hpp>

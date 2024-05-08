@@ -15,17 +15,11 @@ namespace nre {
 
 
 	public:
-		F_text_asset();
+		F_text_asset(const G_string& abs_path);
 		~F_text_asset();
 
 	public:
 		NCPP_DISABLE_COPY(F_text_asset);
-
-	public:
-		virtual void build(const G_string& abs_path, const F_asset_buffer& buffer) override;
-
-	public:
-		static G_wstring str_from_buffer(const F_asset_buffer& buffer);
 
 	};
 

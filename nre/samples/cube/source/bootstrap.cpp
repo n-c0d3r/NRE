@@ -37,11 +37,13 @@ int main() {
 
 	F_vector4 clear_color = { 0.3f, 0.3f, 0.3f, 1.0f };
 
-	auto cube_asset_p = NRE_ASSET_SYSTEM()->T_load_asset<F_obj_mesh_asset>("models/cube.obj");
-	auto cube_buffer_p = TU<F_static_mesh_buffer>()(cube_asset_p->mesh_p());
+	auto cube_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/cube.obj").T_cast<F_obj_mesh_asset>();
+	auto cube_buffer_p = TU<F_static_mesh_buffer>()(
+		NCPP_FOH_VALID(cube_asset_p->mesh_p)
+	);
 	cube_buffer_p->upload();
 
-	auto texture_asset_p = NRE_ASSET_SYSTEM()->T_load_asset<F_texture_2d_asset>("textures/iron_man.png");
+	// auto texture_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/iron_man.png").T_cast<F_texture_2d_asset>();
 
 	F_uniform_data uniform_data;
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
@@ -76,7 +78,7 @@ int main() {
 		}
 	};
 
-	auto shader_asset_p = NRE_ASSET_SYSTEM()->T_load_asset<F_u8_text_asset>("shaders/cube.hlsl");
+	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/cube.hlsl", "u8_txt").T_cast<F_u8_text_asset>();
 	auto shader_class_p = H_shader_compiler::compile_hlsl(
 		"Cube",
 		shader_asset_p->content,
@@ -334,7 +336,7 @@ int main() {
 				);
 
 				main_command_list_p->draw_indexed(
-					cube_asset_p->mesh_p()->indices().size(),
+					cube_asset_p->mesh_p->indices().size(),
 					0,
 					0
 				);

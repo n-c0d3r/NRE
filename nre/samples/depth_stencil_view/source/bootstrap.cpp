@@ -36,8 +36,10 @@ int main() {
 
 	F_vector4 clear_color = { 0.1f, 0.1f, 0.1f, 1.0f };
 
-	auto ship_asset_p = NRE_ASSET_SYSTEM()->T_load_asset<F_obj_mesh_asset>("models/ship.obj");
-	auto ship_buffer_p = TU<F_static_mesh_buffer>()(ship_asset_p->mesh_p());
+	auto ship_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/ship.obj").T_cast<F_obj_mesh_asset>();
+	auto ship_buffer_p = TU<F_static_mesh_buffer>()(
+		NCPP_FOH_VALID(ship_asset_p->mesh_p)
+	);
 	ship_buffer_p->upload();
 
 	F_uniform_data uniform_data;
@@ -99,7 +101,7 @@ int main() {
 		}
 	};
 
-	auto shader_asset_p = NRE_ASSET_SYSTEM()->T_load_asset<F_u8_text_asset>("shaders/depth_stencil_view.hlsl");
+	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/depth_stencil_view.hlsl", "u8_txt").T_cast<F_u8_text_asset>();
 	auto shader_class_p = H_shader_compiler::compile_hlsl(
 		"Cube",
 		shader_asset_p->content,
@@ -377,7 +379,7 @@ int main() {
 				);
 
 				main_command_list_p->draw_indexed(
-					ship_asset_p->mesh_p()->indices().size(),
+					ship_asset_p->mesh_p->indices().size(),
 					0,
 					0
 				);

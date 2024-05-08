@@ -9,6 +9,7 @@
 namespace nre {
 
 	class A_asset;
+	class A_asset_factory;
 
 
 
@@ -25,6 +26,12 @@ namespace nre {
 
 
 
+	private:
+		TG_vector<TU<A_asset_factory>> asset_factory_p_vector_;
+		TG_unordered_map<G_string, TK<A_asset_factory>> asset_factory_map_;
+
+
+
 	public:
 		F_asset_system();
 		~F_asset_system();
@@ -33,46 +40,28 @@ namespace nre {
 		NCPP_DISABLE_COPY(F_asset_system);
 
 	public:
-		template<typename F_asset__>
-		requires T_is_object_down_castable<F_asset__, A_asset>
-		TS<F_asset__> T_load_asset(const G_string& path) {
+		template<typename F_asset_factory__>
+		requires T_is_object_down_castable<F_asset_factory__, A_asset_factory>
+		TK_valid<F_asset_factory__> T_registry_asset_factory()
+		{
+			auto asset_factory_p = TU<F_asset_factory__>()();
+			auto keyed_asset_factory_p = NCPP_FOH_VALID(asset_factory_p);
 
-			eastl::optional<G_string> abs_path_opt = find_absolute_path(path);
+			asset_factory_p_vector_.push_back(
+				std::move(asset_factory_p)
+			);
 
-			if(abs_path_opt) {
+			for(const auto& file_extension : keyed_asset_factory_p->file_extensions())
+				asset_factory_map_[file_extension] = keyed_asset_factory_p.no_requirements();
 
-				const auto& abs_path = abs_path_opt.value();
-
-				auto asset_p = TS<F_asset__>()();
-
-				if(asset_p->use_manual_build())
-				{
-					asset_p->manual_build(abs_path);
-				}
-				else
-				{
-					std::ifstream fstream(abs_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-
-					std::ifstream::pos_type file_size = fstream.tellg();
-					fstream.seekg(0, std::ios::beg);
-
-					if (file_size == -1)
-						return {};
-
-					F_asset_buffer asset_buffer;
-					if (file_size)
-					{
-						asset_buffer.resize(file_size);
-						fstream.read((char*)asset_buffer.data(), file_size);
-					}
-
-					asset_p->build(abs_path, asset_buffer);
-				}
-
-				return std::move(asset_p);
-			}
-			else return {};
+			return keyed_asset_factory_p;
 		}
+		TK<A_asset_factory> find_asset_factory(const G_string& file_extension);
+
+	public:
+		TS<A_asset> load_asset(const G_string& path);
+		TS<A_asset> load_asset(const G_string& path, const G_string& overrided_file_extension);
+		TS<A_asset> load_asset(const G_string& path, TK_valid<A_asset_factory> asset_factory_p);
 
 	};
 

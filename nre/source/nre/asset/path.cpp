@@ -3,11 +3,11 @@
 namespace nre
 {
 
-	bool is_file_exists(const G_string& path)
+	bool H_path::is_exists(const G_string& path)
 	{
 		return std::ifstream(path.c_str()).good();
 	}
-	G_string resolve_path(const G_string& path, const G_string base_path)
+	G_string H_path::resolve(const G_string& path, const G_string base_path)
 	{
 		if (path.size() == 0)
 			return base_path;
@@ -33,19 +33,19 @@ namespace nre
 
 		return base_path + "/" + path;
 	}
-	eastl::optional<G_string> find_absolute_path(const G_string& path)
+	eastl::optional<G_string> H_path::find_absolute_path(const G_string& path)
 	{
 		// cwd path
-		if (is_file_exists(path))
+		if (is_exists(path))
 		{
 			return path;
 		}
 
 		// cwd resources dir
 		{
-			G_string absolute_path = resolve_path(path, "./resources/");
+			G_string absolute_path = resolve(path, "./resources/");
 
-			if (is_file_exists(absolute_path))
+			if (is_exists(absolute_path))
 			{
 				return absolute_path;
 			}
@@ -53,9 +53,9 @@ namespace nre
 
 		// NRE resources dir
 		{
-			G_string absolute_path = resolve_path(path, NRE_RESOURCES_DIR_PATH);
+			G_string absolute_path = resolve(path, NRE_RESOURCES_DIR_PATH);
 
-			if (is_file_exists(absolute_path))
+			if (is_exists(absolute_path))
 			{
 				return absolute_path;
 			}
@@ -63,7 +63,7 @@ namespace nre
 
 		return eastl::nullopt;
 	}
-	G_string file_extension(const G_string& path)
+	G_string H_path::extension(const G_string& path)
 	{
 
 		G_string Result;
