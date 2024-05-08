@@ -18,7 +18,7 @@ add_executable(nre.samples.depth_stencil_view
 # nre.samples.depth_stencil_view target settings
 set_target_properties(nre.samples.depth_stencil_view
     PROPERTIES 
-        FOLDER "nre/samples"
+        FOLDER "NCoder/nre/samples"
         PROJECT_LABEL "depth_stencil_view"
 )
 target_link_libraries(nre.samples.depth_stencil_view

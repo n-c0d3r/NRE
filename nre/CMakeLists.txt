@@ -70,7 +70,7 @@ add_library(nre ${nreLinkingMode}
 #####################################################################################
 set_target_properties(nre
     PROPERTIES 
-        FOLDER "nre"
+        FOLDER "NCoder/nre"
 )
 
 target_precompile_headers(nre

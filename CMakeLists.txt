@@ -87,10 +87,10 @@ if(NRE_ENABLE_DOCUMENTATIONS)
 
     NCPP_DocsUtils_CreateTarget(
         NAME NRE
-        BRIEF "Ncoder's Learning Aimed C++ Surface Library."
+        BRIEF "Ncoder's Learning Aimed C++ Render Engine."
 
         TARGET_NAME nre.documentations
-        TARGET_FOLDER nre
+        TARGET_FOLDER NCoder/nre
         TARGET_LABEL documentations
 
         INPUT_DIRS 

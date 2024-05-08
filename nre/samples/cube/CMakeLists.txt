@@ -18,7 +18,7 @@ add_executable(nre.samples.cube
 # nre.samples.cube target settings
 set_target_properties(nre.samples.cube
     PROPERTIES 
-        FOLDER "nre/samples"
+        FOLDER "NCoder/nre/samples"
         PROJECT_LABEL "cube"
 )
 target_link_libraries(nre.samples.cube

@@ -18,7 +18,7 @@ add_executable(nre.samples.hello_nre
 # nre.samples.hello_nre target settings
 set_target_properties(nre.samples.hello_nre
     PROPERTIES 
-        FOLDER "nre/samples"
+        FOLDER "NCoder/nre/samples"
         PROJECT_LABEL "hello_nre"
 )
 target_link_libraries(nre.samples.hello_nre
