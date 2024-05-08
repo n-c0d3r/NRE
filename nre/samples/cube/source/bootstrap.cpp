@@ -43,7 +43,13 @@ int main() {
 	);
 	cube_buffer_p->upload();
 
-	// auto texture_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/iron_man.png").T_cast<F_texture_2d_asset>();
+	 auto texture_2d_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/iron_man.png").T_cast<F_texture_2d_asset>();
+	 auto texture_2d_p = H_texture::create_2d(
+		 NRE_RENDER_DEVICE(),
+		 texture_2d_asset_p->initial_resource_data(),
+		 texture_2d_asset_p->size.x,
+		 texture_2d_asset_p->size.y
+	 );
 
 	F_uniform_data uniform_data;
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
