@@ -31,6 +31,14 @@ namespace nre {
 	public:
 		NCPP_FORCE_INLINE const G_string& name() const noexcept { return name_; }
 		NCPP_FORCE_INLINE void set_name(const G_string& value) noexcept { name_ = value; }
+		NCPP_FORCE_INLINE typename F_event::F_listener_handle gameplay_tick_event_listener_handle() const noexcept {
+
+			return gameplay_tick_event_listener_handle_;
+		}
+		NCPP_FORCE_INLINE typename F_event::F_listener_handle render_tick_event_listener_handle() const noexcept {
+
+			return render_tick_event_listener_handle_;
+		}
 
 
 
