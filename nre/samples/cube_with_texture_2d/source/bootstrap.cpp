@@ -41,7 +41,6 @@ int main() {
 	auto cube_buffer_p = TU<F_static_mesh_buffer>()(
 		NCPP_FOH_VALID(cube_asset_p->mesh_p)
 	);
-	cube_buffer_p->upload();
 
  	auto texture_2d_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/ncoder.png").T_cast<F_texture_2d_asset>();
  	auto texture_2d_p = H_texture::create_2d(
