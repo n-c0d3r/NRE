@@ -13,6 +13,16 @@ namespace nre {
 	}
 	F_level::~F_level() {
 
+		for(auto it = actor_p_list_.begin(); it != actor_p_list_.end();) {
+
+			auto next_it = it;
+			++next_it;
+
+			it->reset();
+
+			it = next_it;
+		}
+
 		deregister_event_listeners();
 	}
 

@@ -6,8 +6,11 @@
 namespace nre
 {
 
+	TK<F_renderable_system> F_renderable_system::instance_ps;
+
 	F_renderable_system::F_renderable_system()
 	{
+		instance_ps = NCPP_KTHIS().no_requirements();
 	}
 	F_renderable_system::~F_renderable_system()
 	{

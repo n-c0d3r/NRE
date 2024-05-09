@@ -6,8 +6,11 @@
 namespace nre
 {
 
+	TK<F_render_view_system> F_render_view_system::instance_ps;
+
 	F_render_view_system::F_render_view_system()
 	{
+		instance_ps = NCPP_KTHIS().no_requirements();
 	}
 	F_render_view_system::~F_render_view_system()
 	{

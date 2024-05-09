@@ -263,6 +263,9 @@ namespace nre {
 		{
 			vertex_count_ = eastl::get<0>(vertex_channels).size();
 			vertex_channel_count_ = sizeof...(F_vertex_channel_datas__);
+
+			buffer_p_ = TU<F_buffer>()(NCPP_KTHIS());
+			buffer_p_.T_cast<F_buffer>()->upload_internal();
 		}
 		~TF_static_mesh() {
 		}

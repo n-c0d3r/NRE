@@ -11,6 +11,8 @@ namespace nre {
 		A_actor_component(actor_p),
 		transform_node_p_(actor_p->template T_get_component<F_transform_node>())
 	{
+		actor_p->set_gameplay_tick(true);
+
 		register_event_listeners();
 	}
 	F_spectator::~F_spectator() {

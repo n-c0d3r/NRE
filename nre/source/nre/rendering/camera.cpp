@@ -18,6 +18,7 @@ namespace nre {
 			)
 		)
 	{
+		actor_p->set_gameplay_tick(true);
 	}
 	F_camera::F_camera(TKPA_valid<F_actor> actor_p, KPA_rtv_handle rtv_p) :
 		A_actor_component(actor_p),
