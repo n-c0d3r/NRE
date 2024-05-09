@@ -38,9 +38,7 @@ int main() {
 	F_vector4 clear_color = { 0.3f, 0.3f, 0.3f, 1.0f };
 
 	auto cube_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/cube.obj").T_cast<F_obj_mesh_asset>();
-	auto cube_buffer_p = TU<F_static_mesh_buffer>()(
-		NCPP_FOH_VALID(cube_asset_p->mesh_p)
-	);
+	auto cube_mesh_p = NCPP_FOH_VALID(cube_asset_p->mesh_p);
 
  	auto texture_2d_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/ncoder.png").T_cast<F_texture_2d_asset>();
  	auto texture_2d_p = H_texture::create_2d(
@@ -317,22 +315,22 @@ int main() {
 				);
 
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(cube_buffer_p->vertex_buffer_p(0)), // vertex position buffer
+					NCPP_FOH_VALID(cube_mesh_p->buffer_p()->vertex_buffer_p(0)), // vertex position buffer
 					0,
 					0
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(cube_buffer_p->vertex_buffer_p(1)), // vertex normal buffer
+					NCPP_FOH_VALID(cube_mesh_p->buffer_p()->vertex_buffer_p(1)), // vertex normal buffer
 					0,
 					1
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(cube_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
+					NCPP_FOH_VALID(cube_mesh_p->buffer_p()->vertex_buffer_p(3)), // vertex normal buffer
 					0,
 					2
 				);
 				main_command_list_p->ZIA_bind_index_buffer(
-					NCPP_FOH_VALID(cube_buffer_p->index_buffer_p()),
+					NCPP_FOH_VALID(cube_mesh_p->buffer_p()->index_buffer_p()),
 					0
 				);
 
@@ -355,7 +353,7 @@ int main() {
 				);
 
 				main_command_list_p->draw_indexed(
-					cube_asset_p->mesh_p->indices().size(),
+					cube_mesh_p->indices().size(),
 					0,
 					0
 				);
