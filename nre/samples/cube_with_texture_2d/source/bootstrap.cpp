@@ -43,6 +43,24 @@ int main() {
 	);
 	cube_buffer_p->upload();
 
+ 	auto texture_2d_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/ncoder.png").T_cast<F_texture_2d_asset>();
+ 	auto texture_2d_p = H_texture::create_2d(
+	 	NRE_RENDER_DEVICE(),
+	 	texture_2d_asset_p->initial_resource_data(),
+	 	texture_2d_asset_p->size.x,
+	 	texture_2d_asset_p->size.y,
+	 	E_format::R8G8B8A8_UNORM,
+	 	1,
+		{},
+		E_resource_bind_flag::SRV
+ 	);
+	auto texture_2d_srv_p = H_resource_view::create_srv(
+		NRE_RENDER_DEVICE(),
+		{
+			.resource_p = NCPP_FOH_VALID(texture_2d_p)
+		}
+	);
+
 	F_uniform_data uniform_data;
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
 		NRE_RENDER_DEVICE(),
@@ -76,7 +94,7 @@ int main() {
 		}
 	};
 
-	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/cube.hlsl", "u8_txt").T_cast<F_u8_text_asset>();
+	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/cube_with_texture_2d.hlsl", "u8_txt").T_cast<F_u8_text_asset>();
 	auto shader_class_p = H_shader_compiler::compile_hlsl(
 		"Cube",
 		shader_asset_p->content,
@@ -326,6 +344,10 @@ int main() {
 
 				main_command_list_p->ZPS_bind_constant_buffer(
 					NCPP_FOH_VALID(cbuffer_p),
+					0
+				);
+				main_command_list_p->ZPS_bind_srv(
+					NCPP_FOH_VALID(texture_2d_srv_p),
 					0
 				);
 

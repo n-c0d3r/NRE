@@ -7,6 +7,14 @@ cbuffer uniform_data : register(b0) {
 
 }
 
+Texture2D ColorMap;
+SamplerState ColorMapSampler
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
+
 struct F_vertex_to_pixel {
 
     float4 clip_position : SV_POSITION;
@@ -38,7 +46,8 @@ F_vertex_to_pixel vmain(
 float4 pmain_lambert_lighting(F_vertex_to_pixel input) : SV_TARGET {
 
     float t = dot(input.world_normal, float3(0, 1, 0));
-    return float4(1, 1, 1, 1) * lerp(0.12f, 1.0f, t * 0.5f + 0.5f);
+    float4 color = ColorMap.Sample(ColorMapSampler, input.uv);
+    return color * lerp(0.12f, 1.0f, t * 0.5f + 0.5f);
 }
 float4 pmain_show_world_position(F_vertex_to_pixel input) : SV_TARGET {
 
