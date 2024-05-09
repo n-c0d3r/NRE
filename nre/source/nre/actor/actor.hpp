@@ -21,6 +21,8 @@ namespace nre {
 
 	private:
 		using F_handle = typename TG_list<TU<F_actor>>::iterator;
+		using F_gameplay_tick_handle = typename TG_list<TK_valid<F_actor>>::iterator;
+		using F_render_tick_handle = typename TG_list<TK_valid<F_actor>>::iterator;
 		using F_component_map = TG_unordered_map<u64, TK<A_actor_component>>;
 		using F_component_vector = TG_vector<TU<A_actor_component>>;
 
@@ -32,6 +34,11 @@ namespace nre {
 		F_component_map component_map_;
 		F_component_vector component_vector_;
 
+		F_gameplay_tick_handle gameplay_tick_handle_;
+		F_render_tick_handle render_tick_handle_;
+		b8 is_gameplay_tickable_ = false;
+		b8 is_render_tickable_ = false;
+
 	protected:
 		G_string name_;
 
@@ -39,6 +46,8 @@ namespace nre {
 		NCPP_FORCE_INLINE TKPA_valid<F_level> level_p() const noexcept { return level_p_; }
 		NCPP_FORCE_INLINE const G_string& name() const noexcept { return name_; }
 		NCPP_FORCE_INLINE void set_name(const G_string& value) noexcept { name_ = value; }
+		NCPP_FORCE_INLINE b8 is_gameplay_tickable() const noexcept { return is_gameplay_tickable_; }
+		NCPP_FORCE_INLINE b8 is_render_tickable() const noexcept { return is_render_tickable_; }
 
 
 
@@ -106,6 +115,10 @@ namespace nre {
 				.T_cast<F_component__>()
 			);
 		}
+
+	public:
+		void set_gameplay_tick(b8 value);
+		void set_render_tick(b8 value);
 
 	protected:
 		virtual void gameplay_tick();

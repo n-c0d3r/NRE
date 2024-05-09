@@ -60,7 +60,10 @@ namespace nre {
 		using F_vertex_channel_data_targ_list = TF_template_targ_list<F_vertex_channel_datas__...>;
 
 		using F_data = TF_static_mesh_data<F_vertex_channel_datas__...>;
-		using F_static_mesh = TF_static_mesh<F_vertex_channel_datas__...>;
+		using F_mesh = TF_static_mesh<F_vertex_channel_datas__...>;
+
+	public:
+		friend F_mesh;
 
 
 
@@ -78,7 +81,7 @@ namespace nre {
 
 
 	public:
-		TF_static_mesh_buffer(TKPA_valid<F_static_mesh> static_mesh_p) :
+		TF_static_mesh_buffer(TKPA_valid<F_mesh> static_mesh_p) :
 			A_static_mesh_buffer(static_mesh_p)
 		{
 		}
@@ -88,10 +91,10 @@ namespace nre {
 	public:
 		NCPP_DISABLE_COPY(TF_static_mesh_buffer);
 
-	public:
-		void upload() {
+	private:
+		void upload_internal() {
 
-			auto mesh_p = mesh_p_.T_cast<F_static_mesh>();
+			auto mesh_p = mesh_p_.T_cast<F_mesh>();
 
 			using F_vertex_channel_indices = typename TF_template_targ_list<F_vertex_channel_datas__...>::F_indices;
 
@@ -183,6 +186,7 @@ namespace nre {
 	protected:
 		u32 vertex_count_;
 		u32 vertex_channel_count_;
+		TU<A_static_mesh_buffer> buffer_p_;
 
 	public:
 		NCPP_FORCE_INLINE const G_string& name() const noexcept { return name_; }
@@ -191,6 +195,7 @@ namespace nre {
 		NCPP_FORCE_INLINE const F_static_submesh_headers& submesh_headers() const noexcept { return submesh_headers_; }
 		NCPP_FORCE_INLINE u32 vertex_count() const noexcept { return vertex_count_; }
 		NCPP_FORCE_INLINE u32 vertex_channel_count() const noexcept { return vertex_channel_count_; }
+		NCPP_FORCE_INLINE TK<A_static_mesh_buffer> buffer_p() const noexcept { return buffer_p_; }
 
 
 
@@ -239,6 +244,9 @@ namespace nre {
 		{
 			vertex_count_ = 0;
 			vertex_channel_count_ = sizeof...(F_vertex_channel_datas__);
+
+			buffer_p_ = TU<F_buffer>()(NCPP_KTHIS());
+			buffer_p_.T_cast<F_buffer>()->upload_internal();
 		}
 		TF_static_mesh(
 			const F_vertex_channels& vertex_channels,
@@ -257,7 +265,6 @@ namespace nre {
 			vertex_channel_count_ = sizeof...(F_vertex_channel_datas__);
 		}
 		~TF_static_mesh() {
-
 		}
 
 	public:

@@ -6,7 +6,8 @@
 
 namespace nre {
 
-	class F_render_view;
+	class F_render_view_system;
+	class F_renderable_system;
 
 
 
@@ -29,6 +30,9 @@ namespace nre {
 		TU<A_command_list> main_command_list_p_;
 		TU<A_swapchain> main_swapchain_p_;
 		TU<A_frame_buffer> main_frame_buffer_p_;
+
+		TU<F_render_view_system> render_view_system_;
+		TU<F_renderable_system> renderable_system_;
 
 	public:
 		NCPP_FORCE_INLINE TK_valid<A_device> device_p() const noexcept { return NCPP_FOH_VALID(device_p_); }

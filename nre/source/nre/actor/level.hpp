@@ -20,6 +20,8 @@ namespace nre {
 
 	private:
 		TG_list<TU<F_actor>> actor_p_list_;
+		TG_list<TK_valid<F_actor>> gameplay_tickable_actor_p_list_;
+		TG_list<TK_valid<F_actor>> render_tickable_actor_p_list_;
 
 	protected:
 		G_string name_;

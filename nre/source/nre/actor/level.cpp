@@ -23,7 +23,7 @@ namespace nre {
 
 	void F_level::gameplay_tick_internal() {
 
-		for(auto it = actor_p_list_.begin(); it != actor_p_list_.end();) {
+		for(auto it = gameplay_tickable_actor_p_list_.begin(); it != gameplay_tickable_actor_p_list_.end();) {
 
 			auto next_it = it;
 			++next_it;
@@ -35,7 +35,7 @@ namespace nre {
 	}
 	void F_level::render_tick_internal() {
 
-		for(auto it = actor_p_list_.begin(); it != actor_p_list_.end();) {
+		for(auto it = render_tickable_actor_p_list_.begin(); it != render_tickable_actor_p_list_.end();) {
 
 			auto next_it = it;
 			++next_it;

@@ -10,8 +10,14 @@ namespace nre
 	class NRE_API F_render_view
 	{
 
+	public:
+		friend class F_render_view_system;
+
+
+
 	private:
 		K_rtv_handle rtv_p_;
+		typename TG_list<TK_valid<F_render_view>>::iterator handle_;
 
 	public:
 		F_matrix4x4 projection_matrix = T_identity<F_matrix4x4>();
