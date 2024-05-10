@@ -1,5 +1,5 @@
 ﻿#include <nre/asset/obj_mesh_asset_factory.hpp>
-#include <nre/asset/obj_mesh_asset.hpp>
+#include <nre/asset/static_mesh_asset.hpp>
 #include <OBJ_Loader.h>
 
 
@@ -9,10 +9,8 @@ namespace nre {
 	F_obj_mesh_asset_factory::F_obj_mesh_asset_factory() :
 		A_asset_factory({ "obj" })
 	{
-
 	}
 	F_obj_mesh_asset_factory::~F_obj_mesh_asset_factory() {
-
 	}
 
 	TS<A_asset> F_obj_mesh_asset_factory::build_from_file(const G_string& abs_path) {
@@ -21,7 +19,7 @@ namespace nre {
 
 		if(loader.LoadFile(abs_path.c_str()))
 		{
-			auto obj_mesh_asset_p = TS<F_obj_mesh_asset>()(abs_path);
+			auto static_mesh_asset_p = TS<F_static_mesh_asset>()(abs_path);
 
 			TG_vector<F_vertex_position> vertex_positions;
 			TG_vector<F_vertex_normal> vertex_normals;
@@ -75,7 +73,7 @@ namespace nre {
 				base_index_location += loaded_mesh.Indices.size();
 			}
 
-			obj_mesh_asset_p->mesh_p = TU<F_static_mesh>()(
+			static_mesh_asset_p->mesh_p = TS<F_static_mesh>()(
 				typename F_static_mesh::F_vertex_channels {
 					std::move(vertex_positions),
 					std::move(vertex_normals),
@@ -86,7 +84,7 @@ namespace nre {
 				std::move(submesh_headers)
 			);
 
-			return std::move(obj_mesh_asset_p);
+			return std::move(static_mesh_asset_p);
 		}
 
 		return null;

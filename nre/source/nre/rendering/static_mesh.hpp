@@ -44,6 +44,27 @@ namespace nre {
 		virtual TG_span<K_buffer_handle> vertex_buffer_p_span() const = 0;
 		NCPP_FORCE_INLINE K_buffer_handle index_buffer_p() const noexcept { return index_buffer_p_.keyed(); }
 
+		NCPP_FORCE_INLINE u32 uploaded_vertex_buffer_count() const noexcept {
+
+			return vertex_buffer_p_span().size();
+		}
+		NCPP_FORCE_INLINE u32 uploaded_vertex_count() const noexcept {
+
+			auto vs = vertex_buffer_p_span();
+
+			if(vs.size())
+				return vs[0]->desc().element_count;
+
+			return 0;
+		}
+		NCPP_FORCE_INLINE u32 uploaded_index_count() const noexcept {
+
+			if(index_buffer_p_)
+				return index_buffer_p_->desc().element_count;
+
+			return 0;
+		}
+
 
 
 	protected:

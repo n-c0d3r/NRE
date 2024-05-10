@@ -36,7 +36,7 @@ int main() {
 
 	F_vector4 clear_color = { 0.1f, 0.1f, 0.1f, 1.0f };
 
-	auto ship_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/ship.obj").T_cast<F_obj_mesh_asset>();
+	auto ship_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/ship.obj").T_cast<F_static_mesh_asset>();
 	auto ship_mesh_p = NCPP_FOH_VALID(ship_asset_p->mesh_p);
 
 	F_uniform_data uniform_data;
@@ -376,7 +376,7 @@ int main() {
 				);
 
 				main_command_list_p->draw_indexed(
-					ship_mesh_p->indices().size(),
+					ship_mesh_p->buffer_p()->uploaded_index_count(),
 					0,
 					0
 				);
