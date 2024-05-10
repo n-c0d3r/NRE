@@ -30,7 +30,7 @@ namespace nre {
 
 
 
-	class A_static_mesh_buffer
+	class NRE_API A_static_mesh_buffer
 	{
 
 	protected:
@@ -80,6 +80,9 @@ namespace nre {
 
 	public:
 		virtual ~A_static_mesh_buffer() = default;
+
+	public:
+		NCPP_DISABLE_COPY(A_static_mesh_buffer);
 	};
 
 	template<typename... F_vertex_channel_datas__>
@@ -255,6 +258,9 @@ namespace nre {
 
 	public:
 		virtual ~A_static_mesh() = default;
+
+	public:
+		NCPP_DISABLE_COPY(A_static_mesh);
 
 	};
 
