@@ -113,7 +113,10 @@ namespace nre {
 		NCPP_DISABLE_COPY(TF_static_mesh_buffer);
 
 	private:
-		void upload_internal() {
+		void upload_internal(
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+		) {
 
 			auto mesh_p = mesh_p_.T_cast<F_mesh>();
 
@@ -129,7 +132,12 @@ namespace nre {
 
 			if(mesh_p->vertex_count())
 			{
-				TF_upload_vertex_buffers_helper<F_vertex_channel_indices>::invoke(*this, mesh_p);
+				TF_upload_vertex_buffers_helper<F_vertex_channel_indices>::invoke(
+					*this,
+					mesh_p,
+					additional_bind_flag,
+					heap_type
+				);
 			}
 
 			auto& indices = (TG_vector<u32>&)mesh_p->indices();
@@ -139,7 +147,11 @@ namespace nre {
 					NRE_RENDER_SYSTEM()->device_p(),
 					indices,
 					E_format::R32_UINT,
-					E_resource_bind_flag::IBV
+					flag_combine(
+						E_resource_bind_flag::IBV,
+						additional_bind_flag
+					),
+					heap_type
 				);
 			}
 		}
@@ -164,7 +176,9 @@ namespace nre {
 	public:
 		static void invoke(
 			TF_static_mesh_buffer<F_vertex_channel_datas__...>& static_mesh_buffer,
-			TKPA_valid<TF_static_mesh<F_vertex_channel_datas__...>> mesh_p
+			TKPA_valid<TF_static_mesh<F_vertex_channel_datas__...>> mesh_p,
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
 		)
 		{
 			using F_vertex_channel_data_targ_list = TF_template_targ_list<F_vertex_channel_datas__...>;
@@ -176,7 +190,11 @@ namespace nre {
 						inject_non_const(
 							eastl::get<indices>(mesh_p->vertex_channels())
 						),
-						E_resource_bind_flag::VBV
+						flag_combine(
+							E_resource_bind_flag::VBV,
+							additional_bind_flag
+						),
+						heap_type
 					)
 				)...
 			};
@@ -201,10 +219,10 @@ namespace nre {
 
 	private:
 		G_string name_;
-		F_indices indices_;
-		F_static_submesh_headers submesh_headers_;
 
 	protected:
+		F_indices indices_;
+		F_static_submesh_headers submesh_headers_;
 		u32 vertex_count_;
 		u32 vertex_channel_count_;
 		TU<A_static_mesh_buffer> buffer_p_;
@@ -256,7 +274,11 @@ namespace nre {
 
 
 	public:
-		TF_static_mesh(const G_string& name = "") :
+		TF_static_mesh(
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			const G_string& name = ""
+		) :
 			A_static_mesh(
 				name,
 				{},
@@ -267,12 +289,17 @@ namespace nre {
 			vertex_channel_count_ = sizeof...(F_vertex_channel_datas__);
 
 			buffer_p_ = TU<F_buffer>()(NCPP_KTHIS());
-			buffer_p_.T_cast<F_buffer>()->upload_internal();
+			buffer_p_.T_cast<F_buffer>()->upload_internal(
+				additional_bind_flag,
+				heap_type
+			);
 		}
 		TF_static_mesh(
 			const F_vertex_channels& vertex_channels,
 			const F_indices& indices,
 			const F_static_submesh_headers& submesh_headers,
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
 			const G_string& name = ""
 		) :
 			A_static_mesh(
@@ -286,13 +313,53 @@ namespace nre {
 			vertex_channel_count_ = sizeof...(F_vertex_channel_datas__);
 
 			buffer_p_ = TU<F_buffer>()(NCPP_KTHIS());
-			buffer_p_.T_cast<F_buffer>()->upload_internal();
+			buffer_p_.T_cast<F_buffer>()->upload_internal(
+				additional_bind_flag,
+				heap_type
+			);
 		}
 		~TF_static_mesh() {
 		}
 
 	public:
 		NCPP_DISABLE_COPY(TF_static_mesh);
+
+	public:
+		void rebuild(
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+		)
+		{
+			vertex_channels_ = F_vertex_channels();
+			indices_ = {};
+			submesh_headers_ = {};
+
+			vertex_count_ = 0;
+
+			buffer_p_.T_cast<F_buffer>()->upload_internal(
+				additional_bind_flag,
+				heap_type
+			);
+		}
+		void rebuild(
+			const F_vertex_channels& vertex_channels,
+			const F_indices& indices,
+			const F_static_submesh_headers& submesh_headers,
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+		)
+		{
+			vertex_channels_ = vertex_channels;
+			indices_ = indices;
+			submesh_headers_ = submesh_headers;
+
+			vertex_count_ = eastl::get<0>(vertex_channels).size();
+
+			buffer_p_.T_cast<F_buffer>()->upload_internal(
+				additional_bind_flag,
+				heap_type
+			);
+		}
 
 	};
 
