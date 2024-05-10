@@ -66,9 +66,8 @@ namespace nre {
 			array_size_(array_size),
 			texels_(width * height * array_size)
 		{
-			NCPP_ASSERT(data.size() >= (width_ * height_ * array_size_)) << "invalid texels";
-
-			H_texel::store(data, texels_, format);
+			if(data.size())
+				H_texel::store(data, texels_, format);
 		}
 		F_texture_2d_array_builder(PA_vector3_u size) :
 			width_(size.x),
@@ -105,9 +104,8 @@ namespace nre {
 			array_size_(size.z),
 			texels_(size.x * size.y * size.z)
 		{
-			NCPP_ASSERT(data.size() >= (width_ * height_ * array_size_)) << "invalid texels";
-
-			H_texel::store(data, texels_, format);
+			if(data.size())
+				H_texel::store(data, texels_, format);
 		}
 		F_texture_2d_array_builder(const F_texture_2d_array_builder& x) :
 			width_(x.width_),

@@ -45,6 +45,24 @@ int main() {
  	auto texture_2d_p = NCPP_FOH_VALID(texture_2d_asset_p->texture_p);
 	auto texture_2d_srv_p = texture_2d_p->srv_p();
 
+	F_texture_2d_array_builder builder(
+		2, 2, 2,
+		{
+			F_vector4 { 1.0f, 0.0f, 0.0f, 1.0f },
+			F_vector4 { 0.0f, 1.0f, 0.0f, 1.0f },
+			F_vector4 { 0.0f, 0.0f, 1.0f, 1.0f },
+			F_vector4 { 0.0f, 0.0f, 0.0f, 1.0f },
+			F_vector4 { 1.0f, 1.0f, 0.0f, 1.0f },
+			F_vector4 { 0.0f, 1.0f, 1.0f, 1.0f },
+			F_vector4 { 1.0f, 0.0f, 1.0f, 1.0f },
+			F_vector4 { 0.0f, 0.0f, 0.0f, 1.0f }
+		}
+	);
+
+	auto test_p = TU<F_general_texture_2d_array>()(
+		builder
+	);
+
 	F_uniform_data uniform_data;
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
 		NRE_RENDER_DEVICE(),

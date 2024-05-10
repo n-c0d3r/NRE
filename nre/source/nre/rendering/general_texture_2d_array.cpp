@@ -23,9 +23,10 @@ namespace nre {
 		if(builder_.is_valid())
 		{
 
-			F_initial_resource_data initial_resource_data = {
-				.data_p = (void*)(data.data())
-			};
+			F_initial_resource_data initial_resource_data;
+
+			if(data.size())
+				initial_resource_data.data_p = (void*)(data.data());
 
 			buffer_p_ = H_texture::create_2d_array(
 				NRE_RENDER_DEVICE(),
@@ -91,9 +92,10 @@ namespace nre {
 		{
 			auto data = builder_.data(format);
 
-			F_initial_resource_data initial_resource_data = {
-				.data_p = (void*)(data.data())
-			};
+			F_initial_resource_data initial_resource_data;
+
+			if(data.size())
+				initial_resource_data.data_p = (void*)(data.data());
 
 			buffer_p_ = H_texture::create_2d_array(
 				NRE_RENDER_DEVICE(),
@@ -154,9 +156,10 @@ namespace nre {
 		{
 			auto data = builder_.data(format);
 
-			F_initial_resource_data initial_resource_data = {
-				.data_p = (void*)(data.data())
-			};
+			F_initial_resource_data initial_resource_data;
+
+			if(data.size())
+				initial_resource_data.data_p = (void*)(data.data());
 
 			buffer_p_ = H_texture::create_2d_array(
 				NRE_RENDER_DEVICE(),
@@ -217,9 +220,10 @@ namespace nre {
 		{
 			auto data = builder_.data(format);
 
-			F_initial_resource_data initial_resource_data = {
-				.data_p = (void*)(data.data())
-			};
+			F_initial_resource_data initial_resource_data;
+
+			if(data.size())
+				initial_resource_data.data_p = (void*)(data.data());
 
 			buffer_p_ = H_texture::create_2d_array(
 				NRE_RENDER_DEVICE(),
@@ -289,9 +293,10 @@ namespace nre {
 
 		if(builder_.is_valid())
 		{
-			F_initial_resource_data initial_resource_data = {
-				.data_p = (void*)(data.data())
-			};
+			F_initial_resource_data initial_resource_data;
+
+			if(data.size())
+				initial_resource_data.data_p = (void*)(data.data());
 
 			buffer_p_ = H_texture::create_2d_array(
 				NRE_RENDER_DEVICE(),
@@ -360,9 +365,10 @@ namespace nre {
 		{
 			auto data = builder_.data(format);
 
-			F_initial_resource_data initial_resource_data = {
-				.data_p = (void*)(data.data())
-			};
+			F_initial_resource_data initial_resource_data;
+
+			if(data.size())
+				initial_resource_data.data_p = (void*)(data.data());
 
 			buffer_p_ = H_texture::create_2d_array(
 				NRE_RENDER_DEVICE(),
@@ -421,9 +427,10 @@ namespace nre {
 		{
 			auto data = builder_.data(format);
 
-			F_initial_resource_data initial_resource_data = {
-				.data_p = (void*)(data.data())
-			};
+			F_initial_resource_data initial_resource_data;
+
+			if(data.size())
+				initial_resource_data.data_p = (void*)(data.data());
 
 			buffer_p_ = H_texture::create_2d_array(
 				NRE_RENDER_DEVICE(),
@@ -482,9 +489,10 @@ namespace nre {
 		{
 			auto data = builder_.data(format);
 
-			F_initial_resource_data initial_resource_data = {
-				.data_p = (void*)(data.data())
-			};
+			F_initial_resource_data initial_resource_data;
+
+			if(data.size())
+				initial_resource_data.data_p = (void*)(data.data());
 
 			buffer_p_ = H_texture::create_2d_array(
 				NRE_RENDER_DEVICE(),
