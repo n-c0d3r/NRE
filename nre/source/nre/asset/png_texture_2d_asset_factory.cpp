@@ -1,5 +1,6 @@
 #include <nre/asset/png_texture_2d_asset_factory.hpp>
 #include <nre/asset/texture_2d_asset.hpp>
+#include <nre/rendering/general_texture_2d.hpp>
 
 
 
@@ -178,11 +179,11 @@ namespace nre {
 		{
 			auto texture_2d_asset_p = TS<F_texture_2d_asset>()(abs_path);
 
-			texture_2d_asset_p->buffer = std::move(buffer);
-			texture_2d_asset_p->size = F_vector2_u {
-				u32(width),
-				u32(height)
-			};
+			texture_2d_asset_p->texture_p = TS<F_general_texture_2d>()(
+				width,
+				height,
+				buffer
+			);
 
 			return std::move(texture_2d_asset_p);
 		}
