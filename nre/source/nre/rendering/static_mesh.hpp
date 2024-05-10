@@ -36,13 +36,21 @@ namespace nre {
 	protected:
 		TK_valid<A_static_mesh> mesh_p_;
 		U_buffer_handle index_buffer_p_;
+		U_srv_handle index_srv_p_;
+		U_uav_handle index_uav_p_;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<A_static_mesh> mesh_p() const noexcept { return mesh_p_; }
 
 		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const = 0;
 		virtual TG_span<K_buffer_handle> vertex_buffer_p_span() const = 0;
-		NCPP_FORCE_INLINE K_buffer_handle index_buffer_p() const noexcept { return index_buffer_p_.keyed(); }
+		virtual K_srv_handle vertex_srv_p(u32 index = 0) const { return {}; }
+		virtual TG_span<K_srv_handle> vertex_srv_p_span() const { return {}; }
+		virtual K_uav_handle vertex_uav_p(u32 index = 0) const { return {}; }
+		virtual TG_span<K_uav_handle> vertex_uav_p_span() const { return {}; }
+		NCPP_FORCE_INLINE K_buffer_handle index_buffer_p() const noexcept { return index_buffer_p_; }
+		NCPP_FORCE_INLINE K_srv_handle index_srv_p() const noexcept { return index_srv_p_; }
+		NCPP_FORCE_INLINE K_uav_handle index_uav_p() const noexcept { return index_uav_p_; }
 
 		NCPP_FORCE_INLINE u32 uploaded_vertex_buffer_count() const noexcept {
 
