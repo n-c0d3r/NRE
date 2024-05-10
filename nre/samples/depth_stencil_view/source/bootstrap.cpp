@@ -38,6 +38,7 @@ int main() {
 
 	auto ship_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/ship.obj").T_cast<F_static_mesh_asset>();
 	auto ship_mesh_p = NCPP_FOH_VALID(ship_asset_p->mesh_p);
+	auto ship_mesh_buffer_p = ship_mesh_p->buffer_p();
 
 	F_uniform_data uniform_data;
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
@@ -342,22 +343,22 @@ int main() {
 				);
 
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(ship_mesh_p->buffer_p()->vertex_buffer_p(0)), // vertex position buffer
+					NCPP_FOH_VALID(ship_mesh_buffer_p->vertex_buffer_p(0)), // vertex position buffer
 					0,
 					0
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(ship_mesh_p->buffer_p()->vertex_buffer_p(1)), // vertex normal buffer
+					NCPP_FOH_VALID(ship_mesh_buffer_p->vertex_buffer_p(1)), // vertex normal buffer
 					0,
 					1
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(ship_mesh_p->buffer_p()->vertex_buffer_p(3)), // vertex normal buffer
+					NCPP_FOH_VALID(ship_mesh_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
 					0,
 					2
 				);
 				main_command_list_p->ZIA_bind_index_buffer(
-					NCPP_FOH_VALID(ship_mesh_p->buffer_p()->index_buffer_p()),
+					NCPP_FOH_VALID(ship_mesh_buffer_p->index_buffer_p()),
 					0
 				);
 
@@ -376,7 +377,7 @@ int main() {
 				);
 
 				main_command_list_p->draw_indexed(
-					ship_mesh_p->buffer_p()->uploaded_index_count(),
+					ship_mesh_buffer_p->uploaded_index_count(),
 					0,
 					0
 				);
