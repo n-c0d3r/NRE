@@ -19,50 +19,55 @@ namespace nre {
 		builder_(width, height, (F_data&)data, format),
 		name_(name)
 	{
-		NCPP_ASSERT(width) << "invalid width";
-		NCPP_ASSERT(height) << "invalid height";
+		if(builder_.is_valid())
+		{
 
-		F_initial_resource_data initial_resource_data = {
-			.system_mem_p = (void*)(data.data()),
-			.system_mem_pitch = width * H_format::stride(format),
-			.system_mem_slice_pitch = 0
-		};
+			F_initial_resource_data initial_resource_data = {
+				.system_mem_p = (void*)(data.data()),
+				.system_mem_pitch = width * H_format::stride(format),
+				.system_mem_slice_pitch = 0
+			};
 
-		buffer_p_ = H_texture::create_2d(
-			NRE_RENDER_DEVICE(),
-			initial_resource_data,
-			width,
-			height,
-			format,
-			mip_level_count,
-			sample_desc,
-			bind_flags,
-			heap_type
-		);
-
-		if(flag_is_has(bind_flags, E_resource_bind_flag::SRV)) {
-
-			srv_p_ = H_resource_view::create_srv(
-				NCPP_FOH_VALID(buffer_p_)
+			buffer_p_ = H_texture::create_2d(
+				NRE_RENDER_DEVICE(),
+				initial_resource_data,
+				width,
+				height,
+				format,
+				mip_level_count,
+				sample_desc,
+				bind_flags,
+				heap_type
 			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::UAV)) {
 
-			uav_p_ = H_resource_view::create_uav(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::RTV)) {
+			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			{
 
-			rtv_p_ = H_resource_view::create_rtv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::DSV)) {
+				srv_p_ = H_resource_view::create_srv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			{
 
-			dsv_p_ = H_resource_view::create_dsv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
+				uav_p_ = H_resource_view::create_uav(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			{
+
+				rtv_p_ = H_resource_view::create_rtv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			{
+
+				dsv_p_ = H_resource_view::create_dsv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
 		}
 	}
 	F_general_texture_2d::F_general_texture_2d(
@@ -79,54 +84,58 @@ namespace nre {
 		builder_(width, height, texels),
 		name_(name)
 	{
-		NCPP_ASSERT(width) << "invalid width";
-		NCPP_ASSERT(height) << "invalid height";
-
 		NCPP_ASSERT((width * height) == texels.size()) << "invalid texel count";
 
-		auto data = builder_.data(format);
+		if(builder_.is_valid())
+		{
+			auto data = builder_.data(format);
 
-		F_initial_resource_data initial_resource_data = {
-			.system_mem_p = (void*)(data.data()),
-			.system_mem_pitch = width * H_format::stride(format),
-			.system_mem_slice_pitch = 0
-		};
+			F_initial_resource_data initial_resource_data = {
+				.system_mem_p = (void*)(data.data()),
+				.system_mem_pitch = width * H_format::stride(format),
+				.system_mem_slice_pitch = 0
+			};
 
-		buffer_p_ = H_texture::create_2d(
-			NRE_RENDER_DEVICE(),
-			initial_resource_data,
-			width,
-			height,
-			format,
-			mip_level_count,
-			sample_desc,
-			bind_flags,
-			heap_type
-		);
-
-		if(flag_is_has(bind_flags, E_resource_bind_flag::SRV)) {
-
-			srv_p_ = H_resource_view::create_srv(
-				NCPP_FOH_VALID(buffer_p_)
+			buffer_p_ = H_texture::create_2d(
+				NRE_RENDER_DEVICE(),
+				initial_resource_data,
+				width,
+				height,
+				format,
+				mip_level_count,
+				sample_desc,
+				bind_flags,
+				heap_type
 			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::UAV)) {
 
-			uav_p_ = H_resource_view::create_uav(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::RTV)) {
+			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			{
 
-			rtv_p_ = H_resource_view::create_rtv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::DSV)) {
+				srv_p_ = H_resource_view::create_srv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			{
 
-			dsv_p_ = H_resource_view::create_dsv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
+				uav_p_ = H_resource_view::create_uav(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			{
+
+				rtv_p_ = H_resource_view::create_rtv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			{
+
+				dsv_p_ = H_resource_view::create_dsv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
 		}
 	}
 	F_general_texture_2d::F_general_texture_2d(
@@ -141,51 +150,56 @@ namespace nre {
 		builder_(builder),
 		name_(name)
 	{
-		NCPP_ASSERT(builder.is_valid()) << "invalid builder";
+		if(builder_.is_valid())
+		{
+			auto data = builder_.data(format);
 
-		auto data = builder_.data(format);
+			F_initial_resource_data initial_resource_data = {
+				.system_mem_p = (void*)(data.data()),
+				.system_mem_pitch = builder_.width() * H_format::stride(format),
+				.system_mem_slice_pitch = 0
+			};
 
-		F_initial_resource_data initial_resource_data = {
-			.system_mem_p = (void*)(data.data()),
-			.system_mem_pitch = builder_.width() * H_format::stride(format),
-			.system_mem_slice_pitch = 0
-		};
-
-		buffer_p_ = H_texture::create_2d(
-			NRE_RENDER_DEVICE(),
-			initial_resource_data,
-			builder_.width(),
-			builder_.height(),
-			format,
-			mip_level_count,
-			sample_desc,
-			bind_flags,
-			heap_type
-		);
-
-		if(flag_is_has(bind_flags, E_resource_bind_flag::SRV)) {
-
-			srv_p_ = H_resource_view::create_srv(
-				NCPP_FOH_VALID(buffer_p_)
+			buffer_p_ = H_texture::create_2d(
+				NRE_RENDER_DEVICE(),
+				initial_resource_data,
+				builder_.width(),
+				builder_.height(),
+				format,
+				mip_level_count,
+				sample_desc,
+				bind_flags,
+				heap_type
 			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::UAV)) {
 
-			uav_p_ = H_resource_view::create_uav(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::RTV)) {
+			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			{
 
-			rtv_p_ = H_resource_view::create_rtv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::DSV)) {
+				srv_p_ = H_resource_view::create_srv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			{
 
-			dsv_p_ = H_resource_view::create_dsv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
+				uav_p_ = H_resource_view::create_uav(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			{
+
+				rtv_p_ = H_resource_view::create_rtv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			{
+
+				dsv_p_ = H_resource_view::create_dsv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
 		}
 	}
 	F_general_texture_2d::~F_general_texture_2d() {
@@ -202,50 +216,54 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
-		NCPP_ASSERT(width) << "invalid width";
-		NCPP_ASSERT(height) << "invalid height";
+		if(builder_.is_valid())
+		{
+			F_initial_resource_data initial_resource_data = {
+				.system_mem_p = (void*)(data.data()),
+				.system_mem_pitch = width * H_format::stride(format),
+				.system_mem_slice_pitch = 0
+			};
 
-		F_initial_resource_data initial_resource_data = {
-			.system_mem_p = (void*)(data.data()),
-			.system_mem_pitch = width * H_format::stride(format),
-			.system_mem_slice_pitch = 0
-		};
-
-		buffer_p_ = H_texture::create_2d(
-			NRE_RENDER_DEVICE(),
-			initial_resource_data,
-			width,
-			height,
-			format,
-			mip_level_count,
-			sample_desc,
-			bind_flags,
-			heap_type
-		);
-
-		if(flag_is_has(bind_flags, E_resource_bind_flag::SRV)) {
-
-			srv_p_ = H_resource_view::create_srv(
-				NCPP_FOH_VALID(buffer_p_)
+			buffer_p_ = H_texture::create_2d(
+				NRE_RENDER_DEVICE(),
+				initial_resource_data,
+				width,
+				height,
+				format,
+				mip_level_count,
+				sample_desc,
+				bind_flags,
+				heap_type
 			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::UAV)) {
 
-			uav_p_ = H_resource_view::create_uav(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::RTV)) {
+			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			{
 
-			rtv_p_ = H_resource_view::create_rtv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::DSV)) {
+				srv_p_ = H_resource_view::create_srv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			{
 
-			dsv_p_ = H_resource_view::create_dsv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
+				uav_p_ = H_resource_view::create_uav(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			{
+
+				rtv_p_ = H_resource_view::create_rtv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			{
+
+				dsv_p_ = H_resource_view::create_dsv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
 		}
 	}
 	void F_general_texture_2d::rebuild(
@@ -258,54 +276,58 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
-		NCPP_ASSERT(width) << "invalid width";
-		NCPP_ASSERT(height) << "invalid height";
-
 		NCPP_ASSERT((width * height) == texels.size()) << "invalid texel count";
 
-		auto data = builder_.data(format);
+		if(builder_.is_valid())
+		{
+			auto data = builder_.data(format);
 
-		F_initial_resource_data initial_resource_data = {
-			.system_mem_p = (void*)(data.data()),
-			.system_mem_pitch = width * H_format::stride(format),
-			.system_mem_slice_pitch = 0
-		};
+			F_initial_resource_data initial_resource_data = {
+				.system_mem_p = (void*)(data.data()),
+				.system_mem_pitch = width * H_format::stride(format),
+				.system_mem_slice_pitch = 0
+			};
 
-		buffer_p_ = H_texture::create_2d(
-			NRE_RENDER_DEVICE(),
-			initial_resource_data,
-			width,
-			height,
-			format,
-			mip_level_count,
-			sample_desc,
-			bind_flags,
-			heap_type
-		);
-
-		if(flag_is_has(bind_flags, E_resource_bind_flag::SRV)) {
-
-			srv_p_ = H_resource_view::create_srv(
-				NCPP_FOH_VALID(buffer_p_)
+			buffer_p_ = H_texture::create_2d(
+				NRE_RENDER_DEVICE(),
+				initial_resource_data,
+				width,
+				height,
+				format,
+				mip_level_count,
+				sample_desc,
+				bind_flags,
+				heap_type
 			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::UAV)) {
 
-			uav_p_ = H_resource_view::create_uav(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::RTV)) {
+			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			{
 
-			rtv_p_ = H_resource_view::create_rtv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::DSV)) {
+				srv_p_ = H_resource_view::create_srv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			{
 
-			dsv_p_ = H_resource_view::create_dsv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
+				uav_p_ = H_resource_view::create_uav(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			{
+
+				rtv_p_ = H_resource_view::create_rtv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			{
+
+				dsv_p_ = H_resource_view::create_dsv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
 		}
 	}
 	void F_general_texture_2d::rebuild(
@@ -316,51 +338,56 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
-		NCPP_ASSERT(builder.is_valid()) << "invalid builder";
+		if(builder_.is_valid())
+		{
+			auto data = builder_.data(format);
 
-		auto data = builder_.data(format);
+			F_initial_resource_data initial_resource_data = {
+				.system_mem_p = (void*)(data.data()),
+				.system_mem_pitch = builder_.width() * H_format::stride(format),
+				.system_mem_slice_pitch = 0
+			};
 
-		F_initial_resource_data initial_resource_data = {
-			.system_mem_p = (void*)(data.data()),
-			.system_mem_pitch = builder_.width() * H_format::stride(format),
-			.system_mem_slice_pitch = 0
-		};
-
-		buffer_p_ = H_texture::create_2d(
-			NRE_RENDER_DEVICE(),
-			initial_resource_data,
-			builder_.width(),
-			builder_.height(),
-			format,
-			mip_level_count,
-			sample_desc,
-			bind_flags,
-			heap_type
-		);
-
-		if(flag_is_has(bind_flags, E_resource_bind_flag::SRV)) {
-
-			srv_p_ = H_resource_view::create_srv(
-				NCPP_FOH_VALID(buffer_p_)
+			buffer_p_ = H_texture::create_2d(
+				NRE_RENDER_DEVICE(),
+				initial_resource_data,
+				builder_.width(),
+				builder_.height(),
+				format,
+				mip_level_count,
+				sample_desc,
+				bind_flags,
+				heap_type
 			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::UAV)) {
 
-			uav_p_ = H_resource_view::create_uav(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::RTV)) {
+			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			{
 
-			rtv_p_ = H_resource_view::create_rtv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
-		}
-		if(flag_is_has(bind_flags, E_resource_bind_flag::DSV)) {
+				srv_p_ = H_resource_view::create_srv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			{
 
-			dsv_p_ = H_resource_view::create_dsv(
-				NCPP_FOH_VALID(buffer_p_)
-			);
+				uav_p_ = H_resource_view::create_uav(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			{
+
+				rtv_p_ = H_resource_view::create_rtv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			{
+
+				dsv_p_ = H_resource_view::create_dsv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
 		}
 	}
 
