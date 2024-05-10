@@ -67,6 +67,15 @@ namespace nre {
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
 			const G_string& name = ""
 		);
+		F_general_texture_2d(
+			F_texture_2d_builder&& builder,
+			E_format format = E_format::R8G8B8A8_UNORM,
+			u32 mip_level_count = 1,
+			F_sample_desc sample_desc = F_sample_desc{},
+			E_resource_bind_flag bind_flags = E_resource_bind_flag::SRV,
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			const G_string& name = ""
+		);
 		~F_general_texture_2d();
 
 	public:
@@ -95,6 +104,14 @@ namespace nre {
 		);
 		void rebuild(
 			const F_texture_2d_builder& builder,
+			E_format format = E_format::R8G8B8A8_UNORM,
+			u32 mip_level_count = 1,
+			F_sample_desc sample_desc = F_sample_desc{},
+			E_resource_bind_flag bind_flags = E_resource_bind_flag::SRV,
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+		);
+		void rebuild(
+			F_texture_2d_builder&& builder,
 			E_format format = E_format::R8G8B8A8_UNORM,
 			u32 mip_level_count = 1,
 			F_sample_desc sample_desc = F_sample_desc{},

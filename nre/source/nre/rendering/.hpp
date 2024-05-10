@@ -11,4 +11,6 @@
 #include <nre/rendering/vertex.hpp>
 #include <nre/rendering/camera.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
+#include <nre/rendering/texture_2d_builder.hpp>
+#include <nre/rendering/texture_2d_array_builder.hpp>
 #include <nre/rendering/texel.hpp>

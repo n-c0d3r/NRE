@@ -9,6 +9,12 @@ namespace nre {
 
 	struct F_texture_2d_builder {
 
+	public:
+		struct F_no_texels {};
+		static constexpr F_no_texels no_texels;
+
+
+
 	private:
 		u32 width_ = 0;
 		u32 height_ = 0;
@@ -23,6 +29,11 @@ namespace nre {
 
 	public:
 		F_texture_2d_builder() = default;
+		F_texture_2d_builder(u32 width, u32 height, F_no_texels) :
+			width_(width),
+			height_(height)
+		{
+		}
 		F_texture_2d_builder(u32 width, u32 height) :
 			width_(width),
 			height_(height),
@@ -56,6 +67,11 @@ namespace nre {
 			width_(size.x),
 			height_(size.y),
 			texels_(size.x * size.y)
+		{
+		}
+		F_texture_2d_builder(PA_vector2_u size, F_no_texels) :
+			width_(size.x),
+			height_(size.y)
 		{
 		}
 		F_texture_2d_builder(PA_vector2_u size, const F_texels& texels) :
@@ -127,6 +143,18 @@ namespace nre {
 			width_ = w;
 			height_ = h;
 			texels_.resize(width_ * height_);
+		}
+		NCPP_FORCE_INLINE void resize(PA_vector2_u width_height, F_no_texels) {
+
+			width_ = width_height.x;
+			height_ = width_height.y;
+			texels_.resize(0);
+		}
+		NCPP_FORCE_INLINE void resize(u32 w, u32 h, F_no_texels) {
+
+			width_ = w;
+			height_ = h;
+			texels_.resize(0);
 		}
 		NCPP_FORCE_INLINE b8 is_valid() const noexcept {
 

@@ -196,6 +196,68 @@ namespace nre {
 			}
 		}
 	}
+	F_general_texture_2d::F_general_texture_2d(
+		F_texture_2d_builder&& builder,
+		E_format format,
+		u32 mip_level_count,
+		F_sample_desc sample_desc,
+		E_resource_bind_flag bind_flags,
+		E_resource_heap_type heap_type,
+		const G_string& name
+	) :
+		builder_(std::move(builder)),
+		name_(name)
+	{
+		if(builder_.is_valid())
+		{
+			auto data = builder_.data(format);
+
+			F_initial_resource_data initial_resource_data = {
+				.data_p = (void*)(data.data())
+			};
+
+			buffer_p_ = H_texture::create_2d(
+				NRE_RENDER_DEVICE(),
+				initial_resource_data,
+				builder_.width(),
+				builder_.height(),
+				format,
+				mip_level_count,
+				sample_desc,
+				bind_flags,
+				heap_type
+			);
+
+			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			{
+
+				srv_p_ = H_resource_view::create_srv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			{
+
+				uav_p_ = H_resource_view::create_uav(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			{
+
+				rtv_p_ = H_resource_view::create_rtv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			{
+
+				dsv_p_ = H_resource_view::create_dsv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+		}
+	}
 	F_general_texture_2d::~F_general_texture_2d() {
 
 	}
@@ -210,6 +272,13 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
+		builder_ = F_texture_2d_builder(
+			width,
+			height,
+			(F_data&)data,
+			format
+		);
+
 		if(builder_.is_valid())
 		{
 			F_initial_resource_data initial_resource_data = {
@@ -270,6 +339,12 @@ namespace nre {
 	) {
 		NCPP_ASSERT((width * height) == texels.size()) << "invalid texel count";
 
+		builder_ = F_texture_2d_builder(
+			width,
+			height,
+			texels
+		);
+
 		if(builder_.is_valid())
 		{
 			auto data = builder_.data(format);
@@ -328,6 +403,68 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
+		builder_ = builder;
+
+		if(builder_.is_valid())
+		{
+			auto data = builder_.data(format);
+
+			F_initial_resource_data initial_resource_data = {
+				.data_p = (void*)(data.data())
+			};
+
+			buffer_p_ = H_texture::create_2d(
+				NRE_RENDER_DEVICE(),
+				initial_resource_data,
+				builder_.width(),
+				builder_.height(),
+				format,
+				mip_level_count,
+				sample_desc,
+				bind_flags,
+				heap_type
+			);
+
+			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			{
+
+				srv_p_ = H_resource_view::create_srv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			{
+
+				uav_p_ = H_resource_view::create_uav(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			{
+
+				rtv_p_ = H_resource_view::create_rtv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			{
+
+				dsv_p_ = H_resource_view::create_dsv(
+					NCPP_FOH_VALID(buffer_p_)
+				);
+			}
+		}
+	}
+	void F_general_texture_2d::rebuild(
+		F_texture_2d_builder&& builder,
+		E_format format,
+		u32 mip_level_count,
+		F_sample_desc sample_desc,
+		E_resource_bind_flag bind_flags,
+		E_resource_heap_type heap_type
+	) {
+		builder_ = std::move(builder);
+
 		if(builder_.is_valid())
 		{
 			auto data = builder_.data(format);
