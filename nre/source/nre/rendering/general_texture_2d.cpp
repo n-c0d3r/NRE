@@ -23,9 +23,7 @@ namespace nre {
 		{
 
 			F_initial_resource_data initial_resource_data = {
-				.system_mem_p = (void*)(data.data()),
-				.system_mem_pitch = width * H_format::stride(format),
-				.system_mem_slice_pitch = 0
+				.data_p = (void*)(data.data())
 			};
 
 			buffer_p_ = H_texture::create_2d(
@@ -91,9 +89,7 @@ namespace nre {
 			auto data = builder_.data(format);
 
 			F_initial_resource_data initial_resource_data = {
-				.system_mem_p = (void*)(data.data()),
-				.system_mem_pitch = width * H_format::stride(format),
-				.system_mem_slice_pitch = 0
+				.data_p = (void*)(data.data())
 			};
 
 			buffer_p_ = H_texture::create_2d(
@@ -155,9 +151,7 @@ namespace nre {
 			auto data = builder_.data(format);
 
 			F_initial_resource_data initial_resource_data = {
-				.system_mem_p = (void*)(data.data()),
-				.system_mem_pitch = builder_.width() * H_format::stride(format),
-				.system_mem_slice_pitch = 0
+				.data_p = (void*)(data.data())
 			};
 
 			buffer_p_ = H_texture::create_2d(
@@ -219,9 +213,7 @@ namespace nre {
 		if(builder_.is_valid())
 		{
 			F_initial_resource_data initial_resource_data = {
-				.system_mem_p = (void*)(data.data()),
-				.system_mem_pitch = width * H_format::stride(format),
-				.system_mem_slice_pitch = 0
+				.data_p = (void*)(data.data())
 			};
 
 			buffer_p_ = H_texture::create_2d(
@@ -283,9 +275,7 @@ namespace nre {
 			auto data = builder_.data(format);
 
 			F_initial_resource_data initial_resource_data = {
-				.system_mem_p = (void*)(data.data()),
-				.system_mem_pitch = width * H_format::stride(format),
-				.system_mem_slice_pitch = 0
+				.data_p = (void*)(data.data())
 			};
 
 			buffer_p_ = H_texture::create_2d(
@@ -343,9 +333,7 @@ namespace nre {
 			auto data = builder_.data(format);
 
 			F_initial_resource_data initial_resource_data = {
-				.system_mem_p = (void*)(data.data()),
-				.system_mem_pitch = builder_.width() * H_format::stride(format),
-				.system_mem_slice_pitch = 0
+				.data_p = (void*)(data.data())
 			};
 
 			buffer_p_ = H_texture::create_2d(
