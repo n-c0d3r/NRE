@@ -11,11 +11,9 @@ namespace nre {
 	class A_static_mesh_buffer;
 	class A_static_mesh;
 
-	template<typename... F_vertex_channel_datas__>
-	struct TF_static_mesh_data;
-	template<typename... F_vertex_channel_datas__>
+	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
 	class TF_static_mesh_buffer;
-	template<typename... F_vertex_channel_datas__>
+	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
 	class TF_static_mesh;
 
 
@@ -38,6 +36,8 @@ namespace nre {
 		U_buffer_handle index_buffer_p_;
 		U_srv_handle index_srv_p_;
 		U_uav_handle index_uav_p_;
+		b8 is_has_srv_ = false;
+		b8 is_has_uav_ = false;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<A_static_mesh> mesh_p() const noexcept { return mesh_p_; }
@@ -48,6 +48,9 @@ namespace nre {
 		virtual TG_span<K_srv_handle> vertex_srv_p_span() const { return {}; }
 		virtual K_uav_handle vertex_uav_p(u32 index = 0) const { return {}; }
 		virtual TG_span<K_uav_handle> vertex_uav_p_span() const { return {}; }
+		NCPP_FORCE_INLINE b8 is_has_srv() const noexcept { return is_has_srv_; }
+		NCPP_FORCE_INLINE b8 is_has_uav() const noexcept { return is_has_uav_; }
+
 		NCPP_FORCE_INLINE K_buffer_handle index_buffer_p() const noexcept { return index_buffer_p_; }
 		NCPP_FORCE_INLINE K_srv_handle index_srv_p() const noexcept { return index_srv_p_; }
 		NCPP_FORCE_INLINE K_uav_handle index_uav_p() const noexcept { return index_uav_p_; }
@@ -85,14 +88,13 @@ namespace nre {
 		NCPP_DISABLE_COPY(A_static_mesh_buffer);
 	};
 
-	template<typename... F_vertex_channel_datas__>
+	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
 	class TF_static_mesh_buffer : public A_static_mesh_buffer {
 
 	public:
 		using F_vertex_channel_data_targ_list = TF_template_targ_list<F_vertex_channel_datas__...>;
 
-		using F_data = TF_static_mesh_data<F_vertex_channel_datas__...>;
-		using F_mesh = TF_static_mesh<F_vertex_channel_datas__...>;
+		using F_mesh = TF_static_mesh<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>;
 
 	public:
 		friend F_mesh;
@@ -102,12 +104,26 @@ namespace nre {
 	private:
 		TG_array<U_buffer_handle, sizeof...(F_vertex_channel_datas__)> vertex_buffer_p_array_;
 		TG_array<K_buffer_handle, sizeof...(F_vertex_channel_datas__)> keyed_vertex_buffer_p_array_;
+		TG_array<U_srv_handle, sizeof...(F_vertex_channel_datas__)> vertex_srv_p_array_;
+		TG_array<K_srv_handle, sizeof...(F_vertex_channel_datas__)> keyed_vertex_srv_p_array_;
+		TG_array<U_uav_handle, sizeof...(F_vertex_channel_datas__)> vertex_uav_p_array_;
+		TG_array<K_uav_handle, sizeof...(F_vertex_channel_datas__)> keyed_vertex_uav_p_array_;
 
 	public:
 		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const override { return vertex_buffer_p_array_[index].keyed(); }
 		virtual TG_span<K_buffer_handle> vertex_buffer_p_span() const override
 		{
 			return (TG_array<K_buffer_handle, sizeof...(F_vertex_channel_datas__)>&)keyed_vertex_buffer_p_array_;
+		}
+		virtual K_srv_handle vertex_srv_p(u32 index = 0) const override { return vertex_srv_p_array_[index].keyed(); }
+		virtual TG_span<K_srv_handle> vertex_srv_p_span() const override
+		{
+			return (TG_array<K_srv_handle, sizeof...(F_vertex_channel_datas__)>&)keyed_vertex_srv_p_array_;
+		}
+		virtual K_uav_handle vertex_uav_p(u32 index = 0) const override { return vertex_uav_p_array_[index].keyed(); }
+		virtual TG_span<K_uav_handle> vertex_uav_p_span() const override
+		{
+			return (TG_array<K_uav_handle, sizeof...(F_vertex_channel_datas__)>&)keyed_vertex_uav_p_array_;
 		}
 
 
@@ -125,11 +141,20 @@ namespace nre {
 
 	private:
 		void upload_internal(
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
 		) {
 
 			auto mesh_p = mesh_p_.T_cast<F_mesh>();
+
+			is_has_srv_ = flag_is_has(
+				additional_bind_flag,
+				E_resource_bind_flag::SRV
+			);
+			is_has_uav_ = flag_is_has(
+				additional_bind_flag,
+				E_resource_bind_flag::UAV
+			);
 
 			using F_vertex_channel_indices = typename TF_template_targ_list<F_vertex_channel_datas__...>::F_indices;
 
@@ -164,6 +189,15 @@ namespace nre {
 					),
 					heap_type
 				);
+
+				if(is_has_srv_)
+					index_srv_p_ = H_resource_view::create_srv(
+						NCPP_FOH_VALID(index_buffer_p_)
+					);
+				if(is_has_uav_)
+					index_uav_p_ = H_resource_view::create_uav(
+						NCPP_FOH_VALID(index_buffer_p_)
+					);
 			}
 		}
 
@@ -173,9 +207,9 @@ namespace nre {
 
 	};
 
-	template<typename... F_vertex_channel_datas__>
+	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
 	template<sz... indices>
-	struct TF_static_mesh_buffer<F_vertex_channel_datas__...>::TF_upload_vertex_buffers_helper<TF_template_varg_list<indices...>>
+	struct TF_static_mesh_buffer<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>::TF_upload_vertex_buffers_helper<TF_template_varg_list<indices...>>
 	{
 
 	private:
@@ -186,9 +220,9 @@ namespace nre {
 
 	public:
 		static void invoke(
-			TF_static_mesh_buffer<F_vertex_channel_datas__...>& static_mesh_buffer,
-			TKPA_valid<TF_static_mesh<F_vertex_channel_datas__...>> mesh_p,
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			TF_static_mesh_buffer<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>& static_mesh_buffer,
+			TKPA_valid<TF_static_mesh<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>> mesh_p,
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
 		)
 		{
@@ -209,6 +243,42 @@ namespace nre {
 					)
 				)...
 			};
+
+			if(static_mesh_buffer.is_has_srv_) {
+				static_mesh_buffer.vertex_srv_p_array_ = {
+					(
+						H_resource_view::create_srv(
+							NRE_RENDER_SYSTEM()->device_p(),
+							{
+								.resource_p = NCPP_FOH_VALID(static_mesh_buffer.vertex_buffer_p_array_[indices]),
+								.overrided_format = F_vertex_channel_format_varg_list__::template T_at<indices>
+							}
+						)
+					)...
+				};
+				for(u32 i = 0; i < sizeof...(F_vertex_channel_datas__); ++i)
+				{
+					static_mesh_buffer.keyed_vertex_srv_p_array_[i] = static_mesh_buffer.vertex_srv_p_array_[i].keyed();
+				}
+			}
+
+			if(static_mesh_buffer.is_has_uav_) {
+				static_mesh_buffer.vertex_uav_p_array_ = {
+					(
+						H_resource_view::create_uav(
+							NRE_RENDER_SYSTEM()->device_p(),
+							{
+								.resource_p = NCPP_FOH_VALID(static_mesh_buffer.vertex_buffer_p_array_[indices]),
+								.overrided_format = F_vertex_channel_format_varg_list__::template T_at<indices>
+							}
+						)
+					)...
+				};
+				for(u32 i = 0; i < sizeof...(F_vertex_channel_datas__); ++i)
+				{
+					static_mesh_buffer.keyed_vertex_uav_p_array_[i] = static_mesh_buffer.vertex_uav_p_array_[i].keyed();
+				}
+			}
 
 			for(u32 i = 0; i < sizeof...(F_vertex_channel_datas__); ++i)
 			{
@@ -267,7 +337,7 @@ namespace nre {
 
 	};
 
-	template<typename... F_vertex_channel_datas__>
+	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
 	class TF_static_mesh : public A_static_mesh {
 
 	public:
@@ -275,7 +345,7 @@ namespace nre {
 
 		using F_vertex_channels = TG_tuple<TG_vector<F_vertex_channel_datas__>...>;
 
-		using F_buffer = TF_static_mesh_buffer<F_vertex_channel_datas__...>;
+		using F_buffer = TF_static_mesh_buffer<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>;
 
 	public:
 		friend F_buffer;
@@ -292,7 +362,7 @@ namespace nre {
 
 	public:
 		TF_static_mesh(
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
 			const G_string& name = ""
 		) :
@@ -315,7 +385,7 @@ namespace nre {
 			const F_vertex_channels& vertex_channels,
 			const F_indices& indices,
 			const F_static_submesh_headers& submesh_headers,
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
 			const G_string& name = ""
 		) :
@@ -343,7 +413,7 @@ namespace nre {
 
 	public:
 		void rebuild(
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
 		)
 		{
@@ -362,7 +432,7 @@ namespace nre {
 			const F_vertex_channels& vertex_channels,
 			const F_indices& indices,
 			const F_static_submesh_headers& submesh_headers,
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::NONE,
+			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
 		)
 		{
@@ -391,12 +461,24 @@ namespace nre {
 
 
 	using F_static_mesh_buffer = TF_static_mesh_buffer<
+	    TF_template_varg_list<
+	    	E_format::R32G32B32A32_FLOAT,
+	    	E_format::R32G32B32A32_FLOAT,
+	    	E_format::R32G32B32A32_FLOAT,
+	    	E_format::R32G32B32A32_FLOAT
+		>,
 		F_vertex_position,
 		F_vertex_normal,
 		F_vertex_tangent,
 		F_vertex_uv
 	>;
 	using F_static_mesh = TF_static_mesh<
+		TF_template_varg_list<
+			E_format::R32G32B32A32_FLOAT,
+			E_format::R32G32B32A32_FLOAT,
+			E_format::R32G32B32A32_FLOAT,
+			E_format::R32G32B32A32_FLOAT
+		>,
 		F_vertex_position,
 		F_vertex_normal,
 		F_vertex_tangent,
