@@ -45,6 +45,8 @@ int main() {
  	auto texture_2d_p = NCPP_FOH_VALID(texture_2d_asset_p->texture_p);
 	auto texture_2d_srv_p = texture_2d_p->srv_p();
 
+	auto hdr_texture_2d_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/quattro_canti_8k.hdr");
+
 	F_uniform_data uniform_data;
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
 		NRE_RENDER_DEVICE(),

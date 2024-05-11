@@ -23,6 +23,8 @@ namespace nre {
 	{
 		instance_ps = NCPP_KTHIS().no_requirements();
 
+		FreeImage_Initialise();
+
 		nrhi::initialize_system();
 
 		render_system_p_ = TU<F_render_system>()();
@@ -31,6 +33,8 @@ namespace nre {
 	F_application::~F_application() {
 
 		nrhi::release_system();
+
+		FreeImage_DeInitialise();
 	}
 
 	void F_application::start() {

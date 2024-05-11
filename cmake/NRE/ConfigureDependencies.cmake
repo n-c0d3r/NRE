@@ -41,7 +41,7 @@ endif()
 #   Add FreeImage subdirectory
 #####################################################################################
 if(NOT TARGET FreeImage)
-    add_subdirectory("${NRE_SUBMODULES_DIR}/FreeImage_CMake" "${NRE_BINARY_DIR}/submodules/FreeImage_CMake")
+    add_subdirectory("${NRE_SUBMODULES_DIR}/FreeImage" "${NRE_BINARY_DIR}/submodules/FreeImage")
 endif()
 
 

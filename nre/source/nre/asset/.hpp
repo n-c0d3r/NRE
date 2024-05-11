@@ -18,3 +18,4 @@
 #include <nre/asset/text_asset_factory.hpp>
 #include <nre/asset/u8_text_asset_factory.hpp>
 #include <nre/asset/png_texture_2d_asset_factory.hpp>
+#include <nre/asset/hdr_texture_2d_asset_factory.hpp>

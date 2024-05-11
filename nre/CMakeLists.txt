@@ -111,7 +111,7 @@ endif()
 
 if(${NRE_DLL})
     target_compile_definitions(nre
-            PRIVATE
+        PRIVATE
             -DNRE_DLL_IMPLEMENTATION
     )
 endif()

@@ -104,7 +104,7 @@ namespace nre {
 				memcpy(
 					(void*)(out_data_span.data()),
 					(void*)(color_span.data()),
-					color_span.size()
+					color_span.size() * sizeof(F_vector4)
 				);
 				break;
 			case E_format::R32_FLOAT:
@@ -133,7 +133,7 @@ namespace nre {
 				memcpy(
 					(void*)(color_span.data()),
 					(void*)(in_data_span.data()),
-					color_span.size()
+					color_span.size() * sizeof(F_vector4)
 				);
 				break;
 			case E_format::R32_FLOAT:
