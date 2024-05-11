@@ -1,5 +1,4 @@
 #include <nre/asset/texture_2d_asset.hpp>
-#include <nre/rendering/static_mesh.hpp>
 
 
 

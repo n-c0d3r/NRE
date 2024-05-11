@@ -13,3 +13,6 @@
 [submodule "submodules/OBJ-Loader"]
 	path = submodules/OBJ-Loader
 	url = https://github.com/Bly7/OBJ-Loader
+[submodule "submodules/FreeImage_CMake"]
+	path = submodules/FreeImage_CMake
+	url = https://github.com/mlomb/FreeImage

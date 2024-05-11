@@ -82,8 +82,6 @@ namespace nre {
 		builder_(width, height, texels),
 		name_(name)
 	{
-		NCPP_ASSERT((width * height) == texels.size()) << "invalid texel count";
-
 		if(builder_.is_valid())
 		{
 			auto data = builder_.data(format);
@@ -337,8 +335,6 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
-		NCPP_ASSERT((width * height) == texels.size()) << "invalid texel count";
-
 		builder_ = F_texture_2d_builder(
 			width,
 			height,

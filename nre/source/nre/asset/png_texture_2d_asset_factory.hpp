@@ -2,6 +2,7 @@
 
 #include <nre/prerequisites.hpp>
 #include <nre/asset/asset_factory.hpp>
+#include <nre/rendering/texture_2d_builder.hpp>
 
 
 

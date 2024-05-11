@@ -43,28 +43,24 @@ namespace nre {
 
 			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
 			{
-
 				srv_p_ = H_resource_view::create_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
 			{
-
 				uav_p_ = H_resource_view::create_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
 			{
-
 				rtv_p_ = H_resource_view::create_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
 			{
-
 				dsv_p_ = H_resource_view::create_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -86,8 +82,6 @@ namespace nre {
 		builder_(width, height, array_size, texels),
 		name_(name)
 	{
-		NCPP_ASSERT((width * height * array_size) == texels.size()) << "invalid texel count";
-
 		if(builder_.is_valid())
 		{
 			auto data = builder_.data(format);
@@ -112,28 +106,24 @@ namespace nre {
 
 			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
 			{
-
 				srv_p_ = H_resource_view::create_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
 			{
-
 				uav_p_ = H_resource_view::create_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
 			{
-
 				rtv_p_ = H_resource_view::create_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
 			{
-
 				dsv_p_ = H_resource_view::create_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -176,28 +166,24 @@ namespace nre {
 
 			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
 			{
-
 				srv_p_ = H_resource_view::create_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
 			{
-
 				uav_p_ = H_resource_view::create_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
 			{
-
 				rtv_p_ = H_resource_view::create_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
 			{
-
 				dsv_p_ = H_resource_view::create_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -240,28 +226,24 @@ namespace nre {
 
 			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
 			{
-
 				srv_p_ = H_resource_view::create_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
 			{
-
 				uav_p_ = H_resource_view::create_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
 			{
-
 				rtv_p_ = H_resource_view::create_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
 			{
-
 				dsv_p_ = H_resource_view::create_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -313,28 +295,24 @@ namespace nre {
 
 			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
 			{
-
 				srv_p_ = H_resource_view::create_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
 			{
-
 				uav_p_ = H_resource_view::create_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
 			{
-
 				rtv_p_ = H_resource_view::create_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
 			{
-
 				dsv_p_ = H_resource_view::create_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -352,8 +330,6 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
-		NCPP_ASSERT((width * height * array_size) == texels.size()) << "invalid texel count";
-
 		builder_ = F_texture_2d_array_builder(
 			width,
 			height,
@@ -385,28 +361,24 @@ namespace nre {
 
 			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
 			{
-
 				srv_p_ = H_resource_view::create_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
 			{
-
 				uav_p_ = H_resource_view::create_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
 			{
-
 				rtv_p_ = H_resource_view::create_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
 			{
-
 				dsv_p_ = H_resource_view::create_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -447,28 +419,24 @@ namespace nre {
 
 			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
 			{
-
 				srv_p_ = H_resource_view::create_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
 			{
-
 				uav_p_ = H_resource_view::create_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
 			{
-
 				rtv_p_ = H_resource_view::create_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
 			{
-
 				dsv_p_ = H_resource_view::create_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -509,28 +477,24 @@ namespace nre {
 
 			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
 			{
-
 				srv_p_ = H_resource_view::create_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
 			{
-
 				uav_p_ = H_resource_view::create_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
 			{
-
 				rtv_p_ = H_resource_view::create_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
 			{
-
 				dsv_p_ = H_resource_view::create_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);

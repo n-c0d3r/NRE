@@ -2,7 +2,6 @@
 
 #include <nre/prerequisites.hpp>
 #include <nre/asset/asset.hpp>
-#include <nre/rendering/static_mesh.hpp>
 
 
 
