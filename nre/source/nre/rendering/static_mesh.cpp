@@ -14,10 +14,12 @@ namespace nre
 		indices_(indices),
 		submesh_headers_(submesh_headers)
 	{}
-
 	A_static_mesh_buffer::A_static_mesh_buffer(TKPA_valid<A_static_mesh> mesh_p) :
 		mesh_p_(mesh_p)
 	{}
 
+	void A_static_mesh::release_data() {
+
+	}
 
 }

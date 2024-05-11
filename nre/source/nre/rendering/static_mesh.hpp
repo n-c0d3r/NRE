@@ -219,7 +219,7 @@ namespace nre {
 
 
 
-	class A_static_mesh
+	class NRE_API A_static_mesh
 	{
 
 	public:
@@ -261,6 +261,9 @@ namespace nre {
 
 	public:
 		NCPP_DISABLE_COPY(A_static_mesh);
+
+	public:
+		virtual void release_data();
 
 	};
 
@@ -373,6 +376,14 @@ namespace nre {
 				additional_bind_flag,
 				heap_type
 			);
+		}
+
+	public:
+		virtual void release_data() override {
+
+			indices_.clear();
+			submesh_headers_.clear();
+			vertex_channels_ = {};
 		}
 
 	};
