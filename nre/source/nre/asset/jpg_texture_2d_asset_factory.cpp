@@ -72,7 +72,6 @@ namespace nre {
 
 			return std::move(texture_2d_asset_p);
 		}
-		else return null;
 
 		return null;
 	}

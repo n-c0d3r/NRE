@@ -20,11 +20,6 @@ namespace nre {
 
 	TS<A_asset> F_png_texture_cube_asset_factory::build_from_file(const G_string& abs_path) {
 
-		TS<F_texture_2d_asset> texture_2d_asset_p = NRE_ASSET_SYSTEM()->load_asset(
-			abs_path,
-			"png"
-		).T_cast<F_texture_2d_asset>();
-
 		return null;
 	}
 	E_asset_build_mode F_png_texture_cube_asset_factory::build_mode()
