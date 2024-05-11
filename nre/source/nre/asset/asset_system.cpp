@@ -4,6 +4,7 @@
 #include <nre/asset/u8_text_asset_factory.hpp>
 #include <nre/asset/png_texture_2d_asset_factory.hpp>
 #include <nre/asset/hdr_texture_2d_asset_factory.hpp>
+#include <nre/asset/jpg_texture_2d_asset_factory.hpp>
 #include <nre/asset/png_texture_cube_asset_factory.hpp>
 #include <nre/asset/path.hpp>
 #include <nre/application/application.hpp>
@@ -25,6 +26,7 @@ namespace nre {
 		T_registry_asset_factory<F_obj_mesh_asset_factory>();
 		T_registry_asset_factory<F_png_texture_2d_asset_factory>();
 		T_registry_asset_factory<F_hdr_texture_2d_asset_factory>();
+		T_registry_asset_factory<F_jpg_texture_2d_asset_factory>();
 		T_registry_asset_factory<F_png_texture_cube_asset_factory>();
 	}
 	F_asset_system::~F_asset_system() {
