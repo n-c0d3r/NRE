@@ -53,11 +53,11 @@ namespace nre {
 
 							// apply tone mapping
 							color = color / (color + F_vector4::one());
-							color.x = eastl::clamp(color.x, 0.0f, 1.0f);
-							color.y = eastl::clamp(color.y, 0.0f, 1.0f);
-							color.z = eastl::clamp(color.z, 0.0f, 1.0f);
-							color.w = 1.0f;
 
+							// clamp the color to range of [0, 1]
+							color = element_saturate(color);
+
+							//  store to buffer
 							buffer[out_index + 0] = u8(color.x * (256.0f - NMATH_DEFAULT_TOLERANCE_F32));
 							buffer[out_index + 1] = u8(color.y * (256.0f - NMATH_DEFAULT_TOLERANCE_F32));
 							buffer[out_index + 2] = u8(color.z * (256.0f - NMATH_DEFAULT_TOLERANCE_F32));
