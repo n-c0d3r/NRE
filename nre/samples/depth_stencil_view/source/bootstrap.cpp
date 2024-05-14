@@ -105,35 +105,25 @@ int main() {
 		shader_asset_p->content,
 		NCPP_INIL_SPAN(
 			F_shader_kernel_desc {
-				.blob_desc = {
-					.name = "vmain",
-					.type = E_shader_type::VERTEX,
-					.input_assembler_desc = input_assembler_desc
-				}
+				.name = "vmain",
+				.type = E_shader_type::VERTEX,
+				.input_assembler_desc = input_assembler_desc
 			},
 			F_shader_kernel_desc {
-				.blob_desc = {
-					.name = "pmain_lambert_lighting",
-					.type = E_shader_type::PIXEL
-				}
+				.name = "pmain_lambert_lighting",
+				.type = E_shader_type::PIXEL
 			},
 			F_shader_kernel_desc {
-				.blob_desc = {
-					.name = "pmain_show_world_position",
-					.type = E_shader_type::PIXEL
-				}
+				.name = "pmain_show_world_position",
+				.type = E_shader_type::PIXEL
 			},
 			F_shader_kernel_desc {
-				.blob_desc = {
-					.name = "pmain_show_world_normal",
-					.type = E_shader_type::PIXEL
-				}
+				.name = "pmain_show_world_normal",
+				.type = E_shader_type::PIXEL
 			},
 			F_shader_kernel_desc {
-				.blob_desc = {
-					.name = "pmain_show_uv",
-					.type = E_shader_type::PIXEL
-				}
+				.name = "pmain_show_uv",
+				.type = E_shader_type::PIXEL
 			}
 		)
 	);
