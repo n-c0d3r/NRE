@@ -81,7 +81,7 @@ namespace nre {
 		~F_general_texture_2d_array();
 
 	public:
-		NCPP_DISABLE_COPY(F_general_texture_2d_array);
+		NCPP_OBJECT(F_general_texture_2d_array);
 
 	public:
 		void rebuild(

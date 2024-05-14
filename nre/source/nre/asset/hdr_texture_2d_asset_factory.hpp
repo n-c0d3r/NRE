@@ -15,7 +15,7 @@ namespace nre {
 		~F_hdr_texture_2d_asset_factory();
 
 	public:
-		NCPP_DISABLE_COPY(F_hdr_texture_2d_asset_factory);
+		NCPP_OBJECT(F_hdr_texture_2d_asset_factory);
 
 	public:
 		virtual TS<A_asset> build_from_file(const G_string& abs_path) override;

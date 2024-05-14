@@ -47,7 +47,7 @@ namespace nre
 		~F_render_view();
 
 	public:
-		NCPP_DISABLE_COPY(F_render_view);
+		NCPP_OBJECT(F_render_view);
 
 	};
 

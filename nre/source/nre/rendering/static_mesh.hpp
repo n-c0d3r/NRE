@@ -85,7 +85,7 @@ namespace nre {
 		virtual ~A_static_mesh_buffer() = default;
 
 	public:
-		NCPP_DISABLE_COPY(A_static_mesh_buffer);
+		NCPP_OBJECT(A_static_mesh_buffer);
 	};
 
 	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
@@ -137,7 +137,7 @@ namespace nre {
 		}
 
 	public:
-		NCPP_DISABLE_COPY(TF_static_mesh_buffer);
+		NCPP_OBJECT(TF_static_mesh_buffer);
 
 	private:
 		void upload_internal(
@@ -330,7 +330,7 @@ namespace nre {
 		virtual ~A_static_mesh() = default;
 
 	public:
-		NCPP_DISABLE_COPY(A_static_mesh);
+		NCPP_OBJECT(A_static_mesh);
 
 	public:
 		virtual void release_data();
@@ -409,7 +409,7 @@ namespace nre {
 		}
 
 	public:
-		NCPP_DISABLE_COPY(TF_static_mesh);
+		NCPP_OBJECT(TF_static_mesh);
 
 	public:
 		void rebuild(

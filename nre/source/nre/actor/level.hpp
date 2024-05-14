@@ -47,7 +47,7 @@ namespace nre {
 		~F_level();
 
 	public:
-		NCPP_DISABLE_COPY(F_level);
+		NCPP_OBJECT(F_level);
 
 	public:
 		template<typename F_actor__ = F_actor, typename... F_args__>

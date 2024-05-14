@@ -20,7 +20,7 @@ namespace nre {
 		~F_static_mesh_asset();
 
 	public:
-		NCPP_DISABLE_COPY(F_static_mesh_asset);
+		NCPP_OBJECT(F_static_mesh_asset);
 
 	};
 

@@ -34,7 +34,7 @@ namespace nre {
 		virtual ~A_asset();
 
 	public:
-		NCPP_DISABLE_COPY(A_asset);
+		NCPP_OBJECT(A_asset);
 
 	};
 

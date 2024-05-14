@@ -48,7 +48,7 @@ namespace nre {
 		~F_render_system();
 
 	public:
-		NCPP_DISABLE_COPY(F_render_system);
+		NCPP_OBJECT(F_render_system);
 
 	};
 

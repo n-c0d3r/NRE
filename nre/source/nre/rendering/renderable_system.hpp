@@ -41,7 +41,7 @@ namespace nre {
 		~F_renderable_system();
 
 	public:
-		NCPP_DISABLE_COPY(F_renderable_system);
+		NCPP_OBJECT(F_renderable_system);
 
 	private:
 		void registry(TKPA_valid<F_renderable> renderable_p);

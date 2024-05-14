@@ -77,7 +77,7 @@ namespace nre {
 		~F_general_texture_cube();
 
 	public:
-		NCPP_DISABLE_COPY(F_general_texture_cube);
+		NCPP_OBJECT(F_general_texture_cube);
 
 	public:
 		void rebuild(

@@ -56,7 +56,7 @@ namespace nre {
 		virtual ~F_actor();
 
 	public:
-		NCPP_DISABLE_COPY(F_actor);
+		NCPP_OBJECT(F_actor);
 
 	public:
 		template<typename F_component__>

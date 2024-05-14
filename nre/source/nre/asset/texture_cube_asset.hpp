@@ -23,7 +23,7 @@ namespace nre {
 		~F_texture_cube_asset();
 
 	public:
-		NCPP_DISABLE_COPY(F_texture_cube_asset);
+		NCPP_OBJECT(F_texture_cube_asset);
 
 	};
 

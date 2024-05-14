@@ -37,7 +37,7 @@ namespace nre {
 		~F_asset_system();
 
 	public:
-		NCPP_DISABLE_COPY(F_asset_system);
+		NCPP_OBJECT(F_asset_system);
 
 	public:
 		template<typename F_asset_factory__>

@@ -14,7 +14,7 @@ namespace nre {
 		~F_u8_text_asset_factory();
 
 	public:
-		NCPP_DISABLE_COPY(F_u8_text_asset_factory);
+		NCPP_OBJECT(F_u8_text_asset_factory);
 
 	public:
 		virtual TS<A_asset> build_from_memory(const G_string& abs_path, const F_asset_buffer& buffer) override;

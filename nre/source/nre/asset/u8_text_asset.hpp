@@ -19,7 +19,7 @@ namespace nre {
 		~F_u8_text_asset();
 
 	public:
-		NCPP_DISABLE_COPY(F_u8_text_asset);
+		NCPP_OBJECT(F_u8_text_asset);
 
 	};
 

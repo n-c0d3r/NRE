@@ -41,7 +41,7 @@ namespace nre {
 		~F_render_view_system();
 
 	public:
-		NCPP_DISABLE_COPY(F_render_view_system);
+		NCPP_OBJECT(F_render_view_system);
 
 	private:
 		void registry(TKPA_valid<F_render_view> render_view_p);
