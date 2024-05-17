@@ -34,8 +34,8 @@ namespace nre {
 			unsigned width = FreeImage_GetWidth(image_p);
 			unsigned height = FreeImage_GetHeight(image_p);
 
-			TG_vector<u8> buffer;
-			buffer.resize(width * height * sizeof(u32));
+			TG_vector<F_vector4_f32> texels;
+			texels.resize(width * height);
 
 			switch (color_type)
 			{
@@ -47,21 +47,10 @@ namespace nre {
 
 							const FIRGBF& pixel = bits[x];
 
-							sz out_index = (y * width + x) * sizeof(u32);
-
-							F_vector4 color = { pixel.red, pixel.green, pixel.blue, 1.0f };
-
-							// apply tone mapping
-							color = color / (color + F_vector4::one());
-
-							// clamp the color to range of [0, 1]
-							color = element_saturate(color);
+							sz out_index = (y * width + x);
 
 							//  store to buffer
-							buffer[out_index + 0] = u8(color.x * (256.0f - NMATH_DEFAULT_TOLERANCE_F32));
-							buffer[out_index + 1] = u8(color.y * (256.0f - NMATH_DEFAULT_TOLERANCE_F32));
-							buffer[out_index + 2] = u8(color.z * (256.0f - NMATH_DEFAULT_TOLERANCE_F32));
-							buffer[out_index + 3] = 0xFF;
+							texels[out_index] = { pixel.red, pixel.green, pixel.blue, 1.0f };
 						}
 					}
 					break;
@@ -75,7 +64,7 @@ namespace nre {
 			texture_2d_asset_p->texture_p = TS<F_general_texture_2d>()(
 				width,
 				height,
-				buffer
+				texels
 			);
 
 			return std::move(texture_2d_asset_p);
