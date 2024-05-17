@@ -36,6 +36,7 @@ namespace nre {
 
 
 	public:
+		F_general_texture_2d_array() = default;
 		F_general_texture_2d_array(
 			u32 width,
 			u32 height,
@@ -83,7 +84,11 @@ namespace nre {
 	public:
 		NCPP_OBJECT(F_general_texture_2d_array);
 
+	private:
+		void release_resource_and_resource_views_internal();
+
 	public:
+		void rebuild();
 		void rebuild(
 			u32 width,
 			u32 height,

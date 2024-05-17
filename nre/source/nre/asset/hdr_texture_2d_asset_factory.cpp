@@ -64,7 +64,8 @@ namespace nre {
 			texture_2d_asset_p->texture_p = TS<F_general_texture_2d>()(
 				width,
 				height,
-				texels
+				texels,
+				E_format::R32G32B32_FLOAT
 			);
 
 			return std::move(texture_2d_asset_p);

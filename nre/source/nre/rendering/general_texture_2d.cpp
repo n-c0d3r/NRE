@@ -260,6 +260,22 @@ namespace nre {
 
 	}
 
+	void F_general_texture_2d::release_resource_and_resource_views_internal() {
+
+		srv_p_.reset();
+		uav_p_.reset();
+		rtv_p_.reset();
+		dsv_p_.reset();
+
+		buffer_p_.reset();
+	}
+
+	void F_general_texture_2d::rebuild() {
+
+		release_resource_and_resource_views_internal();
+
+		builder_ = F_texture_2d_builder();
+	}
 	void F_general_texture_2d::rebuild(
 		u32 width,
 		u32 height,
@@ -270,6 +286,8 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
+		release_resource_and_resource_views_internal();
+
 		builder_ = F_texture_2d_builder(
 			width,
 			height,
@@ -335,6 +353,8 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
+		release_resource_and_resource_views_internal();
+
 		builder_ = F_texture_2d_builder(
 			width,
 			height,
@@ -399,6 +419,8 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
+		release_resource_and_resource_views_internal();
+
 		builder_ = builder;
 
 		if(builder_.is_valid())
@@ -459,6 +481,8 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
+		release_resource_and_resource_views_internal();
+
 		builder_ = std::move(builder);
 
 		if(builder_.is_valid())

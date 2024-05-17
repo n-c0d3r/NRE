@@ -49,6 +49,18 @@ namespace nre {
 
 			color = *((F_vector4*)in_data_p);
 		}
+		static NCPP_FORCE_INLINE void load_r32g32b32_float(void* out_data_p, PA_vector4 color) {
+
+			((f32*)out_data_p)[0] = color.x;
+			((f32*)out_data_p)[1] = color.y;
+			((f32*)out_data_p)[2] = color.z;
+		}
+		static NCPP_FORCE_INLINE void store_r32g32b32_float(void* in_data_p, F_vector4& color) {
+
+			color.x = ((f32*)in_data_p)[0];
+			color.y = ((f32*)in_data_p)[1];
+			color.z = ((f32*)in_data_p)[2];
+		}
 
 		static NCPP_FORCE_INLINE void load_r32_float(void* out_data_p, PA_vector4 color) {
 
@@ -68,6 +80,9 @@ namespace nre {
 			case E_format::R32G32B32A32_FLOAT:
 				load_r32g32b32a32_float(out_data_p, color);
 				break;
+			case E_format::R32G32B32_FLOAT:
+				load_r32g32b32_float(out_data_p, color);
+				break;
 			case E_format::R32_FLOAT:
 				load_r32_float(out_data_p, color);
 				break;
@@ -81,6 +96,9 @@ namespace nre {
 				break;
 			case E_format::R32G32B32A32_FLOAT:
 				store_r32g32b32a32_float(in_data_p, color);
+				break;
+			case E_format::R32G32B32_FLOAT:
+				store_r32g32b32_float(in_data_p, color);
 				break;
 			case E_format::R32_FLOAT:
 				store_r32_float(in_data_p, color);
@@ -106,6 +124,14 @@ namespace nre {
 					(void*)(color_span.data()),
 					color_span.size() * sizeof(F_vector4)
 				);
+				break;
+			case E_format::R32G32B32_FLOAT:
+				out_data_span.resize(color_span.size() * sizeof(f32) * 3);
+				for(u32 i = 0; i < color_span.size(); ++i) {
+					auto& data = out_data_span[i * sizeof(f32) * 3];
+					auto& color = color_span[i];
+					load_r32g32b32_float((void*)&data, color);
+				}
 				break;
 			case E_format::R32_FLOAT:
 				out_data_span.resize(color_span.size() * sizeof(f32));
@@ -135,6 +161,14 @@ namespace nre {
 					(void*)(in_data_span.data()),
 					color_span.size() * sizeof(F_vector4)
 				);
+				break;
+			case E_format::R32G32B32_FLOAT:
+				color_span.resize(in_data_span.size() / sizeof(f32) / 3);
+				for(u32 i = 0; i < color_span.size(); ++i) {
+					auto& data = in_data_span[i * sizeof(f32) * 3];
+					auto& color = color_span[i];
+					store_r32g32b32_float((void*)&data, color);
+				}
 				break;
 			case E_format::R32_FLOAT:
 				color_span.resize(in_data_span.size() / sizeof(f32));

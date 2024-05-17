@@ -36,6 +36,7 @@ namespace nre {
 
 
 	public:
+		F_general_texture_2d() = default;
 		F_general_texture_2d(
 			u32 width,
 			u32 height,
@@ -81,7 +82,11 @@ namespace nre {
 	public:
 		NCPP_OBJECT(F_general_texture_2d);
 
+	private:
+		void release_resource_and_resource_views_internal();
+
 	public:
+		void rebuild();
 		void rebuild(
 			u32 width,
 			u32 height,

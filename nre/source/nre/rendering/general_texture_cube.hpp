@@ -36,6 +36,7 @@ namespace nre {
 
 
 	public:
+		F_general_texture_cube() = default;
 		F_general_texture_cube(
 			u32 width,
 			const F_data& data = {},
@@ -79,7 +80,11 @@ namespace nre {
 	public:
 		NCPP_OBJECT(F_general_texture_cube);
 
+	private:
+		void release_resource_and_resource_views_internal();
+
 	public:
+		void rebuild();
 		void rebuild(
 			u32 width,
 			const F_data& data = {},

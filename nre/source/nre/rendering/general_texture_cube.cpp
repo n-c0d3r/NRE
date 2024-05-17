@@ -242,6 +242,22 @@ namespace nre {
 
 	}
 
+	void F_general_texture_cube::release_resource_and_resource_views_internal() {
+
+		srv_p_.reset();
+		uav_p_.reset();
+		rtv_p_.reset();
+		dsv_p_.reset();
+
+		buffer_p_.reset();
+	}
+
+	void F_general_texture_cube::rebuild() {
+
+		release_resource_and_resource_views_internal();
+
+		builder_ = F_texture_cube_builder();
+	}
 	void F_general_texture_cube::rebuild(
 		u32 width,
 		const F_data& data,
@@ -251,6 +267,8 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
+		release_resource_and_resource_views_internal();
+
 		builder_ = F_texture_cube_builder(
 			width,
 			(F_data&)data,
@@ -310,6 +328,8 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
+		release_resource_and_resource_views_internal();
+
 		builder_ = F_texture_cube_builder(
 			width,
 			texels
@@ -369,6 +389,8 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
+		release_resource_and_resource_views_internal();
+
 		builder_ = builder;
 
 		if(builder_.is_valid())
@@ -425,6 +447,8 @@ namespace nre {
 		E_resource_bind_flag bind_flags,
 		E_resource_heap_type heap_type
 	) {
+		release_resource_and_resource_views_internal();
+
 		builder_ = std::move(builder);
 
 		if(builder_.is_valid())

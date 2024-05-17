@@ -17,3 +17,4 @@
 #include <nre/rendering/texture_2d_array_builder.hpp>
 #include <nre/rendering/texture_cube_builder.hpp>
 #include <nre/rendering/texel.hpp>
+#include <nre/rendering/panorama_to_cubemap.hpp>
