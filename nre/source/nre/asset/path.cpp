@@ -89,4 +89,8 @@ namespace nre
 
 		return std::move(Result);
 	}
+	G_string H_path::file_name(const G_string& path) {
+
+		return path.substr(path.find_last_of("/\\") + 1);
+	}
 }

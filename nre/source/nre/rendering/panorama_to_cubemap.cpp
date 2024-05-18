@@ -25,7 +25,7 @@ namespace nre {
 			face_rotation = T_make_rotation(F_vector3 { 0, 0.5_pi, 0 });
 			break;
 		case E_texture_cube_face::UP:
-			face_rotation = T_make_rotation(F_vector3 { -0.5_pi, 0, 0 });
+			face_rotation = T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
 			break;
 		case E_texture_cube_face::FORWARD:
 			face_rotation = T_identity<F_quaternion>();
@@ -34,7 +34,7 @@ namespace nre {
 			face_rotation = T_make_rotation(F_vector3 { 0, -0.5_pi, 0 });
 			break;
 		case E_texture_cube_face::DOWN:
-			face_rotation = T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
+			face_rotation = T_make_rotation(F_vector3 { -0.5_pi, 0, 0 });
 			break;
 		case E_texture_cube_face::BACK:
 			face_rotation = T_make_rotation(F_vector3 { 0, 1_pi, 0 });

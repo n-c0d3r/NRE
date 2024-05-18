@@ -1,3 +1,4 @@
+#include "demo.hlsl"
 
 cbuffer uniform_data : register(b0) {
 
@@ -58,7 +59,7 @@ float4 pmain_lambert_lighting(F_vertex_to_pixel input) : SV_TARGET {
 
     float t = dot(input.world_normal, float3(0, 1, 0));
     float4 color = SkyMap.Sample(SkyMapSampler, normalize(input.world_normal));
-    return float4(ACESFilm(color.xyz * 2.0f), 1) * lerp(0.12f, 1.0f, t * 0.5f + 0.5f);
+    return float4(ACESFilm(color.xyz * 3.14f), 1) * lerp(0.12f, 1.0f, t * 0.5f + 0.5f);
 }
 float4 pmain_show_world_position(F_vertex_to_pixel input) : SV_TARGET {
 

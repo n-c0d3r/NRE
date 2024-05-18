@@ -78,10 +78,8 @@ int main() {
 		}
 	};
 
-	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hdri_sky.hlsl", "u8_txt").T_cast<F_u8_text_asset>();
-	auto shader_class_p = H_shader_compiler::compile_hlsl(
-		"HDRISky",
-		shader_asset_p->content,
+	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hdri_sky.hlsl").T_cast<F_shader_asset>();
+	auto shader_class_p = shader_asset_p->shader_class_creator_p(
 		NCPP_INIL_SPAN(
 			F_shader_kernel_desc {
 				.name = "vmain",

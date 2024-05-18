@@ -78,6 +78,7 @@ int main() {
 	auto shader_class_p = H_shader_compiler::compile_hlsl(
 		"Cube",
 		shader_asset_p->content,
+		shader_asset_p->abs_path(),
 		NCPP_INIL_SPAN(
 			F_shader_kernel_desc {
 				.name = "vmain",
