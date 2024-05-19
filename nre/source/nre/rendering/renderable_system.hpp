@@ -139,6 +139,18 @@ namespace nre {
 			);
 		}
 
+		template<typename F_functor__, typename... Fs__>
+		inline void T_for_each(F_functor__&& functor) const {
+
+			auto search_mask = T_mask<Fs__...>();
+
+			for(const auto& renderable_p : renderable_p_list_) {
+
+				if(renderable_p->mask() & search_mask)
+					functor(renderable_p);
+			}
+		}
+
 	};
 
 }

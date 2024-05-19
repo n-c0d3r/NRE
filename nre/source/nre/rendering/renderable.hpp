@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <nre/actor/actor_component.hpp>
+#include <nre/rendering/render_command_list.hpp>
 #include <nre/rendering/renderable_mask.hpp>
 
 
@@ -12,12 +13,13 @@ namespace nre {
 
 
 
-	class I_has_simple_draw_renderable {
+	class I_has_simple_render_renderable {
 
 	public:
-		virtual void simple_draw(
-			TKPA_valid<F_render_view> render_view_p
-		) = 0;
+		virtual void simple_render(
+			KPA_valid_render_command_list_handle render_command_list_p,
+			TKPA_valid<A_frame_buffer> frame_buffer_p
+		) const = 0;
 
 	};
 	class I_has_vertex_buffer_renderable {

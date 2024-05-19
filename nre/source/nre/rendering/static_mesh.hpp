@@ -44,6 +44,7 @@ namespace nre {
 
 		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const = 0;
 		virtual TG_span<K_buffer_handle> vertex_buffer_p_span() const = 0;
+		virtual u32 vertex_buffer_count() const = 0;
 		virtual K_srv_handle vertex_srv_p(u32 index = 0) const { return {}; }
 		virtual TG_span<K_srv_handle> vertex_srv_p_span() const { return {}; }
 		virtual K_uav_handle vertex_uav_p(u32 index = 0) const { return {}; }
@@ -114,6 +115,10 @@ namespace nre {
 		virtual TG_span<K_buffer_handle> vertex_buffer_p_span() const override
 		{
 			return (TG_array<K_buffer_handle, sizeof...(F_vertex_channel_datas__)>&)keyed_vertex_buffer_p_array_;
+		}
+		virtual u32 vertex_buffer_count() const override
+		{
+			return sizeof...(F_vertex_channel_datas__);
 		}
 		virtual K_srv_handle vertex_srv_p(u32 index = 0) const override { return vertex_srv_p_array_[index].keyed(); }
 		virtual TG_span<K_srv_handle> vertex_srv_p_span() const override

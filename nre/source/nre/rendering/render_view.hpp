@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <nre/prerequisites.hpp>
+#include <nre/rendering/render_view_mask.hpp>
 
 
 
@@ -31,6 +32,7 @@ namespace nre
 
 	private:
 		typename TG_list<TK_valid<A_render_view>>::iterator handle_;
+		F_render_view_mask mask_;
 
 	protected:
 		TU<A_frame_buffer> main_frame_buffer_p_;
@@ -73,11 +75,12 @@ namespace nre
 
 			return size_.x / size_.y;
 		}
+		NCPP_FORCE_INLINE F_render_view_mask mask() const noexcept { return mask_; }
 
 
 
 	protected:
-		A_render_view();
+		A_render_view(F_render_view_mask mask = 0);
 
 	public:
 		virtual ~A_render_view();
