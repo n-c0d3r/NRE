@@ -11,6 +11,7 @@ namespace nre {
 		G_string name;
 		u32 offset = 0;
 		u32 size = 0;
+		u64 type_id = 0;
 	};
 
 	// lower 32 bits: local index
@@ -21,15 +22,14 @@ namespace nre {
 	{
 		G_string name;
 		TG_vector<F_material_property_structure> property_structures;
+		u32 size = 0;
 	};
 
 	using F_material_property_buffer_id = u32;
 
 	struct F_material_structure {
 
-		TG_vector<F_material_property_buffer_structure> buffer_structures;
-
-		u32 size = 0;
+		TG_vector<F_material_property_buffer_structure> property_buffer_structures;
 
 	};
 
@@ -38,8 +38,36 @@ namespace nre {
 		G_string name;
 		G_string buffer_name;
 		u32 size;
+		u32 add_index = 0;
+		u64 type_id = 0;
 
 	};
+
+	using F_material_pso_id = u32;
+
+
+
+	constexpr F_material_property_buffer_id material_property_id_get_buffer_index(F_material_property_id id) {
+
+		return (
+			(id & 0xFFFFFFFF00000000)
+			>> 32
+		);
+	}
+	constexpr u32 material_property_id_get_local_index(F_material_property_id id) {
+
+		return (id & 0x00000000FFFFFFFF);
+	}
+	constexpr F_material_property_id make_material_property_id(
+		u32 local_index,
+		F_material_property_buffer_id buffer_id
+	) {
+
+		return (
+			F_material_property_id(local_index)
+			| (F_material_property_id(buffer_id) << 32)
+		);
+	}
 
 
 
@@ -48,11 +76,19 @@ namespace nre {
 	private:
 		TG_unordered_map<G_string, F_material_property_info> property_info_map_;
 		F_material_structure structure_;
+		u32 last_add_index_ = 0;
+
+		TG_unordered_map<G_string, F_material_pso_id> pso_id_map_;
+		TG_vector<TK_valid<A_pipeline_state>> pso_p_vector_;
 
 	public:
 		NCPP_FORCE_INLINE const TG_unordered_map<G_string, F_material_property_info>& property_info_map() const noexcept {
 
 			return property_info_map_;
+		}
+		NCPP_FORCE_INLINE const TG_vector<TK_valid<A_pipeline_state>>& pso_p_vector() const noexcept {
+
+			return pso_p_vector_;
 		}
 		NCPP_FORCE_INLINE const F_material_structure& structure() const noexcept {
 
@@ -79,23 +115,22 @@ namespace nre {
 
 			return property_info_map_.find(name)->second;
 		}
-		inline void add_property_info(
-			const F_material_property_info& info
-		) {
-			NCPP_ASSERT(!is_has_property(info.name)) << "\"" << info.name << "\" property already added";
-
-			property_info_map_[info.name] = info;
-		}
 		NCPP_FORCE_INLINE void add_property_info(
 			const G_string& name,
 			const G_string& buffer_name,
-			u32 size
+			u32 size,
+			u64 type_id
 		) {
-			add_property_info({
+			NCPP_ASSERT(!is_has_property(name)) << "\"" << name << "\" property already added";
+
+			property_info_map_[name] = {
 				name,
 				buffer_name,
-				size
-			});
+				size,
+				last_add_index_,
+				type_id
+			};
+			++last_add_index_;
 		}
 		template<typename F__>
 		void T_add_property_info(
@@ -105,12 +140,14 @@ namespace nre {
 			add_property_info(
 				name,
 				buffer_name,
-				sizeof(F__)
+				sizeof(F__),
+				T_type_hash_code<F__>
 			);
 		}
 
 	public:
-		void apply();
+		void clear();
+		const F_material_structure& build();
 
 	};
 

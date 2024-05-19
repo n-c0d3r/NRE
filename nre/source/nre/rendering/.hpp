@@ -23,3 +23,5 @@
 #include <nre/rendering/texture_cube_builder.hpp>
 #include <nre/rendering/texel.hpp>
 #include <nre/rendering/panorama_to_cubemap.hpp>
+#include <nre/rendering/pso_library.hpp>
+#include <nre/rendering/shader_library.hpp>

@@ -75,7 +75,7 @@ namespace nre {
 
 	public:
 		void set_material_template(
-			TKPA_valid<F_material_template> material_template_p
+			TSPA<F_material_template> material_template_p
 		);
 
 	};

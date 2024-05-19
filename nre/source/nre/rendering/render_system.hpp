@@ -8,6 +8,8 @@ namespace nre {
 
 	class F_render_view_system;
 	class F_renderable_system;
+	class F_pso_library;
+	class F_shader_library;
 
 
 
@@ -33,11 +35,17 @@ namespace nre {
 		TU<F_render_view_system> render_view_system_;
 		TU<F_renderable_system> renderable_system_;
 
+		TU<F_pso_library> pso_library_p_;
+		TU<F_shader_library> shader_library_p_;
+
 	public:
 		NCPP_FORCE_INLINE TK_valid<A_device> device_p() const noexcept { return NCPP_FOH_VALID(device_p_); }
 		NCPP_FORCE_INLINE TK_valid<A_command_queue> command_queue_p() const noexcept { return NCPP_FOH_VALID(command_queue_p_); }
 		NCPP_FORCE_INLINE TK_valid<A_command_list> main_command_list_p() const noexcept { return NCPP_FOH_VALID(main_command_list_p_); }
 		NCPP_FORCE_INLINE TK_valid<A_swapchain> main_swapchain_p() const noexcept { return NCPP_FOH_VALID(main_swapchain_p_); }
+
+		NCPP_FORCE_INLINE TK_valid<F_pso_library> pso_library_p() const noexcept { return NCPP_FOH_VALID(pso_library_p_); }
+		NCPP_FORCE_INLINE TK_valid<F_shader_library> shader_library_p() const noexcept { return NCPP_FOH_VALID(shader_library_p_); }
 
 
 

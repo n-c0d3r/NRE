@@ -1,6 +1,8 @@
 ﻿#include <nre/rendering/renderable.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/renderable_system.hpp>
+#include <nre/rendering/material.hpp>
+#include <nre/rendering/material_template.hpp>
 #include <nre/application/application.hpp>
 #include <nre/hierarchy/transform_node.hpp>
 #include <nre/actor/actor.hpp>
@@ -22,9 +24,9 @@ namespace nre {
 	}
 
 	void F_renderable::set_material_template(
-		TKPA_valid<F_material_template> material_template_p
+		TSPA<F_material_template> material_template_p
 	) {
-
+		material_p_ = TU<F_material>()(material_template_p);
 	}
 
 }

@@ -212,6 +212,18 @@ int main() {
 
 
 
+	auto mat_template_p = TS<F_material_template>()();
+	mat_template_p->T_add_property_info<F_vector4>("a", "a");
+	mat_template_p->T_add_property_info<F_vector4>("b", "a");
+	mat_template_p->T_add_property_info<b8>("c", "a");
+	mat_template_p->T_add_property_info<b8>("d", "a");
+	mat_template_p->T_add_property_info<f32>("e", "a");
+	mat_template_p->build();
+
+	auto mat_p = TU<F_material>()(mat_template_p);
+
+
+
 	// application events
 	{
 		NRE_APPLICATION_STARTUP(application_p) {
