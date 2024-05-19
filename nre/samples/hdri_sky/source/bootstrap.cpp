@@ -43,7 +43,6 @@ int main() {
 	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/quarry_cloudy_4k.hdr").T_cast<F_texture_2d_asset>();
 
 	auto skymap_p = panorama_to_cubemap(NCPP_FOH_VALID(panorama_asset_p->texture_p), 2048);
-	auto skymap_srv_p = skymap_p->srv_p();
 
 	F_uniform_data uniform_data;
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
@@ -195,7 +194,7 @@ int main() {
 	// create level
 	auto level_p = TU<F_level>()();
 
-	// create spectator
+	// create spectator actor
 	auto spectator_actor_p = level_p->T_create_actor();
 	auto spectator_transform_node_p = spectator_actor_p->template T_add_component<F_transform_node>();
 	auto spectator_camera_p = spectator_actor_p->template T_add_component<F_camera>();
@@ -203,6 +202,13 @@ int main() {
 
 	spectator_p->position = F_vector3 { 0.0f, 0.0f, -10.0f };
 	spectator_p->move_speed = 4.0f;
+
+	// create hdri sky actor
+	auto hdri_sky_actor_p = level_p->T_create_actor();
+	auto hdri_sky_transform_node_p = hdri_sky_actor_p->template T_add_component<F_transform_node>();
+	auto hdri_sky_renderable_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_renderable>();
+
+	hdri_sky_renderable_p->sky_texture_cube_p = skymap_p;
 
 
 
@@ -239,6 +245,11 @@ int main() {
 			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
 
+			NRE_RENDERABLE_SYSTEM()->T_for_each<I_has_simple_render_renderable>([](const auto& renderable_p){
+
+			  	renderable_p.T_force_cast<I_has_simple_render_renderable>();
+			});
+
 			// update dynamic data from CPU to GPU
 			{
 				// prepare data
@@ -257,64 +268,64 @@ int main() {
 			}
 
 			// draw cube
-			{
-				main_command_list_p->clear_state();
-
-				main_command_list_p->bind_graphics_pipeline_state(
-					NCPP_FOH_VALID(pipeline_state_p)
-				);
-
-				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(sky_mesh_buffer_p->vertex_buffer_p(0)), // vertex position buffer
-					0,
-					0
-				);
-				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(sky_mesh_buffer_p->vertex_buffer_p(1)), // vertex normal buffer
-					0,
-					1
-				);
-				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(sky_mesh_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
-					0,
-					2
-				);
-				main_command_list_p->ZIA_bind_index_buffer(
-					NCPP_FOH_VALID(sky_mesh_buffer_p->index_buffer_p()),
-					0
-				);
-
-				main_command_list_p->ZVS_bind_constant_buffer(
-					NCPP_FOH_VALID(cbuffer_p),
-					0
-				);
-
-				main_command_list_p->ZPS_bind_constant_buffer(
-					NCPP_FOH_VALID(cbuffer_p),
-					0
-				);
-				main_command_list_p->ZPS_bind_srv(
-					NCPP_FOH_VALID(skymap_srv_p),
-					0
-				);
-
-				main_command_list_p->ZOM_bind_frame_buffer(
-					NCPP_FOH_VALID(
-						spectator_camera_p->render_view_p()->main_frame_buffer_p()
-					)
-				);
-
-				main_command_list_p->draw_indexed(
-					sky_mesh_buffer_p->uploaded_index_count(),
-					0,
-					0
-				);
-			}
-
-			// submit command lists to GPU
-			command_queue_p->execute_command_list(
-				NCPP_FOH_VALID(main_command_list_p)
-			);
+//			{
+//				main_command_list_p->clear_state();
+//
+//				main_command_list_p->bind_graphics_pipeline_state(
+//					NCPP_FOH_VALID(pipeline_state_p)
+//				);
+//
+//				main_command_list_p->ZIA_bind_vertex_buffer(
+//					NCPP_FOH_VALID(sky_mesh_buffer_p->vertex_buffer_p(0)), // vertex position buffer
+//					0,
+//					0
+//				);
+//				main_command_list_p->ZIA_bind_vertex_buffer(
+//					NCPP_FOH_VALID(sky_mesh_buffer_p->vertex_buffer_p(1)), // vertex normal buffer
+//					0,
+//					1
+//				);
+//				main_command_list_p->ZIA_bind_vertex_buffer(
+//					NCPP_FOH_VALID(sky_mesh_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
+//					0,
+//					2
+//				);
+//				main_command_list_p->ZIA_bind_index_buffer(
+//					NCPP_FOH_VALID(sky_mesh_buffer_p->index_buffer_p()),
+//					0
+//				);
+//
+//				main_command_list_p->ZVS_bind_constant_buffer(
+//					NCPP_FOH_VALID(cbuffer_p),
+//					0
+//				);
+//
+//				main_command_list_p->ZPS_bind_constant_buffer(
+//					NCPP_FOH_VALID(cbuffer_p),
+//					0
+//				);
+//				main_command_list_p->ZPS_bind_srv(
+//					NCPP_FOH_VALID(skymap_srv_p),
+//					0
+//				);
+//
+//				main_command_list_p->ZOM_bind_frame_buffer(
+//					NCPP_FOH_VALID(
+//						spectator_camera_p->render_view_p()->main_frame_buffer_p()
+//					)
+//				);
+//
+//				main_command_list_p->draw_indexed(
+//					sky_mesh_buffer_p->uploaded_index_count(),
+//					0,
+//					0
+//				);
+//			}
+//
+//			// submit command lists to GPU
+//			command_queue_p->execute_command_list(
+//				NCPP_FOH_VALID(main_command_list_p)
+//			);
 
 		};
 	}

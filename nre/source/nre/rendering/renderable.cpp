@@ -21,4 +21,10 @@ namespace nre {
 		F_renderable_system::instance_p()->deregistry(NCPP_KTHIS());
 	}
 
+	void F_renderable::set_material_template(
+		TKPA_valid<F_material_template> material_template_p
+	) {
+
+	}
+
 }

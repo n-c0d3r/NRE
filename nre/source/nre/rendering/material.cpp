@@ -1,14 +1,15 @@
 #include <nre/rendering/material.hpp>
+#include <nre/rendering/material_template.hpp>
 
 
 
 namespace nre {
 
-	A_material::A_material() {
-
+	F_material::F_material(TSPA<F_material_template> template_p) :
+		template_p_(template_p)
+	{
 	}
-	A_material::~A_material() {
-
+	F_material::~F_material() {
 	}
 
 }

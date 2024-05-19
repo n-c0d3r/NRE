@@ -10,6 +10,8 @@ namespace nre {
 
 	class F_transform_node;
 	class F_render_view;
+	class F_material;
+	class F_material_template;
 
 
 
@@ -56,15 +58,25 @@ namespace nre {
 		typename TG_list<TK_valid<F_renderable>>::iterator handle_;
 		F_renderable_mask mask_;
 
+	private:
+		TU<F_material> material_p_;
+
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_transform_node> transform_node_p() const noexcept { return transform_node_p_; }
 		NCPP_FORCE_INLINE F_renderable_mask mask() const noexcept { return mask_; }
+
+		NCPP_FORCE_INLINE TKPA<F_material> material_p() const noexcept { return material_p_; }
 
 
 
 	public:
 		F_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask = 0);
 		virtual ~F_renderable();
+
+	public:
+		void set_material_template(
+			TKPA_valid<F_material_template> material_template_p
+		);
 
 	};
 

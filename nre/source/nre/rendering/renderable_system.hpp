@@ -79,27 +79,6 @@ namespace nre {
 
 			return it->second;
 		}
-		NCPP_FORCE_INLINE u8 channel_id(u64 type_hash_code) noexcept {
-
-			auto it = type_hash_code_to_channel_id_map_.find(type_hash_code);
-
-			if(it != type_hash_code_to_channel_id_map_.end())
-				return it->second;
-
-			return it->second;
-		}
-		template<typename F__>
-		NCPP_FORCE_INLINE u8 T_channel_id() noexcept {
-
-			constexpr u64 type_hash_code = T_type_hash_code<F__>;
-
-			auto it = type_hash_code_to_channel_id_map_.find(type_hash_code);
-
-			if(it != type_hash_code_to_channel_id_map_.end())
-				return it->second;
-
-			return it->second;
-		}
 		NCPP_FORCE_INLINE void register_channel_id(u64 type_hash_code) noexcept {
 
 			NCPP_ASSERT(is_has_channel_id(type_hash_code)) << "channel " << T_cout_value(u32(type_hash_code)) << " already registered";
@@ -117,30 +96,42 @@ namespace nre {
 			type_hash_code_to_channel_id_map_[type_hash_code] = last_channel_id_;
 			++last_channel_id_;
 		}
-		NCPP_FORCE_INLINE F_renderable_mask mask(auto... type_hash_codes) noexcept {
+		NCPP_FORCE_INLINE F_renderable_mask mask() const noexcept {
+
+			return 0;
+		}
+		NCPP_FORCE_INLINE F_renderable_mask mask(auto type_hash_code) const noexcept {
+
+			if(!is_has_channel_id(type_hash_code))
+				return 0;
+
+			return (1 << channel_id(type_hash_code));
+		}
+		NCPP_FORCE_INLINE F_renderable_mask mask(auto type_hash_code_1, auto type_hash_code_2, auto... reset_type_hash_codes) const noexcept {
 
 			return flag_combine(
-				0,
+				mask(type_hash_code_1),
+				mask(type_hash_code_2),
 				(
-					1
-					<< u64(channel_id(type_hash_codes))
+					mask(reset_type_hash_codes)
 				)...
 			);
 		}
 		template<typename... Fs__>
-		NCPP_FORCE_INLINE F_renderable_mask T_mask() noexcept {
+		NCPP_FORCE_INLINE F_renderable_mask T_mask() const noexcept {
 
-			return flag_combine(
-				0,
-				(
-					1
-					<< u64(T_channel_id<Fs__>())
-				)...
-			);
+			return mask(T_type_hash_code<Fs__>...);
 		}
 
-		template<typename F_functor__, typename... Fs__>
-		inline void T_for_each(F_functor__&& functor) const {
+		inline void for_each(auto&& functor) const {
+
+			for(const auto& renderable_p : renderable_p_list_) {
+
+				functor(renderable_p);
+			}
+		}
+		template<typename... Fs__>
+		inline void T_for_each(auto&& functor) const {
 
 			auto search_mask = T_mask<Fs__...>();
 
