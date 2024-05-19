@@ -238,13 +238,6 @@ int main() {
 			// get some essential objects
 			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
-			auto main_frame_buffer_p = NRE_RENDER_SYSTEM()->main_frame_buffer_p();
-			auto main_rtv_p = main_frame_buffer_p->desc().color_attachments[0];
-
-			// clear frame buffer
-			{
-				main_command_list_p->clear_rtv(main_rtv_p, clear_color);
-			}
 
 			// update dynamic data from CPU to GPU
 			{
@@ -306,7 +299,9 @@ int main() {
 				);
 
 				main_command_list_p->ZOM_bind_frame_buffer(
-					NCPP_FOH_VALID(main_frame_buffer_p)
+					NCPP_FOH_VALID(
+						spectator_camera_p->render_view_p()->main_frame_buffer_p()
+					)
 				);
 
 				main_command_list_p->draw_indexed(

@@ -9,9 +9,10 @@
 
 namespace nre {
 
-	F_renderable::F_renderable(TKPA_valid<F_actor> actor_p) :
+	F_renderable::F_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask) :
 		A_actor_component(actor_p),
-		transform_node_p_(actor_p->template T_get_component<F_transform_node>())
+		transform_node_p_(actor_p->template T_get_component<F_transform_node>()),
+		mask_(mask)
 	{
 		F_renderable_system::instance_p()->registry(NCPP_KTHIS());
 	}

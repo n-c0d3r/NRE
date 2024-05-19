@@ -29,7 +29,6 @@ namespace nre {
 		TU<A_command_queue> command_queue_p_;
 		TU<A_command_list> main_command_list_p_;
 		TU<A_swapchain> main_swapchain_p_;
-		TU<A_frame_buffer> main_frame_buffer_p_;
 
 		TU<F_render_view_system> render_view_system_;
 		TU<F_renderable_system> renderable_system_;
@@ -39,7 +38,6 @@ namespace nre {
 		NCPP_FORCE_INLINE TK_valid<A_command_queue> command_queue_p() const noexcept { return NCPP_FOH_VALID(command_queue_p_); }
 		NCPP_FORCE_INLINE TK_valid<A_command_list> main_command_list_p() const noexcept { return NCPP_FOH_VALID(main_command_list_p_); }
 		NCPP_FORCE_INLINE TK_valid<A_swapchain> main_swapchain_p() const noexcept { return NCPP_FOH_VALID(main_swapchain_p_); }
-		NCPP_FORCE_INLINE TK_valid<A_frame_buffer> main_frame_buffer_p() const noexcept { return NCPP_FOH_VALID(main_frame_buffer_p_); }
 
 
 
@@ -61,4 +59,3 @@ namespace nre {
 #define NRE_RENDER_COMMAND_QUEUE(...) (NRE_RENDER_SYSTEM()->command_queue_p())
 #define NRE_MAIN_COMMAND_LIST(...) (NRE_RENDER_SYSTEM()->main_command_list_p())
 #define NRE_MAIN_SWAPCHAIN(...) (NRE_RENDER_SYSTEM()->main_swapchain_p())
-#define NRE_MAIN_FRAME_BUFFER(...) (NRE_RENDER_SYSTEM()->main_frame_buffer_p())

@@ -15,8 +15,8 @@ namespace nre {
 
 
 	public:
-		F_static_mesh_renderable(TKPA_valid<F_actor> actor_p);
-		F_static_mesh_renderable(TKPA_valid<F_actor> actor_p, TSPA<A_static_mesh> mesh_p);
+		F_static_mesh_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask = 0);
+		F_static_mesh_renderable(TKPA_valid<F_actor> actor_p, TSPA<A_static_mesh> mesh_p, F_renderable_mask mask = 0);
 		virtual ~F_static_mesh_renderable();
 
 	};

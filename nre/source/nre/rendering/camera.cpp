@@ -1,5 +1,6 @@
 #include <nre/rendering/camera.hpp>
 #include <nre/rendering/render_view.hpp>
+#include <nre/rendering/simple_render_view.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/application/application.hpp>
 #include <nre/hierarchy/transform_node.hpp>
@@ -13,21 +14,15 @@ namespace nre {
 		A_actor_component(actor_p),
 		transform_node_p_(actor_p->template T_get_component<F_transform_node>()),
 		render_view_p_(
-			TU<F_render_view>()(
-				NRE_MAIN_SWAPCHAIN()->back_rtv_p().no_requirements()
-			)
+			TU<F_simple_render_view>()()
 		)
 	{
 		actor_p->set_gameplay_tick(true);
 	}
-	F_camera::F_camera(TKPA_valid<F_actor> actor_p, KPA_rtv_handle rtv_p) :
+	F_camera::F_camera(TKPA_valid<F_actor> actor_p, TU<A_render_view>&& render_view_p) :
 		A_actor_component(actor_p),
 		transform_node_p_(actor_p->template T_get_component<F_transform_node>()),
-		render_view_p_(
-			TU<F_render_view>()(
-				rtv_p
-			)
-		)
+		render_view_p_(std::move(render_view_p))
 	{
 	}
 	F_camera::~F_camera() {
@@ -40,9 +35,9 @@ namespace nre {
 
 	void F_camera::update_render_target() {
 
-		if(
-			!(render_view_p_->rtv_p())
-		)
+		const auto& main_frame_buffer_p = render_view_p_->main_frame_buffer_p();
+
+		if(!main_frame_buffer_p)
 			return;
 
 		switch(projection_type) {

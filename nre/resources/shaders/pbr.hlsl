@@ -1,5 +1,6 @@
+#include "demo.hlsl"
 
-cbuffer uniform_data : register(b0) {
+cbuffer per_object : register(b0) {
 
     float4x4 projection_matrix;
     float4x4 object_transform;

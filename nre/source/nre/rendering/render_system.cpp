@@ -34,26 +34,13 @@ namespace nre {
 					E_command_list_type::DIRECT
 				}
 			);
+
 			main_swapchain_p_ = H_swapchain::create(
 				NCPP_FOH_VALID(command_queue_p_),
 				NCPP_FOH_VALID(
 					NRE_APPLICATION()->main_surface_p()
 				),
 				F_swapchain_desc {
-				}
-			);
-			main_frame_buffer_p_ = H_frame_buffer::create(
-				NCPP_FOH_VALID(device_p_),
-				{
-					.color_attachments = {
-						main_swapchain_p_->back_rtv_p()
-					}
-				}
-			);
-			NRE_MAIN_SURFACE()->T_get_event<F_surface_resize_event>().T_push_back_listener(
-				[this](auto& e) {
-
-					main_frame_buffer_p()->rebuild();
 				}
 			);
 		}

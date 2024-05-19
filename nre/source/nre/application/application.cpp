@@ -56,8 +56,6 @@ namespace nre {
 
 		  	if(main_surface_p_) {
 
-				render_system_p_->main_frame_buffer_p()->update_viewport();
-
 				gameplay_tick_event_.invoke();
 				render_tick_event_.invoke();
 
