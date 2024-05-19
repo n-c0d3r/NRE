@@ -144,10 +144,19 @@ namespace nre {
 
 			auto search_mask = T_mask<Fs__...>();
 
+			if(search_mask)
+			{
+				for (const auto& render_view_p : render_view_p_list_)
+				{
+
+					if (render_view_p->mask() & search_mask)
+						functor(render_view_p);
+				}
+			}
+
 			for(const auto& render_view_p : render_view_p_list_) {
 
-				if(render_view_p->mask() & search_mask)
-					functor(render_view_p);
+				functor(render_view_p);
 			}
 		}
 
