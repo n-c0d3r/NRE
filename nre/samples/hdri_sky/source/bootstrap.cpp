@@ -28,10 +28,6 @@ int main() {
 
 
 
-	auto sky_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>();
-	auto sky_mesh_p = NCPP_FOH_VALID(sky_asset_p->mesh_p);
-	auto sky_mesh_buffer_p = sky_mesh_p->buffer_p();
-
 	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/quarry_cloudy_4k.hdr").T_cast<F_texture_2d_asset>();
 
 	auto skymap_p = panorama_to_cubemap(NCPP_FOH_VALID(panorama_asset_p->texture_p), 2048);
