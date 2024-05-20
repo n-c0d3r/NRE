@@ -31,8 +31,20 @@ namespace nre
 
 
 	private:
+		struct F_main_constant_buffer_cpu_data {
+
+			F_matrix4x4 projection_matrix;
+			F_matrix4x4 view_matrix;
+
+		};
+
+
+
+	private:
 		typename TG_list<TK_valid<A_render_view>>::iterator handle_;
 		F_render_view_mask mask_;
+
+		U_buffer_handle main_constant_buffer_p_;
 
 	protected:
 		TU<A_frame_buffer> main_frame_buffer_p_;
@@ -40,6 +52,7 @@ namespace nre
 
 	public:
 		F_matrix4x4 projection_matrix = T_identity<F_matrix4x4>();
+		F_matrix4x4 view_matrix = T_identity<F_matrix4x4>();
 
 		TK<A_swapchain> swapchain_p;
 		TS<F_general_texture_2d> general_texture_2d_p;
@@ -77,6 +90,8 @@ namespace nre
 		}
 		NCPP_FORCE_INLINE F_render_view_mask mask() const noexcept { return mask_; }
 
+		NCPP_FORCE_INLINE K_buffer_handle main_constant_buffer_p() const noexcept { return main_constant_buffer_p_; }
+
 
 
 	protected:
@@ -87,6 +102,9 @@ namespace nre
 
 	public:
 		NCPP_OBJECT(A_render_view);
+
+	private:
+		void setup_resources();
 
 	public:
 		virtual b8 update();

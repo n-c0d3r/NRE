@@ -1,14 +1,13 @@
 
-cbuffer uniform_data : register(b0) {
+cbuffer per_view : register(b0) {
 
     float4x4 projection_matrix;
-    float4x4 object_transform;
     float4x4 view_transform;
 
 }
 
-TextureCube SkyMap;
-SamplerState SkyMapSampler
+TextureCube sky_map;
+SamplerState sky_map_sampler
 {
     Filter = MIN_MAG_MIP_LINEAR;
     AddressU = Wrap;
@@ -30,9 +29,9 @@ F_vertex_to_pixel vmain(
     float4 uv : UV
 ) {
 
-    float3 world_position = mul(object_transform, float4(local_position, 1.0f)).xyz;
-    float3 world_normal = normalize(mul((float3x3)object_transform, local_normal));
-    float3 view_space_position = mul(view_transform, float4(world_position, 1.0f)).xyz;
+    float3 world_position = local_position;
+    float3 world_normal = local_normal;
+    float3 view_space_position = mul((float3x3)view_transform, world_position);
 
     F_vertex_to_pixel output;
     output.clip_position = mul(projection_matrix, float4(view_space_position, 1.0f));
@@ -54,21 +53,9 @@ float3 ACESFilm(float3 x)
     return saturate((x*(a*x+b))/(x*(c*x+d)+e));
 }
 
-float4 pmain_lambert_lighting(F_vertex_to_pixel input) : SV_TARGET {
+float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
     float t = dot(input.world_normal, float3(0, 1, 0));
-    float4 color = SkyMap.Sample(SkyMapSampler, normalize(input.world_normal));
+    float4 color = sky_map.Sample(sky_map_sampler, normalize(input.world_normal));
     return float4(ACESFilm(color.xyz * 3.14f), 1) * lerp(0.12f, 1.0f, t * 0.5f + 0.5f);
-}
-float4 pmain_show_world_position(F_vertex_to_pixel input) : SV_TARGET {
-
-    return float4(input.world_position, 1);
-}
-float4 pmain_show_world_normal(F_vertex_to_pixel input) : SV_TARGET {
-
-    return float4(input.world_normal, 1);
-}
-float4 pmain_show_uv(F_vertex_to_pixel input) : SV_TARGET {
-
-    return input.uv;
 }

@@ -9,8 +9,10 @@ namespace nre {
 
 	F_spectator::F_spectator(TKPA_valid<F_actor> actor_p) :
 		A_actor_component(actor_p),
-		transform_node_p_(actor_p->template T_get_component<F_transform_node>())
+		transform_node_p_(actor_p->template T_component<F_transform_node>())
 	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_spectator);
+
 		actor_p->set_gameplay_tick(true);
 
 		register_event_listeners();

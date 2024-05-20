@@ -13,7 +13,7 @@
 #include <nre/rendering/static_mesh.hpp>
 #include <nre/rendering/vertex.hpp>
 #include <nre/rendering/material.hpp>
-#include <nre/rendering/material_template.hpp>
+#include <nre/rendering/hdri_sky_material.hpp>
 #include <nre/rendering/camera.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
 #include <nre/rendering/general_texture_2d_array.hpp>

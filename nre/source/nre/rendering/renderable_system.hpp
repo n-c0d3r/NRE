@@ -2,6 +2,7 @@
 
 #include <nre/prerequisites.hpp>
 #include <nre/rendering/renderable_mask.hpp>
+#include <nre/rendering/renderable.hpp>
 
 
 
@@ -79,35 +80,43 @@ namespace nre {
 
 			return it->second;
 		}
-		NCPP_FORCE_INLINE void register_channel_id(u64 type_hash_code) noexcept {
+		NCPP_FORCE_INLINE u8 register_channel_id(u64 type_hash_code) noexcept {
 
-			NCPP_ASSERT(is_has_channel_id(type_hash_code)) << "channel " << T_cout_value(u32(type_hash_code)) << " already registered";
+			NCPP_ASSERT(!is_has_channel_id(type_hash_code)) << "channel " << T_cout_value(u32(type_hash_code)) << " already registered";
 
-			type_hash_code_to_channel_id_map_[type_hash_code] = last_channel_id_;
+			u8 id = last_channel_id_;
+			type_hash_code_to_channel_id_map_[type_hash_code] = id;
 			++last_channel_id_;
+
+			return id;
 		}
 		template<typename F__>
-		NCPP_FORCE_INLINE void T_register_channel_id() noexcept {
+		NCPP_FORCE_INLINE u8 T_register_channel_id() noexcept {
 
 			constexpr u64 type_hash_code = T_type_hash_code<F__>;
 
-			NCPP_ASSERT(is_has_channel_id(type_hash_code)) << "channel " << T_cout_value(u32(type_hash_code)) << " already registered";
+			NCPP_ASSERT(!is_has_channel_id(type_hash_code)) << "channel " << T_cout_value(u32(type_hash_code)) << " already registered";
 
-			type_hash_code_to_channel_id_map_[type_hash_code] = last_channel_id_;
+			u8 id = last_channel_id_;
+			type_hash_code_to_channel_id_map_[type_hash_code] = id;
 			++last_channel_id_;
+
+			return id;
 		}
-		NCPP_FORCE_INLINE F_renderable_mask mask() const noexcept {
+		NCPP_FORCE_INLINE F_renderable_mask mask() noexcept {
 
 			return 0;
 		}
-		NCPP_FORCE_INLINE F_renderable_mask mask(auto type_hash_code) const noexcept {
+		NCPP_FORCE_INLINE F_renderable_mask mask(auto type_hash_code) noexcept
+		{
+			if(!is_has_channel_id(type_hash_code)) {
 
-			if(!is_has_channel_id(type_hash_code))
-				return 0;
+				return (1 << register_channel_id(type_hash_code));
+			}
 
 			return (1 << channel_id(type_hash_code));
 		}
-		NCPP_FORCE_INLINE F_renderable_mask mask(auto type_hash_code_1, auto type_hash_code_2, auto... reset_type_hash_codes) const noexcept {
+		NCPP_FORCE_INLINE F_renderable_mask mask(auto type_hash_code_1, auto type_hash_code_2, auto... reset_type_hash_codes) noexcept {
 
 			return flag_combine(
 				mask(type_hash_code_1),
@@ -118,12 +127,12 @@ namespace nre {
 			);
 		}
 		template<typename... Fs__>
-		NCPP_FORCE_INLINE F_renderable_mask T_mask() const noexcept {
+		NCPP_FORCE_INLINE F_renderable_mask T_mask() noexcept {
 
 			return mask(T_type_hash_code<Fs__>...);
 		}
 
-		inline void for_each(auto&& functor) const {
+		inline void for_each(auto&& functor) {
 
 			for(const auto& renderable_p : renderable_p_list_) {
 
@@ -131,22 +140,21 @@ namespace nre {
 			}
 		}
 		template<typename... Fs__>
-		inline void T_for_each(auto&& functor) const {
+		inline void T_for_each(auto&& functor) {
 
 			auto search_mask = T_mask<Fs__...>();
 
 			if(search_mask)
 			{
-				for(const auto& renderable_p : renderable_p_list_) {
+				for(auto it = renderable_p_list_.begin(); it != renderable_p_list_.end(); ++it) {
 
-					if(renderable_p->mask() & search_mask)
-						functor(renderable_p);
+					if((*it)->mask() & search_mask)
+						functor(*it);
 				}
 			}
+			else for(auto it = renderable_p_list_.begin(); it != renderable_p_list_.end(); ++it) {
 
-			for(const auto& renderable_p : renderable_p_list_) {
-
-				functor(renderable_p);
+				functor(*it);
 			}
 		}
 

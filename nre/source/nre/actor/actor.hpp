@@ -23,7 +23,7 @@ namespace nre {
 		using F_handle = typename TG_list<TU<F_actor>>::iterator;
 		using F_gameplay_tick_handle = typename TG_list<TK_valid<F_actor>>::iterator;
 		using F_render_tick_handle = typename TG_list<TK_valid<F_actor>>::iterator;
-		using F_component_map = TG_unordered_map<u64, TK<A_actor_component>>;
+		using F_component_multimap = TG_unordered_multimap<u64, TK<A_actor_component>>;
 		using F_component_vector = TG_vector<TU<A_actor_component>>;
 
 
@@ -31,7 +31,7 @@ namespace nre {
 	private:
 		TK_valid<F_level> level_p_;
 		F_handle handle_;
-		F_component_map component_map_;
+		F_component_multimap component_multimap_;
 		F_component_vector component_vector_;
 
 		F_gameplay_tick_handle gameplay_tick_handle_;
@@ -62,7 +62,7 @@ namespace nre {
 		template<typename F_component__>
 		b8 T_is_has_component() const noexcept
 		{
-			return (component_map_.find(T_type_hash_code<F_component__>) != component_map_.end());
+			return (component_multimap_.find(T_type_hash_code<F_component__>) != component_multimap_.end());
 		}
 		template<typename F_component__, typename... F_args__>
 		requires requires(F_args__&&... args) {
@@ -70,11 +70,6 @@ namespace nre {
 		}
 		TK_valid<F_component__> T_add_component(F_args__&&... args)
 		{
-			NCPP_ASSERT(!T_is_has_component<F_component__>())
-				<< "component of type "
-				<< T_cout_value(T_type_fullname<F_component__>())
-				<< " already added";
-
 			auto component_p = TU<F_component__>()(
 				NCPP_KTHIS(),
 				std::forward<F_args__>(args)...
@@ -82,13 +77,22 @@ namespace nre {
 
 			auto keyed_component_p = NCPP_FOH_VALID(component_p);
 
-			component_map_[T_type_hash_code<F_component__>] = keyed_component_p.no_requirements();
+			for(auto type_id : keyed_component_p->type_ids())
+			{
+				component_multimap_.insert({
+					type_id,
+					keyed_component_p.no_requirements()
+				});
+			}
+
 			component_vector_.push_back(std::move(component_p));
+
+			keyed_component_p->ready();
 
 			return keyed_component_p;
 		}
 		template<typename F_component__>
-		TK_valid<F_component__> T_get_component() const
+		TK_valid<F_component__> T_component() const
 		{
 			NCPP_ASSERT(T_is_has_component<F_component__>())
 				<< "component of type "
@@ -96,24 +100,14 @@ namespace nre {
 				<< " was not added";
 
 			return NCPP_FOH_VALID(
-				component_map_.find(T_type_hash_code<F_component__>)->second
+				component_multimap_.find(T_type_hash_code<F_component__>)->second
 				.T_cast<F_component__>()
 			);
 		}
 		template<typename F_component__>
-		eastl::optional<TK<F_component__>> T_try_get_component() const
+		auto T_components() const
 		{
-			auto it = component_map_.find(T_type_hash_code<F_component__>);
-
-			if (it == component_map_.end())
-			{
-				return eastl::nullopt;
-			}
-
-			return NCPP_FOH_VALID(
-				it->second
-				.T_cast<F_component__>()
-			);
+			return component_multimap_.equal_range(T_type_hash_code<F_component__>);
 		}
 
 	public:

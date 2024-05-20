@@ -9,9 +9,8 @@
 namespace nre {
 
 	class F_transform_node;
-	class F_render_view;
-	class F_material;
-	class F_material_template;
+	class A_render_view;
+	class A_material;
 
 
 
@@ -20,6 +19,7 @@ namespace nre {
 	public:
 		virtual void simple_render(
 			KPA_valid_render_command_list_handle render_command_list_p,
+			TKPA_valid<A_render_view> render_view_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p
 		) const = 0;
 
@@ -57,15 +57,11 @@ namespace nre {
 		TK_valid<F_transform_node> transform_node_p_;
 		typename TG_list<TK_valid<F_renderable>>::iterator handle_;
 		F_renderable_mask mask_;
-
-	private:
-		TU<F_material> material_p_;
+		TK_valid<A_material> material_p_;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_transform_node> transform_node_p() const noexcept { return transform_node_p_; }
 		NCPP_FORCE_INLINE F_renderable_mask mask() const noexcept { return mask_; }
-
-		NCPP_FORCE_INLINE TKPA<F_material> material_p() const noexcept { return material_p_; }
 
 
 
@@ -74,9 +70,7 @@ namespace nre {
 		virtual ~F_renderable();
 
 	public:
-		void set_material_template(
-			TSPA<F_material_template> material_template_p
-		);
+		NCPP_OBJECT(F_renderable);
 
 	};
 
