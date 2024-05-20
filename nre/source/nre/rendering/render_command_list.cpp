@@ -10,7 +10,7 @@ namespace nre
 	{
 
 		void H_render_command_list::draw_static_mesh(
-			K_valid_render_command_list_handle command_list_p,
+			TKPA_valid<A_command_list> command_list_p,
 			TKPA_valid<A_static_mesh> static_mesh_p
 		)
 		{

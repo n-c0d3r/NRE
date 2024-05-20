@@ -29,7 +29,7 @@ F_vertex_to_pixel vmain(
     float4 uv : UV
 ) {
 
-    float3 world_position = local_position;
+    float3 world_position = local_position * 100.0f;
     float3 world_normal = local_normal;
     float3 view_space_position = mul((float3x3)view_transform, world_position);
 

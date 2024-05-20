@@ -17,7 +17,7 @@ namespace nre {
 
 		auto shader_asset_p = TS<F_shader_asset>()(abs_path);
 
-		shader_asset_p->shader_class_creator_p = (
+		shader_asset_p->runtime_compile_functor = (
 			[abs_path, file_name = H_path::file_name(abs_path)](const TG_span<F_shader_kernel_desc>& kernel_descs)
 			-> TS<A_shader_class>
 			{

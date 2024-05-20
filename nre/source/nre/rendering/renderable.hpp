@@ -62,6 +62,7 @@ namespace nre {
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_transform_node> transform_node_p() const noexcept { return transform_node_p_; }
 		NCPP_FORCE_INLINE F_renderable_mask mask() const noexcept { return mask_; }
+		NCPP_FORCE_INLINE TKPA_valid<A_material> material_p() const noexcept { return material_p_; }
 
 
 

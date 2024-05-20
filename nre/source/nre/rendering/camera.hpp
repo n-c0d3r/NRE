@@ -20,8 +20,8 @@ namespace nre {
 	public:
 		E_projection_type projection_type = E_projection_type::PERSPECTIVE;
 		f32 vertical_fov = 0.5_pi;
-		f32 near_plane = 1.0f;
-		f32 far_plane = 100.0f;
+		f32 near_plane = 0.25f;
+		f32 far_plane = 500.0f;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_transform_node> transform_node_p() const noexcept { return transform_node_p_; }

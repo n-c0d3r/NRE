@@ -59,6 +59,8 @@ namespace nre {
 			);
 			break;
 		}
+
+		render_view_p_->view_matrix = invert(transform_node_p_->transform);
 	}
 
 }

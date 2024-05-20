@@ -10,7 +10,7 @@ namespace nre {
 	class NRE_API F_shader_asset : public A_asset {
 
 	public:
-		eastl::function<TS<A_shader_class>(const TG_span<F_shader_kernel_desc>& kernel_descs)> shader_class_creator_p;
+		eastl::function<TS<A_shader_class>(const TG_span<F_shader_kernel_desc>& kernel_descs)> runtime_compile_functor;
 
 
 
