@@ -213,11 +213,22 @@ int main() {
 
 
 	auto mat_template_p = TS<F_material_template>()();
-	mat_template_p->T_add_property_info<F_vector4>("a", "a");
-	mat_template_p->T_add_property_info<F_vector4>("b", "a");
-	mat_template_p->T_add_property_info<b8>("c", "a");
-	mat_template_p->T_add_property_info<b8>("d", "a");
-	mat_template_p->T_add_property_info<f32>("e", "a");
+	mat_template_p->property_buffer_builder("cb")
+		.template T_add<F_vector4>("a")
+		.template T_add<F_vector4>("b")
+		.template T_add<b8>("c")
+		.template T_add<b8>("d")
+		.template T_add<f32>("e");
+	mat_template_p->T_add_pure_constant_buffer<F_vector4>("abc");
+	mat_template_p->add_srv("srv1");
+	mat_template_p->add_pass(
+		"main",
+		NCPP_FOH_VALID(pipeline_state_p),
+		{},
+		{ "abc" },
+		{ "srv1" },
+		{}
+	);
 	mat_template_p->build();
 
 	auto mat_p = TU<F_material>()(mat_template_p);
