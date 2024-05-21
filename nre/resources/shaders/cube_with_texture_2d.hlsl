@@ -20,6 +20,7 @@ struct F_vertex_to_pixel {
     float4 clip_position : SV_POSITION;
     float3 world_position : POSITION;
     float3 world_normal : NORMAL;
+    float3 world_tangent : TANGENT;
     float2 uv : UV;
 
 };
@@ -27,17 +28,20 @@ struct F_vertex_to_pixel {
 F_vertex_to_pixel vmain(
     float3 local_position : POSITION, 
     float3 local_normal : NORMAL, 
+    float3 local_tangent : TANGENT, 
     float2 uv : UV
 ) {
 
     float3 world_position = mul(object_transform, float4(local_position, 1.0f)).xyz;
     float3 world_normal = normalize(mul((float3x3)object_transform, local_normal));
+    float3 world_tangent = normalize(mul((float3x3)object_transform, local_tangent));
     float3 view_space_position = mul(view_transform, float4(world_position, 1.0f)).xyz;
 
     F_vertex_to_pixel output;
     output.clip_position = mul(projection_matrix, float4(view_space_position, 1.0f));
     output.world_position = world_position;
     output.world_normal = world_normal;
+    output.world_tangent = world_tangent;
     output.uv = uv;
 
     return output;

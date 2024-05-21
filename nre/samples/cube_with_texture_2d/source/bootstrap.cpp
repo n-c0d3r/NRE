@@ -68,10 +68,16 @@ int main() {
 						.format = E_format::R32G32B32_FLOAT
 					}
 				},
+				{ // vertex tangent buffer
+					{
+						.name = "TANGENT",
+						.format = E_format::R32G32B32_FLOAT
+					}
+				},
 				{ // vertex uv buffer
 					{
 						.name = "UV",
-						.format = E_format::R32G32B32A32_FLOAT
+						.format = E_format::R32G32_FLOAT
 					}
 				}
 			}
@@ -303,9 +309,14 @@ int main() {
 					1
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(cube_mesh_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
+					NCPP_FOH_VALID(cube_mesh_buffer_p->vertex_buffer_p(2)), // vertex tangent buffer
 					0,
 					2
+				);
+				main_command_list_p->ZIA_bind_vertex_buffer(
+					NCPP_FOH_VALID(cube_mesh_buffer_p->vertex_buffer_p(3)), // vertex uv buffer
+					0,
+					3
 				);
 				main_command_list_p->ZIA_bind_index_buffer(
 					NCPP_FOH_VALID(cube_mesh_buffer_p->index_buffer_p()),

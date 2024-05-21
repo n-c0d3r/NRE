@@ -46,15 +46,13 @@ int main() {
 
 		auto command_queue_p = NRE_RENDER_SYSTEM()->command_queue_p();
 		auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
-		auto swapchain_p = NRE_RENDER_SYSTEM()->swapchain_p();
-		auto main_frame_buffer_p = NRE_RENDER_SYSTEM()->main_frame_buffer_p();
-		auto main_rtv_p = main_frame_buffer_p->desc().color_attachment_p_vector[0];
+		auto main_swapchain_p = NRE_RENDER_SYSTEM()->main_swapchain_p();
 
 		f32 c = sin(application_p->start_seconds()) * 0.5f + 0.5f;
 
 	  	main_command_list_p->clear_rtv(
-			main_rtv_p,
-		  	{ 0.0f, c, 1.0f, 1.0f }
+			main_swapchain_p->back_rtv_p(),
+		  	{ 0.0f, c * 0.75f, c, 1.0f }
 	  	);
 
 	  	command_queue_p->execute_command_lists(
