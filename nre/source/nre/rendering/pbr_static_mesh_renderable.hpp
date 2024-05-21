@@ -10,27 +10,14 @@ namespace nre {
 
 
 
-	class NRE_API F_hdri_sky_renderable :
+	class NRE_API F_pbr_static_mesh_renderable :
 		public F_static_mesh_renderable,
 		public I_has_simple_render_renderable
 	{
 
-	private:
-		static TK<F_hdri_sky_renderable> instance_ps;
-
 	public:
-		static NCPP_FORCE_INLINE TKPA<F_hdri_sky_renderable> instance_p() { return instance_ps; }
-
-
-
-	public:
-		TS<F_general_texture_cube> sky_texture_cube_p;
-
-
-
-	public:
-		F_hdri_sky_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask = 0);
-		virtual ~F_hdri_sky_renderable();
+		F_pbr_static_mesh_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask = 0);
+		virtual ~F_pbr_static_mesh_renderable();
 
 	public:
 		virtual void simple_render(

@@ -55,7 +55,6 @@ float3 ACESFilm(float3 x)
 
 float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
-    float t = dot(input.world_normal, float3(0, 1, 0));
-    float4 color = sky_map.Sample(sky_map_sampler, normalize(input.world_normal));
-    return float4(ACESFilm(color.xyz * 3.14f), 1) * lerp(0.12f, 1.0f, t * 0.5f + 0.5f);
+    float4 color = sky_map.Sample(sky_map_sampler, normalize(input.world_position));
+    return float4(ACESFilm(color.xyz * 3.14f), 1);
 }

@@ -255,7 +255,7 @@ int main() {
 			// get some essential objects
 			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
-			auto main_frame_buffer_p = NRE_RENDER_SYSTEM()->main_frame_buffer_p();
+			auto main_frame_buffer_p = spectator_camera_p->render_view_p()->main_frame_buffer_p();
 			auto main_rtv_p = main_frame_buffer_p->desc().color_attachments[0];
 
 			// clear frame buffer
