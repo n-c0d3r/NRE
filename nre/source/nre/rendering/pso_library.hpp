@@ -21,7 +21,7 @@ namespace nre {
 
 	private:
 		TG_list<TU<A_pipeline_state>> pso_p_list_;
-		TG_unordered_map<sz, typename TG_list<TU<A_pipeline_state>>::iterator> pso_p_map_;
+		TG_unordered_map<G_string, typename TG_list<TU<A_pipeline_state>>::iterator> pso_iterator_handle_map_;
 
 	public:
 		NCPP_FORCE_INLINE const TG_list<TU<A_pipeline_state>>& pso_p_list() const noexcept { return pso_p_list_; }
@@ -36,19 +36,17 @@ namespace nre {
 		NCPP_OBJECT(F_pso_library);
 
 	public:
-		NCPP_FORCE_INLINE b8 is_owned(TKPA_valid<A_pipeline_state> pso_p) const noexcept {
+		NCPP_FORCE_INLINE b8 is_owned(const G_string& name) const noexcept {
 
-			auto it = pso_p_map_.find(sz(pso_p.object_p()));
+			auto it = pso_iterator_handle_map_.find(name);
 
-			return (it != pso_p_map_.end());
+			return (it != pso_iterator_handle_map_.end());
 		}
-		NCPP_FORCE_INLINE TK_valid<A_pipeline_state> add(TU<A_pipeline_state>&& pso_p) noexcept {
+		NCPP_FORCE_INLINE TK_valid<A_pipeline_state> add(const G_string& name, TU<A_pipeline_state>&& pso_p) noexcept {
 
 			NCPP_ASSERT(
-				!is_owned(
-					NCPP_FOH_VALID(pso_p)
-				)
-			) << "pso is already added";
+				!is_owned(name)
+			) << "pipeline_state is already added";
 
 			auto keyed_pso_p = NCPP_FOH_VALID(pso_p);
 
@@ -56,25 +54,21 @@ namespace nre {
 				std::move(pso_p)
 			);
 
-			pso_p_map_[sz(pso_p.object_p())] = --(pso_p_list_.end());
+			pso_iterator_handle_map_[name] = --(pso_p_list_.end());
 
 			return keyed_pso_p;
 		}
-		NCPP_FORCE_INLINE void remove(TKPA_valid<A_pipeline_state> pso_p) noexcept {
+		NCPP_FORCE_INLINE void remove(const G_string& name) noexcept {
 
 			NCPP_ASSERT(
-				is_owned(
-					NCPP_FOH_VALID(pso_p)
-				)
-			) << "pso is not added";
+				is_owned(name)
+			) << "pipeline_state is not added";
 
-			auto it = pso_p_map_.find(
-				sz(pso_p.object_p())
-			);
+			auto it = pso_iterator_handle_map_.find(name);
 
 			pso_p_list_.erase(it->second);
 
-			pso_p_map_.erase(it);
+			pso_iterator_handle_map_.erase(it);
 		}
 
 	};
