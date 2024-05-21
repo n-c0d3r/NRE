@@ -89,37 +89,37 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
 
 
+    // {
+    //     float3 L = R;
+    //     float3 H = normalize(L + V);
+
+    //     float2 integratedSpecularBRDFParts = IntegrateSpecularBRDF(roughness, NoV);
+    //     float3 specularEnvColor = PrefilterEnvMap(roughness, R, sky_map);
+
+    //     float3 specular = (
+    //         specularColor * integratedSpecularBRDFParts.x + integratedSpecularBRDFParts.y
+    //     ) * specularEnvColor;
+
+    //     float3 diffuse = albedo * IntegrateIrradiance(N, sky_map);
+
+    //     radiance += MixDiffuseSpecular(
+    //         diffuse,
+    //         specular,
+    //         dot(H, L),
+    //         specularColor,
+    //         roughness,
+    //         metallic
+    //     );
+    // }
+
+
+
     {
-        float3 L = R;
+        float3 L = normalize(float3(0, 1, 0));
         float3 H = normalize(L + V);
 
-        float2 integratedSpecularBRDFParts = IntegrateSpecularBRDF(roughness, NoV);
-        float3 specularEnvColor = PrefilterEnvMap(roughness, R, sky_map);
-
-        float3 specular = (
-            specularColor * integratedSpecularBRDFParts.x + integratedSpecularBRDFParts.y
-        ) * specularEnvColor;
-
-        float3 diffuse = albedo * IntegrateIrradiance(N, sky_map);
-
-        radiance += MixDiffuseSpecular(
-            diffuse,
-            specular,
-            dot(H, L),
-            specularColor,
-            roughness,
-            metallic
-        );
-    }
-
-
-
-    {
-        float3 L = normalize(float3(1, 1, 0));
-        float3 H = normalize(L + V);
-
-        float3 specular = GGX_SpecularBRDX(N, L, V, specularColor, roughness);
-        float3 diffuse = albedo * max(dot(L, N), 0);
+        float3 specular = GGX_SpecularBRDX(N, L, V, specularColor, roughness) * saturate(dot(L, N));
+        float3 diffuse = albedo * saturate(dot(L, N));
 
         radiance += MixDiffuseSpecular(
             diffuse,

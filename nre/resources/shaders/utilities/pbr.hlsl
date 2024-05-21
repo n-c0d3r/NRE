@@ -20,31 +20,27 @@ float GGX_D(float NoH, float physical_roughness)
     return (physical_roughness_square / denominator);
 }
 
-float GGX_G1(float NoS, float perceptual_roughness)
+float GGX_G1(float NoS, float physicalRoughness)
 {
-    float clampped_NoS = max(NoS, 0.0f);
+    float clampped_NoS = saturate(NoS);
 
-    float physical_roughness_square = perceptual_roughness * perceptual_roughness;
-    physical_roughness_square = (physical_roughness_square + 1.0f) / 2.0f;
-    physical_roughness_square *= physical_roughness_square;
+    float physical_roughness_square = physicalRoughness * physicalRoughness;
 
     float k = physical_roughness_square / 2.0f;
 
     float denominator = clampped_NoS * (1 - k) + k;
     return clampped_NoS / denominator;
 }
-float GGX_G2(float NoL, float NoV, float perceptual_roughness)
+float GGX_G2(float NoL, float NoV, float physicalRoughness)
 {
-    return GGX_G1(NoL, perceptual_roughness) * GGX_G1(NoV, perceptual_roughness);
+    return GGX_G1(NoL, physicalRoughness) * GGX_G1(NoV, physicalRoughness);
 }
-float GGX_V(float NoL, float NoV, float perceptual_roughness)
+float GGX_V(float NoL, float NoV, float physicalRoughness)
 {
-    float clampped_NoL = max(NoL, 0.0f);
-    float clampped_NoV = max(NoV, 0.0f);
+    float clampped_NoL = saturate(NoL);
+    float clampped_NoV = saturate(NoV);
 
-    float physical_roughness_square = perceptual_roughness * perceptual_roughness;
-    physical_roughness_square = (physical_roughness_square + 1.0f) / 2.0f;
-    physical_roughness_square *= physical_roughness_square;
+    float physical_roughness_square = physicalRoughness * physicalRoughness;
 
     float k = physical_roughness_square / 2.0f;
 
@@ -79,7 +75,7 @@ float3 GGX_SpecularBRDX(float3 N, float3 L, float3 V, float3 specularColor, floa
 
     float3 FTerm = SchlickF(VoH, specularColor);
     float DTerm = GGX_D(NoH, physicalRoughness);
-    float VTerm = GGX_V(NoL, NoV, perceptualRoughness);
+    float VTerm = GGX_V(NoL, NoV, physicalRoughness);
 
     return FTerm * DTerm * VTerm;
 }
@@ -98,8 +94,8 @@ float3 MixDiffuseSpecular(float3 diffuse, float3 specular, float HoL, float3 spe
 
 
 
-#define IBL_SAMPLE_COUNT (64)
-#define IBL_SAMPLE_COUNT_SQRT (8)
+#define IBL_SAMPLE_COUNT (1024)
+#define IBL_SAMPLE_COUNT_SQRT (32)
 
 SamplerState IBLSampler
 {
