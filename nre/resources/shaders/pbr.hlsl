@@ -71,5 +71,5 @@ float4 pmain_show_world_normal(F_vertex_to_pixel input) : SV_TARGET {
 }
 float4 pmain_show_uv(F_vertex_to_pixel input) : SV_TARGET {
 
-    return input.uv;
+    return float4(input.uv, 0, 0);
 }

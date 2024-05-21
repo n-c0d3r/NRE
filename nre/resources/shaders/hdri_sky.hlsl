@@ -19,14 +19,14 @@ struct F_vertex_to_pixel {
     float4 clip_position : SV_POSITION;
     float3 world_position : POSITION;
     float3 world_normal : NORMAL;
-    float4 uv : UV;
+    float2 uv : UV;
 
 };
 
 F_vertex_to_pixel vmain(
     float3 local_position : POSITION, 
     float3 local_normal : NORMAL, 
-    float4 uv : UV
+    float2 uv : UV
 ) {
 
     float3 world_position = local_position * 100.0f;

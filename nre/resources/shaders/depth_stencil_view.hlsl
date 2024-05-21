@@ -12,14 +12,14 @@ struct F_vertex_to_pixel {
     float4 clip_position : SV_POSITION;
     float3 world_position : POSITION;
     float3 world_normal : NORMAL;
-    float4 uv : UV;
+    float2 uv : UV;
 
 };
 
 F_vertex_to_pixel vmain(
     float3 local_position : POSITION, 
     float3 local_normal : NORMAL, 
-    float4 uv : UV
+    float2 uv : UV
 ) {
 
     float3 world_position = mul(object_transform, float4(local_position, 1.0f)).xyz;
@@ -50,5 +50,5 @@ float4 pmain_show_world_normal(F_vertex_to_pixel input) : SV_TARGET {
 }
 float4 pmain_show_uv(F_vertex_to_pixel input) : SV_TARGET {
 
-    return input.uv;
+    return float4(input.uv, 0, 0);
 }

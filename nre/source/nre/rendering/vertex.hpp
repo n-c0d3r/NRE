@@ -9,7 +9,7 @@ namespace nre {
 	using F_vertex_position = F_vector3_f32;
 	using F_vertex_normal = F_vector3_f32;
 	using F_vertex_tangent = F_vector3_f32;
-	using F_vertex_uv = F_vector4_f32;
+	using F_vertex_uv = F_vector2_f32;
 
 	inline F_input_assembler_desc default_vertex_input_assembler_desc()
 	{
@@ -37,7 +37,7 @@ namespace nre {
 					{ // vertex uv buffer
 						{
 							.name = "UV",
-							.format = E_format::R32G32B32A32_FLOAT
+							.format = E_format::R32G32_FLOAT
 						}
 					}
 				}

@@ -9,6 +9,13 @@ namespace nre {
 	class NRE_API F_pbr_static_mesh_material : public A_material {
 
 	public:
+		F_vector4 albedo = F_vector4::one();
+		f32 roughness;
+		f32 metallic;
+
+
+
+	public:
 		F_pbr_static_mesh_material(TKPA_valid<F_actor> actor_p);
 		virtual ~F_pbr_static_mesh_material();
 

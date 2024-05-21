@@ -470,7 +470,7 @@ namespace nre {
 	    	E_format::R32G32B32A32_FLOAT,
 	    	E_format::R32G32B32A32_FLOAT,
 	    	E_format::R32G32B32A32_FLOAT,
-	    	E_format::R32G32B32A32_FLOAT
+	    	E_format::R32G32_FLOAT
 		>,
 		F_vertex_position,
 		F_vertex_normal,
@@ -482,7 +482,7 @@ namespace nre {
 			E_format::R32G32B32A32_FLOAT,
 			E_format::R32G32B32A32_FLOAT,
 			E_format::R32G32B32A32_FLOAT,
-			E_format::R32G32B32A32_FLOAT
+			E_format::R32G32_FLOAT
 		>,
 		F_vertex_position,
 		F_vertex_normal,

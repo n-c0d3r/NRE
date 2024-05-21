@@ -1,5 +1,7 @@
 #include <nre/rendering/hdri_sky_material.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/shader_library.hpp>
+#include <nre/rendering/pso_library.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/shader_asset.hpp>
 

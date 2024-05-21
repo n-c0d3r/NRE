@@ -1,5 +1,7 @@
 #include <nre/rendering/pbr_static_mesh_material.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/shader_library.hpp>
+#include <nre/rendering/pso_library.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/shader_asset.hpp>
 
@@ -11,6 +13,8 @@ namespace nre {
 		A_material(actor_p)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_pbr_static_mesh_material);
+
+
 	}
 	F_pbr_static_mesh_material::~F_pbr_static_mesh_material() {
 	}

@@ -37,7 +37,7 @@ int main() {
 
 	F_vector4 clear_color = { 0.3f, 0.3f, 0.3f, 1.0f };
 
-	auto cube_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/cube.obj").T_cast<F_static_mesh_asset>();
+	auto cube_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>();
 	auto cube_mesh_p = NCPP_FOH_VALID(cube_asset_p->mesh_p);
 	auto cube_mesh_buffer_p = cube_mesh_p->buffer_p();
 
@@ -66,8 +66,14 @@ int main() {
 				},
 				{ // vertex uv buffer
 					{
-						.name = "UV",
+						.name = "TANGENT",
 						.format = E_format::R32G32B32A32_FLOAT
+					}
+				},
+				{ // vertex uv buffer
+					{
+						.name = "UV",
+						.format = E_format::R32G32_FLOAT
 					}
 				}
 			}
@@ -299,9 +305,14 @@ int main() {
 					1
 				);
 				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(cube_mesh_buffer_p->vertex_buffer_p(3)), // vertex normal buffer
+					NCPP_FOH_VALID(cube_mesh_buffer_p->vertex_buffer_p(2)), // vertex tangent buffer
 					0,
 					2
+				);
+				main_command_list_p->ZIA_bind_vertex_buffer(
+					NCPP_FOH_VALID(cube_mesh_buffer_p->vertex_buffer_p(3)), // vertex uv buffer
+					0,
+					3
 				);
 				main_command_list_p->ZIA_bind_index_buffer(
 					NCPP_FOH_VALID(cube_mesh_buffer_p->index_buffer_p()),
