@@ -89,7 +89,7 @@ float3 MixDiffuseSpecular(float3 diffuse, float3 specular, float HoL, float3 spe
     float3 kS = SchlickFRoughness(max(HoL, 0.0f), specularColor, perceptualRoughness);
     float3 kD = (float3(1.0f, 1.0f, 1.0f) - kS);
 
-    return PI * (specular + kD * diffuse);
+    return specular + kD * diffuse;
 }
 
 
