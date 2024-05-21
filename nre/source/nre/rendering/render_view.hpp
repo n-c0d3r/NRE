@@ -36,6 +36,8 @@ namespace nre
 			F_matrix4x4 projection_matrix;
 			F_matrix4x4 view_matrix;
 
+			F_vector3 view_position;
+
 		};
 
 

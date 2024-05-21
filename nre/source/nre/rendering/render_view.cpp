@@ -36,7 +36,9 @@ namespace nre
 			F_main_constant_buffer_cpu_data cpu_data = {
 
 				.projection_matrix = projection_matrix,
-				.view_matrix = view_matrix
+				.view_matrix = view_matrix,
+
+				.view_position = invert(view_matrix).translation.xyz()
 
 			};
 

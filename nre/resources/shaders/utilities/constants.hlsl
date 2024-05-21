@@ -1,0 +1,7 @@
+#ifndef CONSTANTS
+#define CONSTANTS
+
+// #define PI 3.14159265358979323846
+#define PI 3.14159265358
+
+#endif // CONSTANTS

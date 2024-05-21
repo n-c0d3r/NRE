@@ -1,75 +1,139 @@
-#include "demo.hlsl"
 
-cbuffer per_object : register(b0) {
+#include "utilities/constants.hlsl"
+#include "utilities/pbr.hlsl"
+#include "utilities/aces_tone_mapping.hlsl"
+
+
+
+cbuffer per_view : register(b0) {
 
     float4x4 projection_matrix;
-    float4x4 object_transform;
     float4x4 view_transform;
+
+    float3 camera_position;
+    float __camera_position_pad__;
+
+}
+cbuffer per_object : register(b1) {
+
+    float4x4 object_transform;
+
+    float3 albedo;
+    float __albedo_pad__;
+
+    float roughness;
+    float metallic;
+    float2 __roughness_metallic_pad__;
 
 }
 
-TextureCube SkyMap;
-SamplerState SkyMapSampler
-{
-    Filter = MIN_MAG_MIP_LINEAR;
-    AddressU = Wrap;
-    AddressV = Wrap;
-};
+
+
+TextureCube sky_map;
+
+
 
 struct F_vertex_to_pixel {
 
     float4 clip_position : SV_POSITION;
     float3 world_position : POSITION;
     float3 world_normal : NORMAL;
-    float4 uv : UV;
+    float3 world_tangent : TANGENT;
+    float2 uv : UV;
 
 };
+
+
 
 F_vertex_to_pixel vmain(
     float3 local_position : POSITION, 
     float3 local_normal : NORMAL, 
-    float4 uv : UV
+    float3 local_tangent : TANGENT, 
+    float2 uv : UV
 ) {
 
     float3 world_position = mul(object_transform, float4(local_position, 1.0f)).xyz;
     float3 world_normal = normalize(mul((float3x3)object_transform, local_normal));
+    float3 world_tangent = normalize(mul((float3x3)object_transform, local_tangent));
     float3 view_space_position = mul(view_transform, float4(world_position, 1.0f)).xyz;
 
     F_vertex_to_pixel output;
     output.clip_position = mul(projection_matrix, float4(view_space_position, 1.0f));
     output.world_position = world_position;
     output.world_normal = world_normal;
+    output.world_tangent = world_tangent;
     output.uv = uv;
 
     return output;
 }
 
+float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
-float3 ACESFilm(float3 x)
-{
-    float a = 2.51f;
-    float b = 0.03f;
-    float c = 2.43f;
-    float d = 0.59f;
-    float e = 0.14f;
-    return saturate((x*(a*x+b))/(x*(c*x+d)+e));
-}
+    float3 P = input.world_position;
 
-float4 pmain_lambert_lighting(F_vertex_to_pixel input) : SV_TARGET {
+    float3 N = input.world_normal;
+    float3 T = input.world_tangent;
 
-    float t = dot(input.world_normal, float3(0, 1, 0));
-    float4 color = SkyMap.Sample(SkyMapSampler, normalize(input.world_normal));
-    return float4(ACESFilm(color.xyz * 3.14f), 1) * lerp(0.12f, 1.0f, t * 0.5f + 0.5f);
-}
-float4 pmain_show_world_position(F_vertex_to_pixel input) : SV_TARGET {
+    float3 V = normalize(camera_position - P);
+    float3 R = 2.0f * dot(V, N) * N - V;
 
-    return float4(input.world_position, 1);
-}
-float4 pmain_show_world_normal(F_vertex_to_pixel input) : SV_TARGET {
+    float NoV = dot(N, V);
 
-    return float4(input.world_normal, 1);
-}
-float4 pmain_show_uv(F_vertex_to_pixel input) : SV_TARGET {
 
-    return float4(input.uv, 0, 0);
+
+    float3 specularColor = SpecularColor(albedo, metallic);
+
+
+
+    float3 radiance = float3(0, 0, 0);
+
+
+
+    {
+        float3 L = R;
+        float3 H = normalize(L + V);
+
+        float2 integratedSpecularBRDFParts = IntegrateSpecularBRDF(roughness, NoV);
+        float3 specularEnvColor = PrefilterEnvMap(roughness, R, sky_map);
+
+        float3 specular = (
+            specularColor * integratedSpecularBRDFParts.x + integratedSpecularBRDFParts.y
+        ) * specularEnvColor;
+
+        float3 diffuse = albedo * IntegrateIrradiance(N, sky_map);
+
+        radiance += MixDiffuseSpecular(
+            diffuse,
+            specular,
+            dot(H, L),
+            specularColor,
+            roughness,
+            metallic
+        );
+    }
+
+
+
+    {
+        float3 L = normalize(float3(1, 1, 0));
+        float3 H = normalize(L + V);
+
+        float3 specular = GGX_SpecularBRDX(N, L, V, specularColor, roughness);
+        float3 diffuse = albedo * max(dot(L, N), 0);
+
+        radiance += MixDiffuseSpecular(
+            diffuse,
+            specular,
+            dot(H, L),
+            specularColor,
+            roughness,
+            metallic
+        );
+    }
+
+
+
+    float3 ldr_color = ACESToneMapping(radiance);
+
+    return float4(ldr_color, 1);
 }

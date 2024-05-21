@@ -42,11 +42,15 @@ namespace nre {
 			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
 			0
 		);
+		render_command_list_p->ZPS_bind_constant_buffer(
+			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
+			0
+		);
 
-//		render_command_list_p->ZPS_bind_srv(
-//			NCPP_FOH_VALID(sky_texture_cube_p->srv_p()),
-//			0
-//		);
+		render_command_list_p->ZPS_bind_srv(
+			NCPP_FOH_VALID(hdri_sky_renderable_p->sky_texture_cube_p->srv_p()),
+			0
+		);
 
 		render_command_list_p->ZOM_bind_frame_buffer(
 			frame_buffer_p
