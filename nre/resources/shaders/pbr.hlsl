@@ -89,28 +89,28 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
 
 
-    {
-        float3 L = R;
-        float3 H = normalize(L + V);
+    // {
+    //     float3 L = R;
+    //     float3 H = normalize(L + V);
 
-        float2 integratedSpecularBRDFParts = IntegrateSpecularBRDF(roughness, NoV);
-        float3 specularEnvColor = PrefilterEnvMap(roughness, R, sky_map);
+    //     float2 integratedSpecularBRDFParts = IntegrateSpecularBRDF(roughness, NoV);
+    //     float3 specularEnvColor = PrefilterEnvMap(roughness, R, sky_map);
 
-        float3 specular = (
-            specularColor * integratedSpecularBRDFParts.x + integratedSpecularBRDFParts.y
-        ) * specularEnvColor;
+    //     float3 specular = (
+    //         specularColor * integratedSpecularBRDFParts.x + integratedSpecularBRDFParts.y
+    //     ) * specularEnvColor;
 
-        float3 diffuse = albedo * IntegrateIrradiance(N, sky_map) / PI;
+    //     float3 diffuse = albedo * IntegrateIrradiance(N, sky_map) / PI;
 
-        radiance += MixDiffuseSpecular(
-            diffuse,
-            specular,
-            dot(H, L),
-            specularColor,
-            roughness,
-            metallic
-        );
-    }
+    //     radiance += MixDiffuseSpecular(
+    //         diffuse,
+    //         specular,
+    //         dot(H, L),
+    //         specularColor,
+    //         roughness,
+    //         metallic
+    //     );
+    // }
 
 
 
