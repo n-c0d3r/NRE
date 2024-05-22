@@ -28,7 +28,7 @@ int main() {
 
 
 
-	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/fish_hoek_beach_8k.hdr").T_cast<F_texture_2d_asset>();
+	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/venice_dawn_1_8k.hdr").T_cast<F_texture_2d_asset>();
 
 	auto skymap_p = panorama_to_cubemap(NCPP_FOH_VALID(panorama_asset_p->texture_p), 512);
 

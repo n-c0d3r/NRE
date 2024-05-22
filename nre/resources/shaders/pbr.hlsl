@@ -115,11 +115,11 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
 
     {
-        float3 L = normalize(float3(0.6f, 1, 0));
+        float3 L = normalize(float3(0.0f, 1, 0.6f));
         float3 H = normalize(L + V);
 
         float3 specular = GGX_SpecularBRDX(N, L, V, specularColor, roughness) * saturate(dot(L, N));
-        float3 diffuse = albedo * saturate(dot(L, N)) / PI;
+        float3 diffuse = albedo * saturate(dot(L, N));
 
         radiance += MixDiffuseSpecular(
             diffuse,
