@@ -94,8 +94,8 @@ float3 MixDiffuseSpecular(float3 diffuse, float3 specular, float HoL, float3 spe
 
 
 
-#define IBL_SAMPLE_COUNT (64)
-#define IBL_SAMPLE_COUNT_SQRT (8)
+#define IBL_SAMPLE_COUNT (1024)
+#define IBL_SAMPLE_COUNT_SQRT (32)
 
 SamplerState IBLSampler
 {
