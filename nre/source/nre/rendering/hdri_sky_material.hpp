@@ -15,6 +15,11 @@ namespace nre {
 
 	class NRE_API A_hdri_sky_material_proxy : public A_material_proxy {
 
+	public:
+		friend class F_hdri_sky_material;
+
+
+
 	protected:
 		A_hdri_sky_material_proxy(TKPA_valid<F_hdri_sky_material> material_p);
 
@@ -24,21 +29,35 @@ namespace nre {
 	public:
 		NCPP_OBJECT(A_hdri_sky_material_proxy);
 
+	protected:
+		virtual void update_gpu_data() = 0;
+
 	};
 
 
 
 	class NRE_API F_hdri_sky_material_proxy : public A_hdri_sky_material_proxy {
 
+	public:
+		struct F_main_constant_buffer_cpu_data {
+
+			F_vector4_f32 color_and_intensity;
+
+		};
+
+
+
 	private:
 		U_graphics_pipeline_state_handle main_graphics_pso_p_;
 		U_vertex_shader_handle vertex_shader_p_;
 		U_pixel_shader_handle pixel_shader_p_;
+		U_buffer_handle main_constant_buffer_p_;
 
 	public:
 		NCPP_FORCE_INLINE K_valid_graphics_pipeline_state_handle main_graphics_pso_p() const noexcept { return NCPP_FOH_VALID(main_graphics_pso_p_); }
 		NCPP_FORCE_INLINE K_valid_vertex_shader_handle vertex_shader_p() const noexcept { return NCPP_FOH_VALID(vertex_shader_p_); }
 		NCPP_FORCE_INLINE K_valid_pixel_shader_handle pixel_shader_p() const noexcept { return NCPP_FOH_VALID(pixel_shader_p_); }
+		NCPP_FORCE_INLINE K_valid_buffer_handle main_constant_buffer_p() const noexcept { return NCPP_FOH_VALID(main_constant_buffer_p_); }
 
 
 
@@ -48,6 +67,9 @@ namespace nre {
 
 	public:
 		NCPP_OBJECT(F_hdri_sky_material_proxy);
+
+	protected:
+		virtual void update_gpu_data() override;
 
 	public:
 		virtual void bind(
@@ -72,6 +94,8 @@ namespace nre {
 
 	public:
 		TS<F_general_texture_cube> sky_texture_cube_p;
+		F_vector3 color = F_vector3::one();
+		f32 intensity = 1.0f;
 
 
 
@@ -82,6 +106,10 @@ namespace nre {
 
 	public:
 		NCPP_OBJECT(F_hdri_sky_material);
+
+	protected:
+		virtual void gameplay_tick() override;
+		virtual void render_tick() override;
 
 	};
 

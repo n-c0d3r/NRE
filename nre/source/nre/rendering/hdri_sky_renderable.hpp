@@ -26,6 +26,9 @@ namespace nre {
 		F_hdri_sky_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask = 0);
 		virtual ~F_hdri_sky_renderable();
 
+	protected:
+		virtual void gameplay_tick() override;
+
 	};
 
 }

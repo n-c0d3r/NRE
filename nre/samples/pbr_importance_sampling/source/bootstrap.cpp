@@ -44,6 +44,13 @@ int main() {
 
 	hdri_sky_material_p->sky_texture_cube_p = skymap_p;
 
+	// create directional light actor
+	auto directional_light_actor_p = level_p->T_create_actor();
+	auto directional_light_transform_node_p = directional_light_actor_p->template T_add_component<F_transform_node>();
+	auto directional_light_p = directional_light_actor_p->template T_add_component<F_directional_light>();
+
+	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
+
 	// create pbr sphere actor
 	auto pbr_sphere_actor_p = level_p->T_create_actor();
 	auto pbr_sphere_transform_node_p = pbr_sphere_actor_p->template T_add_component<F_transform_node>();

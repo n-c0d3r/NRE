@@ -56,7 +56,7 @@ namespace nre {
 	private:
 		TK_valid<F_transform_node> transform_node_p_;
 		typename TG_list<TK_valid<F_renderable>>::iterator handle_;
-		F_renderable_mask mask_;
+		F_renderable_mask mask_ = 0;
 		TK_valid<A_material> material_p_;
 
 	public:

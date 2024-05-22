@@ -8,6 +8,7 @@ namespace nre {
 
 	class F_render_view_system;
 	class F_renderable_system;
+	class F_light_system;
 	class F_pso_library;
 	class F_shader_library;
 
@@ -32,8 +33,9 @@ namespace nre {
 		TU<A_command_list> main_command_list_p_;
 		TU<A_swapchain> main_swapchain_p_;
 
-		TU<F_render_view_system> render_view_system_;
-		TU<F_renderable_system> renderable_system_;
+		TU<F_render_view_system> render_view_system_p_;
+		TU<F_renderable_system> renderable_system_p_;
+		TU<F_light_system> light_system_p_;
 
 		TU<F_pso_library> pso_library_p_;
 		TU<F_shader_library> shader_library_p_;

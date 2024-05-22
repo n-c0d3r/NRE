@@ -5,6 +5,12 @@ cbuffer per_view : register(b0) {
     float4x4 view_transform;
 
 }
+cbuffer per_object : register(b1) {
+
+    float3 hdri_sky_color;
+    float hdri_sky_intensity;
+
+}
 
 TextureCube sky_map;
 SamplerState sky_map_sampler
@@ -56,5 +62,8 @@ float3 ACESFilm(float3 x)
 float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
     float4 color = sky_map.Sample(sky_map_sampler, normalize(input.world_position));
+
+    color *= float4(hdri_sky_color, 1) * hdri_sky_intensity;
+
     return float4(ACESFilm(color.xyz * 3.14f), 1);
 }

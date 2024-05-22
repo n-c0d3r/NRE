@@ -24,6 +24,9 @@ namespace nre {
 	private:
 		TK_valid<F_hdri_sky_material> hdri_sky_material_p_;
 
+		U_texture_cube_handle importance_sampling_cube_p_;
+		U_texture_cube_handle filtered_env_cube_p_;
+
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_hdri_sky_material> hdri_sky_material_p() const noexcept { return hdri_sky_material_p_; }
 

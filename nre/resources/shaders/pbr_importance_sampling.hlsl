@@ -26,6 +26,18 @@ cbuffer per_object : register(b1) {
     float2 __roughness_metallic_pad__;
 
 }
+cbuffer directional_light : register(b2) {
+
+    float3 directional_light_direction;
+    float __directional_light_direction__;
+    
+    float3 directional_light_direct_color;
+    float directional_light_direct_intensity;
+
+    float3 directional_light_indirect_color;
+    float directional_light_indirect_intensity;
+
+}
 
 
 
@@ -102,7 +114,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
         float3 diffuse = albedo * IntegrateIrradiance(N, sky_map);
 
-        radiance += MixDiffuseSpecular(
+        radiance += directional_light_indirect_color * directional_light_indirect_intensity * MixDiffuseSpecular(
             diffuse,
             specular,
             dot(H, L),
@@ -115,13 +127,13 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
 
     {
-        float3 L = normalize(float3(0.0f, 1, 0.0f));
+        float3 L = normalize(-directional_light_direction);
         float3 H = normalize(L + V);
 
         float3 specular = GGX_SpecularBRDX(N, L, V, specularColor, roughness) * saturate(dot(L, N));
         float3 diffuse = albedo * saturate(dot(L, N));
 
-        radiance += MixDiffuseSpecular(
+        radiance += directional_light_direct_color * directional_light_direct_intensity * MixDiffuseSpecular(
             diffuse,
             specular,
             dot(H, L),

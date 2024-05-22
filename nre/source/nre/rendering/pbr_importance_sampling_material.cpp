@@ -4,6 +4,7 @@
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/hdri_sky_material.hpp>
 #include <nre/rendering/render_view.hpp>
+#include <nre/rendering/directional_light.hpp>
 #include <nre/rendering/general_texture_cube.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/shader_asset.hpp>
@@ -115,7 +116,19 @@ namespace nre {
 	)
 	{
 		auto hdri_sky_material_p = F_hdri_sky_material::instance_p();
-		NCPP_ASSERT(hdri_sky_material_p) << "there is no hdri sky material";
+		if(!hdri_sky_material_p)
+			return;
+
+		auto directional_light_p = F_directional_light::instance_p();
+		if(!directional_light_p)
+			return;
+
+		auto directional_light_proxy_p = directional_light_p->proxy_p();
+		TK<F_directional_light_proxy> casted_directional_light_proxy_p;
+		if(
+			!(directional_light_proxy_p.T_try_interface<F_directional_light_proxy>(casted_directional_light_proxy_p))
+		)
+			return;
 
 		render_command_list_p->bind_graphics_pipeline_state(
 			NCPP_FOH_VALID(main_graphics_pso_p_)
@@ -129,6 +142,10 @@ namespace nre {
 			NCPP_FOH_VALID(main_constant_buffer_p_),
 			1
 		);
+		render_command_list_p->ZVS_bind_constant_buffer(
+			NCPP_FOH_VALID(casted_directional_light_proxy_p->main_constant_buffer_p()),
+			2
+		);
 
 		render_command_list_p->ZPS_bind_constant_buffer(
 			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
@@ -137,6 +154,10 @@ namespace nre {
 		render_command_list_p->ZPS_bind_constant_buffer(
 			NCPP_FOH_VALID(main_constant_buffer_p_),
 			1
+		);
+		render_command_list_p->ZPS_bind_constant_buffer(
+			NCPP_FOH_VALID(casted_directional_light_proxy_p->main_constant_buffer_p()),
+			2
 		);
 
 		render_command_list_p->ZPS_bind_srv(

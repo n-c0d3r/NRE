@@ -27,3 +27,6 @@
 #include <nre/rendering/panorama_to_cubemap.hpp>
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/shader_library.hpp>
+#include <nre/rendering/light.hpp>
+#include <nre/rendering/directional_light.hpp>
+#include <nre/rendering/light_system.hpp>
