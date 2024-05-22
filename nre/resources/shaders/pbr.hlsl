@@ -133,7 +133,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
 
 
-    float3 ldr_color = ACESToneMapping(radiance);
+    float3 ldr_color = ACESToneMapping(PI * radiance);
 
     return float4(ldr_color, 1);
 }

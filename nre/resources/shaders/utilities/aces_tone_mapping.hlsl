@@ -3,7 +3,7 @@
 
 float3 ACESToneMapping(float3 x)
 {
-    float3 x2 = PI * x;
+    float3 x2 = x;
 
     float a = 2.51f;
     float b = 0.03f;
