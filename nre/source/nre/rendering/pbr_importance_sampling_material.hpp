@@ -10,7 +10,7 @@ namespace nre {
 
 
 
-	class NRE_API F_pbr_static_mesh_material : public A_material {
+	class NRE_API F_pbr_importance_sampling_material : public A_material {
 
 	public:
 		struct NCPP_ALIGN(16) F_main_constant_buffer_cpu_data {
@@ -51,11 +51,11 @@ namespace nre {
 
 
 	public:
-		F_pbr_static_mesh_material(TKPA_valid<F_actor> actor_p);
-		virtual ~F_pbr_static_mesh_material();
+		F_pbr_importance_sampling_material(TKPA_valid<F_actor> actor_p);
+		virtual ~F_pbr_importance_sampling_material();
 
 	public:
-		NCPP_OBJECT(F_pbr_static_mesh_material);
+		NCPP_OBJECT(F_pbr_importance_sampling_material);
 
 	protected:
 		virtual void render_tick() override;

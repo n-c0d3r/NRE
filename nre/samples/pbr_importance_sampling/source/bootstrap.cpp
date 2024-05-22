@@ -10,7 +10,7 @@ int main() {
 	auto application_p = TU<F_application>()(
 		F_application_desc {
 			.main_surface_desc = {
-				.title = L"PBR",
+				.title = L"PBR Importance Sampling",
 				.size = { 1024, 700 }
 			}
 		}
@@ -18,7 +18,7 @@ int main() {
 
 
 
-	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/venice_dawn_1_8k.hdr").T_cast<F_texture_2d_asset>();
+	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/quarry_cloudy_4k.hdr").T_cast<F_texture_2d_asset>();
 
 	auto skymap_p = panorama_to_cubemap(NCPP_FOH_VALID(panorama_asset_p->texture_p), 512);
 
@@ -42,13 +42,13 @@ int main() {
 	auto hdri_sky_material_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_material>();
 	auto hdri_sky_renderable_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_renderable>();
 
-	hdri_sky_renderable_p->sky_texture_cube_p = skymap_p;
+	hdri_sky_material_p->sky_texture_cube_p = skymap_p;
 
 	// create pbr sphere actor
 	auto pbr_sphere_actor_p = level_p->T_create_actor();
 	auto pbr_sphere_transform_node_p = pbr_sphere_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_pbr_static_mesh_material>();
-	auto pbr_sphere_renderable_p = pbr_sphere_actor_p->template T_add_component<F_pbr_static_mesh_renderable>();
+	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_pbr_importance_sampling_material>();
+	auto pbr_sphere_renderable_p = pbr_sphere_actor_p->template T_add_component<F_static_mesh_renderable>();
 
 	pbr_sphere_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
 

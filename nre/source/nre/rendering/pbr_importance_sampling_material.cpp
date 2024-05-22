@@ -1,4 +1,4 @@
-#include <nre/rendering/pbr_static_mesh_material.hpp>
+#include <nre/rendering/pbr_importance_sampling_material.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/pso_library.hpp>
@@ -14,11 +14,11 @@
 
 namespace nre {
 
-	F_pbr_static_mesh_material::F_pbr_static_mesh_material(TKPA_valid<F_actor> actor_p) :
+	F_pbr_importance_sampling_material::F_pbr_importance_sampling_material(TKPA_valid<F_actor> actor_p) :
 		A_material(actor_p),
 		transform_node_p_(actor_p->T_component<F_transform_node>())
 	{
-		NRE_ACTOR_COMPONENT_REGISTER(F_pbr_static_mesh_material);
+		NRE_ACTOR_COMPONENT_REGISTER(F_pbr_importance_sampling_material);
 
 		actor_p->set_render_tick(true);
 
@@ -62,7 +62,7 @@ namespace nre {
 			}
 		};
 
-		auto shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/pbr.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
+		auto shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/pbr_importance_sampling.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
 			NCPP_INIL_SPAN(
 				F_shader_kernel_desc {
 					.name = "vmain",
@@ -101,10 +101,10 @@ namespace nre {
 			}
 		);
 	}
-	F_pbr_static_mesh_material::~F_pbr_static_mesh_material() {
+	F_pbr_importance_sampling_material::~F_pbr_importance_sampling_material() {
 	}
 
-	void F_pbr_static_mesh_material::render_tick() {
+	void F_pbr_importance_sampling_material::render_tick() {
 
 		A_material::render_tick();
 
@@ -127,7 +127,7 @@ namespace nre {
 		);
 	}
 
-	void F_pbr_static_mesh_material::bind(
+	void F_pbr_importance_sampling_material::bind(
 		KPA_valid_render_command_list_handle render_command_list_p,
 		TKPA_valid<A_render_view> render_view_p
 	) {

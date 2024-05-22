@@ -15,7 +15,7 @@
 #include <nre/rendering/vertex.hpp>
 #include <nre/rendering/material.hpp>
 #include <nre/rendering/hdri_sky_material.hpp>
-#include <nre/rendering/pbr_static_mesh_material.hpp>
+#include <nre/rendering/pbr_importance_sampling_material.hpp>
 #include <nre/rendering/camera.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
 #include <nre/rendering/general_texture_2d_array.hpp>
