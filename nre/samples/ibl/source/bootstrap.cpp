@@ -10,7 +10,7 @@ int main() {
 	auto application_p = TU<F_application>()(
 		F_application_desc {
 			.main_surface_desc = {
-				.title = L"PBR",
+				.title = L"IBL",
 				.size = { 1024, 700 }
 			}
 		}
@@ -42,13 +42,13 @@ int main() {
 	auto hdri_sky_material_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_material>();
 	auto hdri_sky_renderable_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_renderable>();
 
-	hdri_sky_renderable_p->sky_texture_cube_p = skymap_p;
+	hdri_sky_material_p->sky_texture_cube_p = skymap_p;
 
 	// create pbr sphere actor
 	auto pbr_sphere_actor_p = level_p->T_create_actor();
 	auto pbr_sphere_transform_node_p = pbr_sphere_actor_p->template T_add_component<F_transform_node>();
 	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_pbr_static_mesh_material>();
-	auto pbr_sphere_renderable_p = pbr_sphere_actor_p->template T_add_component<F_pbr_static_mesh_renderable>();
+	auto pbr_sphere_renderable_p = pbr_sphere_actor_p->template T_add_component<F_static_mesh_renderable>();
 
 	pbr_sphere_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
 

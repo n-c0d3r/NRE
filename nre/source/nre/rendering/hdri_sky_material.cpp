@@ -2,6 +2,8 @@
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/pso_library.hpp>
+#include <nre/rendering/render_view.hpp>
+#include <nre/rendering/general_texture_cube.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/shader_asset.hpp>
 
@@ -9,10 +11,16 @@
 
 namespace nre {
 
+	TK<F_hdri_sky_material> F_hdri_sky_material::instance_ps;
+
+
+
 	F_hdri_sky_material::F_hdri_sky_material(TKPA_valid<F_actor> actor_p) :
 		A_material(actor_p)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_hdri_sky_material);
+
+		instance_ps = NCPP_KTHIS().no_requirements();
 
 		F_input_assembler_desc input_assembler_desc = {
 			.vertex_attribute_groups = {
@@ -82,10 +90,21 @@ namespace nre {
 	}
 
 	void F_hdri_sky_material::bind(
-		KPA_valid_render_command_list_handle render_command_list_p
+		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_render_view> render_view_p
 	) {
 		render_command_list_p->bind_graphics_pipeline_state(
 			NCPP_FOH_VALID(main_graphics_pso_p_)
+		);
+
+		render_command_list_p->ZVS_bind_constant_buffer(
+			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
+			0
+		);
+
+		render_command_list_p->ZPS_bind_srv(
+			NCPP_FOH_VALID(sky_texture_cube_p->srv_p()),
+			0
 		);
 	}
 

@@ -34,6 +34,9 @@ namespace nre {
 		F_camera(TKPA_valid<F_actor> actor_p, TU<A_render_view>&& render_view_p);
 		virtual ~F_camera();
 
+	public:
+		NCPP_OBJECT(F_camera);
+
 	protected:
 		virtual void gameplay_tick() override;
 

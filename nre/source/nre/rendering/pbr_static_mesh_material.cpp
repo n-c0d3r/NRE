@@ -2,6 +2,9 @@
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/pso_library.hpp>
+#include <nre/rendering/hdri_sky_material.hpp>
+#include <nre/rendering/render_view.hpp>
+#include <nre/rendering/general_texture_cube.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/shader_asset.hpp>
 #include <nre/actor/actor.hpp>
@@ -125,19 +128,37 @@ namespace nre {
 	}
 
 	void F_pbr_static_mesh_material::bind(
-		KPA_valid_render_command_list_handle render_command_list_p
+		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_render_view> render_view_p
 	) {
+		auto hdri_sky_material_p = F_hdri_sky_material::instance_p();
+		NCPP_ASSERT(hdri_sky_material_p) << "there is no hdri sky material";
+
 		render_command_list_p->bind_graphics_pipeline_state(
 			NCPP_FOH_VALID(main_graphics_pso_p_)
 		);
 
 		render_command_list_p->ZVS_bind_constant_buffer(
+			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
+			0
+		);
+		render_command_list_p->ZVS_bind_constant_buffer(
 			NCPP_FOH_VALID(main_constant_buffer_p_),
 			1
+		);
+
+		render_command_list_p->ZPS_bind_constant_buffer(
+			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
+			0
 		);
 		render_command_list_p->ZPS_bind_constant_buffer(
 			NCPP_FOH_VALID(main_constant_buffer_p_),
 			1
+		);
+
+		render_command_list_p->ZPS_bind_srv(
+			NCPP_FOH_VALID(hdri_sky_material_p->sky_texture_cube_p->srv_p()),
+			0
 		);
 	}
 

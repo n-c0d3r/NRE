@@ -10,7 +10,8 @@ namespace nre {
 	class NRE_API F_static_mesh_renderable :
 		public F_renderable,
 		public I_has_vertex_buffer_renderable,
-		public I_has_index_buffer_renderable
+		public I_has_index_buffer_renderable,
+		public I_has_simple_render_renderable
 	{
 
 	public:
@@ -34,6 +35,13 @@ namespace nre {
 
 		virtual K_srv_handle index_srv_p() const override;
 		virtual K_uav_handle index_uav_p() const override;
+
+	public:
+		virtual void simple_render(
+			KPA_valid_render_command_list_handle render_command_list_p,
+			TKPA_valid<A_render_view> render_view_p,
+			TKPA_valid<A_frame_buffer> frame_buffer_p
+		) const override;
 
 	};
 
