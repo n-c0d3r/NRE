@@ -99,7 +99,8 @@ namespace nre {
 
 		material_p()->bind(
 			render_command_list_p,
-			render_view_p
+			render_view_p,
+			frame_buffer_p
 		);
 
 		render_command_list_p->ZOM_bind_frame_buffer(

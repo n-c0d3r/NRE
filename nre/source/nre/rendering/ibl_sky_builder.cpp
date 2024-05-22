@@ -1,5 +1,5 @@
 #include <nre/rendering/ibl_sky_builder.hpp>
-#include <nre/rendering/hdri_sky_renderable.hpp>
+#include <nre/rendering/hdri_sky_material.hpp>
 #include <nre/actor/actor.hpp>
 
 
@@ -8,7 +8,7 @@ namespace nre {
 
 	F_ibl_sky_builder::F_ibl_sky_builder(TKPA_valid<F_actor> actor_p) :
 		A_actor_component(actor_p),
-		hdri_sky_renderable_p_(actor_p->T_component<F_hdri_sky_renderable>())
+		hdri_sky_material_p_(actor_p->T_component<F_hdri_sky_material>())
 	{
 	}
 	F_ibl_sky_builder::~F_ibl_sky_builder() {

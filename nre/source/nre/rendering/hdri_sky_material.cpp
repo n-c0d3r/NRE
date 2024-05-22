@@ -11,16 +11,18 @@
 
 namespace nre {
 
-	TK<F_hdri_sky_material> F_hdri_sky_material::instance_ps;
-
-
-
-	F_hdri_sky_material::F_hdri_sky_material(TKPA_valid<F_actor> actor_p) :
-		A_material(actor_p)
+	A_hdri_sky_material_proxy::A_hdri_sky_material_proxy(TKPA_valid<F_hdri_sky_material> material_p) :
+		A_material_proxy(material_p)
 	{
-		NRE_ACTOR_COMPONENT_REGISTER(F_hdri_sky_material);
+	}
+	A_hdri_sky_material_proxy::~A_hdri_sky_material_proxy() {
+	}
 
-		instance_ps = NCPP_KTHIS().no_requirements();
+
+
+	F_hdri_sky_material_proxy::F_hdri_sky_material_proxy(TKPA_valid<F_hdri_sky_material> material_p) :
+		A_hdri_sky_material_proxy(material_p)
+	{
 
 		F_input_assembler_desc input_assembler_desc = {
 			.vertex_attribute_groups = {
@@ -86,12 +88,13 @@ namespace nre {
 			}
 		);
 	}
-	F_hdri_sky_material::~F_hdri_sky_material() {
+	F_hdri_sky_material_proxy::~F_hdri_sky_material_proxy() {
 	}
 
-	void F_hdri_sky_material::bind(
+	void F_hdri_sky_material_proxy::bind(
 		KPA_valid_render_command_list_handle render_command_list_p,
-		TKPA_valid<A_render_view> render_view_p
+		TKPA_valid<A_render_view> render_view_p,
+		TKPA_valid<A_frame_buffer> frame_buffer_p
 	) {
 		render_command_list_p->bind_graphics_pipeline_state(
 			NCPP_FOH_VALID(main_graphics_pso_p_)
@@ -103,9 +106,32 @@ namespace nre {
 		);
 
 		render_command_list_p->ZPS_bind_srv(
-			NCPP_FOH_VALID(sky_texture_cube_p->srv_p()),
+			NCPP_FOH_VALID(material_p().T_cast<F_hdri_sky_material>()->sky_texture_cube_p->srv_p()),
 			0
 		);
+	}
+
+
+
+	TK<F_hdri_sky_material> F_hdri_sky_material::instance_ps;
+
+
+
+	F_hdri_sky_material::F_hdri_sky_material(TKPA_valid<F_actor> actor_p) :
+		A_material(actor_p, TU<F_hdri_sky_material_proxy>()(NCPP_KTHIS()))
+	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_hdri_sky_material);
+
+		instance_ps = NCPP_KTHIS().no_requirements();
+	}
+	F_hdri_sky_material::F_hdri_sky_material(TKPA_valid<F_actor> actor_p, TU<A_hdri_sky_material_proxy>&& proxy_p) :
+		A_material(actor_p, std::move(proxy_p))
+	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_hdri_sky_material);
+
+		instance_ps = NCPP_KTHIS().no_requirements();
+	}
+	F_hdri_sky_material::~F_hdri_sky_material() {
 	}
 
 }

@@ -6,7 +6,7 @@
 
 namespace nre {
 
-	class F_hdri_sky_renderable;
+	class F_hdri_sky_material;
 
 
 
@@ -22,10 +22,10 @@ namespace nre {
 
 
 	private:
-		TK_valid<F_hdri_sky_renderable> hdri_sky_renderable_p_;
+		TK_valid<F_hdri_sky_material> hdri_sky_material_p_;
 
 	public:
-		NCPP_FORCE_INLINE TKPA_valid<F_hdri_sky_renderable> hdri_sky_renderable_p() const noexcept { return hdri_sky_renderable_p_; }
+		NCPP_FORCE_INLINE TKPA_valid<F_hdri_sky_material> hdri_sky_material_p() const noexcept { return hdri_sky_material_p_; }
 
 
 

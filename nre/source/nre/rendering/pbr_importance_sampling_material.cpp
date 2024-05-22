@@ -14,14 +14,18 @@
 
 namespace nre {
 
-	F_pbr_importance_sampling_material::F_pbr_importance_sampling_material(TKPA_valid<F_actor> actor_p) :
-		A_material(actor_p),
-		transform_node_p_(actor_p->T_component<F_transform_node>())
+	A_pbr_importance_sampling_material_proxy::A_pbr_importance_sampling_material_proxy(TKPA_valid <nre::F_pbr_importance_sampling_material> material_p) :
+		A_material_proxy(material_p)
 	{
-		NRE_ACTOR_COMPONENT_REGISTER(F_pbr_importance_sampling_material);
+	}
+	A_pbr_importance_sampling_material_proxy::~A_pbr_importance_sampling_material_proxy() {
+	}
 
-		actor_p->set_render_tick(true);
 
+
+	F_pbr_importance_sampling_material_proxy::F_pbr_importance_sampling_material_proxy(TKPA_valid <nre::F_pbr_importance_sampling_material> material_p) :
+		A_pbr_importance_sampling_material_proxy(material_p)
+	{
 		main_constant_buffer_p_ = H_buffer::create(
 			NRE_RENDER_DEVICE(),
 			{},
@@ -101,36 +105,15 @@ namespace nre {
 			}
 		);
 	}
-	F_pbr_importance_sampling_material::~F_pbr_importance_sampling_material() {
+	F_pbr_importance_sampling_material_proxy::~F_pbr_importance_sampling_material_proxy() {
 	}
 
-	void F_pbr_importance_sampling_material::render_tick() {
-
-		A_material::render_tick();
-
-		F_main_constant_buffer_cpu_data cpu_data = {
-
-			.object_transform = transform_node_p_->transform,
-
-			.albedo = albedo,
-			.roughness = roughness,
-			.metallic = metallic
-
-		};
-
-		NRE_MAIN_COMMAND_LIST()->update_resource_data(
-			NCPP_FOH_VALID(main_constant_buffer_p_),
-			&cpu_data,
-			sizeof(F_main_constant_buffer_cpu_data),
-			0,
-			0
-		);
-	}
-
-	void F_pbr_importance_sampling_material::bind(
-		KPA_valid_render_command_list_handle render_command_list_p,
-		TKPA_valid<A_render_view> render_view_p
-	) {
+	void F_pbr_importance_sampling_material_proxy::bind(
+		nre::KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid <nre::A_render_view> render_view_p,
+		TKPA_valid <nrhi::A_frame_buffer> frame_buffer_p
+	)
+	{
 		auto hdri_sky_material_p = F_hdri_sky_material::instance_p();
 		NCPP_ASSERT(hdri_sky_material_p) << "there is no hdri sky material";
 
@@ -160,6 +143,55 @@ namespace nre {
 			NCPP_FOH_VALID(hdri_sky_material_p->sky_texture_cube_p->srv_p()),
 			0
 		);
+	}
+
+	void F_pbr_importance_sampling_material_proxy::update_gpu_data()
+	{
+		auto casted_material_p = material_p().T_cast<F_pbr_importance_sampling_material>();
+
+		F_main_constant_buffer_cpu_data cpu_data = {
+
+			.object_transform = casted_material_p->transform_node_p()->transform,
+
+			.albedo = casted_material_p->albedo,
+			.roughness = casted_material_p->roughness,
+			.metallic = casted_material_p->metallic
+
+		};
+
+		NRE_MAIN_COMMAND_LIST()->update_resource_data(
+			NCPP_FOH_VALID(main_constant_buffer_p_),
+			&cpu_data,
+			sizeof(F_main_constant_buffer_cpu_data),
+			0,
+			0
+		);
+	}
+
+
+
+	F_pbr_importance_sampling_material::F_pbr_importance_sampling_material(TKPA_valid<F_actor> actor_p) :
+		A_material(actor_p, TU<F_pbr_importance_sampling_material_proxy>()(NCPP_KTHIS())),
+		transform_node_p_(actor_p->T_component<F_transform_node>())
+	{
+		actor_p->set_render_tick(true);
+	}
+	F_pbr_importance_sampling_material::F_pbr_importance_sampling_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_importance_sampling_material_proxy>&& proxy_p) :
+		A_material(actor_p, std::move(proxy_p)),
+		transform_node_p_(actor_p->T_component<F_transform_node>())
+	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_pbr_importance_sampling_material);
+
+		actor_p->set_render_tick(true);
+	}
+	F_pbr_importance_sampling_material::~F_pbr_importance_sampling_material() {
+	}
+
+	void F_pbr_importance_sampling_material::render_tick() {
+
+		A_material::render_tick();
+
+		proxy_p().T_cast<A_pbr_importance_sampling_material_proxy>()->update_gpu_data();
 	}
 
 }
