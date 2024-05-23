@@ -1,4 +1,4 @@
-#include <nre/rendering/pbr_importance_sampling_material.hpp>
+#include <nre/rendering/pbr_ibl_material.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/pso_library.hpp>
@@ -15,17 +15,17 @@
 
 namespace nre {
 
-	A_pbr_importance_sampling_material_proxy::A_pbr_importance_sampling_material_proxy(TKPA_valid<nre::F_pbr_importance_sampling_material> material_p) :
+	A_pbr_ibl_material_proxy::A_pbr_ibl_material_proxy(TKPA_valid<nre::F_pbr_ibl_material> material_p) :
 		A_pbr_material_proxy(material_p)
 	{
 	}
-	A_pbr_importance_sampling_material_proxy::~A_pbr_importance_sampling_material_proxy() {
+	A_pbr_ibl_material_proxy::~A_pbr_ibl_material_proxy() {
 	}
 
 
 
-	F_pbr_importance_sampling_material_proxy::F_pbr_importance_sampling_material_proxy(TKPA_valid<nre::F_pbr_importance_sampling_material> material_p) :
-		A_pbr_importance_sampling_material_proxy(material_p)
+	F_pbr_ibl_material_proxy::F_pbr_ibl_material_proxy(TKPA_valid<nre::F_pbr_ibl_material> material_p) :
+		A_pbr_ibl_material_proxy(material_p)
 	{
 		main_constant_buffer_p_ = H_buffer::create(
 			NRE_RENDER_DEVICE(),
@@ -67,7 +67,7 @@ namespace nre {
 			}
 		};
 
-		auto shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/pbr_importance_sampling.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
+		auto shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/pbr_ibl.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
 			NCPP_INIL_SPAN(
 				F_shader_kernel_desc {
 					.name = "vmain",
@@ -106,10 +106,10 @@ namespace nre {
 			}
 		);
 	}
-	F_pbr_importance_sampling_material_proxy::~F_pbr_importance_sampling_material_proxy() {
+	F_pbr_ibl_material_proxy::~F_pbr_ibl_material_proxy() {
 	}
 
-	void F_pbr_importance_sampling_material_proxy::bind(
+	void F_pbr_ibl_material_proxy::bind(
 		nre::KPA_valid_render_command_list_handle render_command_list_p,
 		TKPA_valid<nre::A_render_view> render_view_p,
 		TKPA_valid<nrhi::A_frame_buffer> frame_buffer_p
@@ -127,7 +127,7 @@ namespace nre {
 		TK<F_directional_light_proxy> casted_directional_light_proxy_p;
 		if(
 			!(directional_light_proxy_p.T_try_interface<F_directional_light_proxy>(casted_directional_light_proxy_p))
-		)
+			)
 			return;
 
 		render_command_list_p->bind_graphics_pipeline_state(
@@ -166,9 +166,9 @@ namespace nre {
 		);
 	}
 
-	void F_pbr_importance_sampling_material_proxy::update()
+	void F_pbr_ibl_material_proxy::update()
 	{
-		auto casted_material_p = material_p().T_cast<F_pbr_importance_sampling_material>();
+		auto casted_material_p = material_p().T_cast<F_pbr_ibl_material>();
 
 		F_main_constant_buffer_cpu_data cpu_data = {
 
@@ -191,19 +191,19 @@ namespace nre {
 
 
 
-	F_pbr_importance_sampling_material::F_pbr_importance_sampling_material(TKPA_valid<F_actor> actor_p) :
-		A_pbr_material(actor_p, TU<F_pbr_importance_sampling_material_proxy>()(NCPP_KTHIS()))
+	F_pbr_ibl_material::F_pbr_ibl_material(TKPA_valid<F_actor> actor_p) :
+		A_pbr_material(actor_p, TU<F_pbr_ibl_material_proxy>()(NCPP_KTHIS()))
 	{
 		actor_p->set_render_tick(true);
 	}
-	F_pbr_importance_sampling_material::F_pbr_importance_sampling_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_importance_sampling_material_proxy>&& proxy_p) :
+	F_pbr_ibl_material::F_pbr_ibl_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_ibl_material_proxy>&& proxy_p) :
 		A_pbr_material(actor_p, std::move(proxy_p))
 	{
-		NRE_ACTOR_COMPONENT_REGISTER(F_pbr_importance_sampling_material);
+		NRE_ACTOR_COMPONENT_REGISTER(F_pbr_ibl_material);
 
 		actor_p->set_render_tick(true);
 	}
-	F_pbr_importance_sampling_material::~F_pbr_importance_sampling_material() {
+	F_pbr_ibl_material::~F_pbr_ibl_material() {
 	}
 
 }

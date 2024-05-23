@@ -24,11 +24,26 @@ namespace nre {
 	private:
 		TK_valid<F_hdri_sky_material> hdri_sky_material_p_;
 
-		U_texture_cube_handle importance_sampling_cube_p_;
+		U_texture_2d_handle brdf_lut_p_;
 		U_texture_cube_handle filtered_env_cube_p_;
+
+		U_uav_handle brdf_lut_uav_p_;
+		U_srv_handle brdf_lut_srv_p_;
+
+		U_uav_handle filtered_env_cube_uav_p_;
+		U_srv_handle filtered_env_cube_srv_p_;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_hdri_sky_material> hdri_sky_material_p() const noexcept { return hdri_sky_material_p_; }
+
+		NCPP_FORCE_INLINE K_valid_texture_2d_handle brdf_lut_p() const noexcept { return NCPP_FOH_VALID(brdf_lut_p_); }
+		NCPP_FORCE_INLINE K_valid_texture_cube_handle filtered_env_cube_p() const noexcept { return NCPP_FOH_VALID(filtered_env_cube_p_); }
+
+		NCPP_FORCE_INLINE K_valid_uav_handle brdf_lut_uav_p() const noexcept { return NCPP_FOH_VALID(brdf_lut_uav_p_); }
+		NCPP_FORCE_INLINE K_valid_srv_handle brdf_lut_srv_p() const noexcept { return NCPP_FOH_VALID(brdf_lut_srv_p_); }
+
+		NCPP_FORCE_INLINE K_valid_uav_handle filtered_env_cube_uav_p() const noexcept { return NCPP_FOH_VALID(filtered_env_cube_uav_p_); }
+		NCPP_FORCE_INLINE K_valid_srv_handle filtered_env_cube_srv_p() const noexcept { return NCPP_FOH_VALID(filtered_env_cube_srv_p_); }
 
 
 

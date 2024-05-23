@@ -7,33 +7,33 @@
 namespace nre {
 
 	class F_transform_node;
-	class F_pbr_importance_sampling_material;
-	class F_pbr_importance_sampling_material_proxy;
-	class A_pbr_importance_sampling_material_proxy;
+	class F_pbr_ibl_material;
+	class F_pbr_ibl_material_proxy;
+	class A_pbr_ibl_material_proxy;
 
 
 
-	class NRE_API A_pbr_importance_sampling_material_proxy : public A_pbr_material_proxy {
+	class NRE_API A_pbr_ibl_material_proxy : public A_pbr_material_proxy {
 
 	public:
-		friend class F_pbr_importance_sampling_material;
+		friend class F_pbr_ibl_material;
 
 
 
 	protected:
-		A_pbr_importance_sampling_material_proxy(TKPA_valid<F_pbr_importance_sampling_material> material_p);
+		A_pbr_ibl_material_proxy(TKPA_valid<F_pbr_ibl_material> material_p);
 
 	public:
-		virtual ~A_pbr_importance_sampling_material_proxy();
+		virtual ~A_pbr_ibl_material_proxy();
 
 	public:
-		NCPP_OBJECT(A_pbr_importance_sampling_material_proxy);
+		NCPP_OBJECT(A_pbr_ibl_material_proxy);
 
 	};
 
 
 
-	class NRE_API F_pbr_importance_sampling_material_proxy : public A_pbr_importance_sampling_material_proxy {
+	class NRE_API F_pbr_ibl_material_proxy : public A_pbr_ibl_material_proxy {
 
 	public:
 		struct NCPP_ALIGN(16) F_main_constant_buffer_cpu_data {
@@ -65,11 +65,11 @@ namespace nre {
 
 
 	public:
-		F_pbr_importance_sampling_material_proxy(TKPA_valid<F_pbr_importance_sampling_material> material_p);
-		virtual ~F_pbr_importance_sampling_material_proxy();
+		F_pbr_ibl_material_proxy(TKPA_valid<F_pbr_ibl_material> material_p);
+		virtual ~F_pbr_ibl_material_proxy();
 
 	public:
-		NCPP_OBJECT(F_pbr_importance_sampling_material_proxy);
+		NCPP_OBJECT(F_pbr_ibl_material_proxy);
 
 	public:
 		virtual void bind(
@@ -85,15 +85,15 @@ namespace nre {
 
 
 
-	class NRE_API F_pbr_importance_sampling_material : public A_pbr_material {
+	class NRE_API F_pbr_ibl_material : public A_pbr_material {
 
 	public:
-		F_pbr_importance_sampling_material(TKPA_valid<F_actor> actor_p);
-		F_pbr_importance_sampling_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_importance_sampling_material_proxy>&& proxy_p);
-		virtual ~F_pbr_importance_sampling_material();
+		F_pbr_ibl_material(TKPA_valid<F_actor> actor_p);
+		F_pbr_ibl_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_ibl_material_proxy>&& proxy_p);
+		virtual ~F_pbr_ibl_material();
 
 	public:
-		NCPP_OBJECT(F_pbr_importance_sampling_material);
+		NCPP_OBJECT(F_pbr_ibl_material);
 
 	};
 

@@ -16,6 +16,8 @@
 #include <nre/rendering/material.hpp>
 #include <nre/rendering/hdri_sky_material.hpp>
 #include <nre/rendering/pbr_importance_sampling_material.hpp>
+#include <nre/rendering/pbr_ibl_material.hpp>
+#include <nre/rendering/pbr_material.hpp>
 #include <nre/rendering/camera.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
 #include <nre/rendering/general_texture_2d_array.hpp>
