@@ -75,6 +75,7 @@ namespace nre {
 		NCPP_OBJECT(A_light);
 
 	protected:
+		virtual void ready() override;
 		virtual void render_tick() override;
 
 	};

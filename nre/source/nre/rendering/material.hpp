@@ -39,6 +39,9 @@ namespace nre {
 		NCPP_OBJECT(A_material_proxy);
 
 	protected:
+		virtual void update();
+
+	protected:
 		virtual void bind(
 			KPA_valid_render_command_list_handle render_command_list_p,
 			TKPA_valid<A_render_view> render_view_p,
@@ -67,6 +70,10 @@ namespace nre {
 
 	public:
 		NCPP_OBJECT(A_material);
+
+	protected:
+		virtual void ready() override;
+		virtual void render_tick() override;
 
 	public:
 		NCPP_FORCE_INLINE void bind(

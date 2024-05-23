@@ -87,7 +87,7 @@ namespace nre {
 
 			component_vector_.push_back(std::move(component_p));
 
-			keyed_component_p->ready();
+			keyed_component_p.T_cast<A_actor_component>()->ready();
 
 			return keyed_component_p;
 		}

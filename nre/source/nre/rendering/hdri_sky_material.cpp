@@ -134,7 +134,7 @@ namespace nre {
 		);
 	}
 
-	void F_hdri_sky_material_proxy::update_gpu_data()
+	void F_hdri_sky_material_proxy::update()
 	{
 		auto casted_material_p = material_p().T_cast<F_hdri_sky_material>();
 
@@ -188,12 +188,6 @@ namespace nre {
 		A_material::gameplay_tick();
 
 		instance_ps = NCPP_KTHIS().no_requirements();
-	}
-	void F_hdri_sky_material::render_tick() {
-
-		A_material::render_tick();
-
-		proxy_p().T_cast<A_hdri_sky_material_proxy>()->update_gpu_data();
 	}
 
 }

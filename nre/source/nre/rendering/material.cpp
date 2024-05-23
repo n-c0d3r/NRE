@@ -12,6 +12,9 @@ namespace nre {
 	A_material_proxy::~A_material_proxy() {
 	}
 
+	void A_material_proxy::update() {
+	}
+
 
 
 	A_material::A_material(TKPA_valid<F_actor> actor_p, TU<A_material_proxy>&& proxy_p) :
@@ -21,6 +24,19 @@ namespace nre {
 		NRE_ACTOR_COMPONENT_REGISTER(A_material);
 	}
 	A_material::~A_material() {
+	}
+
+	void A_material::ready() {
+
+		A_actor_component::ready();
+
+		proxy_p_->update();
+	}
+	void A_material::render_tick() {
+
+		A_actor_component::render_tick();
+
+		proxy_p_->update();
 	}
 
 }

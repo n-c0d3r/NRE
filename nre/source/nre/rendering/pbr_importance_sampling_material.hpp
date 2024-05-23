@@ -29,9 +29,6 @@ namespace nre {
 	public:
 		NCPP_OBJECT(A_pbr_importance_sampling_material_proxy);
 
-	protected:
-		virtual void update_gpu_data() = 0;
-
 	};
 
 
@@ -82,7 +79,7 @@ namespace nre {
 		) override;
 
 	protected:
-		virtual void update_gpu_data() override;
+		virtual void update() override;
 
 	};
 
@@ -112,9 +109,6 @@ namespace nre {
 
 	public:
 		NCPP_OBJECT(F_pbr_importance_sampling_material);
-
-	protected:
-		virtual void render_tick() override;
 
 	};
 

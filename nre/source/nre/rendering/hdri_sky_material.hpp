@@ -29,9 +29,6 @@ namespace nre {
 	public:
 		NCPP_OBJECT(A_hdri_sky_material_proxy);
 
-	protected:
-		virtual void update_gpu_data() = 0;
-
 	};
 
 
@@ -69,7 +66,7 @@ namespace nre {
 		NCPP_OBJECT(F_hdri_sky_material_proxy);
 
 	protected:
-		virtual void update_gpu_data() override;
+		virtual void update() override;
 
 	public:
 		virtual void bind(
@@ -109,7 +106,6 @@ namespace nre {
 
 	protected:
 		virtual void gameplay_tick() override;
-		virtual void render_tick() override;
 
 	};
 

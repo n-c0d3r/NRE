@@ -166,7 +166,7 @@ namespace nre {
 		);
 	}
 
-	void F_pbr_importance_sampling_material_proxy::update_gpu_data()
+	void F_pbr_importance_sampling_material_proxy::update()
 	{
 		auto casted_material_p = material_p().T_cast<F_pbr_importance_sampling_material>();
 
@@ -206,13 +206,6 @@ namespace nre {
 		actor_p->set_render_tick(true);
 	}
 	F_pbr_importance_sampling_material::~F_pbr_importance_sampling_material() {
-	}
-
-	void F_pbr_importance_sampling_material::render_tick() {
-
-		A_material::render_tick();
-
-		proxy_p().T_cast<A_pbr_importance_sampling_material_proxy>()->update_gpu_data();
 	}
 
 }

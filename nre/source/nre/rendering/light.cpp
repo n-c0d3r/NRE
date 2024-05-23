@@ -34,6 +34,12 @@ namespace nre {
 		F_light_system::instance_p()->deregistry(NCPP_KTHIS());
 	}
 
+	void A_light::ready() {
+
+		A_actor_component::ready();
+
+		proxy_p_->update();
+	}
 	void A_light::render_tick() {
 
 		A_actor_component::render_tick();
