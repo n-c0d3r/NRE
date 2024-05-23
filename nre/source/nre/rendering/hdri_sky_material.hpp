@@ -92,7 +92,7 @@ namespace nre {
 	public:
 		TS<F_general_texture_cube> sky_texture_cube_p;
 		F_vector3 color = F_vector3::one();
-		f32 intensity = 1.0f;
+		f32 intensity = 0.75f;
 
 
 
