@@ -66,6 +66,12 @@ namespace nre {
 			}
 		);
 
+		// compute brdf lut
+		{
+
+		}
+
+		// compute prefiltered env cube
 		for(u32 mip_level_index = 0; mip_level_index < prefiltered_env_cube_mip_level_count_; ++mip_level_index) {
 
 			E_texture_cube_face prefiltered_env_cube_face = E_texture_cube_face(0);
