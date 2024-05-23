@@ -69,3 +69,13 @@ namespace nre {
 #define NRE_RENDER_COMMAND_QUEUE(...) (NRE_RENDER_SYSTEM()->command_queue_p())
 #define NRE_MAIN_COMMAND_LIST(...) (NRE_RENDER_SYSTEM()->main_command_list_p())
 #define NRE_MAIN_SWAPCHAIN(...) (NRE_RENDER_SYSTEM()->main_swapchain_p())
+
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef NRE_ENABLE_FRAME_DEBUG
+#define NRE_FRAME_DEBUG_POINT() NRE_MAIN_SWAPCHAIN()->present()
+#else
+#define NRE_FRAME_DEBUG_POINT()
+#endif

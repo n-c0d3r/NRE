@@ -14,6 +14,9 @@ include(NCPP/Utilities/ApplyGlobal)
 # NRE linking options
 option(NRE_DLL "Build NRE as DLL or not" OFF)
 
+# NRE debug options
+option(NRE_ENABLE_FRAME_DEBUG "If enabled, some frame debugging functionalities will be enabled" ON)
+
 NCPP_SetGlobal(NRE_RESOURCES_DIR_PATH "${CMAKE_CURRENT_LIST_DIR}/resources")
 
 

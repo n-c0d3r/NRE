@@ -13,6 +13,16 @@ namespace nre {
 	class NRE_API F_ibl_sky_builder : public A_actor_component
 	{
 
+	public:
+		struct NCPP_ALIGN(16) F_main_constant_buffer_cpu_data {
+
+			F_matrix4x4_f32 cube_face_transform;
+
+		};
+
+
+
+
 	private:
 		static TK<F_ibl_sky_builder> instance_ps;
 
