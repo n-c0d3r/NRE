@@ -28,21 +28,6 @@ namespace nre {
 		// sky srv
 		auto sky_srv_p = hdri_sky_material_p_->sky_texture_cube_p->srv_p();
 
-		// create main constant buffer
-		{
-			F_main_constant_buffer_cpu_data main_constant_buffer_cpu_data = {
-				.roughness_level_count = prefiltered_env_cube_mip_level_count_
-			};
-			main_constant_buffer_p_ = H_buffer::create(
-				NRE_RENDER_DEVICE(),
-				F_initial_resource_data { .data_p = &main_constant_buffer_cpu_data },
-				sizeof(F_main_constant_buffer_cpu_data),
-				1,
-				E_resource_bind_flag::CBV,
-				E_resource_heap_type::GREAD_GWRITE
-			);
-		}
-
 		// create output textures
 		{
 			brdf_lut_p_ = H_texture::create_2d(
@@ -101,6 +86,21 @@ namespace nre {
 
 			irradiance_cube_srv_p_ = H_resource_view::create_srv(
 				NCPP_FOH_VALID(irradiance_cube_p_)
+			);
+		}
+
+		// create main constant buffer
+		{
+			F_main_constant_buffer_cpu_data main_constant_buffer_cpu_data = {
+				.roughness_level_count = prefiltered_env_cube_mip_level_count_
+			};
+			main_constant_buffer_p_ = H_buffer::create(
+				NRE_RENDER_DEVICE(),
+				F_initial_resource_data { .data_p = &main_constant_buffer_cpu_data },
+				sizeof(F_main_constant_buffer_cpu_data),
+				1,
+				E_resource_bind_flag::CBV,
+				E_resource_heap_type::GREAD_GWRITE
 			);
 		}
 

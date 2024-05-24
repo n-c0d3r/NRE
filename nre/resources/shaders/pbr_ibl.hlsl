@@ -123,12 +123,9 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         float3 specularEnvColor = prefiltered_env_cube.SampleLevel(
             default_sampler_state, 
             R, 
-            (uint)(
+            round(
                 roughness
-                / (
-                    ((float)roughness_level_count)
-                    - 1.0f
-                )
+                * (((float)roughness_level_count) - 1.0f)
             )
         ).xyz;
 

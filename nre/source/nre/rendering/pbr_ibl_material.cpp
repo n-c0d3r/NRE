@@ -190,8 +190,8 @@ namespace nre {
 			.object_transform = casted_material_p->transform_node_p()->transform,
 
 			.albedo = casted_material_p->albedo,
-			.roughness = casted_material_p->roughness,
-			.metallic = casted_material_p->metallic
+			.roughness = element_clamp(casted_material_p->roughness, 0.05f, 0.95f),
+			.metallic = element_clamp(casted_material_p->metallic, 0.05f, 0.95f)
 
 		};
 

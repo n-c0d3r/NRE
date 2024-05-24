@@ -63,6 +63,41 @@ int main() {
 
 
 
+	// keyboard events
+	{
+		NRE_KEYBOARD()->T_get_event<F_key_down_event>().T_push_back_listener(
+			[&](auto& e) {
+				auto& casted_e = (F_key_down_event&)e;
+
+			  	switch (casted_e.keycode())
+			  	{
+				case E_keycode::ARROW_UP:
+					pbr_sphere_material_p->metallic = element_saturate(
+						pbr_sphere_material_p->metallic + 0.1f
+					);
+					break;
+				case E_keycode::ARROW_DOWN:
+					pbr_sphere_material_p->metallic = element_saturate(
+						pbr_sphere_material_p->metallic - 0.1f
+					);
+					break;
+				case E_keycode::ARROW_RIGHT:
+					pbr_sphere_material_p->roughness = element_saturate(
+						pbr_sphere_material_p->roughness + 0.1f
+					);
+					break;
+				case E_keycode::ARROW_LEFT:
+					pbr_sphere_material_p->roughness = element_saturate(
+						pbr_sphere_material_p->roughness - 0.1f
+					);
+					break;
+			  	}
+			}
+		);
+	}
+
+
+
 	// application events
 	{
 		NRE_APPLICATION_STARTUP(application_p) {
