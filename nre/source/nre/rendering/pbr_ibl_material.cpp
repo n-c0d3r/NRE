@@ -3,6 +3,7 @@
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/hdri_sky_material.hpp>
+#include <nre/rendering/ibl_sky_builder.hpp>
 #include <nre/rendering/render_view.hpp>
 #include <nre/rendering/directional_light.hpp>
 #include <nre/rendering/general_texture_cube.hpp>
@@ -115,9 +116,11 @@ namespace nre {
 		TKPA_valid<nrhi::A_frame_buffer> frame_buffer_p
 	)
 	{
-		auto hdri_sky_material_p = F_hdri_sky_material::instance_p();
-		if(!hdri_sky_material_p)
+		auto ibl_sky_builder_p = F_ibl_sky_builder::instance_p();
+		if(!ibl_sky_builder_p)
 			return;
+
+		auto hdri_sky_material_p = ibl_sky_builder_p->hdri_sky_material_p();
 
 		auto directional_light_p = F_directional_light::instance_p();
 		if(!directional_light_p)
@@ -127,7 +130,7 @@ namespace nre {
 		TK<F_directional_light_proxy> casted_directional_light_proxy_p;
 		if(
 			!(directional_light_proxy_p.T_try_interface<F_directional_light_proxy>(casted_directional_light_proxy_p))
-			)
+		)
 			return;
 
 		render_command_list_p->bind_graphics_pipeline_state(
@@ -142,10 +145,10 @@ namespace nre {
 			NCPP_FOH_VALID(main_constant_buffer_p_),
 			1
 		);
-		render_command_list_p->ZVS_bind_constant_buffer(
-			NCPP_FOH_VALID(casted_directional_light_proxy_p->main_constant_buffer_p()),
-			2
-		);
+//		render_command_list_p->ZVS_bind_constant_buffer(
+//			NCPP_FOH_VALID(casted_directional_light_proxy_p->main_constant_buffer_p()),
+//			2
+//		);
 
 		render_command_list_p->ZPS_bind_constant_buffer(
 			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
@@ -159,10 +162,22 @@ namespace nre {
 			NCPP_FOH_VALID(casted_directional_light_proxy_p->main_constant_buffer_p()),
 			2
 		);
+		render_command_list_p->ZPS_bind_constant_buffer(
+			ibl_sky_builder_p->main_constant_buffer_p(),
+			3
+		);
 
 		render_command_list_p->ZPS_bind_srv(
-			NCPP_FOH_VALID(hdri_sky_material_p->sky_texture_cube_p->srv_p()),
+			ibl_sky_builder_p->brdf_lut_srv_p(),
 			0
+		);
+		render_command_list_p->ZPS_bind_srv(
+			ibl_sky_builder_p->prefiltered_env_cube_srv_p(),
+			1
+		);
+		render_command_list_p->ZPS_bind_srv(
+			ibl_sky_builder_p->irradiance_cube_srv_p(),
+			2
 		);
 	}
 

@@ -5,7 +5,7 @@
 
 
 
-cbuffer per_view : register(b0) {
+cbuffer per_view_cbuffer : register(b0) {
 
     float4x4 projection_matrix;
     float4x4 view_transform;
@@ -14,7 +14,7 @@ cbuffer per_view : register(b0) {
     float __camera_position_pad__;
 
 }
-cbuffer per_object : register(b1) {
+cbuffer per_object_cbuffer : register(b1) {
 
     float4x4 object_transform;
 
@@ -26,7 +26,7 @@ cbuffer per_object : register(b1) {
     float2 __roughness_metallic_pad__;
 
 }
-cbuffer directional_light : register(b2) {
+cbuffer directional_light_cbuffer : register(b2) {
 
     float3 directional_light_direction;
     float __directional_light_direction__;
@@ -38,10 +38,24 @@ cbuffer directional_light : register(b2) {
     float directional_light_indirect_intensity;
 
 }
+cbuffer ibl_cbuffer : register(b3) {
+
+    uint roughness_level_count;
+
+}
 
 
 
-TextureCube sky_map;
+Texture2D brdf_lut : register(t0);
+TextureCube prefiltered_env_cube : register(t1);
+TextureCube irradiance_cube : register(t2);
+
+SamplerState default_sampler_state
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
 
 
 
@@ -89,7 +103,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
     float3 V = normalize(camera_position - P);
     float3 R = 2.0f * dot(V, N) * N - V;
 
-    float NoV = dot(N, V);
+    float NoV = saturate(dot(N, V));
 
 
 
@@ -105,14 +119,23 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         float3 L = R;
         float3 H = normalize(L + V);
 
-        float2 integratedSpecularBRDFParts = IntegrateSpecularBRDF(roughness, NoV);
-        float3 specularEnvColor = PrefilterEnvMap(roughness, R, sky_map);
+        float2 integratedSpecularBRDFParts = brdf_lut.Sample(default_sampler_state, float2(NoV, roughness)).xy;
+        float3 specularEnvColor = prefiltered_env_cube.SampleLevel(
+            default_sampler_state, 
+            R, 
+            (uint)(
+                roughness
+                / (
+                    ((float)roughness_level_count)
+                    - 1.0f
+                )
+            )
+        ).xyz;
 
         float3 specular = (
             specularColor * integratedSpecularBRDFParts.x + integratedSpecularBRDFParts.y
         ) * specularEnvColor;
-
-        float3 diffuse = albedo * IntegrateIrradiance(N, sky_map);
+        float3 diffuse = albedo * irradiance_cube.Sample(default_sampler_state, N).xyz;
 
         radiance += directional_light_indirect_color * directional_light_indirect_intensity * MixDiffuseSpecular(
             diffuse,

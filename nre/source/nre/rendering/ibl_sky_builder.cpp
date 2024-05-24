@@ -1,6 +1,7 @@
 #include <nre/rendering/ibl_sky_builder.hpp>
 #include <nre/rendering/hdri_sky_material.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/general_texture_cube.hpp>
 #include <nre/actor/actor.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/shader_asset.hpp>
@@ -9,10 +10,13 @@
 
 namespace nre {
 
+	TK<F_ibl_sky_builder> F_ibl_sky_builder::instance_ps;
+
 	F_ibl_sky_builder::F_ibl_sky_builder(TKPA_valid<F_actor> actor_p) :
 		A_actor_component(actor_p),
 		hdri_sky_material_p_(actor_p->T_component<F_hdri_sky_material>())
 	{
+		instance_ps = NCPP_KTHIS().no_requirements();
 	}
 	F_ibl_sky_builder::~F_ibl_sky_builder() {
 	}
@@ -21,46 +25,86 @@ namespace nre {
 
 		A_actor_component::ready();
 
-		brdf_lut_p_ = H_texture::create_2d(
-			NRE_RENDER_DEVICE(),
-			{},
-			width,
-			width,
-			E_format::R32G32B32A32_FLOAT,
-			1,
-			{},
-			flag_combine(
-				E_resource_bind_flag::SRV,
-				E_resource_bind_flag::UAV
-			)
-		);
+		// sky srv
+		auto sky_srv_p = hdri_sky_material_p_->sky_texture_cube_p->srv_p();
 
-		prefiltered_env_cube_mip_level_count_ = u32(
-			floor(
-				log(f32(width))
-				/ log(2.0f)
-			)
-		);
-		prefiltered_env_cube_p_ = H_texture::create_cube(
-			NRE_RENDER_DEVICE(),
-			{},
-			width,
-			E_format::R16G16B16A16_FLOAT,
-			prefiltered_env_cube_mip_level_count_,
-			{},
-			flag_combine(
-				E_resource_bind_flag::SRV,
-				E_resource_bind_flag::UAV
-			)
-		);
+		// create main constant buffer
+		{
+			F_main_constant_buffer_cpu_data main_constant_buffer_cpu_data = {
+				.roughness_level_count = prefiltered_env_cube_mip_level_count_
+			};
+			main_constant_buffer_p_ = H_buffer::create(
+				NRE_RENDER_DEVICE(),
+				F_initial_resource_data { .data_p = &main_constant_buffer_cpu_data },
+				sizeof(F_main_constant_buffer_cpu_data),
+				1,
+				E_resource_bind_flag::CBV,
+				E_resource_heap_type::GREAD_GWRITE
+			);
+		}
 
-		brdf_lut_srv_p_ = H_resource_view::create_srv(
-			NCPP_FOH_VALID(brdf_lut_p_)
-		);
-		prefiltered_env_cube_srv_p_ = H_resource_view::create_srv(
-			NCPP_FOH_VALID(prefiltered_env_cube_p_)
-		);
+		// create output textures
+		{
+			brdf_lut_p_ = H_texture::create_2d(
+				NRE_RENDER_DEVICE(),
+				{},
+				brdf_lut_width,
+				brdf_lut_width,
+				E_format::R32G32_FLOAT,
+				1,
+				{},
+				flag_combine(
+					E_resource_bind_flag::SRV,
+					E_resource_bind_flag::UAV
+				)
+			);
 
+			prefiltered_env_cube_mip_level_count_ = u32(
+				floor(
+					log(f32(prefiltered_env_cube_width))
+					/ log(2.0f)
+				)
+			);
+			prefiltered_env_cube_p_ = H_texture::create_cube(
+				NRE_RENDER_DEVICE(),
+				{},
+				prefiltered_env_cube_width,
+				E_format::R16G16B16A16_FLOAT,
+				prefiltered_env_cube_mip_level_count_,
+				{},
+				flag_combine(
+					E_resource_bind_flag::SRV,
+					E_resource_bind_flag::UAV
+				)
+			);
+
+			irradiance_cube_p_ = H_texture::create_cube(
+				NRE_RENDER_DEVICE(),
+				{},
+				irradiance_cube_width,
+				E_format::R16G16B16A16_FLOAT,
+				1,
+				{},
+				flag_combine(
+					E_resource_bind_flag::SRV,
+					E_resource_bind_flag::UAV
+				)
+			);
+
+			brdf_lut_srv_p_ = H_resource_view::create_srv(
+				NCPP_FOH_VALID(brdf_lut_p_)
+			);
+
+			prefiltered_env_cube_srv_p_ = H_resource_view::create_srv(
+				NCPP_FOH_VALID(prefiltered_env_cube_p_)
+			);
+
+			irradiance_cube_srv_p_ = H_resource_view::create_srv(
+				NCPP_FOH_VALID(irradiance_cube_p_)
+			);
+		}
+
+		// create shader classes
 		auto compute_brdf_lut_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/ibl_compute_brdf_lut.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
 			NCPP_INIL_SPAN(
 				F_shader_kernel_desc {
@@ -77,7 +121,16 @@ namespace nre {
 				}
 			)
 		);
+		auto ibl_compute_irradiance_cube_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/ibl_compute_irradiance_cube.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
+			NCPP_INIL_SPAN(
+				F_shader_kernel_desc {
+					.name = "compute_irradiance_cube",
+					.type = E_shader_type::COMPUTE
+				}
+			)
+		);
 
+		// create shaders
 		auto compute_brdf_lut_shader_p = H_compute_shader::create(
 			NRE_RENDER_DEVICE(),
 			NCPP_FOH_VALID(compute_brdf_lut_shader_class_p),
@@ -88,7 +141,13 @@ namespace nre {
 			NCPP_FOH_VALID(prefilter_env_cube_shader_class_p),
 			"prefilter_env_cube"
 		);
+		auto compute_irradiance_cube_shader_p = H_compute_shader::create(
+			NRE_RENDER_DEVICE(),
+			NCPP_FOH_VALID(ibl_compute_irradiance_cube_shader_class_p),
+			"compute_irradiance_cube"
+		);
 
+		// create pso
 		auto compute_brdf_lut_pso_p = H_compute_pipeline_state::create(
 			NRE_RENDER_DEVICE(),
 			{
@@ -105,6 +164,14 @@ namespace nre {
 				}
 			}
 		);
+		auto compute_irradiance_cube_pso_p = H_compute_pipeline_state::create(
+			NRE_RENDER_DEVICE(),
+			{
+				.shader_p_vector = {
+					NCPP_FOH_VALID(compute_irradiance_cube_shader_p)
+				}
+			}
+		);
 
 		auto command_list_p = H_command_list::create(
 			NRE_RENDER_DEVICE(),
@@ -115,35 +182,202 @@ namespace nre {
 
 		// compute brdf lut
 		{
-			command_list_p->bind_compute_pipeline_state(
-				NCPP_FOH_VALID(compute_brdf_lut_pso_p)
+			// create constant buffer
+			F_compute_brdf_lut_constant_buffer_cpu_data compute_brdf_cb_cpu_data = {
+				.width = brdf_lut_width
+			};
+			auto compute_brdf_cb_p = H_buffer::create(
+				NRE_RENDER_DEVICE(),
+				F_initial_resource_data { .data_p = &compute_brdf_cb_cpu_data },
+				sizeof(F_compute_brdf_lut_constant_buffer_cpu_data),
+				1,
+				E_resource_bind_flag::CBV,
+				E_resource_heap_type::GREAD_GWRITE
 			);
 
-			F_vector3_u32 thread_group_count_3d = (
-				F_vector3_f32(width, width, 1.0f)
-					/ F_vector3_f32(8.0f, 8.0f, 1.0f)
+			// create brdf lut uav
+			auto brdf_lut_uav_p = H_resource_view::create_uav(
+				NCPP_FOH_VALID(brdf_lut_p_)
 			);
-			command_list_p->dispatch(thread_group_count_3d);
+
+			// compute
+			{
+				command_list_p->bind_compute_pipeline_state(
+					NCPP_FOH_VALID(compute_brdf_lut_pso_p)
+				);
+
+				command_list_p->ZCS_bind_constant_buffer(
+					NCPP_FOH_VALID(compute_brdf_cb_p),
+					0
+				);
+				command_list_p->ZCS_bind_uav(
+					NCPP_FOH_VALID(brdf_lut_uav_p),
+					0
+				);
+
+				F_vector3_u32 thread_group_count_3d = (
+					element_max(
+						F_vector3_f32(brdf_lut_width, brdf_lut_width, 1.0f)
+							/ F_vector3_f32(8.0f, 8.0f, 1.0f),
+						F_vector3_f32::one()
+					)
+				);
+				command_list_p->dispatch(thread_group_count_3d);
+			}
 		}
 
 		// compute prefiltered env cube
 		TG_vector<U_uav_handle> prefiltered_env_cube_face_uav_p_vector;
+		u32 current_prefiltered_env_cube_width = prefiltered_env_cube_width;
 		for(u32 mip_level_index = 0; mip_level_index < prefiltered_env_cube_mip_level_count_; ++mip_level_index) {
 
-			E_texture_cube_face prefiltered_env_cube_face = E_texture_cube_face(0);
-			for(u32 face_index = 0; face_index < 6; ++face_index) {
+			auto prefiltered_env_cube_uav_p = H_resource_view::create_uav(
+				NRE_RENDER_DEVICE(),
+				{
+					.overrided_resource_type = E_resource_type::TEXTURE_2D_ARRAY,
+					.resource_p = NCPP_FOH_VALID(prefiltered_env_cube_p_),
+					.target_mip_level = mip_level_index,
+					.count = 6
+				}
+			);
 
-				prefiltered_env_cube_face_uav_p_vector.push_back(
-					prefiltered_env_cube_p_.create_face_uav(
-						prefiltered_env_cube_face,
-						mip_level_index
+			F_prefilter_env_cube_constant_buffer_cpu_data prefilter_env_cube_cb_cpu_data = {
+				.width = current_prefiltered_env_cube_width,
+				.roughness = ((f32)mip_level_index) / ((f32)(prefiltered_env_cube_mip_level_count_ - 1))
+			};
+			prefilter_env_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::RIGHT)
+			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, 0.5_pi, 0 });
+			prefilter_env_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::UP)
+			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { -0.5_pi, 0, 0 });
+			prefilter_env_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::FORWARD)
+			] = T_identity<F_matrix4x4>();
+			prefilter_env_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::LEFT)
+			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, -0.5_pi, 0 });
+			prefilter_env_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::DOWN)
+			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
+			prefilter_env_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::BACK)
+			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, 1_pi, 0 });
+
+			auto prefilter_env_cube_cb_p = H_buffer::create(
+				NRE_RENDER_DEVICE(),
+				F_initial_resource_data { .data_p = &prefilter_env_cube_cb_cpu_data },
+				1,
+				sizeof(F_prefilter_env_cube_constant_buffer_cpu_data),
+				E_resource_bind_flag::CBV,
+				E_resource_heap_type::GREAD_GWRITE
+			);
+
+			// compute
+			{
+				command_list_p->bind_compute_pipeline_state(
+					NCPP_FOH_VALID(prefilter_env_cube_pso_p)
+				);
+
+				command_list_p->ZCS_bind_constant_buffer(
+					NCPP_FOH_VALID(prefilter_env_cube_cb_p),
+					0
+				);
+				command_list_p->ZCS_bind_srv(
+					NCPP_FOH_VALID(sky_srv_p),
+					0
+				);
+				command_list_p->ZCS_bind_uav(
+					NCPP_FOH_VALID(prefiltered_env_cube_uav_p),
+					0
+				);
+
+				F_vector3_u32 thread_group_count_3d = (
+					element_max(
+						F_vector3_f32(current_prefiltered_env_cube_width, current_prefiltered_env_cube_width, 6.0f)
+						/ F_vector3_f32(8.0f, 8.0f, 1.0f),
+						F_vector3_f32::one()
 					)
 				);
-				auto prefiltered_env_cube_face_uav_p = NCPP_FOH_VALID(
-					prefiltered_env_cube_face_uav_p_vector.back()
+				command_list_p->dispatch(thread_group_count_3d);
+			}
+
+			current_prefiltered_env_cube_width /= 2;
+			current_prefiltered_env_cube_width = eastl::max<u32>(current_prefiltered_env_cube_width, 1);
+		}
+
+		// compute irradiance cube
+		{
+			// create uav
+			auto irradiance_cube_uav_p = H_resource_view::create_uav(
+				NRE_RENDER_DEVICE(),
+				{
+					.overrided_resource_type = E_resource_type::TEXTURE_2D_ARRAY,
+					.resource_p = NCPP_FOH_VALID(irradiance_cube_p_),
+					.target_mip_level = 0,
+					.count = 6
+				}
+			);
+
+			// create constant buffer
+			F_irradiance_cube_constant_buffer_cpu_data irradiance_cube_cb_cpu_data = {
+				.width = irradiance_cube_width
+			};
+			irradiance_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::RIGHT)
+			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, 0.5_pi, 0 });
+			irradiance_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::UP)
+			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { -0.5_pi, 0, 0 });
+			irradiance_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::FORWARD)
+			] = T_identity<F_matrix4x4>();
+			irradiance_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::LEFT)
+			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, -0.5_pi, 0 });
+			irradiance_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::DOWN)
+			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
+			irradiance_cube_cb_cpu_data.face_transforms[
+				u32(E_texture_cube_face::BACK)
+			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, 1_pi, 0 });
+
+			auto irradiance_cube_cb_p = H_buffer::create(
+				NRE_RENDER_DEVICE(),
+				F_initial_resource_data { .data_p = &irradiance_cube_cb_cpu_data },
+				1,
+				sizeof(F_irradiance_cube_constant_buffer_cpu_data),
+				E_resource_bind_flag::CBV,
+				E_resource_heap_type::GREAD_GWRITE
+			);
+
+			// compute
+			{
+				command_list_p->bind_compute_pipeline_state(
+					NCPP_FOH_VALID(compute_irradiance_cube_pso_p)
 				);
 
-				prefiltered_env_cube_face = E_texture_cube_face(u32(prefiltered_env_cube_face) + 1);
+				command_list_p->ZCS_bind_constant_buffer(
+					NCPP_FOH_VALID(irradiance_cube_cb_p),
+					0
+				);
+				command_list_p->ZCS_bind_srv(
+					NCPP_FOH_VALID(sky_srv_p),
+					0
+				);
+				command_list_p->ZCS_bind_uav(
+					NCPP_FOH_VALID(irradiance_cube_uav_p),
+					0
+				);
+
+				F_vector3_u32 thread_group_count_3d = (
+					element_max(
+						F_vector3_f32(irradiance_cube_width, irradiance_cube_width, 6.0f)
+						/ F_vector3_f32(8.0f, 8.0f, 1.0f),
+						F_vector3_f32::one()
+					)
+				);
+				command_list_p->dispatch(thread_group_count_3d);
 			}
 		}
 

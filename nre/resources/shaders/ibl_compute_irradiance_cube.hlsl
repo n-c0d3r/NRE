@@ -8,7 +8,6 @@ cbuffer uniform_data : register(b0)
 {
     float4x4 face_transforms[6];
     uint width;
-    float roughness;
 }
 
 
@@ -20,7 +19,7 @@ RWTexture2DArray<float4> out_cube : register(u0);
 
 
 [numthreads(8, 8, 1)]
-void prefilter_env_cube(uint3 id : SV_DispatchThreadID) {
+void compute_irradiance_cube(uint3 id : SV_DispatchThreadID) {
 
     if(
         (id.x < width)
@@ -42,9 +41,10 @@ void prefilter_env_cube(uint3 id : SV_DispatchThreadID) {
             mul((float3x3)(face_transforms[id.z]), local_direction)
         );
 
-        float3 prefiltered_env_color = PrefilterEnvMap(roughness, world_direction, sky_map);
-
-        out_cube[id] = float4(prefiltered_env_color,1);
+        out_cube[id] = float4(
+            IntegrateIrradiance(world_direction, sky_map),
+            1
+        );
     }
 
 }

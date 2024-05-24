@@ -123,7 +123,7 @@ namespace nre {
 
 		return TU<F_general_texture_cube>()(
 			std::move(builder),
-			E_format::R32G32B32_FLOAT
+			E_format::R32G32B32A32_FLOAT
 		);
 	}
 

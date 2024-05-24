@@ -41,9 +41,10 @@ int main() {
 	auto hdri_sky_transform_node_p = hdri_sky_actor_p->template T_add_component<F_transform_node>();
 	auto hdri_sky_material_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_material>();
 	auto hdri_sky_renderable_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_renderable>();
-	auto hdri_sky_ibl_builder_p = hdri_sky_actor_p->template T_add_component<F_ibl_sky_builder>();
 
 	hdri_sky_material_p->sky_texture_cube_p = skymap_p;
+
+	auto hdri_sky_ibl_builder_p = hdri_sky_actor_p->template T_add_component<F_ibl_sky_builder>();
 
 	// create directional light actor
 	auto directional_light_actor_p = level_p->T_create_actor();

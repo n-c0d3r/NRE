@@ -1,6 +1,6 @@
 
 #include "utilities/constants.hlsl"
-#include "utilities/pbr.hlsl"
+#include "utilities/pbr_sampling.hlsl"
 #include "utilities/aces_tone_mapping.hlsl"
 
 
