@@ -57,6 +57,8 @@ namespace nre {
 		U_graphics_pipeline_state_handle main_graphics_pso_p_;
 		U_vertex_shader_handle main_vertex_shader_p_;
 		U_pixel_shader_handle main_pixel_shader_p_;
+		TU<A_sampler_state> maps_sampler_state_p_;
+		TU<A_sampler_state> ibl_sampler_state_p_;
 
 	public:
 		NCPP_FORCE_INLINE K_valid_graphics_pipeline_state_handle main_graphics_pso_p() const noexcept { return NCPP_FOH_VALID(main_graphics_pso_p_); }

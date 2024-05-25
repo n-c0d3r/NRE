@@ -8,12 +8,11 @@
 #define IBL_SAMPLE_COUNT (1024)
 #define IBL_SAMPLE_COUNT_SQRT (32)
 
-SamplerState IBLSampler
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
+#ifndef IBL_SAMPLER_STATE_REGISTER
+#define IBL_SAMPLER_STATE_REGISTER register(s0)
+#endif
+
+SamplerState IBLSampler : IBL_SAMPLER_STATE_REGISTER;
 
 float3 ImportanceSampleGGX(float2 Xi, float perceptualRoughness, float3 N)
 {
@@ -95,7 +94,7 @@ float3 IntegrateIrradiance(float3 N, TextureCube skyCubemap, uint src_mip_level_
             // tangent space to world
             float3 sampleVec = tangentSample.x * tangentX + tangentSample.z * tangentZ + tangentSample.y * N;
 
-            irradiance += skyCubemap.SampleLevel(IBLSampler, sampleVec, ((float)(3))).rgb * sin(theta) * cos(theta);
+            irradiance += skyCubemap.SampleLevel(IBLSampler, sampleVec, ((float)(src_mip_level_count)) - 3.5f).rgb * sin(theta) * cos(theta);
         }
     }
 
@@ -123,7 +122,7 @@ float3 PrefilterEnvMap(float perceptualRoughness, float3 R, TextureCube skyCubem
             float pdf = GGX_D(NoH, perceptualRoughness * perceptualRoughness) * NoH / (4.0f * LoH) + 0.0001f;
             float omegaS = 1.0f / (((float)IBL_SAMPLE_COUNT) * pdf + 0.0001f);
             float omegaP = 4.0f * PI / (6.0f * skyCubeFaceWidth * skyCubeFaceWidth);
-            float mipLevel = (perceptualRoughness == 0.0f) ? 0.0f : clamp(0.5f * log2(omegaS / omegaP), 0, (skyCubeMipCount - 3));
+            float mipLevel = (perceptualRoughness == 0.0f) ? 0.0f : clamp(lerp(0.5f, 1.0f, perceptualRoughness) * log2(omegaS / omegaP), 0, (skyCubeMipCount - 3));
 
             PrefilteredColor += skyCubemap.SampleLevel(IBLSampler, L, mipLevel).rgb;
         }

@@ -59,12 +59,8 @@ Texture2D albedo_map : register(t3);
 Texture2D normal_map : register(t4);
 Texture2D mask_map : register(t5);
 
-SamplerState default_sampler_state
-{
-    Filter = MIN_MAG_MIP_LINEAR;
-    AddressU = Wrap;
-    AddressV = Wrap;
-};
+SamplerState maps_sampler_state : register(s0);
+SamplerState ibl_sampler_state : register(s1);
 
 
 
@@ -116,7 +112,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
 
 
-    float3 t_mask = mask_map.Sample(default_sampler_state, input.uv).xyz;
+    float3 t_mask = mask_map.Sample(maps_sampler_state, input.uv).xyz;
 
     float t_roughness = t_mask.y;
     float t_metallic = t_mask.z;
@@ -124,14 +120,14 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
     float roughness = lerp(min_roughness, max_roughness, t_roughness);
     float metallic = lerp(min_metallic, max_metallic, t_metallic);
 
-    float3 t_albedo = albedo_map.Sample(default_sampler_state, input.uv).xyz;
+    float3 t_albedo = albedo_map.Sample(maps_sampler_state, input.uv).xyz;
     float3 actual_albedo = (
         albedo
         * t_albedo
     );
 
     N = tangent_space_to_world_space(
-        normal_map.Sample(default_sampler_state, input.uv).xyz,
+        normal_map.Sample(maps_sampler_state, input.uv).xyz,
         cross(input.world_normal, input.world_tangent),
         input.world_normal,
         input.world_tangent
@@ -150,10 +146,10 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         float3 L = R;
         float3 H = normalize(L + V);
 
-        float2 integratedSpecularBRDFParts = brdf_lut.Sample(default_sampler_state, float2(NoV, roughness)).xy;
+        float2 integratedSpecularBRDFParts = brdf_lut.Sample(ibl_sampler_state, float2(NoV, roughness)).xy;
         
         float3 specularEnvColor = prefiltered_env_cube.SampleLevel(
-            default_sampler_state, 
+            ibl_sampler_state, 
             R, 
             roughness
             * (((float)roughness_level_count) - 1.0f)
@@ -162,7 +158,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         float3 specular = (
             specularColor * integratedSpecularBRDFParts.x + integratedSpecularBRDFParts.y
         ) * specularEnvColor;
-        float3 diffuse = actual_albedo * irradiance_cube.Sample(default_sampler_state, N).xyz;
+        float3 diffuse = actual_albedo * irradiance_cube.Sample(ibl_sampler_state, N).xyz;
 
         radiance += ibl_sky_light_color * ibl_sky_light_intensity * MixDiffuseSpecular(
             diffuse,

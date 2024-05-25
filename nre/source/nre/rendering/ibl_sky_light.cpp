@@ -33,6 +33,19 @@ namespace nre {
 			) + 1
 		);
 
+		// ibl sampler state
+		auto ibl_sampler_state_p = H_sampler_state::create(
+			NRE_RENDER_DEVICE(),
+			{
+				E_filter::MIN_MAG_MIP_LINEAR,
+				{
+					E_texcoord_address_mode::CLAMP,
+					E_texcoord_address_mode::CLAMP,
+					E_texcoord_address_mode::CLAMP
+				}
+			}
+		);
+
 		// create output textures
 		{
 			brdf_lut_p_ = H_texture::create_2d(
@@ -216,6 +229,11 @@ namespace nre {
 					0
 				);
 
+				command_list_p->ZCS_bind_sampler_state(
+					NCPP_FOH_VALID(ibl_sampler_state_p),
+					0
+				);
+
 				F_vector3_u32 thread_group_count_3d = (
 					element_max(
 						F_vector3_f32(brdf_lut_width_, brdf_lut_width_, 1.0f)
@@ -297,6 +315,11 @@ namespace nre {
 					0
 				);
 
+				command_list_p->ZCS_bind_sampler_state(
+					NCPP_FOH_VALID(ibl_sampler_state_p),
+					0
+				);
+
 				F_vector3_u32 thread_group_count_3d = (
 					element_max(
 						F_vector3_f32(current_prefiltered_env_cube_width, current_prefiltered_env_cube_width, 6.0f)
@@ -373,6 +396,11 @@ namespace nre {
 				);
 				command_list_p->ZCS_bind_uav(
 					NCPP_FOH_VALID(irradiance_cube_uav_p),
+					0
+				);
+
+				command_list_p->ZCS_bind_sampler_state(
+					NCPP_FOH_VALID(ibl_sampler_state_p),
 					0
 				);
 

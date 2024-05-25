@@ -94,6 +94,29 @@ namespace nre {
 			"pmain"
 		);
 
+		maps_sampler_state_p_ = H_sampler_state::create(
+			NRE_RENDER_DEVICE(),
+			{
+				E_filter::MIN_MAG_MIP_LINEAR,
+				{
+					E_texcoord_address_mode::WRAP,
+					E_texcoord_address_mode::WRAP,
+					E_texcoord_address_mode::WRAP
+				}
+			}
+		);
+		ibl_sampler_state_p_ = H_sampler_state::create(
+			NRE_RENDER_DEVICE(),
+			{
+				E_filter::MIN_MAG_MIP_LINEAR,
+				{
+					E_texcoord_address_mode::CLAMP,
+					E_texcoord_address_mode::CLAMP,
+					E_texcoord_address_mode::CLAMP
+				}
+			}
+		);
+
 		main_graphics_pso_p_ = H_graphics_pipeline_state::create(
 			NRE_RENDER_DEVICE(),
 			{
@@ -191,6 +214,15 @@ namespace nre {
 		render_command_list_p->ZPS_bind_srv(
 			NCPP_FOH_VALID(casted_material_p->mask_map_p->srv_p()),
 			5
+		);
+
+		render_command_list_p->ZPS_bind_sampler_state(
+			NCPP_FOH_VALID(maps_sampler_state_p_),
+			0
+		);
+		render_command_list_p->ZPS_bind_sampler_state(
+			NCPP_FOH_VALID(ibl_sampler_state_p_),
+			1
 		);
 	}
 
