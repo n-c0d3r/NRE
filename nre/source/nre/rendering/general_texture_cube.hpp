@@ -46,6 +46,7 @@ namespace nre {
 			F_sample_desc sample_desc = F_sample_desc{},
 			E_resource_bind_flag bind_flags = E_resource_bind_flag::SRV,
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			b8 is_mip_map_generatable = false,
 			const G_string& name = ""
 		);
 		F_general_texture_cube(
@@ -56,6 +57,7 @@ namespace nre {
 			F_sample_desc sample_desc = F_sample_desc{},
 			E_resource_bind_flag bind_flags = E_resource_bind_flag::SRV,
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			b8 is_mip_map_generatable = false,
 			const G_string& name = ""
 		);
 		F_general_texture_cube(
@@ -65,6 +67,7 @@ namespace nre {
 			F_sample_desc sample_desc = F_sample_desc{},
 			E_resource_bind_flag bind_flags = E_resource_bind_flag::SRV,
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			b8 is_mip_map_generatable = false,
 			const G_string& name = ""
 		);
 		F_general_texture_cube(
@@ -74,6 +77,7 @@ namespace nre {
 			F_sample_desc sample_desc = F_sample_desc{},
 			E_resource_bind_flag bind_flags = E_resource_bind_flag::SRV,
 			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			b8 is_mip_map_generatable = false,
 			const G_string& name = ""
 		);
 		~F_general_texture_cube();
@@ -93,7 +97,8 @@ namespace nre {
 			u32 mip_level_count = 1,
 			F_sample_desc sample_desc = F_sample_desc{},
 			E_resource_bind_flag bind_flags = E_resource_bind_flag::SRV,
-			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			b8 is_mip_map_generatable = false
 		);
 		void rebuild(
 			u32 width,
@@ -102,7 +107,8 @@ namespace nre {
 			u32 mip_level_count = 1,
 			F_sample_desc sample_desc = F_sample_desc{},
 			E_resource_bind_flag bind_flags = E_resource_bind_flag::SRV,
-			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			b8 is_mip_map_generatable = false
 		);
 		void rebuild(
 			const F_texture_cube_builder& builder,
@@ -110,7 +116,8 @@ namespace nre {
 			u32 mip_level_count = 1,
 			F_sample_desc sample_desc = F_sample_desc{},
 			E_resource_bind_flag bind_flags = E_resource_bind_flag::SRV,
-			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			b8 is_mip_map_generatable = false
 		);
 		void rebuild(
 			F_texture_cube_builder&& builder,
@@ -118,7 +125,8 @@ namespace nre {
 			u32 mip_level_count = 1,
 			F_sample_desc sample_desc = F_sample_desc{},
 			E_resource_bind_flag bind_flags = E_resource_bind_flag::SRV,
-			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			b8 is_mip_map_generatable = false
 		);
 		NCPP_FORCE_INLINE b8 is_texels_available() const noexcept {
 
@@ -132,6 +140,7 @@ namespace nre {
 
 			return builder_.move_texels();
 		}
+		void generate_mips();
 
 	};
 

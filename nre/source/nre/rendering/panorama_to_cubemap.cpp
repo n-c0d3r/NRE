@@ -2,6 +2,7 @@
 #include <nre/rendering/texture_cube_builder.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
 #include <nre/rendering/general_texture_cube.hpp>
+#include <nre/rendering/render_system.hpp>
 
 
 
@@ -129,11 +130,19 @@ namespace nre {
 			E_texture_cube_face::BACK
 		);
 
-		return TU<F_general_texture_cube>()(
+		auto cube_p = TU<F_general_texture_cube>()(
 			std::move(builder),
 			E_format::R32G32B32A32_FLOAT,
-			mip_level_count
+			mip_level_count,
+			F_sample_desc {},
+			E_resource_bind_flag::SRV,
+			E_resource_heap_type::GREAD_GWRITE,
+			true
 		);
+
+		cube_p->generate_mips();
+
+		return std::move(cube_p);
 	}
 
 }

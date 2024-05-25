@@ -244,6 +244,8 @@ namespace nre {
 			);
 
 			F_prefilter_env_cube_constant_buffer_cpu_data prefilter_env_cube_cb_cpu_data = {
+				.src_width = hdri_sky_material_p_->sky_texture_cube_p->builder().width(),
+				.src_mip_level_count = hdri_sky_material_p_->sky_texture_cube_p->buffer_p()->desc().mip_level_count,
 				.width = current_prefiltered_env_cube_width,
 				.roughness = element_saturate(
 					((f32)mip_level_index) / ((f32)(prefiltered_env_cube_mip_level_count_ - 1))
@@ -325,6 +327,7 @@ namespace nre {
 
 			// create constant buffer
 			F_irradiance_cube_constant_buffer_cpu_data irradiance_cube_cb_cpu_data = {
+				.src_mip_level_count = hdri_sky_material_p_->sky_texture_cube_p->buffer_p()->desc().mip_level_count,
 				.width = irradiance_cube_width
 			};
 			irradiance_cube_cb_cpu_data.face_transforms[

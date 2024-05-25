@@ -7,6 +7,7 @@
 cbuffer uniform_data : register(b0)
 {
     float4x4 face_transforms[6];
+    uint src_mip_level_count;
     uint width;
 }
 
@@ -42,7 +43,7 @@ void compute_irradiance_cube(uint3 id : SV_DispatchThreadID) {
         );
 
         out_cube[id] = float4(
-            IntegrateIrradiance(world_direction, sky_map),
+            IntegrateIrradiance(world_direction, sky_map, src_mip_level_count),
             1
         );
     }

@@ -22,6 +22,8 @@ namespace nre {
 		struct NCPP_ALIGN(16) F_prefilter_env_cube_constant_buffer_cpu_data {
 
 			F_matrix4x4_f32 face_transforms[6];
+			u32 src_width;
+			u32 src_mip_level_count;
 			u32 width;
 			f32 roughness;
 
@@ -29,6 +31,7 @@ namespace nre {
 		struct NCPP_ALIGN(16) F_irradiance_cube_constant_buffer_cpu_data {
 
 			F_matrix4x4_f32 face_transforms[6];
+			u32 src_mip_level_count;
 			u32 width;
 
 		};

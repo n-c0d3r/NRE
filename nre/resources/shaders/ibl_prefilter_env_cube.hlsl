@@ -7,6 +7,8 @@
 cbuffer uniform_data : register(b0)
 {
     float4x4 face_transforms[6];
+    uint src_width;
+    uint src_mip_level_count;
     uint width;
     float roughness;
 }
@@ -42,7 +44,7 @@ void prefilter_env_cube(uint3 id : SV_DispatchThreadID) {
             mul((float3x3)(face_transforms[id.z]), local_direction)
         );
 
-        float3 prefiltered_env_color = PrefilterEnvMap(roughness, world_direction, sky_map);
+        float3 prefiltered_env_color = PrefilterEnvMap(roughness, world_direction, sky_map, src_width, src_mip_level_count);
 
         out_cube[id] = float4(prefiltered_env_color,1);
     }

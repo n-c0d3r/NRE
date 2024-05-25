@@ -75,7 +75,7 @@ float2 IntegrateSpecularBRDF(float perceptualRoughness, float NoV)
 
     return float2(A, B) / ((float)IBL_SAMPLE_COUNT);
 }
-float3 IntegrateIrradiance(float3 N, TextureCube skyCubemap)
+float3 IntegrateIrradiance(float3 N, TextureCube skyCubemap, uint src_mip_level_count)
 {
     float3 up = abs(N.y) < 0.999 ? float3(0,1,0) : float3(1,0,0);
     float3 tangentX = normalize( cross( up, N ) );
@@ -95,13 +95,13 @@ float3 IntegrateIrradiance(float3 N, TextureCube skyCubemap)
             // tangent space to world
             float3 sampleVec = tangentSample.x * tangentX + tangentSample.z * tangentZ + tangentSample.y * N;
 
-            irradiance += skyCubemap.SampleLevel(IBLSampler, sampleVec, 0).rgb * sin(theta) * cos(theta);
+            irradiance += skyCubemap.SampleLevel(IBLSampler, sampleVec, ((float)(src_mip_level_count - 2))).rgb * sin(theta) * cos(theta);
         }
     }
 
     return irradiance / ((float)IBL_SAMPLE_COUNT_SQRT) / ((float)IBL_SAMPLE_COUNT_SQRT);
 }
-float3 PrefilterEnvMap(float perceptualRoughness, float3 R, TextureCube skyCubemap)
+float3 PrefilterEnvMap(float perceptualRoughness, float3 R, TextureCube skyCubemap, uint skyCubeFaceWidth, uint skyCubeMipCount)
 {
     float3 N = R;
     float3 V = R;
@@ -116,8 +116,16 @@ float3 PrefilterEnvMap(float perceptualRoughness, float3 R, TextureCube skyCubem
         float3 L = 2 * dot( V, H ) * H - V;
         float NoL = saturate( dot( N, L ) );
         if( NoL > 0 )
-        {
-            PrefilteredColor += skyCubemap.SampleLevel(IBLSampler, L, 0).rgb;
+        {            
+            float NoH = saturate(dot(N, H));
+            float LoH = saturate(dot(L, H));
+
+            float pdf = GGX_D(NoH, perceptualRoughness * perceptualRoughness) * NoH / (4.0f * LoH) + 0.0001f;
+            float omegaS = 1.0f / (((float)IBL_SAMPLE_COUNT) * pdf + 0.0001f);
+            float omegaP = 4.0f * PI / (6.0f * skyCubeFaceWidth * skyCubeFaceWidth);
+            float mipLevel = (perceptualRoughness == 0.0f) ? 0.0f : clamp((skyCubeFaceWidth / 1024.0f) * log2(omegaS / omegaP), 0, (skyCubeMipCount - 1));
+
+            PrefilteredColor += skyCubemap.SampleLevel(IBLSampler, L, mipLevel).rgb;
         }
     }
     return PrefilteredColor / ((float)IBL_SAMPLE_COUNT);
