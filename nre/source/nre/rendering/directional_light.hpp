@@ -75,7 +75,7 @@ namespace nre {
 	public:
 		F_vector3 color = F_vector3::one();
 
-		f32 intensity = 0.0f;
+		f32 intensity = 0.25f;
 
 
 

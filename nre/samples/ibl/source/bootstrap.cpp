@@ -18,7 +18,7 @@ int main() {
 
 
 
-	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/fish_hoek_beach_8k.hdr").T_cast<F_texture_2d_asset>();
+	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/quattro_canti_8k.hdr").T_cast<F_texture_2d_asset>();
 
 	auto skymap_p = panorama_to_cubemap(NCPP_FOH_VALID(panorama_asset_p->texture_p), 1320);
 
@@ -82,25 +82,6 @@ int main() {
 	pbr_sphere2_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/slab_tiles_diff_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
 	pbr_sphere2_material_p->normal_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/slab_tiles_nor_dx_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
 	pbr_sphere2_material_p->mask_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/slab_tiles_arm_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
-
-	// create pbr plane actor
-	auto pbr_plane_actor_p = level_p->T_create_actor();
-	auto pbr_plane_transform_node_p = pbr_plane_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_plane_material_p = pbr_plane_actor_p->template T_add_component<F_pbr_ibl_mesh_material>();
-	auto pbr_plane_renderable_p = pbr_plane_actor_p->template T_add_component<F_static_mesh_renderable>();
-
-	f32 plane_scale = 1000.0f;
-	pbr_plane_transform_node_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(make_scale({ plane_scale, 1.0f, plane_scale }));
-	pbr_plane_transform_node_p->transform *= make_translation({ 0, -1.0f, 0 });
-
-	pbr_plane_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/plane.obj").T_cast<F_static_mesh_asset>()->mesh_p;
-
-	pbr_plane_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
-	pbr_plane_material_p->uv_scale *= plane_scale * 0.5f;
-
-	pbr_plane_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/brown_mud_03_diff_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
-	pbr_plane_material_p->normal_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/brown_mud_03_nor_dx_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
-	pbr_plane_material_p->mask_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/brown_mud_03_arm_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
 
 
 
