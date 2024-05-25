@@ -98,7 +98,7 @@ namespace nre {
 			};
 			main_constant_buffer_p_ = H_buffer::create(
 				NRE_RENDER_DEVICE(),
-				F_initial_resource_data { .data_p = &main_constant_buffer_cpu_data },
+				{ { .data_p = &main_constant_buffer_cpu_data } },
 				sizeof(F_main_constant_buffer_cpu_data),
 				1,
 				E_resource_bind_flag::CBV,
@@ -190,7 +190,7 @@ namespace nre {
 			};
 			auto compute_brdf_cb_p = H_buffer::create(
 				NRE_RENDER_DEVICE(),
-				F_initial_resource_data { .data_p = &compute_brdf_cb_cpu_data },
+				{ { .data_p = &compute_brdf_cb_cpu_data } },
 				sizeof(F_compute_brdf_lut_constant_buffer_cpu_data),
 				1,
 				E_resource_bind_flag::CBV,
@@ -270,7 +270,7 @@ namespace nre {
 
 			auto prefilter_env_cube_cb_p = H_buffer::create(
 				NRE_RENDER_DEVICE(),
-				F_initial_resource_data { .data_p = &prefilter_env_cube_cb_cpu_data },
+				{ { .data_p = &prefilter_env_cube_cb_cpu_data } },
 				1,
 				sizeof(F_prefilter_env_cube_constant_buffer_cpu_data),
 				E_resource_bind_flag::CBV,
@@ -348,7 +348,7 @@ namespace nre {
 
 			auto irradiance_cube_cb_p = H_buffer::create(
 				NRE_RENDER_DEVICE(),
-				F_initial_resource_data { .data_p = &irradiance_cube_cb_cpu_data },
+				{ { .data_p = &irradiance_cube_cb_cpu_data } },
 				1,
 				sizeof(F_irradiance_cube_constant_buffer_cpu_data),
 				E_resource_bind_flag::CBV,

@@ -3,6 +3,7 @@
 #include <nre/prerequisites.hpp>
 #include <nre/rendering/texel.hpp>
 #include <nre/rendering/texture_2d_array_builder.hpp>
+#include <nre/rendering/general_initial_resource_data.hpp>
 
 
 

@@ -20,11 +20,22 @@ namespace nre {
 	{
 		if(builder_.is_valid())
 		{
+			TG_vector<F_subresource_data> subresource_datas(6);
+			u32 stride = H_format::stride(format);
+			void* current_data_p = (void*)(data.data());
+			for(u32 i = 0; i < subresource_datas.size(); ++i) {
 
-			F_initial_resource_data initial_resource_data;
+				subresource_datas[i] = { .data_p = current_data_p };
+				current_data_p = (
+					((u8*)current_data_p)
+					+ stride * width * width
+				);
+			}
 
-			if(data.size())
-				initial_resource_data.data_p = (void*)(data.data());
+			F_initial_resource_data initial_resource_data = H_general_initial_resource_data::simple_make(
+				subresource_datas,
+				mip_level_count
+			);
 
 			buffer_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),
@@ -79,11 +90,22 @@ namespace nre {
 		if(builder_.is_valid())
 		{
 			auto data = builder_.data(format);
+			TG_vector<F_subresource_data> subresource_datas(6);
+			u32 stride = H_format::stride(format);
+			void* current_data_p = (void*)(data.data());
+			for(u32 i = 0; i < subresource_datas.size(); ++i) {
 
-			F_initial_resource_data initial_resource_data;
+				subresource_datas[i] = { .data_p = current_data_p };
+				current_data_p = (
+					((u8*)current_data_p)
+					+ stride * width * width
+				);
+			}
 
-			if(data.size())
-				initial_resource_data.data_p = (void*)(data.data());
+			F_initial_resource_data initial_resource_data = H_general_initial_resource_data::simple_make(
+				subresource_datas,
+				mip_level_count
+			);
 
 			buffer_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),
@@ -137,11 +159,22 @@ namespace nre {
 		if(builder_.is_valid())
 		{
 			auto data = builder_.data(format);
+			TG_vector<F_subresource_data> subresource_datas(6);
+			u32 stride = H_format::stride(format);
+			void* current_data_p = (void*)(data.data());
+			for(u32 i = 0; i < subresource_datas.size(); ++i) {
 
-			F_initial_resource_data initial_resource_data;
+				subresource_datas[i] = { .data_p = current_data_p };
+				current_data_p = (
+					((u8*)current_data_p)
+					+ stride * builder_.width() * builder_.width()
+				);
+			}
 
-			if(data.size())
-				initial_resource_data.data_p = (void*)(data.data());
+			F_initial_resource_data initial_resource_data = H_general_initial_resource_data::simple_make(
+				subresource_datas,
+				mip_level_count
+			);
 
 			buffer_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),
@@ -195,11 +228,22 @@ namespace nre {
 		if(builder_.is_valid())
 		{
 			auto data = builder_.data(format);
+			TG_vector<F_subresource_data> subresource_datas(6);
+			u32 stride = H_format::stride(format);
+			void* current_data_p = (void*)(data.data());
+			for(u32 i = 0; i < subresource_datas.size(); ++i) {
 
-			F_initial_resource_data initial_resource_data;
+				subresource_datas[i] = { .data_p = current_data_p };
+				current_data_p = (
+					((u8*)current_data_p)
+					+ stride * builder_.width() * builder_.width()
+				);
+			}
 
-			if(data.size())
-				initial_resource_data.data_p = (void*)(data.data());
+			F_initial_resource_data initial_resource_data = H_general_initial_resource_data::simple_make(
+				subresource_datas,
+				mip_level_count
+			);
 
 			buffer_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),
@@ -277,10 +321,22 @@ namespace nre {
 
 		if(builder_.is_valid())
 		{
-			F_initial_resource_data initial_resource_data;
+			TG_vector<F_subresource_data> subresource_datas(6);
+			u32 stride = H_format::stride(format);
+			void* current_data_p = (void*)(data.data());
+			for(u32 i = 0; i < subresource_datas.size(); ++i) {
 
-			if(data.size())
-				initial_resource_data.data_p = (void*)(data.data());
+				subresource_datas[i] = { .data_p = current_data_p };
+				current_data_p = (
+					((u8*)current_data_p)
+					+ stride * width * width
+				);
+			}
+
+			F_initial_resource_data initial_resource_data = H_general_initial_resource_data::simple_make(
+				subresource_datas,
+				mip_level_count
+			);
 
 			buffer_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),
@@ -338,11 +394,22 @@ namespace nre {
 		if(builder_.is_valid())
 		{
 			auto data = builder_.data(format);
+			TG_vector<F_subresource_data> subresource_datas(6);
+			u32 stride = H_format::stride(format);
+			void* current_data_p = (void*)(data.data());
+			for(u32 i = 0; i < subresource_datas.size(); ++i) {
 
-			F_initial_resource_data initial_resource_data;
+				subresource_datas[i] = { .data_p = current_data_p };
+				current_data_p = (
+					((u8*)current_data_p)
+					+ stride * width * width
+				);
+			}
 
-			if(data.size())
-				initial_resource_data.data_p = (void*)(data.data());
+			F_initial_resource_data initial_resource_data = H_general_initial_resource_data::simple_make(
+				subresource_datas,
+				mip_level_count
+			);
 
 			buffer_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),
@@ -396,11 +463,22 @@ namespace nre {
 		if(builder_.is_valid())
 		{
 			auto data = builder_.data(format);
+			TG_vector<F_subresource_data> subresource_datas(6);
+			u32 stride = H_format::stride(format);
+			void* current_data_p = (void*)(data.data());
+			for(u32 i = 0; i < subresource_datas.size(); ++i) {
 
-			F_initial_resource_data initial_resource_data;
+				subresource_datas[i] = { .data_p = current_data_p };
+				current_data_p = (
+					((u8*)current_data_p)
+					+ stride * builder_.width() * builder_.width()
+				);
+			}
 
-			if(data.size())
-				initial_resource_data.data_p = (void*)(data.data());
+			F_initial_resource_data initial_resource_data = H_general_initial_resource_data::simple_make(
+				subresource_datas,
+				mip_level_count
+			);
 
 			buffer_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),
@@ -454,11 +532,22 @@ namespace nre {
 		if(builder_.is_valid())
 		{
 			auto data = builder_.data(format);
+			TG_vector<F_subresource_data> subresource_datas(6);
+			u32 stride = H_format::stride(format);
+			void* current_data_p = (void*)(data.data());
+			for(u32 i = 0; i < subresource_datas.size(); ++i) {
 
-			F_initial_resource_data initial_resource_data;
+				subresource_datas[i] = { .data_p = current_data_p };
+				current_data_p = (
+					((u8*)current_data_p)
+					+ stride * builder_.width() * builder_.width()
+				);
+			}
 
-			if(data.size())
-				initial_resource_data.data_p = (void*)(data.data());
+			F_initial_resource_data initial_resource_data = H_general_initial_resource_data::simple_make(
+				subresource_datas,
+				mip_level_count
+			);
 
 			buffer_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),

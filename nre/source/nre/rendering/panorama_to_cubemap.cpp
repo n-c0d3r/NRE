@@ -80,7 +80,15 @@ namespace nre {
 		}
 	}
 
-	TS<F_general_texture_cube> panorama_to_cubemap(TKPA_valid<F_general_texture_2d> panorama_p, u32 width) {
+	TS<F_general_texture_cube> panorama_to_cubemap(TKPA_valid<F_general_texture_2d> panorama_p, u32 width, u32 mip_level_count) {
+
+		if(mip_level_count == 0) {
+
+			mip_level_count = floor(
+				log((f32)width)
+				/ log(2.0f)
+			) + 1;
+		}
 
 		F_texture_cube_builder builder(width);
 
@@ -123,7 +131,8 @@ namespace nre {
 
 		return TU<F_general_texture_cube>()(
 			std::move(builder),
-			E_format::R32G32B32A32_FLOAT
+			E_format::R32G32B32A32_FLOAT,
+			mip_level_count
 		);
 	}
 

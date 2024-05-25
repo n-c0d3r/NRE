@@ -22,6 +22,7 @@
 #include <nre/rendering/general_texture_2d.hpp>
 #include <nre/rendering/general_texture_2d_array.hpp>
 #include <nre/rendering/general_texture_cube.hpp>
+#include <nre/rendering/general_initial_resource_data.hpp>
 #include <nre/rendering/texture_2d_builder.hpp>
 #include <nre/rendering/texture_2d_array_builder.hpp>
 #include <nre/rendering/texture_cube_builder.hpp>

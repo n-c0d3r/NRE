@@ -3,6 +3,7 @@
 #include <nre/prerequisites.hpp>
 #include <nre/rendering/texel.hpp>
 #include <nre/rendering/texture_cube_builder.hpp>
+#include <nre/rendering/general_initial_resource_data.hpp>
 
 
 
