@@ -114,6 +114,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
     float3 t_mask = mask_map.Sample(maps_sampler_state, input.uv).xyz;
 
+    float t_ao = t_mask.x;
     float t_roughness = t_mask.y;
     float t_metallic = t_mask.z;
 
@@ -132,6 +133,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         input.world_normal,
         input.world_tangent
     );
+
 
 
     float3 specularColor = SpecularColor(actual_albedo, metallic);
@@ -188,6 +190,10 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
             metallic
         );
     }
+
+
+
+    radiance *= t_ao;
 
 
 
