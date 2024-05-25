@@ -1,4 +1,4 @@
-#include <nre/rendering/ibl_sky_builder.hpp>
+#include <nre/rendering/ibl_sky_light.hpp>
 #include <nre/rendering/hdri_sky_material.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/general_texture_cube.hpp>
@@ -10,27 +10,25 @@
 
 namespace nre {
 
-	TK<F_ibl_sky_builder> F_ibl_sky_builder::instance_ps;
-
-	F_ibl_sky_builder::F_ibl_sky_builder(TKPA_valid<F_actor> actor_p) :
-		A_actor_component(actor_p),
-		hdri_sky_material_p_(actor_p->T_component<F_hdri_sky_material>())
+	F_ibl_sky_light_proxy::F_ibl_sky_light_proxy(
+		TKPA_valid<F_sky_light> light_p,
+		u32 brdf_lut_width,
+		u32 prefiltered_env_cube_width,
+		u32 irradiance_cube_width
+	) :
+		A_sky_light_proxy(light_p),
+		brdf_lut_width_(brdf_lut_width),
+		prefiltered_env_cube_width_(prefiltered_env_cube_width),
+		irradiance_cube_width_(irradiance_cube_width)
 	{
-		instance_ps = NCPP_KTHIS().no_requirements();
-	}
-	F_ibl_sky_builder::~F_ibl_sky_builder() {
-	}
-
-	void F_ibl_sky_builder::ready() {
-
-		A_actor_component::ready();
+		auto hdri_sky_material_p = F_hdri_sky_material::instance_p();
 
 		// sky srv
-		auto sky_srv_p = hdri_sky_material_p_->sky_texture_cube_p->srv_p();
+		auto sky_srv_p = hdri_sky_material_p->sky_texture_cube_p->srv_p();
 
 		u32 max_prefiltered_env_cube_mip_level_count = u32(
 			floor(
-				log(f32(prefiltered_env_cube_width))
+				log(f32(prefiltered_env_cube_width_))
 					/ log(2.0f)
 			) + 1
 		);
@@ -40,8 +38,8 @@ namespace nre {
 			brdf_lut_p_ = H_texture::create_2d(
 				NRE_RENDER_DEVICE(),
 				{},
-				brdf_lut_width,
-				brdf_lut_width,
+				brdf_lut_width_,
+				brdf_lut_width_,
 				E_format::R32G32_FLOAT,
 				1,
 				{},
@@ -55,7 +53,7 @@ namespace nre {
 			prefiltered_env_cube_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),
 				{},
-				prefiltered_env_cube_width,
+				prefiltered_env_cube_width_,
 				E_format::R16G16B16A16_FLOAT,
 				max_prefiltered_env_cube_mip_level_count,
 				{},
@@ -68,7 +66,7 @@ namespace nre {
 			irradiance_cube_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),
 				{},
-				irradiance_cube_width,
+				irradiance_cube_width_,
 				E_format::R16G16B16A16_FLOAT,
 				1,
 				{},
@@ -94,6 +92,7 @@ namespace nre {
 		// create main constant buffer
 		{
 			F_main_constant_buffer_cpu_data main_constant_buffer_cpu_data = {
+				.color_and_intensity = { F_vector3_f32::one(), 0.0f },
 				.roughness_level_count = prefiltered_env_cube_mip_level_count_
 			};
 			main_constant_buffer_p_ = H_buffer::create(
@@ -102,7 +101,7 @@ namespace nre {
 				sizeof(F_main_constant_buffer_cpu_data),
 				1,
 				E_resource_bind_flag::CBV,
-				E_resource_heap_type::GREAD_GWRITE
+				E_resource_heap_type::GREAD_CWRITE
 			);
 		}
 
@@ -186,7 +185,7 @@ namespace nre {
 		{
 			// create constant buffer
 			F_compute_brdf_lut_constant_buffer_cpu_data compute_brdf_cb_cpu_data = {
-				.width = brdf_lut_width
+				.width = brdf_lut_width_
 			};
 			auto compute_brdf_cb_p = H_buffer::create(
 				NRE_RENDER_DEVICE(),
@@ -219,7 +218,7 @@ namespace nre {
 
 				F_vector3_u32 thread_group_count_3d = (
 					element_max(
-						F_vector3_f32(brdf_lut_width, brdf_lut_width, 1.0f)
+						F_vector3_f32(brdf_lut_width_, brdf_lut_width_, 1.0f)
 							/ F_vector3_f32(8.0f, 8.0f, 1.0f),
 						F_vector3_f32::one()
 					)
@@ -230,7 +229,7 @@ namespace nre {
 
 		// compute prefiltered env cube
 		TG_vector<U_uav_handle> prefiltered_env_cube_face_uav_p_vector;
-		u32 current_prefiltered_env_cube_width = prefiltered_env_cube_width;
+		u32 current_prefiltered_env_cube_width = prefiltered_env_cube_width_;
 		for(u32 mip_level_index = 0; mip_level_index < max_prefiltered_env_cube_mip_level_count; ++mip_level_index) {
 
 			auto prefiltered_env_cube_uav_p = H_resource_view::create_uav(
@@ -244,8 +243,8 @@ namespace nre {
 			);
 
 			F_prefilter_env_cube_constant_buffer_cpu_data prefilter_env_cube_cb_cpu_data = {
-				.src_width = hdri_sky_material_p_->sky_texture_cube_p->builder().width(),
-				.src_mip_level_count = hdri_sky_material_p_->sky_texture_cube_p->buffer_p()->desc().mip_level_count,
+				.src_width = hdri_sky_material_p->sky_texture_cube_p->builder().width(),
+				.src_mip_level_count = hdri_sky_material_p->sky_texture_cube_p->buffer_p()->desc().mip_level_count,
 				.width = current_prefiltered_env_cube_width,
 				.roughness = element_saturate(
 					((f32)mip_level_index) / ((f32)(prefiltered_env_cube_mip_level_count_ - 1))
@@ -327,8 +326,8 @@ namespace nre {
 
 			// create constant buffer
 			F_irradiance_cube_constant_buffer_cpu_data irradiance_cube_cb_cpu_data = {
-				.src_mip_level_count = hdri_sky_material_p_->sky_texture_cube_p->buffer_p()->desc().mip_level_count,
-				.width = irradiance_cube_width
+				.src_mip_level_count = hdri_sky_material_p->sky_texture_cube_p->buffer_p()->desc().mip_level_count,
+				.width = irradiance_cube_width_
 			};
 			irradiance_cube_cb_cpu_data.face_transforms[
 				u32(E_texture_cube_face::RIGHT)
@@ -379,7 +378,7 @@ namespace nre {
 
 				F_vector3_u32 thread_group_count_3d = (
 					element_max(
-						F_vector3_f32(irradiance_cube_width, irradiance_cube_width, 6.0f)
+						F_vector3_f32(irradiance_cube_width_, irradiance_cube_width_, 6.0f)
 						/ F_vector3_f32(8.0f, 8.0f, 1.0f),
 						F_vector3_f32::one()
 					)
@@ -393,6 +392,44 @@ namespace nre {
 			NCPP_FOH_VALID(command_list_p)
 		);
 		NRE_FRAME_DEBUG_POINT();
+	}
+	F_ibl_sky_light_proxy::~F_ibl_sky_light_proxy() {
+	}
+
+
+
+	F_ibl_sky_light::F_ibl_sky_light(TKPA_valid<F_actor> actor_p, F_light_mask mask) :
+		F_sky_light(actor_p, TU<F_ibl_sky_light_proxy>()(NCPP_KTHIS()), mask)
+	{
+	}
+	F_ibl_sky_light::F_ibl_sky_light(TKPA_valid<F_actor> actor_p, TU<A_sky_light_proxy>&& proxy_p, F_light_mask mask) :
+		F_sky_light(actor_p, std::move(proxy_p), mask)
+	{
+	}
+	F_ibl_sky_light::~F_ibl_sky_light() {
+	}
+
+	void F_ibl_sky_light_proxy::update()
+	{
+		auto casted_light_p = light_p().T_cast<F_sky_light>();
+
+		F_main_constant_buffer_cpu_data cpu_data = {
+
+			.color_and_intensity = {
+				casted_light_p->color,
+				casted_light_p->intensity
+			},
+			.roughness_level_count = prefiltered_env_cube_mip_level_count_
+
+		};
+
+		NRE_MAIN_COMMAND_LIST()->update_resource_data(
+			NCPP_FOH_VALID(main_constant_buffer_p_),
+			&cpu_data,
+			sizeof(F_main_constant_buffer_cpu_data),
+			0,
+			0
+		);
 	}
 
 }

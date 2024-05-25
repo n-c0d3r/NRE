@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nre/actor/actor_component.hpp>
+#include <nre/rendering/sky_light.hpp>
 
 
 
@@ -10,7 +11,7 @@ namespace nre {
 
 
 
-	class NRE_API F_ibl_sky_builder : public A_actor_component
+	class NRE_API F_ibl_sky_light_proxy : public A_sky_light_proxy
 	{
 
 	public:
@@ -37,24 +38,15 @@ namespace nre {
 		};
 		struct NCPP_ALIGN(16) F_main_constant_buffer_cpu_data {
 
+			F_vector4_f32 color_and_intensity;
+
 			u32 roughness_level_count;
 
 		};
 
 
 
-
 	private:
-		static TK<F_ibl_sky_builder> instance_ps;
-
-	public:
-		static NCPP_FORCE_INLINE TKPA<F_ibl_sky_builder> instance_p() { return instance_ps; }
-
-
-
-	private:
-		TK_valid<F_hdri_sky_material> hdri_sky_material_p_;
-
 		U_buffer_handle main_constant_buffer_p_;
 
 		U_texture_2d_handle brdf_lut_p_;
@@ -67,14 +59,11 @@ namespace nre {
 
 		u32 prefiltered_env_cube_mip_level_count_ = 0;
 
-	public:
-		u32 brdf_lut_width = 256;
-		u32 prefiltered_env_cube_width = 1024;
-		u32 irradiance_cube_width = 512;
+		u32 brdf_lut_width_ = 256;
+		u32 prefiltered_env_cube_width_ = 1024;
+		u32 irradiance_cube_width_ = 512;
 
 	public:
-		NCPP_FORCE_INLINE TKPA_valid<F_hdri_sky_material> hdri_sky_material_p() const noexcept { return hdri_sky_material_p_; }
-
 		NCPP_FORCE_INLINE K_valid_buffer_handle main_constant_buffer_p() const noexcept { return NCPP_FOH_VALID(main_constant_buffer_p_); }
 
 		NCPP_FORCE_INLINE K_valid_texture_2d_handle brdf_lut_p() const noexcept { return NCPP_FOH_VALID(brdf_lut_p_); }
@@ -87,14 +76,37 @@ namespace nre {
 
 		NCPP_FORCE_INLINE u32 prefiltered_env_cube_mip_level_count() const noexcept { return prefiltered_env_cube_mip_level_count_; }
 
+		NCPP_FORCE_INLINE u32 brdf_lut_width() const noexcept { return brdf_lut_width_; }
+		NCPP_FORCE_INLINE u32 prefiltered_env_cube_width() const noexcept { return prefiltered_env_cube_width_; }
+		NCPP_FORCE_INLINE u32 irradiance_cube_width() const noexcept { return irradiance_cube_width_; }
+
 
 
 	public:
-		F_ibl_sky_builder(TKPA_valid<F_actor> actor_p);
-		virtual ~F_ibl_sky_builder();
+		F_ibl_sky_light_proxy(
+			TKPA_valid<F_sky_light> light_p,
+			u32 brdf_lut_width = 256,
+			u32 prefiltered_env_cube_width = 1024,
+			u32 irradiance_cube_width = 512
+		);
+		virtual ~F_ibl_sky_light_proxy();
 
 	protected:
-		virtual void ready() override;
+		virtual void update() override;
+
+	};
+
+
+
+	class NRE_API F_ibl_sky_light : public F_sky_light {
+
+	public:
+		F_ibl_sky_light(TKPA_valid<F_actor> actor_p, F_light_mask mask = 0);
+		F_ibl_sky_light(TKPA_valid<F_actor> actor_p, TU<A_sky_light_proxy>&& proxy_p, F_light_mask mask = 0);
+		virtual ~F_ibl_sky_light();
+
+	public:
+		NCPP_OBJECT(F_ibl_sky_light);
 
 	};
 

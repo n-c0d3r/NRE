@@ -39,13 +39,9 @@ namespace nre {
 
 			.direction = casted_light_p->transform_node_p()->transform.forward.xyz(),
 
-			.direct_color_and_direct_intensity = {
-				casted_light_p->direct_color,
-				casted_light_p->direct_intensity
-			},
-			.indirect_color_and_indirect_intensity = {
-				casted_light_p->indirect_color,
-				casted_light_p->indirect_intensity
+			.color_and_intensity = {
+				casted_light_p->color,
+				casted_light_p->intensity
 			}
 
 		};
@@ -70,6 +66,7 @@ namespace nre {
 
 		instance_ps = NCPP_KTHIS().no_requirements();
 
+		actor_p->set_gameplay_tick(true);
 		actor_p->set_render_tick(true);
 	}
 	F_directional_light::F_directional_light(TKPA_valid<F_actor> actor_p, TU<A_directional_light_proxy>&& proxy_p, F_light_mask mask) :
@@ -77,6 +74,7 @@ namespace nre {
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_directional_light);
 
+		actor_p->set_gameplay_tick(true);
 		actor_p->set_render_tick(true);
 	}
 	F_directional_light::~F_directional_light() {

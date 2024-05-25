@@ -34,8 +34,7 @@ namespace nre {
 
 			F_vector3_f32 direction;
 
-			F_vector4_f32 direct_color_and_direct_intensity;
-			F_vector4_f32 indirect_color_and_indirect_intensity;
+			F_vector4_f32 color_and_intensity;
 
 		};
 
@@ -74,11 +73,9 @@ namespace nre {
 
 
 	public:
-		F_vector3 direct_color = F_vector3::one();
-		F_vector3 indirect_color = F_vector3::one();
+		F_vector3 color = F_vector3::one();
 
-		f32 direct_intensity = 0.0f;
-		f32 indirect_intensity = 1.0f;
+		f32 intensity = 0.0f;
 
 
 

@@ -31,15 +31,15 @@ cbuffer directional_light_cbuffer : register(b2) {
     float3 directional_light_direction;
     float __directional_light_direction__;
     
-    float3 directional_light_direct_color;
-    float directional_light_direct_intensity;
-
-    float3 directional_light_indirect_color;
-    float directional_light_indirect_intensity;
+    float3 directional_light_color;
+    float directional_light_intensity;
 
 }
-cbuffer ibl_cbuffer : register(b3) {
+cbuffer ibl_sky_light_cbuffer : register(b3) {
 
+    float3 ibl_sky_light_color;
+    float ibl_sky_light_intensity;
+    
     uint roughness_level_count;
 
 }
@@ -133,7 +133,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         ) * specularEnvColor;
         float3 diffuse = albedo * irradiance_cube.Sample(default_sampler_state, N).xyz;
 
-        radiance += directional_light_indirect_color * directional_light_indirect_intensity * MixDiffuseSpecular(
+        radiance += ibl_sky_light_color * ibl_sky_light_intensity * MixDiffuseSpecular(
             diffuse,
             specular,
             dot(H, L),
@@ -152,7 +152,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         float3 specular = GGX_SpecularBRDX(N, L, V, specularColor, roughness) * saturate(dot(L, N));
         float3 diffuse = albedo * saturate(dot(L, N));
 
-        radiance += directional_light_direct_color * directional_light_direct_intensity * MixDiffuseSpecular(
+        radiance += directional_light_color * directional_light_intensity * MixDiffuseSpecular(
             diffuse,
             specular,
             dot(H, L),
