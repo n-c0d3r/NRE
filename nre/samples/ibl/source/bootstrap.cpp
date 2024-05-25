@@ -51,74 +51,54 @@ int main() {
 	auto directional_light_transform_node_p = directional_light_actor_p->template T_add_component<F_transform_node>();
 	auto directional_light_p = directional_light_actor_p->template T_add_component<F_directional_light>();
 
-	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.2_pi, -3.3_pi/4.0f, 0 });
+	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
 
 	// create pbr sphere actor
 	auto pbr_sphere_actor_p = level_p->T_create_actor();
 	auto pbr_sphere_transform_node_p = pbr_sphere_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_pbr_ibl_material>();
+	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_pbr_ibl_mesh_material>();
 	auto pbr_sphere_renderable_p = pbr_sphere_actor_p->template T_add_component<F_static_mesh_renderable>();
 
 	pbr_sphere_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
-	pbr_sphere_material_p->albedo = F_vector3 { 0.2f, 0.2f, 0.2f };
+
+	pbr_sphere_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
+
+	pbr_sphere_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/slate_driveway_diff_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
+	pbr_sphere_material_p->normal_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/slate_driveway_nor_dx_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
+	pbr_sphere_material_p->mask_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/slate_driveway_arm_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
 
 	// create pbr sphere actor
-	auto pbr_cube_actor_p = level_p->T_create_actor();
-	auto pbr_cube_transform_node_p = pbr_cube_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_cube_material_p = pbr_cube_actor_p->template T_add_component<F_pbr_ibl_material>();
-	auto pbr_cube_renderable_p = pbr_cube_actor_p->template T_add_component<F_static_mesh_renderable>();
+	auto pbr_sphere2_actor_p = level_p->T_create_actor();
+	auto pbr_sphere2_transform_node_p = pbr_sphere2_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere2_material_p = pbr_sphere2_actor_p->template T_add_component<F_pbr_ibl_mesh_material>();
+	auto pbr_sphere2_renderable_p = pbr_sphere2_actor_p->template T_add_component<F_static_mesh_renderable>();
 
-	pbr_cube_transform_node_p->transform *= make_translation({ 5, 0, 0 });
+	pbr_sphere2_transform_node_p->transform *= make_translation({ 3, 0, 0 });
 
-	pbr_cube_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/cube.obj").T_cast<F_static_mesh_asset>()->mesh_p;
-	pbr_cube_material_p->albedo = F_vector3 { 0.25f, 0.75f, 1.0f };
+	pbr_sphere2_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
 
+	pbr_sphere2_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
 
+	pbr_sphere2_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/slab_tiles_diff_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
+	pbr_sphere2_material_p->normal_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/slab_tiles_nor_dx_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
+	pbr_sphere2_material_p->mask_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/slab_tiles_arm_4k.png").T_cast<F_texture_2d_asset>()->texture_p;
 
-	// keyboard events
-	{
-		NRE_KEYBOARD()->T_get_event<F_key_down_event>().T_push_back_listener(
-			[&](auto& e) {
-				auto& casted_e = (F_key_down_event&)e;
+	// create pbr plane actor
+	auto pbr_plane_actor_p = level_p->T_create_actor();
+	auto pbr_plane_transform_node_p = pbr_plane_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_plane_material_p = pbr_plane_actor_p->template T_add_component<F_pbr_ibl_mesh_material>();
+	auto pbr_plane_renderable_p = pbr_plane_actor_p->template T_add_component<F_static_mesh_renderable>();
 
-			  	switch (casted_e.keycode())
-			  	{
-				case E_keycode::ARROW_UP:
-					pbr_sphere_material_p->metallic = element_saturate(
-						pbr_sphere_material_p->metallic + 0.1f
-					);
-					pbr_cube_material_p->metallic = element_saturate(
-						pbr_cube_material_p->metallic + 0.1f
-					);
-					break;
-				case E_keycode::ARROW_DOWN:
-					pbr_sphere_material_p->metallic = element_saturate(
-						pbr_sphere_material_p->metallic - 0.1f
-					);
-					pbr_cube_material_p->metallic = element_saturate(
-						pbr_cube_material_p->metallic - 0.1f
-					);
-					break;
-				case E_keycode::ARROW_RIGHT:
-					pbr_sphere_material_p->roughness = element_saturate(
-						pbr_sphere_material_p->roughness + 0.1f
-					);
-					pbr_cube_material_p->roughness = element_saturate(
-						pbr_cube_material_p->roughness + 0.1f
-					);
-					break;
-				case E_keycode::ARROW_LEFT:
-					pbr_sphere_material_p->roughness = element_saturate(
-						pbr_sphere_material_p->roughness - 0.1f
-					);
-					pbr_cube_material_p->roughness = element_saturate(
-						pbr_cube_material_p->roughness - 0.1f
-					);
-					break;
-			  	}
-			}
-		);
-	}
+	f32 plane_size = 1000.0f;
+	pbr_plane_transform_node_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(make_scale({ plane_size, 1.0f, plane_size }));
+	pbr_plane_transform_node_p->transform *= make_translation({ 0, -1.0f, 0 });
+
+	pbr_plane_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/plane.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+
+	pbr_plane_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
+
+	pbr_plane_material_p->albedo_map_p = F_default_textures::instance_p()->white_texture_2d_p();
+	pbr_plane_material_p->mask_map_p = F_default_textures::instance_p()->blue_texture_2d_p();
 
 
 

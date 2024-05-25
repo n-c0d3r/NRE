@@ -16,8 +16,8 @@
 #include <nre/rendering/vertex.hpp>
 #include <nre/rendering/material.hpp>
 #include <nre/rendering/hdri_sky_material.hpp>
-#include <nre/rendering/pbr_ibl_material.hpp>
-#include <nre/rendering/pbr_material.hpp>
+#include <nre/rendering/pbr_ibl_mesh_material.hpp>
+#include <nre/rendering/pbr_mesh_material.hpp>
 #include <nre/rendering/camera.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
 #include <nre/rendering/general_texture_2d_array.hpp>
@@ -33,3 +33,4 @@
 #include <nre/rendering/light.hpp>
 #include <nre/rendering/directional_light.hpp>
 #include <nre/rendering/light_system.hpp>
+#include <nre/rendering/default_textures.hpp>

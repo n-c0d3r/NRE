@@ -11,6 +11,7 @@ namespace nre {
 	class F_light_system;
 	class F_pso_library;
 	class F_shader_library;
+	class F_default_textures;
 
 
 
@@ -36,6 +37,7 @@ namespace nre {
 		TU<F_render_view_system> render_view_system_p_;
 		TU<F_renderable_system> renderable_system_p_;
 		TU<F_light_system> light_system_p_;
+		TU<F_default_textures> default_textures_p_;
 
 		TU<F_pso_library> pso_library_p_;
 		TU<F_shader_library> shader_library_p_;

@@ -4,6 +4,7 @@
 #include <nre/rendering/light_system.hpp>
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/shader_library.hpp>
+#include <nre/rendering/default_textures.hpp>
 #include <nre/application/application.hpp>
 
 
@@ -49,6 +50,7 @@ namespace nre {
 		}
 
 		// create subsystems
+		default_textures_p_ = TU<F_default_textures>()();
 		render_view_system_p_ = TU<F_render_view_system>()();
 		renderable_system_p_ = TU<F_renderable_system>()();
 		light_system_p_ = TU<F_light_system>()();

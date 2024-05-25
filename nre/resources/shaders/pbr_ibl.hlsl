@@ -2,6 +2,7 @@
 #include "utilities/constants.hlsl"
 #include "utilities/pbr.hlsl"
 #include "utilities/aces_tone_mapping.hlsl"
+#include "utilities/normal.hlsl"
 
 
 
@@ -21,9 +22,13 @@ cbuffer per_object_cbuffer : register(b1) {
     float3 albedo;
     float __albedo_pad__;
 
-    float roughness;
-    float metallic;
-    float2 __roughness_metallic_pad__;
+    float min_roughness;
+    float max_roughness;
+    float min_metallic;
+    float max_metallic;
+
+    float2 uv_scale;
+    float2 uv_offset;
 
 }
 cbuffer directional_light_cbuffer : register(b2) {
@@ -39,7 +44,7 @@ cbuffer ibl_sky_light_cbuffer : register(b3) {
 
     float3 ibl_sky_light_color;
     float ibl_sky_light_intensity;
-    
+
     uint roughness_level_count;
 
 }
@@ -49,6 +54,10 @@ cbuffer ibl_sky_light_cbuffer : register(b3) {
 Texture2D brdf_lut : register(t0);
 TextureCube prefiltered_env_cube : register(t1);
 TextureCube irradiance_cube : register(t2);
+
+Texture2D albedo_map : register(t3);
+Texture2D normal_map : register(t4);
+Texture2D mask_map : register(t5);
 
 SamplerState default_sampler_state
 {
@@ -88,7 +97,7 @@ F_vertex_to_pixel vmain(
     output.world_position = world_position;
     output.world_normal = world_normal;
     output.world_tangent = world_tangent;
-    output.uv = uv;
+    output.uv = uv_offset + uv * uv_scale;
 
     return output;
 }
@@ -107,7 +116,29 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
 
 
-    float3 specularColor = SpecularColor(albedo, metallic);
+    float3 t_mask = mask_map.Sample(default_sampler_state, input.uv).xyz;
+
+    float t_roughness = t_mask.y;
+    float t_metallic = t_mask.z;
+
+    float roughness = lerp(min_roughness, max_roughness, t_roughness);
+    float metallic = lerp(min_metallic, max_metallic, t_metallic);
+
+    float3 t_albedo = albedo_map.Sample(default_sampler_state, input.uv).xyz;
+    float3 actual_albedo = (
+        albedo
+        * t_albedo
+    );
+
+    N = tangent_space_to_world_space(
+        normal_map.Sample(default_sampler_state, input.uv).xyz,
+        cross(input.world_normal, input.world_tangent),
+        input.world_normal,
+        input.world_tangent
+    );
+
+
+    float3 specularColor = SpecularColor(actual_albedo, metallic);
 
 
 
@@ -131,7 +162,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         float3 specular = (
             specularColor * integratedSpecularBRDFParts.x + integratedSpecularBRDFParts.y
         ) * specularEnvColor;
-        float3 diffuse = albedo * irradiance_cube.Sample(default_sampler_state, N).xyz;
+        float3 diffuse = actual_albedo * irradiance_cube.Sample(default_sampler_state, N).xyz;
 
         radiance += ibl_sky_light_color * ibl_sky_light_intensity * MixDiffuseSpecular(
             diffuse,
@@ -150,7 +181,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         float3 H = normalize(L + V);
 
         float3 specular = GGX_SpecularBRDX(N, L, V, specularColor, roughness) * saturate(dot(L, N));
-        float3 diffuse = albedo * saturate(dot(L, N));
+        float3 diffuse = actual_albedo * saturate(dot(L, N));
 
         radiance += directional_light_color * directional_light_intensity * MixDiffuseSpecular(
             diffuse,
