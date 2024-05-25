@@ -18,9 +18,9 @@ int main() {
 
 
 
-	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/venice_dawn_1_8k.hdr").T_cast<F_texture_2d_asset>();
+	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/neurathen_rock_castle_4k.hdr").T_cast<F_texture_2d_asset>();
 
-	auto skymap_p = panorama_to_cubemap(NCPP_FOH_VALID(panorama_asset_p->texture_p), 512);
+	auto skymap_p = panorama_to_cubemap(NCPP_FOH_VALID(panorama_asset_p->texture_p), 1320);
 
 
 
@@ -51,7 +51,7 @@ int main() {
 	auto directional_light_transform_node_p = directional_light_actor_p->template T_add_component<F_transform_node>();
 	auto directional_light_p = directional_light_actor_p->template T_add_component<F_directional_light>();
 
-	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
+	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.2_pi, -3.3_pi/4.0f, 0 });
 
 	// create pbr sphere actor
 	auto pbr_sphere_actor_p = level_p->T_create_actor();
@@ -60,6 +60,18 @@ int main() {
 	auto pbr_sphere_renderable_p = pbr_sphere_actor_p->template T_add_component<F_static_mesh_renderable>();
 
 	pbr_sphere_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+	pbr_sphere_material_p->albedo = F_vector3 { 0.2f, 0.2f, 0.2f };
+
+	// create pbr sphere actor
+	auto pbr_cube_actor_p = level_p->T_create_actor();
+	auto pbr_cube_transform_node_p = pbr_cube_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_cube_material_p = pbr_cube_actor_p->template T_add_component<F_pbr_ibl_material>();
+	auto pbr_cube_renderable_p = pbr_cube_actor_p->template T_add_component<F_static_mesh_renderable>();
+
+	pbr_cube_transform_node_p->transform *= make_translation({ 5, 0, 0 });
+
+	pbr_cube_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/cube.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+	pbr_cube_material_p->albedo = F_vector3 { 0.25f, 0.75f, 1.0f };
 
 
 
@@ -75,20 +87,32 @@ int main() {
 					pbr_sphere_material_p->metallic = element_saturate(
 						pbr_sphere_material_p->metallic + 0.1f
 					);
+					pbr_cube_material_p->metallic = element_saturate(
+						pbr_cube_material_p->metallic + 0.1f
+					);
 					break;
 				case E_keycode::ARROW_DOWN:
 					pbr_sphere_material_p->metallic = element_saturate(
 						pbr_sphere_material_p->metallic - 0.1f
+					);
+					pbr_cube_material_p->metallic = element_saturate(
+						pbr_cube_material_p->metallic - 0.1f
 					);
 					break;
 				case E_keycode::ARROW_RIGHT:
 					pbr_sphere_material_p->roughness = element_saturate(
 						pbr_sphere_material_p->roughness + 0.1f
 					);
+					pbr_cube_material_p->roughness = element_saturate(
+						pbr_cube_material_p->roughness + 0.1f
+					);
 					break;
 				case E_keycode::ARROW_LEFT:
 					pbr_sphere_material_p->roughness = element_saturate(
 						pbr_sphere_material_p->roughness - 0.1f
+					);
+					pbr_cube_material_p->roughness = element_saturate(
+						pbr_cube_material_p->roughness - 0.1f
 					);
 					break;
 			  	}

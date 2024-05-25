@@ -28,6 +28,13 @@ namespace nre {
 		// sky srv
 		auto sky_srv_p = hdri_sky_material_p_->sky_texture_cube_p->srv_p();
 
+		u32 max_prefiltered_env_cube_mip_level_count = u32(
+			floor(
+				log(f32(prefiltered_env_cube_width))
+					/ log(2.0f)
+			) + 1
+		);
+
 		// create output textures
 		{
 			brdf_lut_p_ = H_texture::create_2d(
@@ -44,18 +51,13 @@ namespace nre {
 				)
 			);
 
-			prefiltered_env_cube_mip_level_count_ = u32(
-				floor(
-					log(f32(prefiltered_env_cube_width))
-					/ log(2.0f)
-				)
-			);
+			prefiltered_env_cube_mip_level_count_ = max_prefiltered_env_cube_mip_level_count - 5;
 			prefiltered_env_cube_p_ = H_texture::create_cube(
 				NRE_RENDER_DEVICE(),
 				{},
 				prefiltered_env_cube_width,
 				E_format::R16G16B16A16_FLOAT,
-				prefiltered_env_cube_mip_level_count_,
+				max_prefiltered_env_cube_mip_level_count,
 				{},
 				flag_combine(
 					E_resource_bind_flag::SRV,
@@ -229,7 +231,7 @@ namespace nre {
 		// compute prefiltered env cube
 		TG_vector<U_uav_handle> prefiltered_env_cube_face_uav_p_vector;
 		u32 current_prefiltered_env_cube_width = prefiltered_env_cube_width;
-		for(u32 mip_level_index = 0; mip_level_index < prefiltered_env_cube_mip_level_count_; ++mip_level_index) {
+		for(u32 mip_level_index = 0; mip_level_index < max_prefiltered_env_cube_mip_level_count; ++mip_level_index) {
 
 			auto prefiltered_env_cube_uav_p = H_resource_view::create_uav(
 				NRE_RENDER_DEVICE(),
@@ -243,7 +245,9 @@ namespace nre {
 
 			F_prefilter_env_cube_constant_buffer_cpu_data prefilter_env_cube_cb_cpu_data = {
 				.width = current_prefiltered_env_cube_width,
-				.roughness = ((f32)mip_level_index) / ((f32)(prefiltered_env_cube_mip_level_count_ - 1))
+				.roughness = element_saturate(
+					((f32)mip_level_index) / ((f32)(prefiltered_env_cube_mip_level_count_ - 1))
+				)
 			};
 			prefilter_env_cube_cb_cpu_data.face_transforms[
 				u32(E_texture_cube_face::RIGHT)

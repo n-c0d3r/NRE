@@ -19,7 +19,7 @@ namespace nre {
 
 	public:
 		E_projection_type projection_type = E_projection_type::PERSPECTIVE;
-		f32 vertical_fov = 0.5_pi;
+		f32 vertical_fov = 0.35_pi;
 		f32 near_plane = 0.25f;
 		f32 far_plane = 500.0f;
 

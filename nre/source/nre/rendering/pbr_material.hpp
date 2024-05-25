@@ -40,7 +40,7 @@ namespace nre {
 		TK_valid<F_transform_node> transform_node_p_;
 
 	public:
-		F_vector3 albedo = F_vector3::one() * 0.5f;
+		F_vector3 albedo = F_vector3::one() * 0.3f;
 		f32 roughness = 0.5f;
 		f32 metallic = 0.2f;
 

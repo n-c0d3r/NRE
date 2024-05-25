@@ -5,8 +5,8 @@
 
 
 
-#define IBL_SAMPLE_COUNT (4096)
-#define IBL_SAMPLE_COUNT_SQRT (64)
+#define IBL_SAMPLE_COUNT (1024)
+#define IBL_SAMPLE_COUNT_SQRT (32)
 
 SamplerState IBLSampler
 {

@@ -66,7 +66,7 @@ namespace nre {
 
 	public:
 		u32 brdf_lut_width = 256;
-		u32 prefiltered_env_cube_width = 512;
+		u32 prefiltered_env_cube_width = 1024;
 		u32 irradiance_cube_width = 512;
 
 	public:

@@ -120,13 +120,12 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         float3 H = normalize(L + V);
 
         float2 integratedSpecularBRDFParts = brdf_lut.Sample(default_sampler_state, float2(NoV, roughness)).xy;
+        
         float3 specularEnvColor = prefiltered_env_cube.SampleLevel(
             default_sampler_state, 
             R, 
-            round(
-                roughness
-                * (((float)roughness_level_count) - 1.0f)
-            )
+            roughness
+            * (((float)roughness_level_count) - 1.0f)
         ).xyz;
 
         float3 specular = (
