@@ -8,6 +8,7 @@
 #include <nre/rendering/directional_light.hpp>
 #include <nre/rendering/general_texture_cube.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
+#include <nre/rendering/default_textures.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/shader_asset.hpp>
 #include <nre/actor/actor.hpp>
@@ -17,17 +18,106 @@
 
 namespace nre {
 
-	A_pbr_ibl_mesh_material_proxy::A_pbr_ibl_mesh_material_proxy(TKPA_valid<nre::F_pbr_ibl_mesh_material> material_p) :
-		A_pbr_mesh_material_proxy(material_p)
+	A_pbr_ibl_mesh_material_proxy::A_pbr_ibl_mesh_material_proxy(TKPA_valid<A_pbr_ibl_mesh_material> material_p) :
+		A_pbr_mesh_material_proxy(material_p),
+		ibl_sampler_state_p_(
+			H_sampler_state::create(
+				NRE_RENDER_DEVICE(),
+				{
+					E_filter::MIN_MAG_MIP_LINEAR,
+					{
+						E_texcoord_address_mode::CLAMP,
+						E_texcoord_address_mode::CLAMP,
+						E_texcoord_address_mode::CLAMP
+					}
+				}
+			)
+		)
 	{
 	}
 	A_pbr_ibl_mesh_material_proxy::~A_pbr_ibl_mesh_material_proxy() {
 	}
 
+	void A_pbr_ibl_mesh_material_proxy::bind_ibl(
+		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_render_view> render_view_p,
+		TKPA_valid<A_frame_buffer> frame_buffer_p,
+		const F_bind_indices& indices
+	) {
+		F_bind_cb_indices cb_indices = indices.cb_indices;
+		F_bind_resource_indices resource_indices = indices.resource_indices;
+
+		auto ibl_sky_light_p = F_ibl_sky_light::instance_p();
+		if(!ibl_sky_light_p)
+			return;
+
+		auto ibl_sky_light_proxy_p = ibl_sky_light_p->proxy_p().T_cast<F_ibl_sky_light_proxy>();
+
+		auto hdri_sky_material_p = F_hdri_sky_material::instance_p();
+
+		auto directional_light_p = F_directional_light::instance_p();
+		if(!directional_light_p)
+			return;
+
+		auto directional_light_proxy_p = directional_light_p->proxy_p();
+		TK<F_directional_light_proxy> casted_directional_light_proxy_p;
+		if(
+			!(directional_light_proxy_p.T_try_interface<F_directional_light_proxy>(casted_directional_light_proxy_p))
+		)
+			return;
+
+		auto casted_material_p = material_p().T_cast<A_pbr_mesh_material>();
+
+		render_command_list_p->ZVS_bind_constant_buffer(
+			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
+			cb_indices.per_view_cb_index
+		);
+
+		render_command_list_p->ZPS_bind_constant_buffer(
+			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
+			cb_indices.per_view_cb_index
+		);
+		render_command_list_p->ZPS_bind_constant_buffer(
+			NCPP_FOH_VALID(casted_directional_light_proxy_p->main_constant_buffer_p()),
+			cb_indices.directional_light_cb_index
+		);
+		render_command_list_p->ZPS_bind_constant_buffer(
+			ibl_sky_light_proxy_p->main_constant_buffer_p(),
+			cb_indices.ibl_sky_light_cb_index
+		);
+
+		render_command_list_p->ZPS_bind_srv(
+			ibl_sky_light_proxy_p->brdf_lut_srv_p(),
+			resource_indices.brdf_lut_index
+		);
+		render_command_list_p->ZPS_bind_srv(
+			ibl_sky_light_proxy_p->prefiltered_env_cube_srv_p(),
+			resource_indices.prefiltered_env_cube_index
+		);
+		render_command_list_p->ZPS_bind_srv(
+			ibl_sky_light_proxy_p->irradiance_cube_srv_p(),
+			resource_indices.irradiance_cube_index
+		);
+
+		render_command_list_p->ZPS_bind_sampler_state(
+			NCPP_FOH_VALID(ibl_sampler_state_p()),
+			indices.sampler_state_index
+		);
+	}
 
 
-	F_pbr_ibl_mesh_material_proxy::F_pbr_ibl_mesh_material_proxy(TKPA_valid<nre::F_pbr_ibl_mesh_material> material_p) :
+
+	A_lit_static_mesh_material_proxy::A_lit_static_mesh_material_proxy(TKPA_valid<A_lit_static_mesh_material> material_p) :
 		A_pbr_ibl_mesh_material_proxy(material_p)
+	{
+	}
+	A_lit_static_mesh_material_proxy::~A_lit_static_mesh_material_proxy() {
+	}
+
+
+
+	F_lit_static_mesh_material_proxy::F_lit_static_mesh_material_proxy(TKPA_valid<A_lit_static_mesh_material> material_p) :
+		A_lit_static_mesh_material_proxy(material_p)
 	{
 		main_constant_buffer_p_ = H_buffer::create(
 			NRE_RENDER_DEVICE(),
@@ -105,17 +195,6 @@ namespace nre {
 				}
 			}
 		);
-		ibl_sampler_state_p_ = H_sampler_state::create(
-			NRE_RENDER_DEVICE(),
-			{
-				E_filter::MIN_MAG_MIP_LINEAR,
-				{
-					E_texcoord_address_mode::CLAMP,
-					E_texcoord_address_mode::CLAMP,
-					E_texcoord_address_mode::CLAMP
-				}
-			}
-		);
 
 		main_graphics_pso_p_ = H_graphics_pipeline_state::create(
 			NRE_RENDER_DEVICE(),
@@ -131,78 +210,37 @@ namespace nre {
 			}
 		);
 	}
-	F_pbr_ibl_mesh_material_proxy::~F_pbr_ibl_mesh_material_proxy() {
+	F_lit_static_mesh_material_proxy::~F_lit_static_mesh_material_proxy() {
 	}
 
-	void F_pbr_ibl_mesh_material_proxy::bind(
-		nre::KPA_valid_render_command_list_handle render_command_list_p,
-		TKPA_valid<nre::A_render_view> render_view_p,
+	void F_lit_static_mesh_material_proxy::bind(
+		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_render_view> render_view_p,
 		TKPA_valid<nrhi::A_frame_buffer> frame_buffer_p
 	)
 	{
-		auto ibl_sky_light_p = F_ibl_sky_light::instance_p();
-		if(!ibl_sky_light_p)
-			return;
+		bind_ibl(
+			render_command_list_p,
+			render_view_p,
+			frame_buffer_p
+		);
 
-		auto ibl_sky_light_proxy_p = ibl_sky_light_p->proxy_p().T_cast<F_ibl_sky_light_proxy>();
-
-		auto hdri_sky_material_p = F_hdri_sky_material::instance_p();
-
-		auto directional_light_p = F_directional_light::instance_p();
-		if(!directional_light_p)
-			return;
-
-		auto directional_light_proxy_p = directional_light_p->proxy_p();
-		TK<F_directional_light_proxy> casted_directional_light_proxy_p;
-		if(
-			!(directional_light_proxy_p.T_try_interface<F_directional_light_proxy>(casted_directional_light_proxy_p))
-		)
-			return;
-
-		auto casted_material_p = material_p().T_cast<A_pbr_mesh_material>();
+		auto casted_material_p = material_p().T_cast<A_lit_static_mesh_material>();
 
 		render_command_list_p->bind_graphics_pipeline_state(
 			NCPP_FOH_VALID(main_graphics_pso_p_)
 		);
 
 		render_command_list_p->ZVS_bind_constant_buffer(
-			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
-			0
-		);
-		render_command_list_p->ZVS_bind_constant_buffer(
 			NCPP_FOH_VALID(main_constant_buffer_p_),
 			1
 		);
 
 		render_command_list_p->ZPS_bind_constant_buffer(
-			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
-			0
-		);
-		render_command_list_p->ZPS_bind_constant_buffer(
 			NCPP_FOH_VALID(main_constant_buffer_p_),
 			1
 		);
-		render_command_list_p->ZPS_bind_constant_buffer(
-			NCPP_FOH_VALID(casted_directional_light_proxy_p->main_constant_buffer_p()),
-			2
-		);
-		render_command_list_p->ZPS_bind_constant_buffer(
-			ibl_sky_light_proxy_p->main_constant_buffer_p(),
-			3
-		);
 
-		render_command_list_p->ZPS_bind_srv(
-			ibl_sky_light_proxy_p->brdf_lut_srv_p(),
-			0
-		);
-		render_command_list_p->ZPS_bind_srv(
-			ibl_sky_light_proxy_p->prefiltered_env_cube_srv_p(),
-			1
-		);
-		render_command_list_p->ZPS_bind_srv(
-			ibl_sky_light_proxy_p->irradiance_cube_srv_p(),
-			2
-		);
 		render_command_list_p->ZPS_bind_srv(
 			NCPP_FOH_VALID(casted_material_p->albedo_map_p->srv_p()),
 			3
@@ -218,17 +256,13 @@ namespace nre {
 
 		render_command_list_p->ZPS_bind_sampler_state(
 			NCPP_FOH_VALID(maps_sampler_state_p_),
-			0
-		);
-		render_command_list_p->ZPS_bind_sampler_state(
-			NCPP_FOH_VALID(ibl_sampler_state_p_),
 			1
 		);
 	}
 
-	void F_pbr_ibl_mesh_material_proxy::update()
+	void F_lit_static_mesh_material_proxy::update()
 	{
-		auto casted_material_p = material_p().T_cast<F_pbr_ibl_mesh_material>();
+		auto casted_material_p = material_p().T_cast<A_lit_static_mesh_material>();
 
 		F_main_constant_buffer_cpu_data cpu_data = {
 
@@ -258,19 +292,43 @@ namespace nre {
 
 
 
-	F_pbr_ibl_mesh_material::F_pbr_ibl_mesh_material(TKPA_valid<F_actor> actor_p) :
-		A_pbr_mesh_material(actor_p, TU<F_pbr_ibl_mesh_material_proxy>()(NCPP_KTHIS()))
+	A_pbr_ibl_mesh_material::A_pbr_ibl_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_ibl_mesh_material_proxy>&& proxy_p) :
+		A_pbr_mesh_material(actor_p, std::move(proxy_p))
+	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_pbr_ibl_mesh_material);
+	}
+	A_pbr_ibl_mesh_material::~A_pbr_ibl_mesh_material() {
+	}
+
+
+
+	A_lit_static_mesh_material::A_lit_static_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_lit_static_mesh_material_proxy>&& proxy_p) :
+		A_pbr_ibl_mesh_material(actor_p, std::move(proxy_p))
+	{
+		NRE_ACTOR_COMPONENT_REGISTER(A_lit_static_mesh_material);
+
+		actor_p->set_render_tick(true);
+
+		albedo_map_p = F_default_textures::instance_p()->white_texture_2d_p();
+		normal_map_p = F_default_textures::instance_p()->default_normal_texture_2d_p();
+		mask_map_p = F_default_textures::instance_p()->white_texture_2d_p();
+	}
+	A_lit_static_mesh_material::~A_lit_static_mesh_material() {
+	}
+
+	F_lit_static_mesh_material::F_lit_static_mesh_material(TKPA_valid<F_actor> actor_p) :
+		A_lit_static_mesh_material(actor_p, TU<F_lit_static_mesh_material_proxy>()(NCPP_KTHIS()))
 	{
 		actor_p->set_render_tick(true);
 	}
-	F_pbr_ibl_mesh_material::F_pbr_ibl_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_ibl_mesh_material_proxy>&& proxy_p) :
-		A_pbr_mesh_material(actor_p, std::move(proxy_p))
+	F_lit_static_mesh_material::F_lit_static_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_lit_static_mesh_material_proxy>&& proxy_p) :
+		A_lit_static_mesh_material(actor_p, std::move(proxy_p))
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_pbr_ibl_mesh_material);
 
 		actor_p->set_render_tick(true);
 	}
-	F_pbr_ibl_mesh_material::~F_pbr_ibl_mesh_material() {
+	F_lit_static_mesh_material::~F_lit_static_mesh_material() {
 	}
 
 }

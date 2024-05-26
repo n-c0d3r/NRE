@@ -58,7 +58,7 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere_actor_p = level_p->T_create_actor();
 	auto pbr_sphere_transform_node_p = pbr_sphere_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_pbr_ibl_mesh_material>();
+	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere_renderable_p = pbr_sphere_actor_p->template T_add_component<F_static_mesh_renderable>();
 
 	pbr_sphere_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/cube.obj").T_cast<F_static_mesh_asset>()->mesh_p;
@@ -81,7 +81,7 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere2_actor_p = level_p->T_create_actor();
 	auto pbr_sphere2_transform_node_p = pbr_sphere2_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere2_material_p = pbr_sphere2_actor_p->template T_add_component<F_pbr_ibl_mesh_material>();
+	auto pbr_sphere2_material_p = pbr_sphere2_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere2_renderable_p = pbr_sphere2_actor_p->template T_add_component<F_static_mesh_renderable>();
 
 	pbr_sphere2_transform_node_p->transform *= make_translation({ 3, 0, 0 });
@@ -105,7 +105,7 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere3_actor_p = level_p->T_create_actor();
 	auto pbr_sphere3_transform_node_p = pbr_sphere3_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere3_material_p = pbr_sphere3_actor_p->template T_add_component<F_pbr_ibl_mesh_material>();
+	auto pbr_sphere3_material_p = pbr_sphere3_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere3_renderable_p = pbr_sphere3_actor_p->template T_add_component<F_static_mesh_renderable>();
 
 	pbr_sphere3_transform_node_p->transform *= make_translation({ 0, 0, 3 });
@@ -129,7 +129,7 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere4_actor_p = level_p->T_create_actor();
 	auto pbr_sphere4_transform_node_p = pbr_sphere4_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere4_material_p = pbr_sphere4_actor_p->template T_add_component<F_pbr_ibl_mesh_material>();
+	auto pbr_sphere4_material_p = pbr_sphere4_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere4_renderable_p = pbr_sphere4_actor_p->template T_add_component<F_static_mesh_renderable>();
 
 	pbr_sphere4_transform_node_p->transform *= make_translation({ 3, 0, 3 });

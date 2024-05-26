@@ -40,18 +40,6 @@ namespace nre {
 	private:
 		TK_valid<F_transform_node> transform_node_p_;
 
-	public:
-		F_vector3 albedo = F_vector3::one() * 1.0f;
-		F_range roughness_range = { 0.0f, 1.0f };
-		F_range metallic_range = { 0.0f, 1.0f };
-
-		F_vector2 uv_scale = F_vector2::one();
-		F_vector2 uv_offset = F_vector2::zero();
-
-		TS<F_general_texture_2d> albedo_map_p;
-		TS<F_general_texture_2d> normal_map_p;
-		TS<F_general_texture_2d> mask_map_p;
-
 
 
 	public:

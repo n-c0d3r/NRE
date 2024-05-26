@@ -1,66 +1,28 @@
 
-#include "utilities/constants.hlsl"
+#define PBR_PER_OBJECT_CB_CONSTENTS \
+        float3 albedo;\
+        float __albedo_pad__;\
+\
+        float min_roughness;\
+        float max_roughness;\
+        float min_metallic;\
+        float max_metallic;\
+\
+        float2 uv_scale;\
+        float2 uv_offset;
+
+
 #include "utilities/pbr.hlsl"
-#include "utilities/aces_tone_mapping.hlsl"
-#include "utilities/normal.hlsl"
 
 
 
-cbuffer per_view_cbuffer : register(b0) {
+PBR_DEFINE_DEFAULT;
 
-    float4x4 projection_matrix;
-    float4x4 view_transform;
-
-    float3 camera_position;
-    float __camera_position_pad__;
-
-}
-cbuffer per_object_cbuffer : register(b1) {
-
-    float4x4 object_transform;
-
-    float3 albedo;
-    float __albedo_pad__;
-
-    float min_roughness;
-    float max_roughness;
-    float min_metallic;
-    float max_metallic;
-
-    float2 uv_scale;
-    float2 uv_offset;
-
-}
-cbuffer directional_light_cbuffer : register(b2) {
-
-    float3 directional_light_direction;
-    float __directional_light_direction__;
-    
-    float3 directional_light_color;
-    float directional_light_intensity;
-
-}
-cbuffer ibl_sky_light_cbuffer : register(b3) {
-
-    float3 ibl_sky_light_color;
-    float ibl_sky_light_intensity;
-
-    uint roughness_level_count;
-
-}
-
-
-
-Texture2D brdf_lut : register(t0);
-TextureCube prefiltered_env_cube : register(t1);
-TextureCube irradiance_cube : register(t2);
+SamplerState maps_sampler_state : register(s1);
 
 Texture2D albedo_map : register(t3);
 Texture2D normal_map : register(t4);
 Texture2D mask_map : register(t5);
-
-SamplerState maps_sampler_state : register(s0);
-SamplerState ibl_sampler_state : register(s1);
 
 
 

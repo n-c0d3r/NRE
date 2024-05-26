@@ -3,6 +3,8 @@
 
 #include "utilities/constants.hlsl"
 #include "utilities/hammersley.hlsl"
+#include "utilities/aces_tone_mapping.hlsl"
+#include "utilities/normal.hlsl"
 
 
 
@@ -91,5 +93,119 @@ float3 MixDiffuseSpecular(float3 diffuse, float3 specular, float HoL, float3 spe
 
     return specular + kD * diffuse;
 }
+
+
+
+#ifndef PBR_PER_VIEW_CB_CONSTENTS
+#define PBR_PER_VIEW_CB_CONSTENTS ;
+#endif
+
+#define PBR_DEFINE_PER_VIEW_CB(Index) \
+cbuffer per_view_cbuffer : register(b##Index) {\
+\
+    float4x4 projection_matrix;\
+    float4x4 view_transform;\
+\
+    float3 camera_position;\
+    float __camera_position_pad__;\
+\
+    PBR_PER_VIEW_CB_CONSTENTS;\
+\
+}
+
+
+
+#ifndef PBR_PER_OBJECT_CB_CONSTENTS
+#define PBR_PER_OBJECT_CB_CONSTENTS ;
+#endif
+
+#define PBR_DEFINE_PER_OBJECT_CB(Index) \
+cbuffer per_object_cbuffer : register(b##Index) {\
+\
+    float4x4 object_transform;\
+\
+    PBR_PER_OBJECT_CB_CONSTENTS;\
+\
+}
+
+
+
+#ifndef PBR_DIRECTIONAL_LIGHT_CB_CONSTENTS
+#define PBR_DIRECTIONAL_LIGHT_CB_CONSTENTS ;
+#endif
+
+#define PBR_DEFINE_DIRECTIONAL_LIGHT_CB(Index) \
+cbuffer directional_light_cbuffer : register(b##Index) {\
+\
+    float3 directional_light_direction;\
+    float __directional_light_direction__;\
+    \
+    float3 directional_light_color;\
+    float directional_light_intensity;\
+\
+    PBR_DIRECTIONAL_LIGHT_CB_CONSTENTS;\
+\
+}
+
+
+
+#ifndef PBR_SKY_LIGHT_CB_CONSTENTS
+#define PBR_SKY_LIGHT_CB_CONSTENTS ;
+#endif
+
+#define PBR_DEFINE_SKY_LIGHT_CB(Index) \
+cbuffer ibl_sky_light_cbuffer : register(b##Index) {\
+\
+    float3 ibl_sky_light_color;\
+    float ibl_sky_light_intensity;\
+\
+    uint roughness_level_count;\
+    uint3 __roughness_level_count_pad__;\
+\
+    PBR_SKY_LIGHT_CB_CONSTENTS;\
+\
+}
+
+
+
+#define PBR_DEFINE_CB(PerViewCBIndex, PerObjectCBIndex, DirectionalLightCBIndex, SkyLightCBIndex) \
+            PBR_DEFINE_PER_VIEW_CB(PerViewCBIndex);\
+            PBR_DEFINE_PER_OBJECT_CB(PerObjectCBIndex);\
+            PBR_DEFINE_DIRECTIONAL_LIGHT_CB(DirectionalLightCBIndex);\
+            PBR_DEFINE_SKY_LIGHT_CB(SkyLightCBIndex);
+
+#define PBR_DEFINE_CB_DEFAULT PBR_DEFINE_CB(0, 1, 2, 3);
+
+
+
+#define PBR_DEFINE_SAMPLER_STATE(Index) \
+            SamplerState ibl_sampler_state : register(s##Index);
+
+#define PBR_DEFINE_SAMPLER_STATE_DEFAULT PBR_DEFINE_SAMPLER_STATE(0)
+
+
+
+#define PBR_DEFINE_BRDF_LUT(Index) \
+            Texture2D brdf_lut : register(t##Index);
+
+#define PBR_DEFINE_PREFILTERED_ENV_CUBE(Index) \
+            TextureCube prefiltered_env_cube : register(t##Index);
+
+#define PBR_DEFINE_IRRADIANCE_CUBE(Index) \
+            TextureCube irradiance_cube : register(t2);
+
+#define PBR_DEFINE_RESOURCES(BRDFLutIndex, PrefilteredEnvCubeIndex, IrradianceCubeIndex) \
+            PBR_DEFINE_BRDF_LUT(BRDFLutIndex)\
+            PBR_DEFINE_PREFILTERED_ENV_CUBE(PrefilteredEnvCubeIndex)\
+            PBR_DEFINE_IRRADIANCE_CUBE(IrradianceCubeIndex)
+
+#define PBR_DEFINE_RESOURCES_DEFAULT PBR_DEFINE_RESOURCES(0, 1, 2)
+
+
+
+#define PBR_DEFINE_DEFAULT \
+            PBR_DEFINE_CB_DEFAULT;\
+            PBR_DEFINE_SAMPLER_STATE_DEFAULT;\
+            PBR_DEFINE_RESOURCES_DEFAULT;
 
 #endif // PBR_HLSL

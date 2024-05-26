@@ -14,39 +14,6 @@ namespace nre {
 
 
 
-//	class NRE_API A_material_binding_group {
-//
-//	public:
-//		friend class A_material;
-//		friend class A_material_proxy;
-//
-//
-//
-//	private:
-//		TK_valid<A_material_proxy> proxy_p_;
-//
-//	public:
-//		NCPP_FORCE_INLINE TKPA_valid<A_material_proxy> proxy_p() const noexcept { return proxy_p_; }
-//
-//
-//
-//	protected:
-//		A_material_binding_group(TKPA_valid<A_material_proxy> proxy_p)
-//
-//	public:
-//		virtual ~A_material_binding_group();
-//
-//	public:
-//		NCPP_OBJECT(A_material_binding_group);
-//
-//	protected:
-//		virtual void bind() = 0;
-//		virtual void update() = 0;
-//
-//	};
-
-
-
 	class NRE_API A_material_proxy {
 
 	public:

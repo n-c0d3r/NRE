@@ -7,9 +7,12 @@
 namespace nre {
 
 	class F_transform_node;
-	class F_pbr_ibl_mesh_material;
-	class F_pbr_ibl_mesh_material_proxy;
+	class A_pbr_ibl_mesh_material;
+	class A_lit_static_mesh_material;
+	class F_lit_static_mesh_material;
 	class A_pbr_ibl_mesh_material_proxy;
+	class A_lit_static_mesh_material_proxy;
+	class F_lit_static_mesh_material_proxy;
 
 
 
@@ -20,8 +23,43 @@ namespace nre {
 
 
 
+	public:
+		struct F_bind_cb_indices {
+
+			u32 per_view_cb_index = 0;
+			u32 per_object_cb_index = 1;
+			u32 directional_light_cb_index = 2;
+			u32 ibl_sky_light_cb_index = 3;
+
+		};
+		struct F_bind_resource_indices {
+
+			u32 brdf_lut_index = 0;
+			u32 prefiltered_env_cube_index = 1;
+			u32 irradiance_cube_index = 2;
+
+		};
+		struct F_bind_indices {
+
+			F_bind_cb_indices cb_indices;
+			F_bind_resource_indices resource_indices;
+
+			u32 sampler_state_index = 0;
+
+		};
+
+
+
+	private:
+		TU<A_sampler_state> ibl_sampler_state_p_;
+
+	public:
+		NCPP_FORCE_INLINE TK_valid<A_sampler_state> ibl_sampler_state_p() const noexcept { return NCPP_FOH_VALID(ibl_sampler_state_p_); }
+
+
+
 	protected:
-		A_pbr_ibl_mesh_material_proxy(TKPA_valid<F_pbr_ibl_mesh_material> material_p);
+		A_pbr_ibl_mesh_material_proxy(TKPA_valid<A_pbr_ibl_mesh_material> material_p);
 
 	public:
 		virtual ~A_pbr_ibl_mesh_material_proxy();
@@ -29,11 +67,32 @@ namespace nre {
 	public:
 		NCPP_OBJECT(A_pbr_ibl_mesh_material_proxy);
 
+	protected:
+		void bind_ibl(
+			KPA_valid_render_command_list_handle render_command_list_p,
+			TKPA_valid<A_render_view> render_view_p,
+			TKPA_valid<A_frame_buffer> frame_buffer_p,
+			const F_bind_indices& indices = {}
+		);
+
 	};
 
 
 
-	class NRE_API F_pbr_ibl_mesh_material_proxy : public A_pbr_ibl_mesh_material_proxy {
+	class NRE_API A_lit_static_mesh_material_proxy : public A_pbr_ibl_mesh_material_proxy {
+
+	protected:
+		A_lit_static_mesh_material_proxy(TKPA_valid<A_lit_static_mesh_material> material_p);
+
+	public:
+		virtual ~A_lit_static_mesh_material_proxy();
+
+	public:
+		NCPP_OBJECT(A_lit_static_mesh_material_proxy);
+
+	};
+
+	class NRE_API F_lit_static_mesh_material_proxy : public A_lit_static_mesh_material_proxy {
 
 	public:
 		struct NCPP_ALIGN(16) F_main_constant_buffer_cpu_data {
@@ -58,7 +117,6 @@ namespace nre {
 		U_vertex_shader_handle main_vertex_shader_p_;
 		U_pixel_shader_handle main_pixel_shader_p_;
 		TU<A_sampler_state> maps_sampler_state_p_;
-		TU<A_sampler_state> ibl_sampler_state_p_;
 
 	public:
 		NCPP_FORCE_INLINE K_valid_graphics_pipeline_state_handle main_graphics_pso_p() const noexcept { return NCPP_FOH_VALID(main_graphics_pso_p_); }
@@ -69,11 +127,11 @@ namespace nre {
 
 
 	public:
-		F_pbr_ibl_mesh_material_proxy(TKPA_valid<F_pbr_ibl_mesh_material> material_p);
-		virtual ~F_pbr_ibl_mesh_material_proxy();
+		F_lit_static_mesh_material_proxy(TKPA_valid<A_lit_static_mesh_material> material_p);
+		virtual ~F_lit_static_mesh_material_proxy();
 
 	public:
-		NCPP_OBJECT(F_pbr_ibl_mesh_material_proxy);
+		NCPP_OBJECT(F_lit_static_mesh_material_proxy);
 
 	public:
 		virtual void bind(
@@ -89,15 +147,53 @@ namespace nre {
 
 
 
-	class NRE_API F_pbr_ibl_mesh_material : public A_pbr_mesh_material {
+	class NRE_API A_pbr_ibl_mesh_material : public A_pbr_mesh_material {
 
 	public:
-		F_pbr_ibl_mesh_material(TKPA_valid<F_actor> actor_p);
-		F_pbr_ibl_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_ibl_mesh_material_proxy>&& proxy_p);
-		virtual ~F_pbr_ibl_mesh_material();
+		A_pbr_ibl_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_ibl_mesh_material_proxy>&& proxy_p);
+		virtual ~A_pbr_ibl_mesh_material();
 
 	public:
-		NCPP_OBJECT(F_pbr_ibl_mesh_material);
+		NCPP_OBJECT(A_pbr_ibl_mesh_material);
+
+	};
+
+
+
+	class NRE_API A_lit_static_mesh_material : public A_pbr_ibl_mesh_material {
+
+	public:
+		F_vector3 albedo = F_vector3::one() * 1.0f;
+		F_range roughness_range = { 0.0f, 1.0f };
+		F_range metallic_range = { 0.0f, 1.0f };
+
+		F_vector2 uv_scale = F_vector2::one();
+		F_vector2 uv_offset = F_vector2::zero();
+
+		TS<F_general_texture_2d> albedo_map_p;
+		TS<F_general_texture_2d> normal_map_p;
+		TS<F_general_texture_2d> mask_map_p;
+
+
+
+	public:
+		A_lit_static_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_lit_static_mesh_material_proxy>&& proxy_p);
+		virtual ~A_lit_static_mesh_material();
+
+	public:
+		NCPP_OBJECT(A_lit_static_mesh_material);
+
+	};
+
+	class NRE_API F_lit_static_mesh_material : public A_lit_static_mesh_material {
+
+	public:
+		F_lit_static_mesh_material(TKPA_valid<F_actor> actor_p);
+		F_lit_static_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_lit_static_mesh_material_proxy>&& proxy_p);
+		virtual ~F_lit_static_mesh_material();
+
+	public:
+		NCPP_OBJECT(F_lit_static_mesh_material);
 
 	};
 
