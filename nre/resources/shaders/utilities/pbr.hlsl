@@ -137,11 +137,7 @@ cbuffer per_object_cbuffer : register(b##Index) {\
 #define PBR_DEFINE_DIRECTIONAL_LIGHT_CB(Index) \
 cbuffer directional_light_cbuffer : register(b##Index) {\
 \
-    float3 directional_light_direction;\
-    float __directional_light_direction__;\
-    \
-    float3 directional_light_color;\
-    float directional_light_intensity;\
+    F_directional_light directional_light;\
 \
     PBR_DIRECTIONAL_LIGHT_CB_CONSTENTS;\
 \
@@ -207,5 +203,137 @@ cbuffer ibl_sky_light_cbuffer : register(b##Index) {\
             PBR_DEFINE_CB_DEFAULT;\
             PBR_DEFINE_SAMPLER_STATE_DEFAULT;\
             PBR_DEFINE_RESOURCES_DEFAULT;
+
+
+
+
+struct F_directional_light {
+
+    float3 direction;
+    float __direction__;
+
+    float3 color;
+    float intensity;
+
+};
+
+struct F_material {
+
+    float3 diffuse_color;
+    float __diffuse_color_pad__;
+
+    float3 specular_color;
+    float __specular_color_pad__;
+
+    float ao;
+    float metallic;
+    float roughness;
+    float __ao_metallic_roughness_pad__;
+
+};
+
+struct F_surface {
+
+    float3 position;
+    float __position_pad__;
+
+    float3 bitangent;
+    float __bitangent_pad__;
+    float3 normal;
+    float __normal_pad__;
+    float3 tangent;
+    float __tangent_pad__;
+    float3 reflect;
+    float __reflect_pad__;
+
+    F_material material;
+
+};
+
+
+
+#define PBR_IBL_SKY_LIGHT_FUNCTION_PARAMS \
+            in Texture2D brdf_lut,\
+            in TextureCube prefiltered_env_cube,\
+            in TextureCube irradiance_cube,\
+            in SamplerState ibl_sampler_state,\
+            float3 ibl_sky_light_color,\
+            float ibl_sky_light_intensity,\
+            uint roughness_level_count
+
+#define PBR_IBL_SKY_LIGHT_PARAMS \
+            brdf_lut, \
+            prefiltered_env_cube, \
+            irradiance_cube, \
+            ibl_sampler_state, \
+            ibl_sky_light_color, \
+            ibl_sky_light_intensity, \
+            roughness_level_count
+
+float3 ComputeIBLSkyLight(
+    PBR_IBL_SKY_LIGHT_FUNCTION_PARAMS,
+    in F_surface surface,
+    float3 V
+) {
+    F_material material = surface.material;
+
+    float3 N = surface.normal;
+    float3 R = surface.reflect;
+    float3 L = R;
+    float3 H = normalize(L + V);
+
+    float NoV = clamp(dot(N, V), 0.01f, 0.99f);
+
+    float2 integrated_specular_brdf_parts = brdf_lut.Sample(ibl_sampler_state, float2(NoV, material.roughness)).xy;
+    
+    float3 specular_env_color = prefiltered_env_cube.SampleLevel(
+        ibl_sampler_state, 
+        R, 
+        material.roughness
+        * (((float)roughness_level_count) - 1.0f)
+    ).xyz;
+
+    float3 specular = (
+        material.specular_color * integrated_specular_brdf_parts.x + integrated_specular_brdf_parts.y
+    ) * specular_env_color;
+    float3 diffuse = material.diffuse_color * irradiance_cube.Sample(ibl_sampler_state, N).xyz;
+
+    return ibl_sky_light_color * ibl_sky_light_intensity * MixDiffuseSpecular(
+        diffuse,
+        specular,
+        dot(H, L),
+        material.specular_color,
+        material.roughness,
+        material.metallic
+    );
+}
+
+
+
+float3 ComputeDirectionalLight(
+    in F_directional_light directional_light,
+    in F_surface surface,
+    float3 V
+) {
+    F_material material = surface.material;
+
+    float3 N = surface.normal;
+    float3 L = normalize(-directional_light.direction);
+    float3 H = normalize(L + V);
+
+    float3 radiance = float3(0, 0, 0);
+
+    float3 specular = PI * GGX_SpecularBRDX(N, L, V, material.specular_color, material.roughness) * saturate(dot(L, N));
+    float3 diffuse = material.diffuse_color * saturate(dot(L, N));
+
+    return directional_light.color * directional_light.intensity * MixDiffuseSpecular(
+        diffuse,
+        specular,
+        dot(H, L),
+        material.specular_color,
+        material.roughness,
+        material.metallic
+    );
+}
 
 #endif // PBR_HLSL

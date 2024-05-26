@@ -159,7 +159,7 @@ namespace nre {
 			}
 		};
 
-		auto shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/pbr_ibl.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
+		auto shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/lit_static_mesh.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
 			NCPP_INIL_SPAN(
 				F_shader_kernel_desc {
 					.name = "vmain",

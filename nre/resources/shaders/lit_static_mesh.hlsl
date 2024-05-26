@@ -74,21 +74,6 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
 
 
-    float3 t_mask = mask_map.Sample(maps_sampler_state, input.uv).xyz;
-
-    float t_ao = t_mask.x;
-    float t_roughness = t_mask.y;
-    float t_metallic = t_mask.z;
-
-    float roughness = lerp(min_roughness, max_roughness, t_roughness);
-    float metallic = lerp(min_metallic, max_metallic, t_metallic);
-
-    float3 t_albedo = albedo_map.Sample(maps_sampler_state, input.uv).xyz;
-    float3 actual_albedo = (
-        albedo
-        * t_albedo
-    );
-
     N = tangent_space_to_world_space(
         normal_map.Sample(maps_sampler_state, input.uv).xyz,
         normalize(cross(input.world_normal, input.world_tangent)),
@@ -97,7 +82,37 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
     );
 
 
-    float3 specularColor = SpecularColor(actual_albedo, metallic);
+
+    float3 mask = mask_map.Sample(maps_sampler_state, input.uv).xyz;
+
+
+
+    F_material material;
+    material.diffuse_color = (
+        albedo 
+        * albedo_map.Sample(maps_sampler_state, input.uv).xyz
+    );
+    material.ao = mask.x;
+    material.roughness = lerp(
+        min_roughness, 
+        max_roughness, 
+        mask.y
+    );
+    material.metallic = lerp(
+        min_metallic, 
+        max_metallic, 
+        mask.z
+    );
+
+    material.specular_color = SpecularColor(material.diffuse_color, material.metallic);
+
+    F_surface surface;
+    surface.position = P;    
+    surface.bitangent = normalize(cross(input.world_normal, input.world_tangent));
+    surface.normal = N;
+    surface.tangent = input.world_tangent;
+    surface.reflect = R;
+    surface.material = material;
 
 
 
@@ -105,58 +120,23 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
 
 
-    {
-        float3 L = R;
-        float3 H = normalize(L + V);
-
-        float2 integratedSpecularBRDFParts = brdf_lut.Sample(ibl_sampler_state, float2(NoV, roughness)).xy;
-        
-        float3 specularEnvColor = prefiltered_env_cube.SampleLevel(
-            ibl_sampler_state, 
-            R, 
-            roughness
-            * (((float)roughness_level_count) - 1.0f)
-        ).xyz;
-
-        float3 specular = (
-            specularColor * integratedSpecularBRDFParts.x + integratedSpecularBRDFParts.y
-        ) * specularEnvColor;
-        float3 diffuse = actual_albedo * irradiance_cube.Sample(ibl_sampler_state, N).xyz;
-
-        radiance += ibl_sky_light_color * ibl_sky_light_intensity * MixDiffuseSpecular(
-            diffuse,
-            specular,
-            dot(H, L),
-            specularColor,
-            roughness,
-            metallic
-        );
-    }
+    radiance += ComputeIBLSkyLight(
+        PBR_IBL_SKY_LIGHT_PARAMS,
+        surface,
+        V
+    );
+    
+    radiance += ComputeDirectionalLight(
+        directional_light,
+        surface,
+        V
+    );
 
 
 
-    {
-        float3 L = normalize(-directional_light_direction);
-        float3 H = normalize(L + V);
+    radiance *= material.ao;
 
-        float3 specular = PI * GGX_SpecularBRDX(N, L, V, specularColor, roughness) * saturate(dot(L, N));
-        float3 diffuse = actual_albedo * saturate(dot(L, N));
-
-        radiance += directional_light_color * directional_light_intensity * MixDiffuseSpecular(
-            diffuse,
-            specular,
-            dot(H, L),
-            specularColor,
-            roughness,
-            metallic
-        );
-    }
-
-
-
-    radiance *= t_ao;
-
-
+    
 
     float3 ldr_color = ACESToneMapping(radiance);
 
