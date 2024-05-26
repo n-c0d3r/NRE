@@ -34,3 +34,5 @@
 #include <nre/rendering/directional_light.hpp>
 #include <nre/rendering/light_system.hpp>
 #include <nre/rendering/default_textures.hpp>
+#include <nre/rendering/generate_mask_map.hpp>
+#include <nre/rendering/convert_normal_map_standard.hpp>

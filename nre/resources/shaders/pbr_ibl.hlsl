@@ -129,11 +129,10 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
     N = tangent_space_to_world_space(
         normal_map.Sample(maps_sampler_state, input.uv).xyz,
-        cross(input.world_normal, input.world_tangent),
+        normalize(cross(input.world_normal, input.world_tangent)),
         input.world_normal,
         input.world_tangent
     );
-
 
 
     float3 specularColor = SpecularColor(actual_albedo, metallic);
@@ -178,7 +177,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         float3 L = normalize(-directional_light_direction);
         float3 H = normalize(L + V);
 
-        float3 specular = GGX_SpecularBRDX(N, L, V, specularColor, roughness) * saturate(dot(L, N));
+        float3 specular = PI * GGX_SpecularBRDX(N, L, V, specularColor, roughness) * saturate(dot(L, N));
         float3 diffuse = actual_albedo * saturate(dot(L, N));
 
         radiance += directional_light_color * directional_light_intensity * MixDiffuseSpecular(
@@ -197,7 +196,7 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
 
 
-    float3 ldr_color = ACESToneMapping(PI * radiance);
+    float3 ldr_color = ACESToneMapping(radiance);
 
     return float4(ldr_color, 1);
 }

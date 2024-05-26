@@ -98,7 +98,7 @@ float3 IntegrateIrradiance(float3 N, TextureCube skyCubemap, uint src_mip_level_
         }
     }
 
-    return irradiance / ((float)IBL_SAMPLE_COUNT_SQRT) / ((float)IBL_SAMPLE_COUNT_SQRT);
+    return PI * irradiance / ((float)IBL_SAMPLE_COUNT_SQRT) / ((float)IBL_SAMPLE_COUNT_SQRT);
 }
 float3 PrefilterEnvMap(float perceptualRoughness, float3 R, TextureCube skyCubemap, uint skyCubeFaceWidth, uint skyCubeMipCount)
 {
