@@ -22,8 +22,16 @@ void compute_brdf_lut(uint3 id : SV_DispatchThreadID) {
         (id.x < width)
         && (id.y < width)
     ) {
-        float NoV = ((float)id.x) / (width - 1.0f);
-        float perceptualRoughness = ((float)id.y) / (width - 1.0f);
+        float NoV = clamp(
+            ((float)id.x) / (width - 1.0f),
+            0.001f,
+            0.999f        
+        );
+        float perceptualRoughness = clamp(
+            ((float)id.y) / (width - 1.0f),
+            0.001f,
+            0.999f        
+        );
 
         brdf_lut[id.xy] = IntegrateSpecularBRDF(perceptualRoughness, NoV);
     }

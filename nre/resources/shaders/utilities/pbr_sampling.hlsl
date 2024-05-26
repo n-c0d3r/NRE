@@ -62,9 +62,17 @@ float2 IntegrateSpecularBRDF(float perceptualRoughness, float NoV)
 
         if( NoL > 0 )
         {
-            float G = GGX_G2( NoL, NoV, perceptualRoughness );
+            // float G = GGX_G2( NoL, NoV, perceptualRoughness );
+            // float G_Vis = G * VoH / (NoH * NoV);
 
-            float G_Vis = G * VoH / (NoH * NoV);
+            float G_Vis = (
+                (
+                    // equal to GGX_G2( NoL, NoV, perceptualRoughness ) / NoV
+                    // to remove NoV from denominator
+                    GGX_V(NoL, NoV, perceptualRoughness) * 4.0f * NoL 
+                ) 
+                * VoH / (NoH)
+            );
             float Fc = SchlickFc(VoH);
 
             A += (1.0f - Fc) * G_Vis;

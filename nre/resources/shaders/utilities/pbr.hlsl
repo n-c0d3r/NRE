@@ -282,7 +282,7 @@ float3 ComputeIBLSkyLight(
     float3 L = R;
     float3 H = normalize(L + V);
 
-    float NoV = clamp(dot(N, V), 0.01f, 0.99f);
+    float NoV = saturate(dot(N, V));
 
     float2 integrated_specular_brdf_parts = brdf_lut.Sample(ibl_sampler_state, float2(NoV, material.roughness)).xy;
     
