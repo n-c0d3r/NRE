@@ -65,5 +65,5 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
 
     color *= float4(hdri_sky_color, 1) * hdri_sky_intensity;
 
-    return float4(ACESFilm(color.xyz * 3.14f), 1);
+    return float4(ACESFilm(color.xyz), 1);
 }

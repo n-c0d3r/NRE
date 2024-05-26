@@ -51,7 +51,7 @@ int main() {
 	auto directional_light_transform_node_p = directional_light_actor_p->template T_add_component<F_transform_node>();
 	auto directional_light_p = directional_light_actor_p->template T_add_component<F_directional_light>();
 
-	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.2_pi, 0.9_pi, 0 });
+	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.2_pi, 0.96_pi, 0 });
 	directional_light_p->intensity = 1.0f;
 
 	// create pbr sphere actor
@@ -63,6 +63,7 @@ int main() {
 	pbr_sphere_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
 
 	pbr_sphere_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
+	pbr_sphere_material_p->roughness_range = { 0.0f, 0.4f };
 
 	pbr_sphere_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ujqmejtr_4K_Albedo.jpg").T_cast<F_texture_2d_asset>()->texture_p;
 	pbr_sphere_material_p->normal_map_p = convert_normal_map_standard(
@@ -139,6 +140,48 @@ int main() {
 		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ulgmbhwn_4K_Roughness.jpg").T_cast<F_texture_2d_asset>()->texture_p,
 		F_default_textures::instance_p()->black_texture_2d_p()
 	);
+
+	// create pbr sphere actor
+	auto pbr_sphere5_actor_p = level_p->T_create_actor();
+	auto pbr_sphere5_transform_node_p = pbr_sphere5_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere5_material_p = pbr_sphere5_actor_p->template T_add_component<F_triplanar_lit_static_mesh_material>();
+	auto pbr_sphere5_renderable_p = pbr_sphere5_actor_p->template T_add_component<F_static_mesh_renderable>();
+
+	pbr_sphere5_transform_node_p->transform *= make_translation({ 6, 0, 3 });
+
+	pbr_sphere5_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+
+	pbr_sphere5_material_p->albedo = F_vector3 { 0.5f, 0.5f, 0.5f };
+	pbr_sphere5_material_p->roughness_range = { 0.0f, 0.0f };
+	pbr_sphere5_material_p->metallic_range = { 0.1f, 0.1f };
+
+	// create pbr sphere actor
+	auto pbr_sphere6_actor_p = level_p->T_create_actor();
+	auto pbr_sphere6_transform_node_p = pbr_sphere6_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere6_material_p = pbr_sphere6_actor_p->template T_add_component<F_triplanar_lit_static_mesh_material>();
+	auto pbr_sphere6_renderable_p = pbr_sphere6_actor_p->template T_add_component<F_static_mesh_renderable>();
+
+	pbr_sphere6_transform_node_p->transform *= make_translation({ 6, 0, 0 });
+
+	pbr_sphere6_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+
+	pbr_sphere6_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
+	pbr_sphere6_material_p->roughness_range = { 0.0f, 0.0f };
+	pbr_sphere6_material_p->metallic_range = { 1.0f, 1.0f };
+
+	// create pbr sphere actor
+	auto pbr_sphere7_actor_p = level_p->T_create_actor();
+	auto pbr_sphere7_transform_node_p = pbr_sphere7_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere7_material_p = pbr_sphere7_actor_p->template T_add_component<F_triplanar_lit_static_mesh_material>();
+	auto pbr_sphere7_renderable_p = pbr_sphere7_actor_p->template T_add_component<F_static_mesh_renderable>();
+
+	pbr_sphere7_transform_node_p->transform *= make_translation({ 6, 0, 6 });
+
+	pbr_sphere7_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+
+	pbr_sphere7_material_p->albedo = F_vector3 { 0.75f, 0.75f, 0.75f };
+	pbr_sphere7_material_p->roughness_range = { 0.72f, 0.72f };
+	pbr_sphere7_material_p->metallic_range = { 0.9f, 0.9f };
 
 
 
