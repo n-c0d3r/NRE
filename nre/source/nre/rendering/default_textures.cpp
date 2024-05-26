@@ -53,6 +53,13 @@ namespace nre {
 				{ F_vector4::future() }
 			)
 		);
+		default_normal_texture_2d_p_ = TS<F_general_texture_2d>()(
+			F_texture_2d_builder(
+				1,
+				1,
+				{ F_vector4(0.5f, 0.5f, 1.0f, 1.0f) }
+			)
+		);
 	}
 
 }

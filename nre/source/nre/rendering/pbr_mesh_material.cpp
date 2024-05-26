@@ -25,7 +25,7 @@ namespace nre {
 		NRE_ACTOR_COMPONENT_REGISTER(A_pbr_mesh_material);
 
 		albedo_map_p = F_default_textures::instance_p()->white_texture_2d_p();
-		normal_map_p = F_default_textures::instance_p()->blue_texture_2d_p();
+		normal_map_p = F_default_textures::instance_p()->default_normal_texture_2d_p();
 		mask_map_p = F_default_textures::instance_p()->white_texture_2d_p();
 	}
 	A_pbr_mesh_material::~A_pbr_mesh_material() {

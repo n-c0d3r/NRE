@@ -27,6 +27,7 @@ namespace nre {
 		TS<F_general_texture_2d> green_texture_2d_p_;
 		TS<F_general_texture_2d> blue_texture_2d_p_;
 		TS<F_general_texture_2d> alpha_texture_2d_p_;
+		TS<F_general_texture_2d> default_normal_texture_2d_p_;
 
 	public:
 		NCPP_FORCE_INLINE const TS<F_general_texture_2d>& white_texture_2d_p() const noexcept { return white_texture_2d_p_; }
@@ -35,6 +36,7 @@ namespace nre {
 		NCPP_FORCE_INLINE const TS<F_general_texture_2d>& green_texture_2d_p() const noexcept { return green_texture_2d_p_; }
 		NCPP_FORCE_INLINE const TS<F_general_texture_2d>& blue_texture_2d_p() const noexcept { return blue_texture_2d_p_; }
 		NCPP_FORCE_INLINE const TS<F_general_texture_2d>& alpha_texture_2d_p() const noexcept { return alpha_texture_2d_p_; }
+		NCPP_FORCE_INLINE const TS<F_general_texture_2d>& default_normal_texture_2d_p() const noexcept { return default_normal_texture_2d_p_; }
 
 
 
