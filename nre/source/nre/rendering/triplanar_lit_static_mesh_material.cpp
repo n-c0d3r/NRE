@@ -127,7 +127,8 @@ namespace nre {
 	void F_triplanar_lit_static_mesh_material_proxy::bind(
 		KPA_valid_render_command_list_handle render_command_list_p,
 		TKPA_valid<A_render_view> render_view_p,
-		TKPA_valid<nrhi::A_frame_buffer> frame_buffer_p
+		TKPA_valid<nrhi::A_frame_buffer> frame_buffer_p,
+		u32 flags
 	)
 	{
 		bind_ibl(
