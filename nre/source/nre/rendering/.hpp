@@ -18,6 +18,7 @@
 #include <nre/rendering/hdri_sky_material.hpp>
 #include <nre/rendering/pbr_ibl_mesh_material.hpp>
 #include <nre/rendering/lit_static_mesh_material.hpp>
+#include <nre/rendering/triplanar_lit_static_mesh_material.hpp>
 #include <nre/rendering/pbr_mesh_material.hpp>
 #include <nre/rendering/camera.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
