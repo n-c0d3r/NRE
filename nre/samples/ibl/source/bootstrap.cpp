@@ -18,7 +18,7 @@ int main() {
 
 
 
-	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/quattro_canti_8k.hdr").T_cast<F_texture_2d_asset>();
+	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/fish_hoek_beach_8k.hdr").T_cast<F_texture_2d_asset>();
 
 	auto skymap_p = panorama_to_cubemap(NCPP_FOH_VALID(panorama_asset_p->texture_p), 1320);
 
@@ -51,7 +51,7 @@ int main() {
 	auto directional_light_transform_node_p = directional_light_actor_p->template T_add_component<F_transform_node>();
 	auto directional_light_p = directional_light_actor_p->template T_add_component<F_directional_light>();
 
-	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.4_pi, 0, 0 });
+	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.2_pi, 0.9_pi, 0 });
 	directional_light_p->intensity = 1.0f;
 //	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.25_pi, -3.3_pi / 4.0f, 0 });
 
@@ -65,7 +65,7 @@ int main() {
 
 	pbr_sphere_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
 
-	pbr_sphere_material_p->uv_scale *= 2.0f;
+//	pbr_sphere_material_p->uv_scale *= 2.0f;
 	pbr_sphere_material_p->uv_offset += 0.5f * F_vector2::one();
 
 	pbr_sphere_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ujqmejtr_4K_Albedo.jpg").T_cast<F_texture_2d_asset>()->texture_p;
