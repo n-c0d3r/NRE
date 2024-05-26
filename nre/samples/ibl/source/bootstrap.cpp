@@ -86,6 +86,7 @@ int main() {
 	pbr_sphere2_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
 
 	pbr_sphere2_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
+	pbr_sphere2_material_p->roughness_range = { 0.0f, 0.4f };
 
 	pbr_sphere2_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/wiqmfcmn_4K_Albedo.jpg").T_cast<F_texture_2d_asset>()->texture_p;
 	pbr_sphere2_material_p->normal_map_p = convert_normal_map_standard(
