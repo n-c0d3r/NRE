@@ -84,7 +84,7 @@ float3 GGX_SpecularBRDX(float3 N, float3 L, float3 V, float3 specularColor, floa
 
 float3 SpecularColor(float3 albedo, float metallic)
 {
-    return albedo * clamp(metallic, 0.04f, 1.0f);
+    return lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
 }
 float3 MixDiffuseSpecular(float3 diffuse, float3 specular, float HoL, float3 specularColor, float perceptualRoughness, float metallic)
 {
