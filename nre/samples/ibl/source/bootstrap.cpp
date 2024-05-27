@@ -24,6 +24,10 @@ int main() {
 
 
 
+	auto sphere_mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+
+
+
 	// create level
 	auto level_p = TU<F_level>()();
 
@@ -60,7 +64,7 @@ int main() {
 	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_triplanar_lit_static_mesh_material>();
 	auto pbr_sphere_renderable_p = pbr_sphere_actor_p->template T_add_component<F_static_mesh_renderable>();
 
-	pbr_sphere_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+	pbr_sphere_renderable_p->mesh_p = sphere_mesh_p;
 
 	pbr_sphere_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
 	pbr_sphere_material_p->roughness_range = { 0.0f, 0.4f };
@@ -83,7 +87,7 @@ int main() {
 
 	pbr_sphere2_transform_node_p->transform *= make_translation({ 3, 0, 0 });
 
-	pbr_sphere2_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+	pbr_sphere2_renderable_p->mesh_p = sphere_mesh_p;
 
 	pbr_sphere2_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
 	pbr_sphere2_material_p->roughness_range = { 0.0f, 0.4f };
@@ -106,7 +110,7 @@ int main() {
 
 	pbr_sphere3_transform_node_p->transform *= make_translation({ 0, 0, 3 });
 
-	pbr_sphere3_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+	pbr_sphere3_renderable_p->mesh_p = sphere_mesh_p;
 
 	pbr_sphere3_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
 
@@ -128,7 +132,7 @@ int main() {
 
 	pbr_sphere4_transform_node_p->transform *= make_translation({ 3, 0, 3 });
 
-	pbr_sphere4_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+	pbr_sphere4_renderable_p->mesh_p = sphere_mesh_p;
 
 	pbr_sphere4_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
 
@@ -150,7 +154,7 @@ int main() {
 
 	pbr_sphere5_transform_node_p->transform *= make_translation({ 6, 0, 3 });
 
-	pbr_sphere5_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+	pbr_sphere5_renderable_p->mesh_p = sphere_mesh_p;
 
 	pbr_sphere5_material_p->albedo = F_vector3 { 0.5f, 0.5f, 0.5f };
 	pbr_sphere5_material_p->roughness_range = { 0.0f, 0.0f };
@@ -164,7 +168,7 @@ int main() {
 
 	pbr_sphere6_transform_node_p->transform *= make_translation({ 6, 0, 0 });
 
-	pbr_sphere6_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+	pbr_sphere6_renderable_p->mesh_p = sphere_mesh_p;
 
 	pbr_sphere6_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
 	pbr_sphere6_material_p->roughness_range = { 0.0f, 0.0f };
@@ -178,7 +182,7 @@ int main() {
 
 	pbr_sphere7_transform_node_p->transform *= make_translation({ 6, 0, 6 });
 
-	pbr_sphere7_renderable_p->mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+	pbr_sphere7_renderable_p->mesh_p = sphere_mesh_p;
 
 	pbr_sphere7_material_p->albedo = F_vector3 { 0.75f, 0.75f, 0.75f };
 	pbr_sphere7_material_p->roughness_range = { 0.72f, 0.72f };
