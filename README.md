@@ -4,7 +4,33 @@ NCoder's Learning Aimed C++ Render Engine.
 ---
 
 ## Features
-+ 
++ Basic actor system
++ Hierarchy:
+  + Transform node
++ Spectator
++ Camera
++ Renderable system
+  + Static mesh renderable
++ Render view system
+  + Simple render view
++ Light system
+  + Directional light
++ Basic material system:
+  + HDRI sky material
+  + Lit static mesh material (uses IBL)
++ General textures:
+  + Texture builders to build texel data
+  + Support basic shader resource view, unordered access view,...
++ Basic asset system
+  + Static mesh asset:
+    + Wavefront object file format (.obj)
+  + Texture 2d asset:
+    + HDR file format (.hdr)
+    + PNG file format (.png)
+    + JPG file format (.jpg)
+  + Shader asset:
+    + HLSL file format (.hlsl)
++ Panorama map to cube map
 
 ---
 
