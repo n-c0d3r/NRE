@@ -20,7 +20,7 @@ int main() {
 	auto application_p = TU<F_application>()(
 		F_application_desc {
 			.main_surface_desc = {
-				.title = L"Cube",
+				.title = L"Cube with texture 2d",
 				.size = { 1024, 700 }
 			}
 		}

@@ -19,9 +19,13 @@ NCoder's Learning Aimed C++ Render Engine.
 
 ## Samples
 + Hello NRE
+![alt text](./nre/resources/textures/screenshots/hello_nre.png)
 + Cube
-+ Cube with texture 2d
+![alt text](./nre/resources/textures/screenshots/cube.png)
++ Cube with texture 2D
+![alt text](./nre/resources/textures/screenshots/cube_with_texture_2d.png)
 + Image Based Lighting (Diffuse + Specular)
+![alt text](./nre/resources/textures/screenshots/ibl.png)
 
 ---
 

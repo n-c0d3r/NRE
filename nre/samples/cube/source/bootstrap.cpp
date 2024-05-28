@@ -37,7 +37,7 @@ int main() {
 
 	F_vector4 clear_color = { 0.3f, 0.3f, 0.3f, 1.0f };
 
-	auto cube_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>();
+	auto cube_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/cube.obj").T_cast<F_static_mesh_asset>();
 	auto cube_mesh_p = NCPP_FOH_VALID(cube_asset_p->mesh_p);
 	auto cube_mesh_buffer_p = cube_mesh_p->buffer_p();
 
