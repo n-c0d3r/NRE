@@ -4,16 +4,7 @@ NCoder's Learning Aimed C++ Render Engine.
 ---
 
 ## Features
-+ Flexible, optimized and supports multiple drivers (`drivers mean low-level graphics APIs like DirectX 11, DirectX 12, OpenGL, Vulkan,...`):
-  + Compile-time abstraction for single driver
-  + Run-time abstraction for multiple drivers 
-  + Quick cross-driver implementation for enums and functions 
-  + ...
-+ Supported drivers:
-  + DirectX 11
-+ Shading languages:
-  + HLSL
-  + NSL (`NCoder's shading language`) (`currently in development`)
++ 
 
 ---
 
