@@ -41,6 +41,8 @@ NCoder's Learning Aimed C++ Render Engine.
 ![alt text](./nre/resources/textures/screenshots/cube.png)
 + Cube with texture 2D
 ![alt text](./nre/resources/textures/screenshots/cube_with_texture_2d.png)
++ HDRI Sky
+![alt text](./nre/resources/textures/screenshots/hdri_sky.png)
 + Image Based Lighting (Diffuse + Specular)
 ![alt text](./nre/resources/textures/screenshots/ibl.png)
 

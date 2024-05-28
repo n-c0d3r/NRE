@@ -52,7 +52,7 @@ int main() {
 	auto hdri_sky_material_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_material>();
 	auto hdri_sky_renderable_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_renderable>();
 
-	hdri_sky_renderable_p->sky_texture_cube_p = skymap_p;
+	hdri_sky_material_p->sky_texture_cube_p = skymap_p;
 
 
 
