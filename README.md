@@ -49,10 +49,10 @@ NCoder's Learning Aimed C++ Render Engine.
 ---
 
 ## Core Dependencies
-+ NCPP
-+ NMath
-+ NSurface
-+ NRHI
++ [NCPP](https://github.com/n-c0d3r/NCPP)
++ [NMath](https://github.com/n-c0d3r/NMath)
++ [NSurface](https://github.com/n-c0d3r/NSurface)
++ [NRHI](https://github.com/n-c0d3r/NRHI)
 + OBJ-Loader
 + FreeImage
 
