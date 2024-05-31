@@ -27,7 +27,10 @@ namespace nre {
 
 	};
 
-	class NRE_API F_lit_static_mesh_material_proxy : public A_lit_static_mesh_material_proxy {
+	class NRE_API F_lit_static_mesh_material_proxy :
+		public A_lit_static_mesh_material_proxy,
+		public I_has_simple_bind_material_proxy
+	{
 
 	public:
 		struct NCPP_ALIGN(16) F_main_constant_buffer_cpu_data {
@@ -69,11 +72,10 @@ namespace nre {
 		NCPP_OBJECT(F_lit_static_mesh_material_proxy);
 
 	public:
-		virtual void bind(
+		virtual void simple_bind(
 			KPA_valid_render_command_list_handle render_command_list_p,
 			TKPA_valid<A_render_view> render_view_p,
-			TKPA_valid<A_frame_buffer> frame_buffer_p,
-			u32 flags
+			TKPA_valid<A_frame_buffer> frame_buffer_p
 		) override;
 
 	protected:

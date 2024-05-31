@@ -20,12 +20,15 @@ namespace nre {
 
 	private:
 		TK_valid<F_actor> actor_p_;
+		b8 is_active_ = true;
+		b8 is_active_next_frame_ = true;
 
 	protected:
 		TG_vector<u64> type_ids_;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_actor> actor_p() const noexcept { return actor_p_; }
+		NCPP_FORCE_INLINE b8 is_active() const noexcept { return is_active_; }
 
 	public:
 		NCPP_FORCE_INLINE const TG_vector<u64>& type_ids() const noexcept { return type_ids_; }
@@ -43,6 +46,9 @@ namespace nre {
 		virtual void ready();
 		virtual void gameplay_tick();
 		virtual void render_tick();
+
+	public:
+		void set_active(b8 value);
 
 	};
 

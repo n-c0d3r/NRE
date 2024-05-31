@@ -91,13 +91,13 @@ namespace nre {
 		KPA_valid_render_command_list_handle render_command_list_p,
 		TKPA_valid<A_render_view> render_view_p,
 		TKPA_valid<A_frame_buffer> frame_buffer_p
-	) const {
+	) {
 		if(!mesh_p)
 			return;
 
 		render_command_list_p->clear_state();
 
-		material_p()->bind(
+		material_p()->proxy_p().T_interface<I_has_simple_bind_material_proxy>()->simple_bind(
 			render_command_list_p,
 			render_view_p,
 			frame_buffer_p

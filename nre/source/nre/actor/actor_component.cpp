@@ -23,4 +23,9 @@ namespace nre {
 
 	}
 
+	void A_actor_component::set_active(b8 value) {
+
+		is_active_next_frame_ = value;
+	}
+
 }

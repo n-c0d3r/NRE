@@ -14,6 +14,19 @@ namespace nre {
 
 
 
+	class I_has_simple_bind_material_proxy {
+
+	public:
+		virtual void simple_bind(
+			KPA_valid_render_command_list_handle render_command_list_p,
+			TKPA_valid<A_render_view> render_view_p,
+			TKPA_valid<A_frame_buffer> frame_buffer_p
+		) = 0;
+
+	};
+
+
+
 	class NRE_API A_material_proxy {
 
 	public:
@@ -41,14 +54,6 @@ namespace nre {
 	protected:
 		virtual void update();
 
-	protected:
-		virtual void bind(
-			KPA_valid_render_command_list_handle render_command_list_p,
-			TKPA_valid<A_render_view> render_view_p,
-			TKPA_valid<A_frame_buffer> frame_buffer_p,
-			u32 flags = 0
-		) = 0;
-
 	};
 
 
@@ -75,19 +80,6 @@ namespace nre {
 	protected:
 		virtual void ready() override;
 		virtual void render_tick() override;
-
-	public:
-		NCPP_FORCE_INLINE void bind(
-			KPA_valid_render_command_list_handle render_command_list_p,
-			TKPA_valid<A_render_view> render_view_p,
-			TKPA_valid<A_frame_buffer> frame_buffer_p
-		) {
-			proxy_p_->bind(
-				render_command_list_p,
-				render_view_p,
-				frame_buffer_p
-			);
-		}
 
 	};
 

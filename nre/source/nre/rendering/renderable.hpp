@@ -21,7 +21,7 @@ namespace nre {
 			KPA_valid_render_command_list_handle render_command_list_p,
 			TKPA_valid<A_render_view> render_view_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p
-		) const = 0;
+		) = 0;
 
 	};
 	class I_has_vertex_buffer_renderable {

@@ -26,14 +26,20 @@ namespace nre {
 
 		for(auto& component_p : component_vector_)
 		{
-			component_p->gameplay_tick();
+			component_p->is_active_ = component_p->is_active_next_frame_;
+
+			if(component_p->is_active_)
+				component_p->gameplay_tick();
 		}
 	}
 	void F_actor::render_tick() {
 
 		for(auto& component_p : component_vector_)
 		{
-			component_p->render_tick();
+			component_p->is_active_ = component_p->is_active_next_frame_;
+
+			if(component_p->is_active_)
+				component_p->render_tick();
 		}
 	}
 
