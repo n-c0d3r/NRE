@@ -39,12 +39,29 @@ namespace nre {
 				}
 			);
 
+#ifdef NRHI_DRIVER_DIRECTX_11
+			if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
+				ImGui_ImplDX11_Init(
+					NCPP_FOH_VALID(device_p_).T_cast<F_directx11_device>()->d3d11_device_p(),
+					NCPP_FOH_VALID(command_queue_p_).T_cast<F_directx11_command_queue>()->d3d11_device_context_p()
+				);
+#endif
+
 			main_swapchain_p_ = H_swapchain::create(
 				NCPP_FOH_VALID(command_queue_p_),
 				NCPP_FOH_VALID(
 					NRE_APPLICATION()->main_surface_p()
 				),
 				F_swapchain_desc {
+				}
+			);
+
+			main_frame_buffer_p_ = H_frame_buffer::create(
+				NCPP_FOH_VALID(device_p_),
+				{
+					.color_attachments = {
+						main_swapchain_p()->back_rtv_p()
+					}
 				}
 			);
 		}
@@ -61,6 +78,10 @@ namespace nre {
 	}
 	F_render_system::~F_render_system() {
 
+#ifdef NRHI_DRIVER_DIRECTX_11
+		if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
+			ImGui_ImplDX11_Shutdown();
+#endif
 	}
 
 }

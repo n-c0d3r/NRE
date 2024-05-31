@@ -381,7 +381,7 @@ namespace nre {
 			vertex_channel_count_ = sizeof...(F_vertex_channel_datas__);
 
 			buffer_p_ = TU<F_buffer>()(NCPP_KTHIS());
-			buffer_p_.T_cast<F_buffer>()->upload_internal(
+			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
 				additional_bind_flag,
 				heap_type
 			);
@@ -405,7 +405,7 @@ namespace nre {
 			vertex_channel_count_ = sizeof...(F_vertex_channel_datas__);
 
 			buffer_p_ = TU<F_buffer>()(NCPP_KTHIS());
-			buffer_p_.T_cast<F_buffer>()->upload_internal(
+			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
 				additional_bind_flag,
 				heap_type
 			);
@@ -428,7 +428,7 @@ namespace nre {
 
 			vertex_count_ = 0;
 
-			buffer_p_.T_cast<F_buffer>()->upload_internal(
+			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
 				additional_bind_flag,
 				heap_type
 			);
@@ -447,7 +447,7 @@ namespace nre {
 
 			vertex_count_ = eastl::get<0>(vertex_channels).size();
 
-			buffer_p_.T_cast<F_buffer>()->upload_internal(
+			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
 				additional_bind_flag,
 				heap_type
 			);

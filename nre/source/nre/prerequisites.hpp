@@ -70,6 +70,16 @@ namespace nre {}
 #include <png.h>
 #include <FreeImage.h>
 
+#include "imgui.h"
+
+#ifdef EA_PLATFORM_WINDOWS
+	#include "backends/imgui_impl_win32.h"
+#endif
+
+#ifdef NRHI_DRIVER_DIRECTX_11
+	#include "backends/imgui_impl_dx11.h"
+#endif
+
 #pragma endregion
 
 
