@@ -23,6 +23,9 @@ namespace nre {
 		b8 move_right_ = false;
 		b8 move_left_ = false;
 
+		b8 is_want_to_enable_mouse_lock_ = false;
+		b8 will_check_for_enabling_mouse_lock_next_frame_ = false;
+
 	public:
 		f32 move_speed = 4.0f;
 		f32 rotate_speed = 1.0_pi;

@@ -103,13 +103,17 @@ namespace nre {
 					ImGui::NewFrame();
 				}
 
-				ImGui::ShowDemoWindow();
-
 				gameplay_tick_event_.invoke();
+
+				// end imgui frame
+				{
+					ImGui::EndFrame();
+					is_imgui_focused_ = ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
+				}
 
 				render_tick_event_.invoke();
 
-				// end imgui framelient_size
+				// render imgui
 				{
 					ImGui::Render();
 

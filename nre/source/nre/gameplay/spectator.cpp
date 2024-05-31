@@ -54,7 +54,7 @@ namespace nre {
 					move_left_ = true;
 					break;
 				case E_keycode::ESCAPE:
-					mouse_lock = !mouse_lock;
+					mouse_lock = false;
 					break;
 				}
 			}
@@ -83,7 +83,7 @@ namespace nre {
 		mouse_button_down_event_listener_handle_ = NRE_MOUSE()->T_get_event<F_mouse_button_down_event>().T_push_back_listener(
 			[this](auto& e) {
 
-//			  	mouse_lock = true;
+			  	is_want_to_enable_mouse_lock_ = true;
 			}
 		);
 	}
@@ -150,6 +150,13 @@ namespace nre {
 	}
 	void F_spectator::update_mouse() {
 
+		if(will_check_for_enabling_mouse_lock_next_frame_) {
+
+			if(!(NRE_APPLICATION()->is_imgui_focused()))
+				mouse_lock = true;
+		}
+		will_check_for_enabling_mouse_lock_next_frame_ = false;
+
 		NRE_MOUSE()->set_mouse_visible(!mouse_lock);
 
 		if(mouse_lock)
@@ -159,6 +166,12 @@ namespace nre {
 				+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->client_size()) * 0.5f)
 			);
 		}
+
+		if(is_want_to_enable_mouse_lock_) {
+
+			will_check_for_enabling_mouse_lock_next_frame_ = true;
+		}
+		is_want_to_enable_mouse_lock_ = false;
 	}
 
 }
