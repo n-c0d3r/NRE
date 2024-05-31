@@ -86,7 +86,7 @@ float3 SpecularColor(float3 albedo, float metallic)
 {
     return lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
 }
-float3 MixDiffuseSpecular(float3 diffuse, float3 specular, float HoL, float3 specularColor, float perceptualRoughness, float metallic)
+float3 MixDiffuseSpecular(float3 diffuse, float3 specular, float HoL, float3 specularColor, float perceptualRoughness, float metallic, float ao)
 {
     float3 kS = SchlickFRoughness(max(HoL, 0.0f), specularColor, perceptualRoughness);
     float3 kD = (float3(1.0f, 1.0f, 1.0f) - kS);
@@ -304,7 +304,8 @@ float3 ComputeIBLSkyLight(
         dot(H, L),
         material.specular_color,
         material.roughness,
-        material.metallic
+        material.metallic,
+        material.ao
     );
 }
 
@@ -332,7 +333,8 @@ float3 ComputeDirectionalLight(
         dot(H, L),
         material.specular_color,
         material.roughness,
-        material.metallic
+        material.metallic,
+        material.ao
     );
 }
 

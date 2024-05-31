@@ -160,10 +160,6 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         V
     );
 
-
-
-    radiance *= material.ao;
-
     
 
     float3 ldr_color = ACESToneMapping(radiance);

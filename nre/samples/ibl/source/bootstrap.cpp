@@ -264,12 +264,22 @@ int main() {
 
 		  	level_p.reset();
 		};
-		NRE_APPLICATION_GAMEPLAY_TICK(application_p) {
-
+		NRE_APPLICATION_GAMEPLAY_TICK(application_p)
+		{
 			NRE_TICK_BY_DURATION(1.0f)
 			{
 				NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());
 			};
+
+			{
+				ImGui::Begin("Lighting Settings");
+
+				ImGui::InputFloat("Directional Light Intensity", &(directional_light_p->intensity));
+				ImGui::InputFloat("IBL Sky Light Intensity", &(hdri_sky_ibl_light_p->intensity));
+				ImGui::InputFloat("HDRI Sky Intensity", &(hdri_sky_material_p->intensity));
+
+				ImGui::End();
+			}
 
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p) {
