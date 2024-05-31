@@ -33,18 +33,21 @@ namespace nre {
 
 		nrhi::initialize_system();
 
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+		// init imgui
+		{
+			IMGUI_CHECKVERSION();
+			ImGui::CreateContext();
+			ImGuiIO& io = ImGui::GetIO();
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
 #ifdef EA_PLATFORM_WINDOWS
-		ImGui_ImplWin32_Init(main_surface_p_->handle());
-		main_surface_p_->registry_custom_window_proc_handler(
-			ImGui_ImplWin32_WndProcHandler
-		);
+			ImGui_ImplWin32_Init(main_surface_p_->handle());
+			main_surface_p_->registry_custom_window_proc_handler(
+				ImGui_ImplWin32_WndProcHandler
+			);
 #endif
+		}
 
 		render_system_p_ = TU<F_render_system>()();
 		asset_system_p_ = TU<F_asset_system>()();
@@ -53,11 +56,14 @@ namespace nre {
 
 		render_system_p_.reset();
 
+		// release imgui
+		{
 #ifdef EA_PLATFORM_WINDOWS
-		ImGui_ImplWin32_Shutdown();
+			ImGui_ImplWin32_Shutdown();
 #endif
 
-		ImGui::DestroyContext();
+			ImGui::DestroyContext();
+		}
 
 		nrhi::release_system();
 
@@ -83,40 +89,46 @@ namespace nre {
 
 		  	if(main_surface_p_) {
 
+				// begin imgui frame
+				{
+#ifdef NRHI_DRIVER_DIRECTX_11
+					if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
+						ImGui_ImplDX11_NewFrame();
+#endif
+
+#ifdef EA_PLATFORM_WINDOWS
+					ImGui_ImplWin32_NewFrame();
+#endif
+
+					ImGui::NewFrame();
+				}
+
 				gameplay_tick_event_.invoke();
 
 				render_tick_event_.invoke();
 
-#ifdef NRHI_DRIVER_DIRECTX_11
-				if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
-					ImGui_ImplDX11_NewFrame();
-#endif
-
-#ifdef EA_PLATFORM_WINDOWS
-				ImGui_ImplWin32_NewFrame();
-#endif
-
-				ImGui::NewFrame();
-
 				ImGui::ShowDemoWindow();
 
-				ImGui::Render();
+				// end imgui frame
+				{
+					ImGui::Render();
 
 #ifdef NRHI_DRIVER_DIRECTX_11
-				if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
-				{
-					ID3D11RenderTargetView* d3d11_rtv_p = (ID3D11RenderTargetView*)(
-						render_system_p_->main_swapchain_p()->back_rtv_p().T_cast<F_directx11_resource_view>()->d3d11_view_p()
-					);
-					render_system_p_->command_queue_p().T_cast<F_directx11_command_queue>()->d3d11_device_context_p()->OMSetRenderTargets(
-						1,
-						&d3d11_rtv_p,
-						0
-					);
+					if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
+					{
+						ID3D11RenderTargetView* d3d11_rtv_p = (ID3D11RenderTargetView*)(
+							render_system_p_->main_swapchain_p()->back_rtv_p().T_cast<F_directx11_resource_view>()->d3d11_view_p()
+						);
+						render_system_p_->command_queue_p().T_cast<F_directx11_command_queue>()->d3d11_device_context_p()->OMSetRenderTargets(
+							1,
+							&d3d11_rtv_p,
+							0
+						);
 
-					ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-				}
+						ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+					}
 #endif
+				}
 
 				render_system_p_->main_swapchain_p()->present();
 		  	}

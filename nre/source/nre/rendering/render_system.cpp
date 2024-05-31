@@ -39,13 +39,16 @@ namespace nre {
 				}
 			);
 
+			// setup imgui render device and context
+			{
 #ifdef NRHI_DRIVER_DIRECTX_11
-			if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
-				ImGui_ImplDX11_Init(
-					NCPP_FOH_VALID(device_p_).T_cast<F_directx11_device>()->d3d11_device_p(),
-					NCPP_FOH_VALID(command_queue_p_).T_cast<F_directx11_command_queue>()->d3d11_device_context_p()
-				);
+				if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
+					ImGui_ImplDX11_Init(
+						NCPP_FOH_VALID(device_p_).T_cast<F_directx11_device>()->d3d11_device_p(),
+						NCPP_FOH_VALID(command_queue_p_).T_cast<F_directx11_command_queue>()->d3d11_device_context_p()
+					);
 #endif
+			}
 
 			main_swapchain_p_ = H_swapchain::create(
 				NCPP_FOH_VALID(command_queue_p_),
