@@ -119,7 +119,7 @@ namespace nre {
 			+ move_input.y * last_transform.forward.xyz()
 		);
 
-		F_vector2_u surface_size = NRE_MAIN_SURFACE()->desc().size;
+		F_vector2_u surface_size = NRE_MAIN_SURFACE()->client_size();
 
 		// re-compute position and rotation
 		if(mouse_lock)
@@ -155,8 +155,8 @@ namespace nre {
 		if(mouse_lock)
 		{
 			NRE_MOUSE()->set_mouse_position(
-				NRE_MAIN_SURFACE()->desc().offset
-				+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->desc().size) * 0.5f)
+				NRE_MAIN_SURFACE()->client_offset()
+				+ F_vector2_i(F_vector2(NRE_MAIN_SURFACE()->client_size()) * 0.5f)
 			);
 		}
 	}

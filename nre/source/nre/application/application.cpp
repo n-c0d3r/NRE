@@ -109,7 +109,7 @@ namespace nre {
 
 				render_tick_event_.invoke();
 
-				// end imgui frame
+				// end imgui framelient_size
 				{
 					ImGui::Render();
 
