@@ -103,11 +103,11 @@ namespace nre {
 					ImGui::NewFrame();
 				}
 
+				ImGui::ShowDemoWindow();
+
 				gameplay_tick_event_.invoke();
 
 				render_tick_event_.invoke();
-
-				ImGui::ShowDemoWindow();
 
 				// end imgui frame
 				{
@@ -119,7 +119,8 @@ namespace nre {
 						ID3D11RenderTargetView* d3d11_rtv_p = (ID3D11RenderTargetView*)(
 							render_system_p_->main_swapchain_p()->back_rtv_p().T_cast<F_directx11_resource_view>()->d3d11_view_p()
 						);
-						render_system_p_->command_queue_p().T_cast<F_directx11_command_queue>()->d3d11_device_context_p()->OMSetRenderTargets(
+						ID3D11DeviceContext* d3d11_ctx_p = render_system_p_->command_queue_p().T_cast<F_directx11_command_queue>()->d3d11_device_context_p();
+						d3d11_ctx_p->OMSetRenderTargets(
 							1,
 							&d3d11_rtv_p,
 							0

@@ -54,7 +54,7 @@ namespace nre {
 					move_left_ = true;
 					break;
 				case E_keycode::ESCAPE:
-					mouse_lock = false;
+					mouse_lock = !mouse_lock;
 					break;
 				}
 			}
@@ -83,7 +83,7 @@ namespace nre {
 		mouse_button_down_event_listener_handle_ = NRE_MOUSE()->T_get_event<F_mouse_button_down_event>().T_push_back_listener(
 			[this](auto& e) {
 
-				mouse_lock = true;
+//			  	mouse_lock = true;
 			}
 		);
 	}
