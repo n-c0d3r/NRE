@@ -71,6 +71,15 @@ int main() {
 				NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());
 			};
 
+		   	// Settings
+		   	{
+			   	ImGui::Begin("Settings");
+
+			   	ImGui::InputFloat("HDRI Sky Intensity", &(hdri_sky_material_p->intensity));
+
+			   	ImGui::End();
+		   	}
+
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p) {
 

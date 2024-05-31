@@ -271,8 +271,9 @@ int main() {
 				NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());
 			};
 
+			// Settings
 			{
-				ImGui::Begin("Lighting Settings");
+				ImGui::Begin("Settings");
 
 				ImGui::InputFloat("Directional Light Intensity", &(directional_light_p->intensity));
 				ImGui::InputFloat("IBL Sky Light Intensity", &(hdri_sky_ibl_light_p->intensity));
