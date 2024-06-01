@@ -41,9 +41,10 @@ namespace nre {
 
 
 
-	public:
-		A_directional_light_shadow(TKPA_valid<F_actor> actor_p, F_shadow_mask mask = 0);
+	protected:
 		A_directional_light_shadow(TKPA_valid<F_actor> actor_p, TU<A_directional_light_shadow_proxy>&& proxy_p, F_shadow_mask mask = 0);
+
+	public:
 		virtual ~A_directional_light_shadow();
 
 	public:

@@ -18,16 +18,6 @@ namespace nre {
 
 	TK<A_directional_light_shadow> A_directional_light_shadow::instance_ps;
 
-	A_directional_light_shadow::A_directional_light_shadow(TKPA_valid<F_actor> actor_p, F_shadow_mask mask) :
-		A_shadow(actor_p, TU<A_directional_light_shadow_proxy>()(NCPP_KTHIS()), mask)
-	{
-		NRE_ACTOR_COMPONENT_REGISTER(A_directional_light_shadow);
-
-		instance_ps = NCPP_KTHIS().no_requirements();
-
-		actor_p->set_gameplay_tick(true);
-		actor_p->set_render_tick(true);
-	}
 	A_directional_light_shadow::A_directional_light_shadow(TKPA_valid<F_actor> actor_p, TU<A_directional_light_shadow_proxy>&& proxy_p, F_shadow_mask mask) :
 		A_shadow(actor_p, std::move(proxy_p), mask)
 	{
