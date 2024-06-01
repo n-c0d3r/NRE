@@ -65,6 +65,16 @@ namespace nre {
 					loaded_mesh.Indices.data(),
 					sizeof(u32) * loaded_mesh.Indices.size()
 				);
+
+				// offset vertex indices
+				{
+					u32 last_index_id = base_index_location + loaded_mesh.Indices.size();
+					for(u32 index_id = base_index_location; index_id < last_index_id; ++index_id) {
+
+						indices[index_id] += base_vertex_location;
+					}
+				}
+
 				submesh_headers[i] = {
 					.vertex_count = u32(loaded_mesh.Vertices.size()),
 					.index_count = u32(loaded_mesh.Indices.size()),

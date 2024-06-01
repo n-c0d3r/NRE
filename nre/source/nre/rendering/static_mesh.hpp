@@ -457,7 +457,7 @@ namespace nre {
 		virtual void release_data() override {
 
 			indices_.clear();
-			submesh_headers_.clear();
+//			submesh_headers_.clear();
 			vertex_channels_ = {};
 		}
 
