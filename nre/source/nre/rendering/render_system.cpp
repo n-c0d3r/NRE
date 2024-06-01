@@ -2,6 +2,7 @@
 #include <nre/rendering/render_view_system.hpp>
 #include <nre/rendering/renderable_system.hpp>
 #include <nre/rendering/light_system.hpp>
+#include <nre/rendering/shadow_system.hpp>
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/default_textures.hpp>
@@ -74,6 +75,7 @@ namespace nre {
 		render_view_system_p_ = TU<F_render_view_system>()();
 		renderable_system_p_ = TU<F_renderable_system>()();
 		light_system_p_ = TU<F_light_system>()();
+		shadow_system_p_ = TU<F_shadow_system>()();
 
 		// create libraries
 		pso_library_p_ = TU<F_pso_library>();

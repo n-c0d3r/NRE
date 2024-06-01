@@ -7,7 +7,7 @@
 
 namespace nre {
 
-	A_directional_light_proxy::A_directional_light_proxy(TKPA_valid<F_directional_light> light_p) :
+	A_directional_light_proxy::A_directional_light_proxy(TKPA_valid<A_directional_light> light_p) :
 		A_light_proxy(light_p)
 	{
 	}
@@ -16,7 +16,7 @@ namespace nre {
 
 
 
-	F_directional_light_proxy::F_directional_light_proxy(TKPA_valid<F_directional_light> light_p) :
+	F_directional_light_proxy::F_directional_light_proxy(TKPA_valid<A_directional_light> light_p) :
 		A_directional_light_proxy(light_p)
 	{
 		main_constant_buffer_p_ = H_buffer::create(
@@ -33,7 +33,7 @@ namespace nre {
 
 	void F_directional_light_proxy::update() {
 
-		auto casted_light_p = light_p().T_cast<F_directional_light>();
+		auto casted_light_p = light_p().T_cast<A_directional_light>();
 
 		F_main_constant_buffer_cpu_data cpu_data = {
 
@@ -57,34 +57,41 @@ namespace nre {
 
 
 
-	TK<F_directional_light> F_directional_light::instance_ps;
+	TK<A_directional_light> A_directional_light::instance_ps;
 
-	F_directional_light::F_directional_light(TKPA_valid<F_actor> actor_p, F_light_mask mask) :
-		A_light(actor_p, TU<F_directional_light_proxy>()(NCPP_KTHIS()), mask)
+	A_directional_light::A_directional_light(TKPA_valid<F_actor> actor_p, TU<A_directional_light_proxy>&& proxy_p, F_light_mask mask) :
+		A_light(actor_p, std::move(proxy_p), mask)
 	{
-		NRE_ACTOR_COMPONENT_REGISTER(F_directional_light);
+		NRE_ACTOR_COMPONENT_REGISTER(A_directional_light);
 
 		instance_ps = NCPP_KTHIS().no_requirements();
 
 		actor_p->set_gameplay_tick(true);
 		actor_p->set_render_tick(true);
 	}
-	F_directional_light::F_directional_light(TKPA_valid<F_actor> actor_p, TU<A_directional_light_proxy>&& proxy_p, F_light_mask mask) :
-		A_light(actor_p, std::move(proxy_p), mask)
-	{
-		NRE_ACTOR_COMPONENT_REGISTER(F_directional_light);
-
-		actor_p->set_gameplay_tick(true);
-		actor_p->set_render_tick(true);
-	}
-	F_directional_light::~F_directional_light() {
+	A_directional_light::~A_directional_light() {
 	}
 
-	void F_directional_light::gameplay_tick() {
+	void A_directional_light::gameplay_tick() {
 
 		A_light::gameplay_tick();
 
 		instance_ps = NCPP_KTHIS().no_requirements();
+	}
+
+
+
+	F_directional_light::F_directional_light(TKPA_valid<F_actor> actor_p, F_light_mask mask) :
+		A_directional_light(actor_p, TU<F_directional_light_proxy>()(NCPP_KTHIS()), mask)
+	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_directional_light);
+	}
+	F_directional_light::F_directional_light(TKPA_valid<F_actor> actor_p, TU<A_directional_light_proxy>&& proxy_p, F_light_mask mask) :
+		A_directional_light(actor_p, std::move(proxy_p), mask)
+	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_directional_light);
+	}
+	F_directional_light::~F_directional_light() {
 	}
 
 }

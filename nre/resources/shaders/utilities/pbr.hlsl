@@ -5,6 +5,7 @@
 #include "utilities/hammersley.hlsl"
 #include "utilities/aces_tone_mapping.hlsl"
 #include "utilities/normal.hlsl"
+#include "utilities/shadow.hlsl"
 
 
 
@@ -164,13 +165,14 @@ cbuffer ibl_sky_light_cbuffer : register(b##Index) {\
 
 
 
-#define PBR_DEFINE_CB(PerViewCBIndex, PerObjectCBIndex, DirectionalLightCBIndex, SkyLightCBIndex) \
+#define PBR_DEFINE_CB(PerViewCBIndex, PerObjectCBIndex, DirectionalLightCBIndex, SkyLightCBIndex, DirectionalLightCascadedShadowCBIndex) \
             PBR_DEFINE_PER_VIEW_CB(PerViewCBIndex);\
             PBR_DEFINE_PER_OBJECT_CB(PerObjectCBIndex);\
             PBR_DEFINE_DIRECTIONAL_LIGHT_CB(DirectionalLightCBIndex);\
-            PBR_DEFINE_SKY_LIGHT_CB(SkyLightCBIndex);
+            PBR_DEFINE_SKY_LIGHT_CB(SkyLightCBIndex);\
+            DEFINE_DIRECTIONAL_LIGHT_CASCADED_SHADOW_CB(DirectionalLightCascadedShadowCBIndex);
 
-#define PBR_DEFINE_CB_DEFAULT PBR_DEFINE_CB(0, 1, 2, 3);
+#define PBR_DEFINE_CB_DEFAULT PBR_DEFINE_CB(0, 1, 2, 3, 4);
 
 
 
@@ -190,12 +192,13 @@ cbuffer ibl_sky_light_cbuffer : register(b##Index) {\
 #define PBR_DEFINE_IRRADIANCE_CUBE(Index) \
             TextureCube irradiance_cube : register(t2);
 
-#define PBR_DEFINE_RESOURCES(BRDFLutIndex, PrefilteredEnvCubeIndex, IrradianceCubeIndex) \
+#define PBR_DEFINE_RESOURCES(BRDFLutIndex, PrefilteredEnvCubeIndex, IrradianceCubeIndex, DirectionalLightCascadedShadowMapsIndex) \
             PBR_DEFINE_BRDF_LUT(BRDFLutIndex)\
             PBR_DEFINE_PREFILTERED_ENV_CUBE(PrefilteredEnvCubeIndex)\
-            PBR_DEFINE_IRRADIANCE_CUBE(IrradianceCubeIndex)
+            PBR_DEFINE_IRRADIANCE_CUBE(IrradianceCubeIndex)\
+            DEFINE_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAPS(DirectionalLightCascadedShadowMapsIndex)
 
-#define PBR_DEFINE_RESOURCES_DEFAULT PBR_DEFINE_RESOURCES(0, 1, 2)
+#define PBR_DEFINE_RESOURCES_DEFAULT PBR_DEFINE_RESOURCES(0, 1, 2, 3)
 
 
 

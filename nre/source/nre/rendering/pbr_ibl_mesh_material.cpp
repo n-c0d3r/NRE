@@ -55,7 +55,7 @@ namespace nre {
 
 		auto hdri_sky_material_p = F_hdri_sky_material::instance_p();
 
-		auto directional_light_p = F_directional_light::instance_p();
+		auto directional_light_p = A_directional_light::instance_p();
 		if(!directional_light_p)
 			return;
 

@@ -6,16 +6,17 @@
 
 namespace nre {
 
+	class A_directional_light;
 	class F_directional_light;
-	class F_directional_light_proxy;
 	class A_directional_light_proxy;
+	class F_directional_light_proxy;
 
 
 
 	class NRE_API A_directional_light_proxy : public A_light_proxy {
 
 	protected:
-		A_directional_light_proxy(TKPA_valid<F_directional_light> light_p);
+		A_directional_light_proxy(TKPA_valid<A_directional_light> light_p);
 
 	public:
 		virtual ~A_directional_light_proxy();
@@ -49,7 +50,7 @@ namespace nre {
 
 
 	public:
-		F_directional_light_proxy(TKPA_valid<F_directional_light> light_p);
+		F_directional_light_proxy(TKPA_valid<A_directional_light> light_p);
 		virtual ~F_directional_light_proxy();
 
 	public:
@@ -62,13 +63,13 @@ namespace nre {
 
 
 
-	class NRE_API F_directional_light : public A_light {
+	class NRE_API A_directional_light : public A_light {
 
 	private:
-		static TK<F_directional_light> instance_ps;
+		static TK<A_directional_light> instance_ps;
 
 	public:
-		static NCPP_FORCE_INLINE TKPA<F_directional_light> instance_p() { return instance_ps; }
+		static NCPP_FORCE_INLINE TKPA<A_directional_light> instance_p() { return instance_ps; }
 
 
 
@@ -80,15 +81,28 @@ namespace nre {
 
 
 	public:
+		A_directional_light(TKPA_valid<F_actor> actor_p, TU<A_directional_light_proxy>&& proxy_p, F_light_mask mask = 0);
+		virtual ~A_directional_light();
+
+	public:
+		NCPP_OBJECT(A_directional_light);
+
+	protected:
+		virtual void gameplay_tick() override;
+
+	};
+
+
+
+	class NRE_API F_directional_light : public A_directional_light {
+
+	public:
 		F_directional_light(TKPA_valid<F_actor> actor_p, F_light_mask mask = 0);
 		F_directional_light(TKPA_valid<F_actor> actor_p, TU<A_directional_light_proxy>&& proxy_p, F_light_mask mask = 0);
 		virtual ~F_directional_light();
 
 	public:
 		NCPP_OBJECT(F_directional_light);
-
-	protected:
-		virtual void gameplay_tick() override;
 
 	};
 
