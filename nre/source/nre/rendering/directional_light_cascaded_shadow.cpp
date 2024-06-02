@@ -1,5 +1,7 @@
 #include <nre/rendering/directional_light_cascaded_shadow.hpp>
 #include <nre/rendering/shadow_system.hpp>
+#include <nre/rendering/render_view.hpp>
+#include <nre/actor/actor.hpp>
 
 
 
@@ -27,6 +29,7 @@ namespace nre {
 		TKPA_valid<A_render_view> render_view_p,
 		TKPA_valid<A_frame_buffer> frame_buffer_p
 	) {
+		auto render_view_actor_p = render_view_p->actor_p();
 	}
 
 

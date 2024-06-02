@@ -8,9 +8,11 @@
 namespace nre
 {
 
-	A_render_view_attachment::A_render_view_attachment(TK_valid<A_render_view> view_p) :
+	A_render_view_attachment::A_render_view_attachment(TKPA_valid<F_actor> actor_p, TK_valid<A_render_view> view_p) :
+		A_actor_component(actor_p),
 		view_p_(view_p)
 	{
+		NRE_ACTOR_COMPONENT_REGISTER(A_render_view_attachment);
 	}
 	A_render_view_attachment::~A_render_view_attachment() {
 	}

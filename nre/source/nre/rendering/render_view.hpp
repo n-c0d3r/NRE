@@ -25,7 +25,7 @@ namespace nre
 
 
 
-	class NRE_API A_render_view_attachment {
+	class NRE_API A_render_view_attachment : public A_actor_component {
 
 	private:
 		TK_valid<A_render_view> view_p_;
@@ -36,7 +36,7 @@ namespace nre
 
 
 	protected:
-		A_render_view_attachment(TK_valid<A_render_view> view_p);
+		A_render_view_attachment(TKPA_valid<F_actor> actor_p, TK_valid<A_render_view> view_p);
 
 	public:
 		virtual ~A_render_view_attachment();
