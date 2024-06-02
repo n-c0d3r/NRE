@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nre/rendering/directional_light_shadow.hpp>
+#include <nre/rendering/render_command_list.hpp>
 
 
 
@@ -10,6 +11,8 @@
 
 
 namespace nre {
+
+	class A_render_view;
 
 	class A_directional_light_cascaded_shadow;
 	class F_directional_light_cascaded_shadow;
@@ -29,6 +32,13 @@ namespace nre {
 	public:
 		NCPP_OBJECT(A_directional_light_cascaded_shadow_proxy);
 
+	public:
+		virtual void simple_compute(
+			KPA_valid_render_command_list_handle render_command_list_p,
+			TKPA_valid<A_render_view> render_view_p,
+			TKPA_valid<A_frame_buffer> frame_buffer_p
+		) = 0;
+
 	};
 
 	class NRE_API F_directional_light_cascaded_shadow_proxy : public A_directional_light_cascaded_shadow_proxy {
@@ -39,6 +49,13 @@ namespace nre {
 
 	public:
 		NCPP_OBJECT(F_directional_light_cascaded_shadow_proxy);
+
+	public:
+		virtual void simple_compute(
+			KPA_valid_render_command_list_handle render_command_list_p,
+			TKPA_valid<A_render_view> render_view_p,
+			TKPA_valid<A_frame_buffer> frame_buffer_p
+		) override;
 
 	};
 

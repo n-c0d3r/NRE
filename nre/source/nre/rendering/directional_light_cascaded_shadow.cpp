@@ -18,6 +18,13 @@ namespace nre {
 	F_directional_light_cascaded_shadow_proxy::~F_directional_light_cascaded_shadow_proxy() {
 	}
 
+	void F_directional_light_cascaded_shadow_proxy::simple_compute(
+		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_render_view> render_view_p,
+		TKPA_valid<A_frame_buffer> frame_buffer_p
+	) {
+	}
+
 
 
 	A_directional_light_cascaded_shadow::A_directional_light_cascaded_shadow(

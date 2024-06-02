@@ -8,7 +8,7 @@
 namespace nre
 {
 
-	A_render_view::A_render_view(F_render_view_mask mask) :
+	A_render_view::A_render_view(A_render_view_mask mask) :
 		swapchain_p(NRE_RENDER_SYSTEM()->main_swapchain_p().no_requirements()),
 		mask_(mask)
 	{

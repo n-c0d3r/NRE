@@ -1,11 +1,13 @@
 #pragma once
 
 #include <nre/rendering/material.hpp>
+#include <nre/rendering/render_command_list.hpp>
 
 
 
 namespace nre {
 
+	class A_render_view;
 	class F_general_texture_cube;
 	class F_hdri_sky_material;
 	class F_hdri_sky_material_proxy;

@@ -22,7 +22,7 @@ namespace nre
 
 
 	public:
-		F_simple_render_view(F_render_view_mask mask = 0);
+		F_simple_render_view(A_render_view_mask mask = 0);
 		virtual ~F_simple_render_view();
 
 	public:

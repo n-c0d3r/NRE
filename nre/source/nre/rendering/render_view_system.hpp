@@ -8,7 +8,7 @@
 
 namespace nre {
 
-	class F_render_view;
+	class A_render_view;
 
 
 
@@ -103,11 +103,11 @@ namespace nre {
 
 			return id;
 		}
-		NCPP_FORCE_INLINE F_render_view_mask mask() noexcept {
+		NCPP_FORCE_INLINE A_render_view_mask mask() noexcept {
 
 			return 0;
 		}
-		NCPP_FORCE_INLINE F_render_view_mask mask(auto type_hash_code) noexcept
+		NCPP_FORCE_INLINE A_render_view_mask mask(auto type_hash_code) noexcept
 		{
 			if (!is_has_channel_id(type_hash_code)) {
 
@@ -116,7 +116,7 @@ namespace nre {
 
 			return (1 << channel_id(type_hash_code));
 		}
-		NCPP_FORCE_INLINE F_render_view_mask mask(auto type_hash_code_1, auto type_hash_code_2, auto... reset_type_hash_codes) noexcept {
+		NCPP_FORCE_INLINE A_render_view_mask mask(auto type_hash_code_1, auto type_hash_code_2, auto... reset_type_hash_codes) noexcept {
 
 			return flag_combine(
 				mask(type_hash_code_1),
@@ -127,7 +127,7 @@ namespace nre {
 			);
 		}
 		template<typename... Fs__>
-		NCPP_FORCE_INLINE F_render_view_mask T_mask() noexcept {
+		NCPP_FORCE_INLINE A_render_view_mask T_mask() noexcept {
 
 			return mask(T_type_hash_code<Fs__>...);
 		}

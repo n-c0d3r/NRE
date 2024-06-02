@@ -50,7 +50,7 @@ namespace nre {
 							sz out_index = (y * width + x);
 
 							//  store to buffer
-							texels[out_index] = { pixel.red, pixel.green, pixel.blue, 1.0f };
+							texels[out_index] = F_vector4 { pixel.red, pixel.green, pixel.blue, 1.0f } * 1.0_pi;
 						}
 					}
 					break;

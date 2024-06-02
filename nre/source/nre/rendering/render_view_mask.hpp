@@ -6,6 +6,6 @@
 
 namespace nre {
 
-	using F_render_view_mask = u64;
+	using A_render_view_mask = u64;
 
 }

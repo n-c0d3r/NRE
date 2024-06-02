@@ -8,7 +8,7 @@
 namespace nre
 {
 
-	F_simple_render_view::F_simple_render_view(F_render_view_mask mask) :
+	F_simple_render_view::F_simple_render_view(A_render_view_mask mask) :
 		A_render_view(mask)
 	{
 	}

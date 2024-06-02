@@ -3,14 +3,38 @@
 #include <nre/prerequisites.hpp>
 #include <nre/actor/actor_component.hpp>
 #include <nre/rendering/light_mask.hpp>
+#include <nre/rendering/render_command_list.hpp>
 
 
 
 namespace nre {
 
+	class A_render_view;
 	class F_transform_node;
 	class A_light;
 	class A_light_proxy;
+
+
+
+	class I_has_simple_compute_light_proxy {
+
+	public:
+		virtual void simple_compute(
+			KPA_valid_render_command_list_handle render_command_list_p
+		) = 0;
+
+	};
+
+	class I_has_view_based_simple_compute_light_proxy {
+
+	public:
+		virtual void simple_compute(
+			KPA_valid_render_command_list_handle render_command_list_p,
+			TKPA_valid<A_render_view> render_view_p,
+			TKPA_valid<A_frame_buffer> frame_buffer_p
+		) = 0;
+
+	};
 
 
 
