@@ -8,10 +8,22 @@
 namespace nre
 {
 
-	A_render_view::A_render_view(A_render_view_mask mask) :
+	A_render_view_attachment::A_render_view_attachment(TK_valid<A_render_view> view_p) :
+		view_p_(view_p)
+	{
+	}
+	A_render_view_attachment::~A_render_view_attachment() {
+	}
+
+
+
+	A_render_view::A_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
+		A_actor_component(actor_p),
 		swapchain_p(NRE_RENDER_SYSTEM()->main_swapchain_p().no_requirements()),
 		mask_(mask)
 	{
+		NRE_ACTOR_COMPONENT_REGISTER(A_render_view);
+
 		F_render_view_system::instance_p()->registry(NCPP_KTHIS());
 	}
 	A_render_view::~A_render_view()

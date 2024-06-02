@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <nre/prerequisites.hpp>
+#include <nre/actor/actor_component.hpp>
 #include <nre/rendering/render_view_mask.hpp>
 
 
@@ -9,6 +10,8 @@ namespace nre
 {
 
 	class F_general_texture_2d;
+	class A_render_view;
+	class A_render_view_attachment;
 
 
 
@@ -22,7 +25,30 @@ namespace nre
 
 
 
-	class NRE_API A_render_view
+	class NRE_API A_render_view_attachment {
+
+	private:
+		TK_valid<A_render_view> view_p_;
+
+	public:
+		NCPP_FORCE_INLINE TKPA_valid<A_render_view> view_p() const noexcept { return view_p_; }
+
+
+
+	protected:
+		A_render_view_attachment(TK_valid<A_render_view> view_p);
+
+	public:
+		virtual ~A_render_view_attachment();
+
+	public:
+		NCPP_OBJECT(A_render_view_attachment);
+
+	};
+
+
+
+	class NRE_API A_render_view : public A_actor_component
 	{
 
 	public:
@@ -97,7 +123,7 @@ namespace nre
 
 
 	protected:
-		A_render_view(A_render_view_mask mask = 0);
+		A_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask = 0);
 
 	public:
 		virtual ~A_render_view();

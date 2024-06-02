@@ -14,17 +14,17 @@ namespace nre {
 		A_actor_component(actor_p),
 		transform_node_p_(actor_p->template T_component<F_transform_node>()),
 		render_view_p_(
-			TU<F_simple_render_view>()()
+			actor_p->template T_guarantee_component<A_render_view, F_simple_render_view>()
 		)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_camera);
 
 		actor_p->set_gameplay_tick(true);
 	}
-	F_camera::F_camera(TKPA_valid<F_actor> actor_p, TU<A_render_view>&& render_view_p) :
+	F_camera::F_camera(TKPA_valid<F_actor> actor_p, TKPA_valid<A_render_view> render_view_p) :
 		A_actor_component(actor_p),
 		transform_node_p_(actor_p->template T_component<F_transform_node>()),
-		render_view_p_(std::move(render_view_p))
+		render_view_p_(render_view_p)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_camera);
 	}

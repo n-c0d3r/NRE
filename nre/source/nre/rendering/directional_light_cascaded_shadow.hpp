@@ -39,6 +39,14 @@ namespace nre {
 		public I_has_view_based_simple_compute_shadow_proxy
 	{
 
+	private:
+		U_texture_2d_array_handle shadow_maps_p_;
+
+	public:
+		NCPP_FORCE_INLINE K_valid_texture_2d_array_handle shadow_maps_p() const noexcept { return NCPP_FOH_VALID(shadow_maps_p_); }
+
+
+
 	public:
 		F_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p, F_shadow_mask mask = 0);
 		virtual ~F_directional_light_cascaded_shadow_proxy();

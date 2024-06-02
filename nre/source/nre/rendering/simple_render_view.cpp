@@ -8,9 +8,10 @@
 namespace nre
 {
 
-	F_simple_render_view::F_simple_render_view(A_render_view_mask mask) :
-		A_render_view(mask)
+	F_simple_render_view::F_simple_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
+		A_render_view(actor_p, mask)
 	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_simple_render_view);
 	}
 	F_simple_render_view::~F_simple_render_view()
 	{

@@ -22,7 +22,7 @@ namespace nre
 
 
 	public:
-		F_simple_render_view(A_render_view_mask mask = 0);
+		F_simple_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask = 0);
 		virtual ~F_simple_render_view();
 
 	public:

@@ -109,6 +109,20 @@ namespace nre {
 		{
 			return component_multimap_.equal_range(T_type_hash_code<F_component__>);
 		}
+		template<typename F_search_component__, typename F_new_component__, typename... F_args__>
+		requires requires(F_args__&&... args) {
+//			F_component__(TK_valid<F_actor>(), std::forward<F_args__>(args)...);
+			F_new_component__(TK_valid<F_actor>(), std::forward<F_args__>(args)...);
+		}
+		TK_valid<F_search_component__> T_guarantee_component(F_args__&&... args)
+		{
+			if(T_is_has_component<F_search_component__>())
+				return T_component<F_search_component__>();
+
+			return T_add_component<F_new_component__>(
+				std::forward<F_args__>(args)...
+			);
+		}
 
 	public:
 		void set_gameplay_tick(b8 value);
