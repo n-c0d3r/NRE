@@ -7,8 +7,8 @@
 
 namespace nre {
 
-	A_directional_light_proxy::A_directional_light_proxy(TKPA_valid<A_directional_light> light_p) :
-		A_light_proxy(light_p)
+	A_directional_light_proxy::A_directional_light_proxy(TKPA_valid<A_directional_light> light_p, F_light_mask mask) :
+		A_light_proxy(light_p, mask)
 	{
 	}
 	A_directional_light_proxy::~A_directional_light_proxy() {
@@ -16,8 +16,8 @@ namespace nre {
 
 
 
-	F_directional_light_proxy::F_directional_light_proxy(TKPA_valid<A_directional_light> light_p) :
-		A_directional_light_proxy(light_p)
+	F_directional_light_proxy::F_directional_light_proxy(TKPA_valid<A_directional_light> light_p, F_light_mask mask) :
+		A_directional_light_proxy(light_p, mask)
 	{
 		main_constant_buffer_p_ = H_buffer::create(
 			NRE_RENDER_DEVICE(),

@@ -16,7 +16,7 @@ namespace nre {
 	class NRE_API A_directional_light_proxy : public A_light_proxy {
 
 	protected:
-		A_directional_light_proxy(TKPA_valid<A_directional_light> light_p);
+		A_directional_light_proxy(TKPA_valid<A_directional_light> light_p, F_light_mask mask = 0);
 
 	public:
 		virtual ~A_directional_light_proxy();
@@ -50,7 +50,7 @@ namespace nre {
 
 
 	public:
-		F_directional_light_proxy(TKPA_valid<A_directional_light> light_p);
+		F_directional_light_proxy(TKPA_valid<A_directional_light> light_p, F_light_mask mask = 0);
 		virtual ~F_directional_light_proxy();
 
 	public:

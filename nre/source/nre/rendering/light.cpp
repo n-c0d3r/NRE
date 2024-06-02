@@ -7,8 +7,9 @@
 
 namespace nre {
 
-	A_light_proxy::A_light_proxy(TKPA_valid<A_light> light_p) :
-		light_p_(light_p)
+	A_light_proxy::A_light_proxy(TKPA_valid<A_light> light_p, F_light_mask mask) :
+		light_p_(light_p),
+		mask_(mask)
 	{
 	}
 	A_light_proxy::~A_light_proxy() {
@@ -26,6 +27,8 @@ namespace nre {
 		mask_(mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_light);
+
+		mask_ |= proxy_p_->mask();
 
 		F_light_system::instance_p()->registry(NCPP_KTHIS());
 	}

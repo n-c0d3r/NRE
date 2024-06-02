@@ -47,14 +47,16 @@ namespace nre {
 
 	private:
 		TK_valid<A_light> light_p_;
+		F_light_mask mask_ = 0;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<A_light> light_p() const noexcept { return light_p_; }
+		NCPP_FORCE_INLINE F_light_mask mask() const noexcept { return mask_; }
 
 
 
 	protected:
-		A_light_proxy(TKPA_valid<A_light> light_p);
+		A_light_proxy(TKPA_valid<A_light> light_p, F_light_mask mask = 0);
 
 	public:
 		virtual ~A_light_proxy();

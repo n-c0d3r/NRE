@@ -7,7 +7,7 @@
 namespace nre {
 
 	class F_hdri_sky_material;
-	class F_sky_light;
+	class A_sky_light;
 	class A_sky_light_proxy;
 
 
@@ -15,7 +15,7 @@ namespace nre {
 	class NRE_API A_sky_light_proxy : public A_light_proxy {
 
 	protected:
-		A_sky_light_proxy(TKPA_valid<F_sky_light> light_p);
+		A_sky_light_proxy(TKPA_valid<A_sky_light> light_p, F_light_mask mask = 0);
 
 	public:
 		virtual ~A_sky_light_proxy();
@@ -27,13 +27,13 @@ namespace nre {
 
 
 
-	class NRE_API F_sky_light : public A_light {
+	class NRE_API A_sky_light : public A_light {
 
 	private:
-		static TK<F_sky_light> instance_ps;
+		static TK<A_sky_light> instance_ps;
 
 	public:
-		static NCPP_FORCE_INLINE TKPA<F_sky_light> instance_p() { return instance_ps; }
+		static NCPP_FORCE_INLINE TKPA<A_sky_light> instance_p() { return instance_ps; }
 
 
 
@@ -44,12 +44,14 @@ namespace nre {
 
 
 
-	public:
-		F_sky_light(TKPA_valid<F_actor> actor_p, TU<A_sky_light_proxy>&& proxy_p, F_light_mask mask = 0);
-		virtual ~F_sky_light();
+	protected:
+		A_sky_light(TKPA_valid<F_actor> actor_p, TU<A_sky_light_proxy>&& proxy_p, F_light_mask mask = 0);
 
 	public:
-		NCPP_OBJECT(F_sky_light);
+		virtual ~A_sky_light();
+
+	public:
+		NCPP_OBJECT(A_sky_light);
 
 	protected:
 		virtual void gameplay_tick() override;

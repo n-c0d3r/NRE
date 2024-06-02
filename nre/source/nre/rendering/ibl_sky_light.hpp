@@ -84,10 +84,11 @@ namespace nre {
 
 	public:
 		F_ibl_sky_light_proxy(
-			TKPA_valid<F_sky_light> light_p,
+			TKPA_valid<A_sky_light> light_p,
 			u32 brdf_lut_width = 256,
 			u32 prefiltered_env_cube_width = 1024,
-			u32 irradiance_cube_width = 512
+			u32 irradiance_cube_width = 512,
+			F_light_mask mask = 0
 		);
 		virtual ~F_ibl_sky_light_proxy();
 
@@ -98,7 +99,7 @@ namespace nre {
 
 
 
-	class NRE_API F_ibl_sky_light : public F_sky_light {
+	class NRE_API F_ibl_sky_light : public A_sky_light {
 
 	public:
 		F_ibl_sky_light(TKPA_valid<F_actor> actor_p, F_light_mask mask = 0);

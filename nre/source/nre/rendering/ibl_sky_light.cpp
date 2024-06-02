@@ -11,12 +11,13 @@
 namespace nre {
 
 	F_ibl_sky_light_proxy::F_ibl_sky_light_proxy(
-		TKPA_valid<F_sky_light> light_p,
+		TKPA_valid<A_sky_light> light_p,
 		u32 brdf_lut_width,
 		u32 prefiltered_env_cube_width,
-		u32 irradiance_cube_width
+		u32 irradiance_cube_width,
+		F_light_mask mask
 	) :
-		A_sky_light_proxy(light_p),
+		A_sky_light_proxy(light_p, mask),
 		brdf_lut_width_(brdf_lut_width),
 		prefiltered_env_cube_width_(prefiltered_env_cube_width),
 		irradiance_cube_width_(irradiance_cube_width)
@@ -427,19 +428,21 @@ namespace nre {
 
 
 	F_ibl_sky_light::F_ibl_sky_light(TKPA_valid<F_actor> actor_p, F_light_mask mask) :
-		F_sky_light(actor_p, TU<F_ibl_sky_light_proxy>()(NCPP_KTHIS()), mask)
+		A_sky_light(actor_p, TU<F_ibl_sky_light_proxy>()(NCPP_KTHIS()), mask)
 	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_ibl_sky_light);
 	}
 	F_ibl_sky_light::F_ibl_sky_light(TKPA_valid<F_actor> actor_p, TU<A_sky_light_proxy>&& proxy_p, F_light_mask mask) :
-		F_sky_light(actor_p, std::move(proxy_p), mask)
+		A_sky_light(actor_p, std::move(proxy_p), mask)
 	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_ibl_sky_light);
 	}
 	F_ibl_sky_light::~F_ibl_sky_light() {
 	}
 
 	void F_ibl_sky_light_proxy::update()
 	{
-		auto casted_light_p = light_p().T_cast<F_sky_light>();
+		auto casted_light_p = light_p().T_cast<A_sky_light>();
 
 		F_main_constant_buffer_cpu_data cpu_data = {
 
