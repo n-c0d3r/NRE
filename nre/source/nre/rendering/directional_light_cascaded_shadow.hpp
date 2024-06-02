@@ -35,13 +35,25 @@ namespace nre {
 
 	};
 
-	class NRE_API F_directional_light_cascaded_shadow_render_view_attachment : public A_render_view_attachment {
+	class NRE_API F_directional_light_cascaded_shadow_render_view_attachment final : public A_render_view_attachment {
 
 	private:
 		TK<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p_;
+		U_texture_2d_array_handle shadow_maps_p_;
+		TG_array<F_vector3_f32, 8> frustum_corners_;
+		TG_array<F_vector3_f32, 4> near_frustum_corners_;
+		TG_array<F_vector3_f32, 4> far_frustum_corners_;
+		TG_vector<F_matrix4x4_f32> light_view_matrices_;
+		F_vector3_f32 view_direction_;
 
 	public:
 		NCPP_FORCE_INLINE TKPA<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p() const noexcept { return shadow_proxy_p_; }
+		NCPP_FORCE_INLINE K_valid_texture_2d_array_handle shadow_maps_p() const noexcept { return NCPP_FOH_VALID(shadow_maps_p_); }
+		NCPP_FORCE_INLINE const TG_array<F_vector3_f32, 8>& frustum_corners() const noexcept { return frustum_corners_; }
+		NCPP_FORCE_INLINE const TG_array<F_vector3_f32, 4>& near_frustum_corners() const noexcept { return near_frustum_corners_; }
+		NCPP_FORCE_INLINE const TG_array<F_vector3_f32, 4>& far_frustum_corners() const noexcept { return far_frustum_corners_; }
+		NCPP_FORCE_INLINE const TG_vector<F_matrix4x4_f32>& light_view_matrices() const noexcept { return light_view_matrices_; }
+		NCPP_FORCE_INLINE const F_vector3_f32& view_direction() const noexcept { return view_direction_; }
 
 
 
@@ -52,6 +64,9 @@ namespace nre {
 			TKPA_valid<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p
 		);
 		~F_directional_light_cascaded_shadow_render_view_attachment();
+
+	public:
+		void update();
 
 	};
 

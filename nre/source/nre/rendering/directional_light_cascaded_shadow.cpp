@@ -22,8 +22,96 @@ namespace nre {
 		A_render_view_attachment(actor_p, render_view_p),
 		shadow_proxy_p_(shadow_proxy_p.no_requirements())
 	{
+		NRE_ACTOR_COMPONENT_REGISTER(F_directional_light_cascaded_shadow_render_view_attachment);
 	}
 	F_directional_light_cascaded_shadow_render_view_attachment::~F_directional_light_cascaded_shadow_render_view_attachment() {
+	}
+
+	void F_directional_light_cascaded_shadow_render_view_attachment::update() {
+
+		F_matrix4x4_f32 view_matrix = view_p()->view_matrix;
+		F_matrix4x4_f32 projection_matrix = view_p()->projection_matrix;
+		F_matrix4x4_f32 inv_view_projection_matrix = invert(view_matrix * projection_matrix);
+
+		// compute frustum corners
+		{
+			// compute all frustum corners
+			for(f32 z = 0.0f; z <= 1.0f; z += 1.0f) {
+
+				for(f32 y = -1.0f; y <= 1.0f; y += 2.0f) {
+
+					for(f32 x = -1.0f; x <= 1.0f; x += 2.0f) {
+
+						F_vector4_f32 frustum_corner = (inv_view_projection_matrix * F_vector4_f32(x, y, z, 1.0f));
+						frustum_corner /= frustum_corner.w;
+
+						frustum_corners_[
+							(
+								(x + 1)
+								/ 2
+							)
+							+ (
+								(y + 1)
+								/ 2
+							) * 2
+							+ z * 4
+						] = frustum_corner.xyz();
+					}
+				}
+			}
+
+			// compute near frustum corners
+			{
+				for(u32 i = 0; i < 4; ++i) {
+
+					near_frustum_corners_[i] = frustum_corners_[i];
+				}
+				for(u32 i = 0; i < 4; ++i) {
+
+					far_frustum_corners_[i] = frustum_corners_[4 + i];
+				}
+			}
+		}
+
+		// update light view matrices
+		{
+			u32 light_view_count = shadow_proxy_p_->shadow_p().T_cast<A_directional_light_cascaded_shadow>()->map_count();
+
+			light_view_matrices_.resize(light_view_count);
+
+			f32 step_t = 1.0f / f32(light_view_count);
+			f32 begin_t = 0;
+			f32 end_t = step_t;
+			for(u32 i = 0; i < light_view_count; ++i) {
+
+				TG_array<F_vector3_f32, 8> corners;
+
+				for(u32 j = 0; j < 4; ++j)
+					corners[j] = lerp(
+						near_frustum_corners_[j],
+						far_frustum_corners_[j],
+						begin_t
+					);
+				for(u32 j = 0; j < 4; ++j)
+					corners[4 + j] = lerp(
+						near_frustum_corners_[j],
+						far_frustum_corners_[j],
+						end_t
+					);
+
+				begin_t += step_t;
+				end_t += step_t;
+			}
+		}
+
+		// update view direction
+		{
+			view_direction_ = normalize(
+				invert(
+					view_matrix.tl3x3()
+				).forward
+			);
+		}
 	}
 
 	F_directional_light_cascaded_shadow_proxy::F_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p, F_shadow_mask mask) :
@@ -43,10 +131,13 @@ namespace nre {
 	) {
 		auto render_view_actor_p = render_view_p->actor_p();
 
-		auto render_view_attachment_p = render_view_actor_p->T_guarantee_component<F_directional_light_cascaded_shadow_render_view_attachment>(
+		auto render_view_attachment_p = render_view_actor_p->T_guarantee_component<
+		    F_directional_light_cascaded_shadow_render_view_attachment
+		>(
 			render_view_p,
 			NCPP_KTHIS()
 		);
+		render_view_attachment_p->update();
 	}
 
 

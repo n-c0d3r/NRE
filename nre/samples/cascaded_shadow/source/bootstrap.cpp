@@ -18,7 +18,7 @@ int main() {
 
 
 
-	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/neurathen_rock_castle_4k.hdr").T_cast<F_texture_2d_asset>();
+	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/st_peters_square_night_4k.hdr").T_cast<F_texture_2d_asset>();
 
 	auto skymap_p = panorama_to_cubemap(NCPP_FOH_VALID(panorama_asset_p->texture_p), 1320);
 
@@ -55,29 +55,30 @@ int main() {
 	auto directional_light_transform_node_p = directional_light_actor_p->template T_add_component<F_transform_node>();
 	auto directional_light_p = directional_light_actor_p->template T_add_component<F_directional_light>();
 
-	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.2_pi, 0.96_pi, 0 });
+	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.4_pi, 1.1_pi, 0 });
 	directional_light_p->intensity = 1.0f;
 
 	auto directional_light_cascaded_shadow_p = directional_light_actor_p->template T_add_component<F_directional_light_cascaded_shadow>();
 
 	// create pbr sphere actor
-	auto pbr_sphere_actor_p = level_p->T_create_actor();
-	auto pbr_sphere_transform_node_p = pbr_sphere_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_lit_static_mesh_material>();
-	auto pbr_sphere_renderable_p = pbr_sphere_actor_p->template T_add_component<F_static_mesh_renderable>();
+	auto pbr_sphere4_actor_p = level_p->T_create_actor();
+	auto pbr_sphere4_transform_node_p = pbr_sphere4_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere4_material_p = pbr_sphere4_actor_p->template T_add_component<F_lit_static_mesh_material>();
+	auto pbr_sphere4_renderable_p = pbr_sphere4_actor_p->template T_add_component<F_static_mesh_renderable>();
 
-	pbr_sphere_renderable_p->mesh_p = sphere_mesh_p;
+	pbr_sphere4_transform_node_p->transform *= make_translation({ 3, 0, 3 });
 
-	pbr_sphere_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
-//	pbr_sphere_material_p->roughness_range = { 0.0f, 0.4f };
+	pbr_sphere4_renderable_p->mesh_p = sphere_mesh_p;
 
-	pbr_sphere_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ujqmejtr_4K_Albedo.jpg").T_cast<F_texture_2d_asset>()->texture_p;
-	pbr_sphere_material_p->normal_map_p = convert_normal_map_standard(
-		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ujqmejtr_4K_Normal.jpg").T_cast<F_texture_2d_asset>()->texture_p
+	pbr_sphere4_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
+
+	pbr_sphere4_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ulgmbhwn_4K_Albedo.jpg").T_cast<F_texture_2d_asset>()->texture_p;
+	pbr_sphere4_material_p->normal_map_p = convert_normal_map_standard(
+		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ulgmbhwn_4K_Normal.jpg").T_cast<F_texture_2d_asset>()->texture_p
 	);
-	pbr_sphere_material_p->mask_map_p = generate_mask_map(
-		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ujqmejtr_4K_AO.jpg").T_cast<F_texture_2d_asset>()->texture_p,
-		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ujqmejtr_4K_Roughness.jpg").T_cast<F_texture_2d_asset>()->texture_p,
+	pbr_sphere4_material_p->mask_map_p = generate_mask_map(
+		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ulgmbhwn_4K_AO.jpg").T_cast<F_texture_2d_asset>()->texture_p,
+		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ulgmbhwn_4K_Roughness.jpg").T_cast<F_texture_2d_asset>()->texture_p,
 		F_default_textures::instance_p()->black_texture_2d_p()
 	);
 

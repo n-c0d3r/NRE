@@ -29,6 +29,8 @@ cbuffer directional_light_cascaded_shadow_cbuffer : register(b##Index) {\
 
 struct F_directional_light_cascaded_shadow {
 
+    float3 view_direction;
+    float __view_direction_pad__;
     float4x4 light_space_matrices[DIRECTIONAL_LIGHT_CASCADED_SHADOW_LEVEL_COUNT];
     float light_distances[DIRECTIONAL_LIGHT_CASCADED_SHADOW_LEVEL_COUNT];
     float intensity;
