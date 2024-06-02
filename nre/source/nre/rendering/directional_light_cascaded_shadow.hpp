@@ -2,6 +2,7 @@
 
 #include <nre/rendering/directional_light_shadow.hpp>
 #include <nre/rendering/render_command_list.hpp>
+#include <nre/rendering/render_view.hpp>
 
 
 
@@ -31,6 +32,26 @@ namespace nre {
 
 	public:
 		NCPP_OBJECT(A_directional_light_cascaded_shadow_proxy);
+
+	};
+
+	class NRE_API F_directional_light_cascaded_shadow_render_view_attachment : public A_render_view_attachment {
+
+	private:
+		TK<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p_;
+
+	public:
+		NCPP_FORCE_INLINE TKPA<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p() const noexcept { return shadow_proxy_p_; }
+
+
+
+	public:
+		F_directional_light_cascaded_shadow_render_view_attachment(
+			TKPA_valid<F_actor> actor_p,
+			TKPA_valid<A_render_view> render_view_p,
+			TKPA_valid<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p
+		);
+		~F_directional_light_cascaded_shadow_render_view_attachment();
 
 	};
 

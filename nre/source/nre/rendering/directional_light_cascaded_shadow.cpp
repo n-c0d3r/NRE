@@ -14,6 +14,18 @@ namespace nre {
 	A_directional_light_cascaded_shadow_proxy::~A_directional_light_cascaded_shadow_proxy() {
 	}
 
+	F_directional_light_cascaded_shadow_render_view_attachment::F_directional_light_cascaded_shadow_render_view_attachment(
+		TKPA_valid<F_actor> actor_p,
+		TKPA_valid<A_render_view> render_view_p,
+		TKPA_valid<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p
+	) :
+		A_render_view_attachment(actor_p, render_view_p),
+		shadow_proxy_p_(shadow_proxy_p.no_requirements())
+	{
+	}
+	F_directional_light_cascaded_shadow_render_view_attachment::~F_directional_light_cascaded_shadow_render_view_attachment() {
+	}
+
 	F_directional_light_cascaded_shadow_proxy::F_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p, F_shadow_mask mask) :
 		A_directional_light_cascaded_shadow_proxy(
 			shadow_p,
@@ -30,6 +42,11 @@ namespace nre {
 		TKPA_valid<A_frame_buffer> frame_buffer_p
 	) {
 		auto render_view_actor_p = render_view_p->actor_p();
+
+		auto render_view_attachment_p = render_view_actor_p->T_guarantee_component<F_directional_light_cascaded_shadow_render_view_attachment>(
+			render_view_p,
+			NCPP_KTHIS()
+		);
 	}
 
 

@@ -36,7 +36,7 @@ namespace nre
 
 
 	protected:
-		A_render_view_attachment(TKPA_valid<F_actor> actor_p, TK_valid<A_render_view> view_p);
+		A_render_view_attachment(TKPA_valid<F_actor> actor_p, TKPA_valid<A_render_view> view_p);
 
 	public:
 		virtual ~A_render_view_attachment();

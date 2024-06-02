@@ -109,7 +109,7 @@ namespace nre {
 		{
 			return component_multimap_.equal_range(T_type_hash_code<F_component__>);
 		}
-		template<typename F_search_component__, typename F_new_component__, typename... F_args__>
+		template<typename F_search_component__, typename F_new_component__ = F_search_component__, typename... F_args__>
 		requires requires(F_args__&&... args) {
 //			F_component__(TK_valid<F_actor>(), std::forward<F_args__>(args)...);
 			F_new_component__(TK_valid<F_actor>(), std::forward<F_args__>(args)...);
