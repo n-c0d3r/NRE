@@ -1,4 +1,5 @@
 #include <nre/rendering/directional_light_cascaded_shadow.hpp>
+#include <nre/rendering/shadow_system.hpp>
 
 
 
@@ -12,13 +13,16 @@ namespace nre {
 	}
 
 	F_directional_light_cascaded_shadow_proxy::F_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p, F_shadow_mask mask) :
-		A_directional_light_cascaded_shadow_proxy(shadow_p, mask)
+		A_directional_light_cascaded_shadow_proxy(
+			shadow_p,
+			mask | F_shadow_system::instance_p()->T_mask<I_has_view_based_simple_compute_shadow_proxy>()
+		)
 	{
 	}
 	F_directional_light_cascaded_shadow_proxy::~F_directional_light_cascaded_shadow_proxy() {
 	}
 
-	void F_directional_light_cascaded_shadow_proxy::simple_compute(
+	void F_directional_light_cascaded_shadow_proxy::view_based_simple_compute(
 		KPA_valid_render_command_list_handle render_command_list_p,
 		TKPA_valid<A_render_view> render_view_p,
 		TKPA_valid<A_frame_buffer> frame_buffer_p
@@ -34,7 +38,9 @@ namespace nre {
 		PA_vector2_u map_size,
 		F_shadow_mask mask
 	) :
-		A_directional_light_shadow(actor_p, std::move(proxy_p), mask)
+		A_directional_light_shadow(actor_p, std::move(proxy_p), mask),
+		map_count_(map_count),
+		map_size_(map_size)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_directional_light_cascaded_shadow);
 	}

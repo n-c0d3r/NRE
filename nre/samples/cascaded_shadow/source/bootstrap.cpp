@@ -119,11 +119,18 @@ int main() {
 			auto render_view_p = NCPP_FOH_VALID(spectator_camera_p->render_view_p());
 			auto main_frame_buffer_p = NCPP_FOH_VALID(render_view_p->main_frame_buffer_p());
 
-//		 	A_directional_light_cascaded_shadow::instance_p()->proxy_p().T_cast<A_directional_light_cascaded_shadow_proxy>()->simple_compute(
-//				main_command_list_p,
-//				render_view_p,
-//				main_frame_buffer_p
-//		 	);
+			NRE_SHADOW_SYSTEM()->T_for_each<I_has_view_based_simple_compute_shadow_proxy>(
+				[&](const auto& shadow_p) {
+
+				  	auto simple_shadow_proxy_p = shadow_p->proxy_p().T_interface<I_has_view_based_simple_compute_shadow_proxy>();
+
+				  	simple_shadow_proxy_p->view_based_simple_compute(
+						main_command_list_p,
+						render_view_p,
+						main_frame_buffer_p
+				  	);
+				}
+			);
 
 			NRE_RENDERABLE_SYSTEM()->T_for_each<I_has_simple_render_renderable>(
 				[&](const auto& renderable_p) {

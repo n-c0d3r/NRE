@@ -32,16 +32,12 @@ namespace nre {
 	public:
 		NCPP_OBJECT(A_directional_light_cascaded_shadow_proxy);
 
-	public:
-		virtual void simple_compute(
-			KPA_valid_render_command_list_handle render_command_list_p,
-			TKPA_valid<A_render_view> render_view_p,
-			TKPA_valid<A_frame_buffer> frame_buffer_p
-		) = 0;
-
 	};
 
-	class NRE_API F_directional_light_cascaded_shadow_proxy : public A_directional_light_cascaded_shadow_proxy {
+	class NRE_API F_directional_light_cascaded_shadow_proxy :
+		public A_directional_light_cascaded_shadow_proxy,
+		public I_has_view_based_simple_compute_shadow_proxy
+	{
 
 	public:
 		F_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p, F_shadow_mask mask = 0);
@@ -51,7 +47,7 @@ namespace nre {
 		NCPP_OBJECT(F_directional_light_cascaded_shadow_proxy);
 
 	public:
-		virtual void simple_compute(
+		virtual void view_based_simple_compute(
 			KPA_valid_render_command_list_handle render_command_list_p,
 			TKPA_valid<A_render_view> render_view_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p
