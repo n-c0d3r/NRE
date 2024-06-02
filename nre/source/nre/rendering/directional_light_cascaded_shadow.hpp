@@ -24,7 +24,7 @@ namespace nre {
 	class NRE_API A_directional_light_cascaded_shadow_proxy : public A_directional_light_shadow_proxy {
 
 	protected:
-		A_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p);
+		A_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p, F_shadow_mask mask = 0);
 
 	public:
 		virtual ~A_directional_light_cascaded_shadow_proxy();
@@ -44,7 +44,7 @@ namespace nre {
 	class NRE_API F_directional_light_cascaded_shadow_proxy : public A_directional_light_cascaded_shadow_proxy {
 
 	public:
-		F_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p);
+		F_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p, F_shadow_mask mask = 0);
 		virtual ~F_directional_light_cascaded_shadow_proxy();
 
 	public:

@@ -4,15 +4,15 @@
 
 namespace nre {
 
-	A_directional_light_cascaded_shadow_proxy::A_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p) :
-		A_directional_light_shadow_proxy(shadow_p)
+	A_directional_light_cascaded_shadow_proxy::A_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p, F_shadow_mask mask) :
+		A_directional_light_shadow_proxy(shadow_p, mask)
 	{
 	}
 	A_directional_light_cascaded_shadow_proxy::~A_directional_light_cascaded_shadow_proxy() {
 	}
 
-	F_directional_light_cascaded_shadow_proxy::F_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p) :
-		A_directional_light_cascaded_shadow_proxy(shadow_p)
+	F_directional_light_cascaded_shadow_proxy::F_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p, F_shadow_mask mask) :
+		A_directional_light_cascaded_shadow_proxy(shadow_p, mask)
 	{
 	}
 	F_directional_light_cascaded_shadow_proxy::~F_directional_light_cascaded_shadow_proxy() {

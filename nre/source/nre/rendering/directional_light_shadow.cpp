@@ -7,8 +7,8 @@
 
 namespace nre {
 
-	A_directional_light_shadow_proxy::A_directional_light_shadow_proxy(TKPA_valid<A_directional_light_shadow> shadow_p) :
-		A_shadow_proxy(shadow_p)
+	A_directional_light_shadow_proxy::A_directional_light_shadow_proxy(TKPA_valid<A_directional_light_shadow> shadow_p, F_shadow_mask mask) :
+		A_shadow_proxy(shadow_p, mask)
 	{
 	}
 	A_directional_light_shadow_proxy::~A_directional_light_shadow_proxy() {

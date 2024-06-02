@@ -7,8 +7,9 @@
 
 namespace nre {
 
-	A_shadow_proxy::A_shadow_proxy(TKPA_valid<A_shadow> shadow_p) :
-		shadow_p_(shadow_p)
+	A_shadow_proxy::A_shadow_proxy(TKPA_valid<A_shadow> shadow_p, F_shadow_mask mask) :
+		shadow_p_(shadow_p),
+		mask_(mask)
 	{
 	}
 	A_shadow_proxy::~A_shadow_proxy() {
@@ -26,6 +27,8 @@ namespace nre {
 		mask_(mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_shadow);
+
+		mask_ |= proxy_p_->mask();
 
 		F_shadow_system::instance_p()->registry(NCPP_KTHIS());
 	}

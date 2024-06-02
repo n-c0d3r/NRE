@@ -47,14 +47,16 @@ namespace nre {
 
 	private:
 		TK_valid<A_shadow> shadow_p_;
+		F_shadow_mask mask_ = 0;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<A_shadow> shadow_p() const noexcept { return shadow_p_; }
+		NCPP_FORCE_INLINE F_shadow_mask mask() const noexcept { return mask_; }
 
 
 
 	protected:
-		A_shadow_proxy(TKPA_valid<A_shadow> shadow_p);
+		A_shadow_proxy(TKPA_valid<A_shadow> shadow_p, F_shadow_mask mask = 0);
 
 	public:
 		virtual ~A_shadow_proxy();
