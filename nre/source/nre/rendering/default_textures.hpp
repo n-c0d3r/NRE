@@ -49,3 +49,7 @@ namespace nre {
 	};
 
 }
+
+
+
+#define NRE_DEFAULT_TEXTURES() (nre::F_default_textures::instance_p())

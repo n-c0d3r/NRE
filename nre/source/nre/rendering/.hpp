@@ -42,3 +42,4 @@
 #include <nre/rendering/directional_light_shadow.hpp>
 #include <nre/rendering/directional_light_cascaded_shadow.hpp>
 #include <nre/rendering/shadow_system.hpp>
+#include <nre/rendering/debug_drawer.hpp>

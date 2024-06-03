@@ -111,8 +111,8 @@ int main() {
 			}
 
 		};
-		NRE_APPLICATION_RENDER_TICK(application_p) {
-
+		NRE_APPLICATION_RENDER_TICK(application_p)
+		{
 			// get some essential objects
 			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			K_valid_render_command_list_handle main_command_list_p = { NRE_RENDER_SYSTEM()->main_command_list_p() };
@@ -123,13 +123,13 @@ int main() {
 			NRE_SHADOW_SYSTEM()->T_for_each<I_has_view_based_simple_compute_shadow_proxy>(
 				[&](const auto& shadow_p) {
 
-				  	auto simple_shadow_proxy_p = shadow_p->proxy_p().T_interface<I_has_view_based_simple_compute_shadow_proxy>();
+					  auto simple_shadow_proxy_p = shadow_p->proxy_p().T_interface<I_has_view_based_simple_compute_shadow_proxy>();
 
-				  	simple_shadow_proxy_p->view_based_simple_compute(
+					  simple_shadow_proxy_p->view_based_simple_compute(
 						main_command_list_p,
 						render_view_p,
 						main_frame_buffer_p
-				  	);
+					  );
 				}
 			);
 
@@ -138,12 +138,22 @@ int main() {
 
 					auto simple_render_renderable_p = renderable_p.T_interface<I_has_simple_render_renderable>();
 
-				  	simple_render_renderable_p->simple_render(
+					  simple_render_renderable_p->simple_render(
 						main_command_list_p,
 						render_view_p,
 						main_frame_buffer_p
-				  	);
+					  );
 				}
+			);
+
+			NRE_DEBUG_DRAWER()->render(
+				main_command_list_p,
+				NCPP_INIL_SPAN(
+					render_view_p
+				),
+				NCPP_INIL_SPAN(
+					main_frame_buffer_p
+				)
 			);
 
 			// submit command lists to GPU

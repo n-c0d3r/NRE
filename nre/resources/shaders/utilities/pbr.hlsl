@@ -6,6 +6,7 @@
 #include "utilities/aces_tone_mapping.hlsl"
 #include "utilities/normal.hlsl"
 #include "utilities/shadow.hlsl"
+#include "utilities/view.hlsl"
 
 
 
@@ -97,25 +98,6 @@ float3 MixDiffuseSpecular(float3 diffuse, float3 specular, float HoL, float3 spe
 
 
 
-#ifndef PBR_PER_VIEW_CB_CONSTENTS
-#define PBR_PER_VIEW_CB_CONSTENTS ;
-#endif
-
-#define PBR_DEFINE_PER_VIEW_CB(Index) \
-cbuffer per_view_cbuffer : register(b##Index) {\
-\
-    float4x4 projection_matrix;\
-    float4x4 view_transform;\
-\
-    float3 camera_position;\
-    float __camera_position_pad__;\
-\
-    PBR_PER_VIEW_CB_CONSTENTS;\
-\
-}
-
-
-
 #ifndef PBR_PER_OBJECT_CB_CONSTENTS
 #define PBR_PER_OBJECT_CB_CONSTENTS ;
 #endif
@@ -166,7 +148,7 @@ cbuffer ibl_sky_light_cbuffer : register(b##Index) {\
 
 
 #define PBR_DEFINE_CB(PerViewCBIndex, PerObjectCBIndex, DirectionalLightCBIndex, SkyLightCBIndex, DirectionalLightCascadedShadowCBIndex) \
-            PBR_DEFINE_PER_VIEW_CB(PerViewCBIndex);\
+            DEFINE_PER_VIEW_CB(PerViewCBIndex);\
             PBR_DEFINE_PER_OBJECT_CB(PerObjectCBIndex);\
             PBR_DEFINE_DIRECTIONAL_LIGHT_CB(DirectionalLightCBIndex);\
             PBR_DEFINE_SKY_LIGHT_CB(SkyLightCBIndex);\

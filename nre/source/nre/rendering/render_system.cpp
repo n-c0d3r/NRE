@@ -6,6 +6,7 @@
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/default_textures.hpp>
+#include <nre/rendering/debug_drawer.hpp>
 #include <nre/application/application.hpp>
 
 
@@ -76,6 +77,7 @@ namespace nre {
 		renderable_system_p_ = TU<F_renderable_system>()();
 		light_system_p_ = TU<F_light_system>()();
 		shadow_system_p_ = TU<F_shadow_system>()();
+		debug_drawer_p_ = TU<F_debug_drawer>()();
 
 		// create libraries
 		pso_library_p_ = TU<F_pso_library>();

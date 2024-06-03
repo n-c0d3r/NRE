@@ -49,8 +49,8 @@ namespace nre {
 #endif
 		}
 
-		render_system_p_ = TU<F_render_system>()();
 		asset_system_p_ = TU<F_asset_system>()();
+		render_system_p_ = TU<F_render_system>()();
 	}
 	F_application::~F_application() {
 
@@ -105,13 +105,13 @@ namespace nre {
 
 				gameplay_tick_event_.invoke();
 
+				render_tick_event_.invoke();
+
 				// end imgui frame
 				{
 					ImGui::EndFrame();
 					is_imgui_focused_ = ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
 				}
-
-				render_tick_event_.invoke();
 
 				// render imgui
 				{
