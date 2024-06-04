@@ -1,12 +1,14 @@
 #include <nre/rendering/material.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/material_system.hpp>
 
 
 
 namespace nre {
 
-	A_material_proxy::A_material_proxy(TKPA_valid<A_material> material_p) :
-		material_p_(material_p)
+	A_material_proxy::A_material_proxy(TKPA_valid<A_material> material_p, F_material_mask mask) :
+		material_p_(material_p),
+		mask_(mask)
 	{
 	}
 	A_material_proxy::~A_material_proxy() {
@@ -17,13 +19,20 @@ namespace nre {
 
 
 
-	A_material::A_material(TKPA_valid<F_actor> actor_p, TU<A_material_proxy>&& proxy_p) :
+	A_material::A_material(TKPA_valid<F_actor> actor_p, TU<A_material_proxy>&& proxy_p, F_material_mask mask) :
 		A_actor_component(actor_p),
-		proxy_p_(std::move(proxy_p))
+		proxy_p_(std::move(proxy_p)),
+		mask_(mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_material);
+
+		mask_ |= proxy_p_->mask();
+
+		F_material_system::instance_p()->registry(NCPP_KTHIS());
 	}
 	A_material::~A_material() {
+
+		F_material_system::instance_p()->deregistry(NCPP_KTHIS());
 	}
 
 	void A_material::ready() {

@@ -1,8 +1,8 @@
 #ifndef UTILITIES_SHADOW_HLSL
 #define UTILITIES_SHADOW_HLSL
 
-#ifndef DIRECTIONAL_LIGHT_CASCADED_SHADOW_LEVEL_COUNT
-#define DIRECTIONAL_LIGHT_CASCADED_SHADOW_LEVEL_COUNT 4
+#ifndef DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT
+#define DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT 3
 #endif
 
 
@@ -31,8 +31,8 @@ struct F_directional_light_cascaded_shadow {
 
     float3 view_direction;
     float __view_direction_pad__;
-    float4x4 light_space_matrices[DIRECTIONAL_LIGHT_CASCADED_SHADOW_LEVEL_COUNT];
-    float light_distances[DIRECTIONAL_LIGHT_CASCADED_SHADOW_LEVEL_COUNT];
+    float4x4 light_space_matrices[DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT];
+    float light_distances[DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT];
     float intensity;
 
 };

@@ -1,6 +1,7 @@
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/render_view_system.hpp>
 #include <nre/rendering/renderable_system.hpp>
+#include <nre/rendering/material_system.hpp>
 #include <nre/rendering/light_system.hpp>
 #include <nre/rendering/shadow_system.hpp>
 #include <nre/rendering/pso_library.hpp>
@@ -75,6 +76,7 @@ namespace nre {
 		default_textures_p_ = TU<F_default_textures>()();
 		render_view_system_p_ = TU<F_render_view_system>()();
 		renderable_system_p_ = TU<F_renderable_system>()();
+		material_system_p_ = TU<F_material_system>()();
 		light_system_p_ = TU<F_light_system>()();
 		shadow_system_p_ = TU<F_shadow_system>()();
 		debug_drawer_p_ = TU<F_debug_drawer>()();

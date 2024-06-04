@@ -95,8 +95,6 @@ namespace nre {
 		if(!mesh_p)
 			return;
 
-		render_command_list_p->clear_state();
-
 		material_p()->proxy_p().T_interface<I_has_simple_bind_material_proxy>()->simple_bind(
 			render_command_list_p,
 			render_view_p,

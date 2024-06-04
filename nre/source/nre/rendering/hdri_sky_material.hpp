@@ -23,7 +23,7 @@ namespace nre {
 
 
 	protected:
-		A_hdri_sky_material_proxy(TKPA_valid<F_hdri_sky_material> material_p);
+		A_hdri_sky_material_proxy(TKPA_valid<F_hdri_sky_material> material_p, F_material_mask mask = 0);
 
 	public:
 		virtual ~A_hdri_sky_material_proxy();
@@ -64,7 +64,7 @@ namespace nre {
 
 
 	public:
-		F_hdri_sky_material_proxy(TKPA_valid<F_hdri_sky_material> material_p);
+		F_hdri_sky_material_proxy(TKPA_valid<F_hdri_sky_material> material_p, F_material_mask mask = 0);
 		virtual ~F_hdri_sky_material_proxy();
 
 	public:
@@ -102,8 +102,8 @@ namespace nre {
 
 
 	public:
-		F_hdri_sky_material(TKPA_valid<F_actor> actor_p);
-		F_hdri_sky_material(TKPA_valid<F_actor> actor_p, TU<A_hdri_sky_material_proxy>&& proxy_p);
+		F_hdri_sky_material(TKPA_valid<F_actor> actor_p, F_material_mask mask = 0);
+		F_hdri_sky_material(TKPA_valid<F_actor> actor_p, TU<A_hdri_sky_material_proxy>&& proxy_p, F_material_mask mask = 0);
 		virtual ~F_hdri_sky_material();
 
 	public:

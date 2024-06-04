@@ -18,8 +18,8 @@
 
 namespace nre {
 
-	A_triplanar_lit_static_mesh_material_proxy::A_triplanar_lit_static_mesh_material_proxy(TKPA_valid<A_triplanar_lit_static_mesh_material> material_p) :
-		A_pbr_ibl_mesh_material_proxy(material_p)
+	A_triplanar_lit_static_mesh_material_proxy::A_triplanar_lit_static_mesh_material_proxy(TKPA_valid<A_triplanar_lit_static_mesh_material> material_p, F_material_mask mask) :
+		A_pbr_ibl_mesh_material_proxy(material_p, mask)
 	{
 	}
 	A_triplanar_lit_static_mesh_material_proxy::~A_triplanar_lit_static_mesh_material_proxy() {
@@ -27,8 +27,8 @@ namespace nre {
 
 
 
-	F_triplanar_lit_static_mesh_material_proxy::F_triplanar_lit_static_mesh_material_proxy(TKPA_valid<A_triplanar_lit_static_mesh_material> material_p) :
-		A_triplanar_lit_static_mesh_material_proxy(material_p)
+	F_triplanar_lit_static_mesh_material_proxy::F_triplanar_lit_static_mesh_material_proxy(TKPA_valid<A_triplanar_lit_static_mesh_material> material_p, F_material_mask mask) :
+		A_triplanar_lit_static_mesh_material_proxy(material_p, mask)
 	{
 		main_constant_buffer_p_ = H_buffer::create(
 			NRE_RENDER_DEVICE(),
@@ -206,8 +206,8 @@ namespace nre {
 
 
 
-	A_triplanar_lit_static_mesh_material::A_triplanar_lit_static_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_triplanar_lit_static_mesh_material_proxy>&& proxy_p) :
-		A_pbr_ibl_mesh_material(actor_p, std::move(proxy_p))
+	A_triplanar_lit_static_mesh_material::A_triplanar_lit_static_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_triplanar_lit_static_mesh_material_proxy>&& proxy_p, F_material_mask mask) :
+		A_pbr_ibl_mesh_material(actor_p, std::move(proxy_p), mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_triplanar_lit_static_mesh_material);
 
@@ -220,13 +220,13 @@ namespace nre {
 	A_triplanar_lit_static_mesh_material::~A_triplanar_lit_static_mesh_material() {
 	}
 
-	F_triplanar_lit_static_mesh_material::F_triplanar_lit_static_mesh_material(TKPA_valid<F_actor> actor_p) :
-		A_triplanar_lit_static_mesh_material(actor_p, TU<F_triplanar_lit_static_mesh_material_proxy>()(NCPP_KTHIS()))
+	F_triplanar_lit_static_mesh_material::F_triplanar_lit_static_mesh_material(TKPA_valid<F_actor> actor_p, F_material_mask mask) :
+		A_triplanar_lit_static_mesh_material(actor_p, TU<F_triplanar_lit_static_mesh_material_proxy>()(NCPP_KTHIS()), mask)
 	{
 		actor_p->set_render_tick(true);
 	}
-	F_triplanar_lit_static_mesh_material::F_triplanar_lit_static_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_triplanar_lit_static_mesh_material_proxy>&& proxy_p) :
-		A_triplanar_lit_static_mesh_material(actor_p, std::move(proxy_p))
+	F_triplanar_lit_static_mesh_material::F_triplanar_lit_static_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_triplanar_lit_static_mesh_material_proxy>&& proxy_p, F_material_mask mask) :
+		A_triplanar_lit_static_mesh_material(actor_p, std::move(proxy_p), mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_pbr_ibl_mesh_material);
 

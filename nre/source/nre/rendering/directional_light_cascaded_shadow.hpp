@@ -8,6 +8,15 @@
 
 #define NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT 3
 #define NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE 1024
+#define NRE_MAX_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT (8)
+#define NRE_MAX_DIRECTIONAL_LIGHT_CASCADED_SHADOW_CB_SIZE ncpp::align_size( \
+                4                                            \
+				+ 64 * NRE_MAX_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT \
+				+ 4 * NRE_MAX_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT\
+            	+ 16                                                \
+            	+ 4,                                                           \
+				32\
+			)
 
 
 
@@ -46,6 +55,8 @@ namespace nre {
 		TG_vector<F_matrix4x4_f32> light_view_matrices_;
 		F_vector3_f32 view_direction_;
 
+		U_buffer_handle main_constant_buffer_p_;
+
 	public:
 		NCPP_FORCE_INLINE TKPA<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p() const noexcept { return shadow_proxy_p_; }
 		NCPP_FORCE_INLINE K_valid_texture_2d_array_handle shadow_maps_p() const noexcept { return NCPP_FOH_VALID(shadow_maps_p_); }
@@ -54,6 +65,8 @@ namespace nre {
 		NCPP_FORCE_INLINE const TG_array<F_vector3_f32, 4>& far_frustum_corners() const noexcept { return far_frustum_corners_; }
 		NCPP_FORCE_INLINE const TG_vector<F_matrix4x4_f32>& light_view_matrices() const noexcept { return light_view_matrices_; }
 		NCPP_FORCE_INLINE const F_vector3_f32& view_direction() const noexcept { return view_direction_; }
+
+		NCPP_FORCE_INLINE K_valid_buffer_handle main_constant_buffer_p() const noexcept { return NCPP_FOH_VALID(main_constant_buffer_p_); }
 
 
 
@@ -74,14 +87,6 @@ namespace nre {
 		public A_directional_light_cascaded_shadow_proxy,
 		public I_has_view_based_simple_compute_shadow_proxy
 	{
-
-	private:
-		U_texture_2d_array_handle shadow_maps_p_;
-
-	public:
-		NCPP_FORCE_INLINE K_valid_texture_2d_array_handle shadow_maps_p() const noexcept { return NCPP_FOH_VALID(shadow_maps_p_); }
-
-
 
 	public:
 		F_directional_light_cascaded_shadow_proxy(TKPA_valid<A_directional_light_cascaded_shadow> shadow_p, F_shadow_mask mask = 0);

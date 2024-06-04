@@ -1,6 +1,8 @@
 #include <nre/rendering/directional_light_cascaded_shadow.hpp>
 #include <nre/rendering/shadow_system.hpp>
 #include <nre/rendering/render_view.hpp>
+#include <nre/rendering/render_system.hpp>
+#include <nre/rendering/debug_drawer.hpp>
 #include <nre/actor/actor.hpp>
 
 
@@ -23,6 +25,32 @@ namespace nre {
 		shadow_proxy_p_(shadow_proxy_p.no_requirements())
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_directional_light_cascaded_shadow_render_view_attachment);
+
+		auto shadow_p = shadow_proxy_p_->shadow_p().T_cast<A_directional_light_cascaded_shadow>();
+
+		shadow_maps_p_  = H_texture::create_2d_array(
+			NRE_RENDER_DEVICE(),
+			{},
+			shadow_p->map_size().x,
+			shadow_p->map_size().y,
+			shadow_p->map_count(),
+			E_format::R32_TYPELESS,
+			1,
+			{},
+			flag_combine(
+				E_resource_bind_flag::SRV,
+				E_resource_bind_flag::DSV
+			)
+		);
+
+		main_constant_buffer_p_ = H_buffer::create(
+			NRE_RENDER_DEVICE(),
+			{},
+			1,
+			NRE_MAX_DIRECTIONAL_LIGHT_CASCADED_SHADOW_CB_SIZE,
+			E_resource_bind_flag::CBV,
+			E_resource_heap_type::GREAD_CWRITE
+		);
 	}
 	F_directional_light_cascaded_shadow_render_view_attachment::~F_directional_light_cascaded_shadow_render_view_attachment() {
 	}
@@ -31,7 +59,7 @@ namespace nre {
 
 		F_matrix4x4_f32 view_matrix = view_p()->view_matrix;
 		F_matrix4x4_f32 projection_matrix = view_p()->projection_matrix;
-		F_matrix4x4_f32 inv_view_projection_matrix = invert(view_matrix * projection_matrix);
+		F_matrix4x4_f32 inv_projection_view_matrix = invert(projection_matrix * view_matrix);
 
 		// compute frustum corners
 		{
@@ -42,7 +70,7 @@ namespace nre {
 
 					for(f32 x = -1.0f; x <= 1.0f; x += 2.0f) {
 
-						F_vector4_f32 frustum_corner = (inv_view_projection_matrix * F_vector4_f32(x, y, z, 1.0f));
+						F_vector4_f32 frustum_corner = (inv_projection_view_matrix * F_vector4_f32(x, y, z, 1.0f));
 						frustum_corner /= frustum_corner.w;
 
 						frustum_corners_[

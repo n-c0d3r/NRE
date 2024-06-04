@@ -21,7 +21,7 @@ namespace nre {
 
 
 	protected:
-		A_pbr_mesh_material_proxy(TKPA_valid<A_pbr_mesh_material> material_p);
+		A_pbr_mesh_material_proxy(TKPA_valid<A_pbr_mesh_material> material_p, F_material_mask mask = 0);
 
 	public:
 		virtual ~A_pbr_mesh_material_proxy();
@@ -48,7 +48,7 @@ namespace nre {
 
 
 	protected:
-		A_pbr_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_mesh_material_proxy>&& proxy_p);
+		A_pbr_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_mesh_material_proxy>&& proxy_p, F_material_mask mask = 0);
 
 	public:
 		virtual ~A_pbr_mesh_material();
