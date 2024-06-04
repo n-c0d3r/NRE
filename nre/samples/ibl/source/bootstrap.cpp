@@ -294,16 +294,16 @@ int main() {
 			auto render_view_p = NCPP_FOH_VALID(spectator_camera_p->render_view_p());
 			auto main_frame_buffer_p = NCPP_FOH_VALID(render_view_p->main_frame_buffer_p());
 
-			NRE_drawable_SYSTEM()->T_for_each<I_has_simple_render_drawable>(
+			NRE_DRAWABLE_SYSTEM()->T_for_each<I_has_simple_draw_drawable>(
 				[&](const auto& drawable_p) {
 
-					auto simple_render_drawable_p = drawable_p.T_interface<I_has_simple_render_drawable>();
+					auto simple_render_drawable_p = drawable_p.T_interface<I_has_simple_draw_drawable>();
 
-				  	simple_render_drawable_p->simple_render(
-						main_command_list_p,
-						render_view_p,
-						main_frame_buffer_p
-				  	);
+				  simple_render_drawable_p->simple_draw(
+					  main_command_list_p,
+					  render_view_p,
+					  main_frame_buffer_p
+				  );
 				}
 			);
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nre/rendering/material.hpp>
+#include <nre/rendering/drawable_material.hpp>
 #include <nre/rendering/render_command_list.hpp>
 
 
@@ -37,7 +37,7 @@ namespace nre {
 
 	class NRE_API F_hdri_sky_material_proxy :
 		public A_hdri_sky_material_proxy,
-		public I_has_simple_bind_material_proxy
+		public I_has_simple_render_material_proxy
 	{
 
 	public:
@@ -74,7 +74,7 @@ namespace nre {
 		virtual void update() override;
 
 	public:
-		virtual void simple_bind(
+		virtual void simple_render(
 			KPA_valid_render_command_list_handle render_command_list_p,
 			TKPA_valid<A_render_view> render_view_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p
@@ -84,7 +84,7 @@ namespace nre {
 
 
 
-	class NRE_API F_hdri_sky_material : public A_material {
+	class NRE_API F_hdri_sky_material : public A_drawable_material {
 
 	private:
 		static TK<F_hdri_sky_material> instance_ps;

@@ -13,8 +13,8 @@ namespace nre {
 		A_drawable(
 			actor_p,
 			mask
-			| NRE_drawable_SYSTEM()->T_mask<
-				I_has_simple_render_drawable,
+			| NRE_DRAWABLE_SYSTEM()->T_mask<
+				I_has_simple_draw_drawable,
 				I_has_vertex_buffer_drawable,
 				I_has_index_buffer_drawable
 			>()
@@ -26,8 +26,8 @@ namespace nre {
 		A_drawable(
 			actor_p,
 			mask
-			| NRE_drawable_SYSTEM()->T_mask<
-				I_has_simple_render_drawable,
+			| NRE_DRAWABLE_SYSTEM()->T_mask<
+				I_has_simple_draw_drawable,
 				I_has_vertex_buffer_drawable,
 				I_has_index_buffer_drawable
 			>()
@@ -87,17 +87,15 @@ namespace nre {
 		return mesh_p->buffer_p()->index_uav_p();
 	}
 
-	void F_static_mesh_drawable::simple_render(
-		KPA_valid_render_command_list_handle render_command_list_p,
-		TKPA_valid<A_render_view> render_view_p,
-		TKPA_valid<A_frame_buffer> frame_buffer_p
+	void F_static_mesh_drawable::simple_draw(
+		KPA_valid_render_command_list_handle render_command_list_p
 	) {
 		if(!mesh_p)
 			return;
 
-//		render_command_list_p.draw_static_mesh(
-//			NCPP_FOH_VALID(mesh_p)
-//		);
+		render_command_list_p.draw_static_mesh(
+			NCPP_FOH_VALID(mesh_p)
+		);
 	}
 
 }

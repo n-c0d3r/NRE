@@ -164,4 +164,4 @@ namespace nre {
 
 
 
-#define NRE_drawable_SYSTEM(...) (nre::F_drawable_system::instance_p())
+#define NRE_DRAWABLE_SYSTEM(...) (nre::F_drawable_system::instance_p())

@@ -15,10 +15,10 @@ namespace nre {
 
 
 
-	class I_has_simple_bind_material_proxy {
+	class I_has_simple_render_material_proxy {
 
 	public:
-		virtual void simple_bind(
+		virtual void simple_render(
 			KPA_valid_render_command_list_handle render_command_list_p,
 			TKPA_valid<A_render_view> render_view_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p

@@ -14,13 +14,11 @@ namespace nre {
 
 
 
-	class I_has_simple_render_drawable {
+	class I_has_simple_draw_drawable {
 
 	public:
-		virtual void simple_render(
-			KPA_valid_render_command_list_handle render_command_list_p,
-			TKPA_valid<A_render_view> render_view_p,
-			TKPA_valid<A_frame_buffer> frame_buffer_p
+		virtual void simple_draw(
+			KPA_valid_render_command_list_handle render_command_list_p
 		) = 0;
 
 	};

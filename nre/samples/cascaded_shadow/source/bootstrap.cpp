@@ -117,43 +117,53 @@ int main() {
 			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			K_valid_render_command_list_handle main_command_list_p = { NRE_RENDER_SYSTEM()->main_command_list_p() };
 
-			auto render_view_p = NCPP_FOH_VALID(spectator_camera_p->render_view_p());
-			auto main_frame_buffer_p = NCPP_FOH_VALID(render_view_p->main_frame_buffer_p());
+			NRE_RENDER_VIEW_SYSTEM()->T_for_each(
+				[&](const auto& render_view_p) {
 
-			NRE_SHADOW_SYSTEM()->T_for_each<I_has_view_based_simple_compute_shadow_proxy>(
-				[&](const auto& shadow_p) {
+				  	auto main_frame_buffer_p = render_view_p->main_frame_buffer_p();
 
-				  	auto simple_shadow_proxy_p = shadow_p->proxy_p().T_interface<I_has_view_based_simple_compute_shadow_proxy>();
+				  	if(!main_frame_buffer_p)
+					  	return;
 
-				  	simple_shadow_proxy_p->view_based_simple_compute(
-						main_command_list_p,
-						render_view_p,
-						main_frame_buffer_p
+				  	NRE_SHADOW_SYSTEM()->T_for_each<I_has_view_based_simple_compute_shadow_proxy>(
+					  	[&](const auto& shadow_p) {
+
+							auto simple_shadow_proxy_p = shadow_p->proxy_p().T_interface<I_has_view_based_simple_compute_shadow_proxy>();
+
+							simple_shadow_proxy_p->view_based_simple_compute(
+								main_command_list_p,
+								render_view_p,
+								NCPP_FOH_VALID(main_frame_buffer_p)
+							);
+					  	}
+				  	);
+
+				  	main_command_list_p->ZOM_bind_frame_buffer(
+						NCPP_FOH_VALID(main_frame_buffer_p)
+				  	);
+				  	NRE_MATERIAL_SYSTEM()->T_for_each<I_has_simple_render_material_proxy>(
+					  	[&](const auto& material_p) {
+
+							auto simple_render_material_proxy_p = material_p->proxy_p().T_interface<I_has_simple_render_material_proxy>();
+
+						  	simple_render_material_proxy_p->simple_render(
+								main_command_list_p,
+								render_view_p,
+								NCPP_FOH_VALID(main_frame_buffer_p)
+							);
+					  	}
+				  	);
+
+				  	NRE_DEBUG_DRAWER()->render(
+					  	main_command_list_p,
+					  	NCPP_INIL_SPAN(
+						  	render_view_p
+					  	),
+					  	NCPP_INIL_SPAN(
+							NCPP_FOH_VALID(main_frame_buffer_p)
+					  	)
 				  	);
 				}
-			);
-
-			NRE_drawable_SYSTEM()->T_for_each<I_has_simple_render_drawable>(
-				[&](const auto& drawable_p) {
-
-					auto simple_render_drawable_p = drawable_p.T_interface<I_has_simple_render_drawable>();
-
-				  	simple_render_drawable_p->simple_render(
-						main_command_list_p,
-						render_view_p,
-						main_frame_buffer_p
-				  	);
-				}
-			);
-
-			NRE_DEBUG_DRAWER()->render(
-				main_command_list_p,
-				NCPP_INIL_SPAN(
-					render_view_p
-				),
-				NCPP_INIL_SPAN(
-					main_frame_buffer_p
-				)
 			);
 
 			// submit command lists to GPU

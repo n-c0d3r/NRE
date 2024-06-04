@@ -9,6 +9,8 @@
 #include <nre/rendering/general_texture_cube.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
 #include <nre/rendering/default_textures.hpp>
+#include <nre/rendering/material_system.hpp>
+#include <nre/rendering/drawable.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/shader_asset.hpp>
 #include <nre/actor/actor.hpp>
@@ -28,7 +30,10 @@ namespace nre {
 
 
 	F_lit_static_mesh_material_proxy::F_lit_static_mesh_material_proxy(TKPA_valid<A_lit_static_mesh_material> material_p, F_material_mask mask) :
-		A_lit_static_mesh_material_proxy(material_p, mask)
+		A_lit_static_mesh_material_proxy(
+			material_p,
+			mask | NRE_MATERIAL_SYSTEM()->T_mask<I_has_simple_render_material_proxy>()
+		)
 	{
 		main_constant_buffer_p_ = H_buffer::create(
 			NRE_RENDER_DEVICE(),
@@ -124,7 +129,7 @@ namespace nre {
 	F_lit_static_mesh_material_proxy::~F_lit_static_mesh_material_proxy() {
 	}
 
-	void F_lit_static_mesh_material_proxy::simple_bind(
+	void F_lit_static_mesh_material_proxy::simple_render(
 		KPA_valid_render_command_list_handle render_command_list_p,
 		TKPA_valid<A_render_view> render_view_p,
 		TKPA_valid<A_frame_buffer> frame_buffer_p
@@ -168,6 +173,10 @@ namespace nre {
 		render_command_list_p->ZPS_bind_sampler_state(
 			NCPP_FOH_VALID(maps_sampler_state_p_),
 			1
+		);
+
+		casted_material_p->drawable_p().T_interface<I_has_simple_draw_drawable>()->simple_draw(
+			render_command_list_p
 		);
 	}
 
