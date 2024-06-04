@@ -8,14 +8,14 @@
 
 namespace nre {
 
-	class F_renderable;
+	class A_renderable;
 
 
 
 	class NRE_API F_renderable_system {
 
 	public:
-		friend class F_renderable;
+		friend class A_renderable;
 
 
 
@@ -31,13 +31,13 @@ namespace nre {
 
 
 	private:
-		TG_list<TK_valid<F_renderable>> renderable_p_list_;
+		TG_list<TK_valid<A_renderable>> renderable_p_list_;
 
 		u8 last_channel_id_ = 0;
 		TG_map<u64, u8> type_hash_code_to_channel_id_map_;
 
 	public:
-		NCPP_FORCE_INLINE const TG_list<TK_valid<F_renderable>>& renderable_p_list() const noexcept { return renderable_p_list_; }
+		NCPP_FORCE_INLINE const TG_list<TK_valid<A_renderable>>& renderable_p_list() const noexcept { return renderable_p_list_; }
 
 		NCPP_FORCE_INLINE const TG_map<u64, u8>& type_hash_code_to_channel_id_map() const noexcept { return type_hash_code_to_channel_id_map_; }
 
@@ -51,8 +51,8 @@ namespace nre {
 		NCPP_OBJECT(F_renderable_system);
 
 	private:
-		void registry(TKPA_valid<F_renderable> renderable_p);
-		void deregistry(TKPA_valid<F_renderable> renderable_p);
+		void registry(TKPA_valid<A_renderable> renderable_p);
+		void deregistry(TKPA_valid<A_renderable> renderable_p);
 
 	public:
 		NCPP_FORCE_INLINE b8 is_has_channel_id(u64 type_hash_code) const noexcept {

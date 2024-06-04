@@ -16,12 +16,12 @@ namespace nre
 	{
 	}
 
-	void F_renderable_system::registry(TKPA_valid<F_renderable> renderable_p)
+	void F_renderable_system::registry(TKPA_valid<A_renderable> renderable_p)
 	{
 		renderable_p_list_.push_back(renderable_p);
 		renderable_p->handle_ = --(renderable_p_list_.end());
 	}
-	void F_renderable_system::deregistry(TKPA_valid<F_renderable> renderable_p)
+	void F_renderable_system::deregistry(TKPA_valid<A_renderable> renderable_p)
 	{
 		renderable_p_list_.erase(renderable_p->handle_);
 		renderable_p->handle_ = renderable_p_list_.end();

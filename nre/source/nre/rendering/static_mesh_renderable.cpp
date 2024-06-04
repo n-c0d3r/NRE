@@ -10,7 +10,7 @@
 namespace nre {
 
 	F_static_mesh_renderable::F_static_mesh_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask) :
-		F_renderable(
+		A_renderable(
 			actor_p,
 			mask
 			| NRE_RENDERABLE_SYSTEM()->T_mask<
@@ -23,7 +23,7 @@ namespace nre {
 		NRE_ACTOR_COMPONENT_REGISTER(F_static_mesh_renderable);
 	}
 	F_static_mesh_renderable::F_static_mesh_renderable(TKPA_valid<F_actor> actor_p, TSPA<A_static_mesh> mesh_p, F_renderable_mask mask) :
-		F_renderable(
+		A_renderable(
 			actor_p,
 			mask
 			| NRE_RENDERABLE_SYSTEM()->T_mask<

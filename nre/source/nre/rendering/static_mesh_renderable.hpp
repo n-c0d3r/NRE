@@ -8,7 +8,7 @@
 namespace nre {
 
 	class NRE_API F_static_mesh_renderable :
-		public F_renderable,
+		public A_renderable,
 		public I_has_vertex_buffer_renderable,
 		public I_has_index_buffer_renderable,
 		public I_has_simple_render_renderable

@@ -46,7 +46,7 @@ namespace nre {
 
 
 
-	class NRE_API F_renderable : public A_actor_component {
+	class NRE_API A_renderable : public A_actor_component {
 
 	public:
 		friend class F_renderable_system;
@@ -55,7 +55,7 @@ namespace nre {
 
 	private:
 		TK_valid<F_transform_node> transform_node_p_;
-		typename TG_list<TK_valid<F_renderable>>::iterator handle_;
+		typename TG_list<TK_valid<A_renderable>>::iterator handle_;
 		F_renderable_mask mask_ = 0;
 		TK_valid<A_material> material_p_;
 
@@ -66,12 +66,14 @@ namespace nre {
 
 
 
-	public:
-		F_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask = 0);
-		virtual ~F_renderable();
+	protected:
+		A_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask = 0);
 
 	public:
-		NCPP_OBJECT(F_renderable);
+		virtual ~A_renderable();
+
+	public:
+		NCPP_OBJECT(A_renderable);
 
 	};
 
