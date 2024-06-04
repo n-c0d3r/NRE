@@ -43,8 +43,8 @@ int main() {
 	// create hdri sky actor
 	auto hdri_sky_actor_p = level_p->T_create_actor();
 	auto hdri_sky_transform_node_p = hdri_sky_actor_p->template T_add_component<F_transform_node>();
-	auto hdri_sky_material_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_material>();
 	auto hdri_sky_drawable_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_drawable>();
+	auto hdri_sky_material_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_material>();
 
 	hdri_sky_material_p->sky_texture_cube_p = skymap_p;
 
@@ -63,8 +63,8 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere_actor_p = level_p->T_create_actor();
 	auto pbr_sphere_transform_node_p = pbr_sphere_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere_drawable_p = pbr_sphere_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere_material_p = pbr_sphere_actor_p->template T_add_component<F_lit_static_mesh_material>();
 
 	pbr_sphere_drawable_p->mesh_p = sphere_mesh_p;
 
@@ -84,8 +84,8 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere2_actor_p = level_p->T_create_actor();
 	auto pbr_sphere2_transform_node_p = pbr_sphere2_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere2_material_p = pbr_sphere2_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere2_drawable_p = pbr_sphere2_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere2_material_p = pbr_sphere2_actor_p->template T_add_component<F_lit_static_mesh_material>();
 
 	pbr_sphere2_transform_node_p->transform *= make_translation({ 3, 0, 0 });
 
@@ -107,8 +107,8 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere3_actor_p = level_p->T_create_actor();
 	auto pbr_sphere3_transform_node_p = pbr_sphere3_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere3_material_p = pbr_sphere3_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere3_drawable_p = pbr_sphere3_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere3_material_p = pbr_sphere3_actor_p->template T_add_component<F_lit_static_mesh_material>();
 
 	pbr_sphere3_transform_node_p->transform *= make_translation({ 0, 0, 3 });
 
@@ -129,8 +129,8 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere4_actor_p = level_p->T_create_actor();
 	auto pbr_sphere4_transform_node_p = pbr_sphere4_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere4_material_p = pbr_sphere4_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere4_drawable_p = pbr_sphere4_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere4_material_p = pbr_sphere4_actor_p->template T_add_component<F_lit_static_mesh_material>();
 
 	pbr_sphere4_transform_node_p->transform *= make_translation({ 3, 0, 3 });
 
@@ -151,8 +151,8 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere5_actor_p = level_p->T_create_actor();
 	auto pbr_sphere5_transform_node_p = pbr_sphere5_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere5_material_p = pbr_sphere5_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere5_drawable_p = pbr_sphere5_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere5_material_p = pbr_sphere5_actor_p->template T_add_component<F_lit_static_mesh_material>();
 
 	pbr_sphere5_transform_node_p->transform *= make_translation({ 6, 0, 3 });
 
@@ -165,8 +165,8 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere6_actor_p = level_p->T_create_actor();
 	auto pbr_sphere6_transform_node_p = pbr_sphere6_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere6_material_p = pbr_sphere6_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere6_drawable_p = pbr_sphere6_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere6_material_p = pbr_sphere6_actor_p->template T_add_component<F_lit_static_mesh_material>();
 
 	pbr_sphere6_transform_node_p->transform *= make_translation({ 6, 0, 0 });
 
@@ -179,8 +179,8 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere7_actor_p = level_p->T_create_actor();
 	auto pbr_sphere7_transform_node_p = pbr_sphere7_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere7_material_p = pbr_sphere7_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere7_drawable_p = pbr_sphere7_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere7_material_p = pbr_sphere7_actor_p->template T_add_component<F_lit_static_mesh_material>();
 
 	pbr_sphere7_transform_node_p->transform *= make_translation({ 6, 0, 6 });
 
@@ -193,8 +193,8 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere8_actor_p = level_p->T_create_actor();
 	auto pbr_sphere8_transform_node_p = pbr_sphere8_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere8_material_p = pbr_sphere8_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere8_drawable_p = pbr_sphere8_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere8_material_p = pbr_sphere8_actor_p->template T_add_component<F_lit_static_mesh_material>();
 
 	pbr_sphere8_transform_node_p->transform *= make_translation({ 0, 0, 6 });
 
@@ -215,8 +215,8 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere9_actor_p = level_p->T_create_actor();
 	auto pbr_sphere9_transform_node_p = pbr_sphere9_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere9_material_p = pbr_sphere9_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere9_drawable_p = pbr_sphere9_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere9_material_p = pbr_sphere9_actor_p->template T_add_component<F_lit_static_mesh_material>();
 
 	pbr_sphere9_transform_node_p->transform *= make_translation({ 3, 0, 6 });
 
@@ -237,8 +237,8 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere10_actor_p = level_p->T_create_actor();
 	auto pbr_sphere10_transform_node_p = pbr_sphere10_actor_p->template T_add_component<F_transform_node>();
-	auto pbr_sphere10_material_p = pbr_sphere10_actor_p->template T_add_component<F_lit_static_mesh_material>();
 	auto pbr_sphere10_drawable_p = pbr_sphere10_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere10_material_p = pbr_sphere10_actor_p->template T_add_component<F_lit_static_mesh_material>();
 
 	pbr_sphere10_transform_node_p->transform *= make_translation({ 6, 0, 9 });
 
@@ -285,25 +285,45 @@ int main() {
 			}
 
 		};
-		NRE_APPLICATION_RENDER_TICK(application_p) {
-
+		NRE_APPLICATION_RENDER_TICK(application_p)
+		{
 			// get some essential objects
 			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			K_valid_render_command_list_handle main_command_list_p = { NRE_RENDER_SYSTEM()->main_command_list_p() };
 
-			auto render_view_p = NCPP_FOH_VALID(spectator_camera_p->render_view_p());
-			auto main_frame_buffer_p = NCPP_FOH_VALID(render_view_p->main_frame_buffer_p());
+			NRE_RENDER_VIEW_SYSTEM()->T_for_each(
+				[&](const auto& render_view_p) {
 
-			NRE_DRAWABLE_SYSTEM()->T_for_each<I_has_simple_draw_drawable>(
-				[&](const auto& drawable_p) {
+				  	auto main_frame_buffer_p = render_view_p->main_frame_buffer_p();
 
-					auto simple_render_drawable_p = drawable_p.T_interface<I_has_simple_draw_drawable>();
+				  	if(!main_frame_buffer_p)
+					  	return;
 
-				  simple_render_drawable_p->simple_draw(
-					  main_command_list_p,
-					  render_view_p,
-					  main_frame_buffer_p
-				  );
+				  	main_command_list_p->ZOM_bind_frame_buffer(
+						NCPP_FOH_VALID(main_frame_buffer_p)
+				  	);
+				  	NRE_MATERIAL_SYSTEM()->T_for_each<I_has_simple_render_material_proxy>(
+					  	[&](const auto& material_p) {
+
+							auto simple_render_material_proxy_p = material_p->proxy_p().T_interface<I_has_simple_render_material_proxy>();
+
+						  	simple_render_material_proxy_p->simple_render(
+								main_command_list_p,
+								render_view_p,
+								NCPP_FOH_VALID(main_frame_buffer_p)
+							);
+					  	}
+				  	);
+
+				  	NRE_DEBUG_DRAWER()->render(
+					  	main_command_list_p,
+					  	NCPP_INIL_SPAN(
+						  	render_view_p
+					  	),
+					  	NCPP_INIL_SPAN(
+							NCPP_FOH_VALID(main_frame_buffer_p)
+					  	)
+				  	);
 				}
 			);
 
