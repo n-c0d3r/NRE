@@ -7,7 +7,7 @@
 namespace nre {
 
 	class F_render_view_system;
-	class F_renderable_system;
+	class F_drawable_system;
 	class F_light_system;
 	class F_shadow_system;
 	class F_pso_library;
@@ -39,7 +39,7 @@ namespace nre {
 		TU<A_frame_buffer> main_frame_buffer_p_;
 
 		TU<F_render_view_system> render_view_system_p_;
-		TU<F_renderable_system> renderable_system_p_;
+		TU<F_drawable_system> drawable_system_p_;
 		TU<F_material_system> material_system_p_;
 		TU<F_light_system> light_system_p_;
 		TU<F_shadow_system> shadow_system_p_;

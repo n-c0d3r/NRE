@@ -7,11 +7,11 @@
 #include <nre/rendering/simple_render_view.hpp>
 #include <nre/rendering/sky_light.hpp>
 #include <nre/rendering/ibl_sky_light.hpp>
-#include <nre/rendering/renderable.hpp>
-#include <nre/rendering/static_mesh_renderable.hpp>
-#include <nre/rendering/hdri_sky_renderable.hpp>
+#include <nre/rendering/drawable.hpp>
+#include <nre/rendering/static_mesh_drawable.hpp>
+#include <nre/rendering/hdri_sky_drawable.hpp>
 #include <nre/rendering/render_view_system.hpp>
-#include <nre/rendering/renderable_system.hpp>
+#include <nre/rendering/drawable_system.hpp>
 #include <nre/rendering/static_mesh.hpp>
 #include <nre/rendering/vertex.hpp>
 #include <nre/rendering/material.hpp>

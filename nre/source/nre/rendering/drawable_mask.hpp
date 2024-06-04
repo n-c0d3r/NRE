@@ -6,6 +6,6 @@
 
 namespace nre {
 
-	using F_renderable_mask = u64;
+	using F_drawable_mask = u64;
 
 }

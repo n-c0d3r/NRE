@@ -43,8 +43,8 @@ int main() {
 	// create hdri sky actor
 	auto hdri_sky_actor_p = level_p->T_create_actor();
 	auto hdri_sky_transform_node_p = hdri_sky_actor_p->template T_add_component<F_transform_node>();
+	auto hdri_sky_drawable_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_drawable>();
 	auto hdri_sky_material_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_material>();
-	auto hdri_sky_renderable_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_renderable>();
 
 	hdri_sky_material_p->sky_texture_cube_p = skymap_p;
 
@@ -63,12 +63,12 @@ int main() {
 	// create pbr sphere actor
 	auto pbr_sphere4_actor_p = level_p->T_create_actor();
 	auto pbr_sphere4_transform_node_p = pbr_sphere4_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere4_drawable_p = pbr_sphere4_actor_p->template T_add_component<F_static_mesh_drawable>();
 	auto pbr_sphere4_material_p = pbr_sphere4_actor_p->template T_add_component<F_lit_static_mesh_material>();
-	auto pbr_sphere4_renderable_p = pbr_sphere4_actor_p->template T_add_component<F_static_mesh_renderable>();
 
 	pbr_sphere4_transform_node_p->transform *= make_translation({ 3, 0, 3 });
 
-	pbr_sphere4_renderable_p->mesh_p = sphere_mesh_p;
+	pbr_sphere4_drawable_p->mesh_p = sphere_mesh_p;
 
 	pbr_sphere4_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
 
@@ -123,26 +123,26 @@ int main() {
 			NRE_SHADOW_SYSTEM()->T_for_each<I_has_view_based_simple_compute_shadow_proxy>(
 				[&](const auto& shadow_p) {
 
-					  auto simple_shadow_proxy_p = shadow_p->proxy_p().T_interface<I_has_view_based_simple_compute_shadow_proxy>();
+				  	auto simple_shadow_proxy_p = shadow_p->proxy_p().T_interface<I_has_view_based_simple_compute_shadow_proxy>();
 
-					  simple_shadow_proxy_p->view_based_simple_compute(
+				  	simple_shadow_proxy_p->view_based_simple_compute(
 						main_command_list_p,
 						render_view_p,
 						main_frame_buffer_p
-					  );
+				  	);
 				}
 			);
 
-			NRE_RENDERABLE_SYSTEM()->T_for_each<I_has_simple_render_renderable>(
-				[&](const auto& renderable_p) {
+			NRE_drawable_SYSTEM()->T_for_each<I_has_simple_render_drawable>(
+				[&](const auto& drawable_p) {
 
-					auto simple_render_renderable_p = renderable_p.T_interface<I_has_simple_render_renderable>();
+					auto simple_render_drawable_p = drawable_p.T_interface<I_has_simple_render_drawable>();
 
-					  simple_render_renderable_p->simple_render(
+				  	simple_render_drawable_p->simple_render(
 						main_command_list_p,
 						render_view_p,
 						main_frame_buffer_p
-					  );
+				  	);
 				}
 			);
 

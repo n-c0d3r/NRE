@@ -1,17 +1,17 @@
 ﻿#pragma once
 
-#include <nre/rendering/renderable.hpp>
+#include <nre/rendering/drawable.hpp>
 #include <nre/rendering/static_mesh.hpp>
 
 
 
 namespace nre {
 
-	class NRE_API F_static_mesh_renderable :
-		public A_renderable,
-		public I_has_vertex_buffer_renderable,
-		public I_has_index_buffer_renderable,
-		public I_has_simple_render_renderable
+	class NRE_API F_static_mesh_drawable :
+		public A_drawable,
+		public I_has_vertex_buffer_drawable,
+		public I_has_index_buffer_drawable,
+		public I_has_simple_render_drawable
 	{
 
 	public:
@@ -20,9 +20,9 @@ namespace nre {
 
 
 	public:
-		F_static_mesh_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask = 0);
-		F_static_mesh_renderable(TKPA_valid<F_actor> actor_p, TSPA<A_static_mesh> mesh_p, F_renderable_mask mask = 0);
-		virtual ~F_static_mesh_renderable();
+		F_static_mesh_drawable(TKPA_valid<F_actor> actor_p, F_drawable_mask mask = 0);
+		F_static_mesh_drawable(TKPA_valid<F_actor> actor_p, TSPA<A_static_mesh> mesh_p, F_drawable_mask mask = 0);
+		virtual ~F_static_mesh_drawable();
 
 	public:
 		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const override;

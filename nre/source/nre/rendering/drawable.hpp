@@ -2,7 +2,7 @@
 
 #include <nre/actor/actor_component.hpp>
 #include <nre/rendering/render_command_list.hpp>
-#include <nre/rendering/renderable_mask.hpp>
+#include <nre/rendering/drawable_mask.hpp>
 
 
 
@@ -14,7 +14,7 @@ namespace nre {
 
 
 
-	class I_has_simple_render_renderable {
+	class I_has_simple_render_drawable {
 
 	public:
 		virtual void simple_render(
@@ -24,7 +24,7 @@ namespace nre {
 		) = 0;
 
 	};
-	class I_has_vertex_buffer_renderable {
+	class I_has_vertex_buffer_drawable {
 
 	public:
 		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const = 0;
@@ -34,7 +34,7 @@ namespace nre {
 		virtual K_uav_handle vertex_uav_p(u32 index = 0) const { return { null }; }
 
 	};
-	class I_has_index_buffer_renderable {
+	class I_has_index_buffer_drawable {
 
 	public:
 		virtual K_buffer_handle index_buffer_p() const = 0;
@@ -46,34 +46,32 @@ namespace nre {
 
 
 
-	class NRE_API A_renderable : public A_actor_component {
+	class NRE_API A_drawable : public A_actor_component {
 
 	public:
-		friend class F_renderable_system;
+		friend class F_drawable_system;
 
 
 
 	private:
 		TK_valid<F_transform_node> transform_node_p_;
-		typename TG_list<TK_valid<A_renderable>>::iterator handle_;
-		F_renderable_mask mask_ = 0;
-		TK_valid<A_material> material_p_;
+		typename TG_list<TK_valid<A_drawable>>::iterator handle_;
+		F_drawable_mask mask_ = 0;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_transform_node> transform_node_p() const noexcept { return transform_node_p_; }
-		NCPP_FORCE_INLINE F_renderable_mask mask() const noexcept { return mask_; }
-		NCPP_FORCE_INLINE TKPA_valid<A_material> material_p() const noexcept { return material_p_; }
+		NCPP_FORCE_INLINE F_drawable_mask mask() const noexcept { return mask_; }
 
 
 
 	protected:
-		A_renderable(TKPA_valid<F_actor> actor_p, F_renderable_mask mask = 0);
+		A_drawable(TKPA_valid<F_actor> actor_p, F_drawable_mask mask = 0);
 
 	public:
-		virtual ~A_renderable();
+		virtual ~A_drawable();
 
 	public:
-		NCPP_OBJECT(A_renderable);
+		NCPP_OBJECT(A_drawable);
 
 	};
 

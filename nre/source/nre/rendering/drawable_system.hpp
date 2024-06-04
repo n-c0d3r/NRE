@@ -1,29 +1,29 @@
 ﻿#pragma once
 
 #include <nre/prerequisites.hpp>
-#include <nre/rendering/renderable_mask.hpp>
-#include <nre/rendering/renderable.hpp>
+#include <nre/rendering/drawable_mask.hpp>
+#include <nre/rendering/drawable.hpp>
 
 
 
 namespace nre {
 
-	class A_renderable;
+	class A_drawable;
 
 
 
-	class NRE_API F_renderable_system {
+	class NRE_API F_drawable_system {
 
 	public:
-		friend class A_renderable;
+		friend class A_drawable;
 
 
 
 	private:
-		static TK<F_renderable_system> instance_ps;
+		static TK<F_drawable_system> instance_ps;
 
 	public:
-		static NCPP_FORCE_INLINE TK<F_renderable_system> instance_p() {
+		static NCPP_FORCE_INLINE TK<F_drawable_system> instance_p() {
 
 			return instance_ps;
 		}
@@ -31,28 +31,28 @@ namespace nre {
 
 
 	private:
-		TG_list<TK_valid<A_renderable>> renderable_p_list_;
+		TG_list<TK_valid<A_drawable>> drawable_p_list_;
 
 		u8 last_channel_id_ = 0;
 		TG_map<u64, u8> type_hash_code_to_channel_id_map_;
 
 	public:
-		NCPP_FORCE_INLINE const TG_list<TK_valid<A_renderable>>& renderable_p_list() const noexcept { return renderable_p_list_; }
+		NCPP_FORCE_INLINE const TG_list<TK_valid<A_drawable>>& drawable_p_list() const noexcept { return drawable_p_list_; }
 
 		NCPP_FORCE_INLINE const TG_map<u64, u8>& type_hash_code_to_channel_id_map() const noexcept { return type_hash_code_to_channel_id_map_; }
 
 
 
 	public:
-		F_renderable_system();
-		~F_renderable_system();
+		F_drawable_system();
+		~F_drawable_system();
 
 	public:
-		NCPP_OBJECT(F_renderable_system);
+		NCPP_OBJECT(F_drawable_system);
 
 	private:
-		void registry(TKPA_valid<A_renderable> renderable_p);
-		void deregistry(TKPA_valid<A_renderable> renderable_p);
+		void registry(TKPA_valid<A_drawable> drawable_p);
+		void deregistry(TKPA_valid<A_drawable> drawable_p);
 
 	public:
 		NCPP_FORCE_INLINE b8 is_has_channel_id(u64 type_hash_code) const noexcept {
@@ -103,11 +103,11 @@ namespace nre {
 
 			return id;
 		}
-		NCPP_FORCE_INLINE F_renderable_mask mask() noexcept {
+		NCPP_FORCE_INLINE F_drawable_mask mask() noexcept {
 
 			return 0;
 		}
-		NCPP_FORCE_INLINE F_renderable_mask mask(auto type_hash_code) noexcept
+		NCPP_FORCE_INLINE F_drawable_mask mask(auto type_hash_code) noexcept
 		{
 			if(!is_has_channel_id(type_hash_code)) {
 
@@ -116,7 +116,7 @@ namespace nre {
 
 			return (1 << channel_id(type_hash_code));
 		}
-		NCPP_FORCE_INLINE F_renderable_mask mask(auto type_hash_code_1, auto type_hash_code_2, auto... reset_type_hash_codes) noexcept {
+		NCPP_FORCE_INLINE F_drawable_mask mask(auto type_hash_code_1, auto type_hash_code_2, auto... reset_type_hash_codes) noexcept {
 
 			return flag_combine(
 				mask(type_hash_code_1),
@@ -127,16 +127,16 @@ namespace nre {
 			);
 		}
 		template<typename... Fs__>
-		NCPP_FORCE_INLINE F_renderable_mask T_mask() noexcept {
+		NCPP_FORCE_INLINE F_drawable_mask T_mask() noexcept {
 
 			return mask(T_type_hash_code<Fs__>...);
 		}
 
 		inline void for_each(auto&& functor) {
 
-			for(const auto& renderable_p : renderable_p_list_) {
+			for(const auto& drawable_p : drawable_p_list_) {
 
-				functor(renderable_p);
+				functor(drawable_p);
 			}
 		}
 		template<typename... Fs__>
@@ -146,13 +146,13 @@ namespace nre {
 
 			if(search_mask)
 			{
-				for(auto it = renderable_p_list_.begin(); it != renderable_p_list_.end(); ++it) {
+				for(auto it = drawable_p_list_.begin(); it != drawable_p_list_.end(); ++it) {
 
 					if((*it)->mask() & search_mask)
 						functor(*it);
 				}
 			}
-			else for(auto it = renderable_p_list_.begin(); it != renderable_p_list_.end(); ++it) {
+			else for(auto it = drawable_p_list_.begin(); it != drawable_p_list_.end(); ++it) {
 
 				functor(*it);
 			}
@@ -164,4 +164,4 @@ namespace nre {
 
 
 
-#define NRE_RENDERABLE_SYSTEM(...) (nre::F_renderable_system::instance_p())
+#define NRE_drawable_SYSTEM(...) (nre::F_drawable_system::instance_p())

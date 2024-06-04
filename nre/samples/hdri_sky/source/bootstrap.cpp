@@ -50,7 +50,7 @@ int main() {
 	auto hdri_sky_actor_p = level_p->T_create_actor();
 	auto hdri_sky_transform_node_p = hdri_sky_actor_p->template T_add_component<F_transform_node>();
 	auto hdri_sky_material_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_material>();
-	auto hdri_sky_renderable_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_renderable>();
+	auto hdri_sky_drawable_p = hdri_sky_actor_p->template T_add_component<F_hdri_sky_drawable>();
 
 	hdri_sky_material_p->sky_texture_cube_p = skymap_p;
 
@@ -90,12 +90,12 @@ int main() {
 			auto render_view_p = NCPP_FOH_VALID(spectator_camera_p->render_view_p());
 			auto main_frame_buffer_p = NCPP_FOH_VALID(render_view_p->main_frame_buffer_p());
 
-			NRE_RENDERABLE_SYSTEM()->T_for_each<I_has_simple_render_renderable>(
-				[&](const auto& renderable_p) {
+			NRE_drawable_SYSTEM()->T_for_each<I_has_simple_render_drawable>(
+				[&](const auto& drawable_p) {
 
-					auto simple_render_renderable_p = renderable_p.T_interface<I_has_simple_render_renderable>();
+					auto simple_render_drawable_p = drawable_p.T_interface<I_has_simple_render_drawable>();
 
-				  	simple_render_renderable_p->simple_render(
+				  	simple_render_drawable_p->simple_render(
 						main_command_list_p,
 						render_view_p,
 						main_frame_buffer_p

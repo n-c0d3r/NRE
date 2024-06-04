@@ -1,12 +1,11 @@
 #pragma once
 
-#include <nre/rendering/material.hpp>
+#include <nre/rendering/drawable_material.hpp>
 
 
 
 namespace nre {
 
-	class F_transform_node;
 	class F_general_texture_2d;
 	class A_pbr_mesh_material;
 	class A_pbr_mesh_material_proxy;
@@ -33,19 +32,7 @@ namespace nre {
 
 
 
-	class NRE_API A_pbr_mesh_material : public A_material {
-
-
-
-	private:
-		TK_valid<F_transform_node> transform_node_p_;
-
-
-
-	public:
-		NCPP_FORCE_INLINE TKPA_valid<F_transform_node> transform_node_p() const noexcept { return transform_node_p_; }
-
-
+	class NRE_API A_pbr_mesh_material : public A_drawable_material {
 
 	protected:
 		A_pbr_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_mesh_material_proxy>&& proxy_p, F_material_mask mask = 0);

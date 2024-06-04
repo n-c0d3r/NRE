@@ -19,8 +19,7 @@ namespace nre {
 
 
 	A_pbr_mesh_material::A_pbr_mesh_material(TKPA_valid<F_actor> actor_p, TU<A_pbr_mesh_material_proxy>&& proxy_p, F_material_mask mask) :
-		A_material(actor_p, std::move(proxy_p), mask),
-		transform_node_p_(actor_p->T_component<F_transform_node>())
+		A_drawable_material(actor_p, std::move(proxy_p), mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_pbr_mesh_material);
 	}
