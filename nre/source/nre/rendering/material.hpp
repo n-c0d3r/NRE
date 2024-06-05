@@ -25,6 +25,16 @@ namespace nre {
 		) = 0;
 
 	};
+	class I_has_simple_depth_only_render_material_proxy {
+
+	public:
+		virtual void simple_depth_only_render(
+			KPA_valid_render_command_list_handle render_command_list_p,
+			KPA_valid_buffer_handle view_constant_buffer_p,
+			TKPA_valid<A_frame_buffer> frame_buffer_p
+		) = 0;
+
+	};
 
 
 

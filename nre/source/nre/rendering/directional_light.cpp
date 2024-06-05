@@ -37,7 +37,7 @@ namespace nre {
 
 		F_main_constant_buffer_cpu_data cpu_data = {
 
-			.direction = casted_light_p->transform_node_p()->transform.forward.xyz(),
+			.direction = casted_light_p->direction(),
 
 			.color_and_intensity = {
 				casted_light_p->color,

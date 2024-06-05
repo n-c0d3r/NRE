@@ -125,6 +125,18 @@ namespace nre {
 				}
 			}
 		);
+		depth_only_graphics_pso_p_ = H_graphics_pipeline_state::create(
+			NRE_RENDER_DEVICE(),
+			{
+				.rasterizer_desc = {
+					.cull_mode = E_cull_mode::BACK,
+					.fill_mode = E_fill_mode::SOLID
+				},
+				.shader_p_vector = {
+					NCPP_AOH_VALID(main_vertex_shader_p_)
+				}
+			}
+		);
 	}
 	F_triplanar_lit_static_mesh_material_proxy::~F_triplanar_lit_static_mesh_material_proxy() {
 	}
@@ -172,6 +184,31 @@ namespace nre {
 
 		render_command_list_p->ZPS_bind_sampler_state(
 			NCPP_FOH_VALID(maps_sampler_state_p_),
+			1
+		);
+
+		casted_material_p->drawable_p().T_interface<I_has_simple_draw_drawable>()->simple_draw(
+			render_command_list_p
+		);
+	}
+	void F_triplanar_lit_static_mesh_material_proxy::simple_depth_only_render(
+		KPA_valid_render_command_list_handle render_command_list_p,
+		KPA_valid_buffer_handle view_constant_buffer_p,
+		TKPA_valid<A_frame_buffer> frame_buffer_p
+	) {
+		auto casted_material_p = material_p().T_cast<A_triplanar_lit_static_mesh_material>();
+
+		render_command_list_p->bind_graphics_pipeline_state(
+			NCPP_FOH_VALID(depth_only_graphics_pso_p_)
+		);
+
+		render_command_list_p->ZVS_bind_constant_buffer(
+			view_constant_buffer_p,
+			0
+		);
+
+		render_command_list_p->ZVS_bind_constant_buffer(
+			NCPP_FOH_VALID(main_constant_buffer_p_),
 			1
 		);
 

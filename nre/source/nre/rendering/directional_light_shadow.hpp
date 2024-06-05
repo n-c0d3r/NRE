@@ -6,6 +6,7 @@
 
 namespace nre {
 
+	class A_directional_light;
 	class A_directional_light_shadow;
 	class A_directional_light_shadow_proxy;
 
@@ -36,8 +37,14 @@ namespace nre {
 
 
 
+	private:
+		TK_valid<A_directional_light> light_p_;
+
 	public:
 		f32 intensity = 1.0f;
+
+	public:
+		NCPP_FORCE_INLINE TKPA_valid<A_directional_light> light_p() const noexcept { return light_p_; }
 
 
 

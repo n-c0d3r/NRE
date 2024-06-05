@@ -43,6 +43,8 @@ namespace nre {
 		if(!main_frame_buffer_p)
 			return;
 
+		auto render_view_size = render_view_p_->size();
+
 		switch(projection_type) {
 		case E_projection_type::PERSPECTIVE:
 			render_view_p_->projection_matrix = T_projection_matrix<E_projection_type::PERSPECTIVE>(
@@ -53,7 +55,7 @@ namespace nre {
 			break;
 		case E_projection_type::ORTHOGRAPHIC:
 			render_view_p_->projection_matrix = T_projection_matrix<E_projection_type::ORTHOGRAPHIC>(
-				F_vector2 { render_view_p_->size() },
+				F_vector2 { f32(render_view_size.x) / f32(render_view_size.y) * vertical_size, vertical_size },
 				near_plane,
 				far_plane
 			);

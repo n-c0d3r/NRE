@@ -48,6 +48,17 @@ namespace nre
 
 
 
+	struct F_view_constant_buffer_cpu_data {
+
+		F_matrix4x4 projection_matrix;
+		F_matrix4x4 view_matrix;
+
+		F_vector3 view_position;
+
+	};
+
+
+
 	class NRE_API A_render_view : public A_actor_component
 	{
 
@@ -57,14 +68,7 @@ namespace nre
 
 
 	private:
-		struct F_main_constant_buffer_cpu_data {
-
-			F_matrix4x4 projection_matrix;
-			F_matrix4x4 view_matrix;
-
-			F_vector3 view_position;
-
-		};
+		using F_main_constant_buffer_cpu_data = F_view_constant_buffer_cpu_data;
 
 
 

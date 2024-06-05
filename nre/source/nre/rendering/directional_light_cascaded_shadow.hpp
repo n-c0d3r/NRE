@@ -8,15 +8,8 @@
 
 #define NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT 3
 #define NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE 1024
+#define NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_DEPTHS { 0.0f, 0.075f, 0.22f, 0.66f }
 #define NRE_MAX_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT (8)
-#define NRE_MAX_DIRECTIONAL_LIGHT_CASCADED_SHADOW_CB_SIZE ncpp::align_size( \
-                4                                            \
-				+ 64 * NRE_MAX_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT \
-				+ 4 * NRE_MAX_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT\
-            	+ 16                                                \
-            	+ 4,                                                           \
-				32\
-			)
 
 
 
@@ -49,6 +42,9 @@ namespace nre {
 	private:
 		TK<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p_;
 		U_texture_2d_array_handle shadow_maps_p_;
+		std::vector<U_dsv_handle> shadow_map_dsv_p_vector_;
+		std::vector<TU<A_frame_buffer>> shadow_frame_buffer_p_vector_;
+		std::vector<U_buffer_handle> shadow_view_constant_buffer_p_vector_;
 		TG_array<F_vector3_f32, 8> frustum_corners_;
 		TG_array<F_vector3_f32, 4> near_frustum_corners_;
 		TG_array<F_vector3_f32, 4> far_frustum_corners_;
@@ -60,6 +56,9 @@ namespace nre {
 	public:
 		NCPP_FORCE_INLINE TKPA<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p() const noexcept { return shadow_proxy_p_; }
 		NCPP_FORCE_INLINE K_valid_texture_2d_array_handle shadow_maps_p() const noexcept { return NCPP_FOH_VALID(shadow_maps_p_); }
+		NCPP_FORCE_INLINE const std::vector<U_dsv_handle>& shadow_map_dsv_p_vector() const noexcept { return shadow_map_dsv_p_vector_; }
+		NCPP_FORCE_INLINE const std::vector<TU<A_frame_buffer>>& shadow_frame_buffer_p_vector() const noexcept { return shadow_frame_buffer_p_vector_; }
+		NCPP_FORCE_INLINE const std::vector<U_buffer_handle>& shadow_view_constant_buffer_p_vector() const noexcept { return shadow_view_constant_buffer_p_vector_; }
 		NCPP_FORCE_INLINE const TG_array<F_vector3_f32, 8>& frustum_corners() const noexcept { return frustum_corners_; }
 		NCPP_FORCE_INLINE const TG_array<F_vector3_f32, 4>& near_frustum_corners() const noexcept { return near_frustum_corners_; }
 		NCPP_FORCE_INLINE const TG_array<F_vector3_f32, 4>& far_frustum_corners() const noexcept { return far_frustum_corners_; }
@@ -67,6 +66,17 @@ namespace nre {
 		NCPP_FORCE_INLINE const F_vector3_f32& view_direction() const noexcept { return view_direction_; }
 
 		NCPP_FORCE_INLINE K_valid_buffer_handle main_constant_buffer_p() const noexcept { return NCPP_FOH_VALID(main_constant_buffer_p_); }
+
+		NCPP_FORCE_INLINE u32 main_constant_buffer_size() const noexcept {
+
+			return align_size(
+				sizeof(F_vector3_f32)
+				+ sizeof(F_matrix4x4_f32) * shadow_view_constant_buffer_p_vector_.size()
+				+ sizeof(f32) * shadow_view_constant_buffer_p_vector_.size()
+				+ sizeof(f32),
+				32
+			);
+		}
 
 
 
@@ -79,7 +89,7 @@ namespace nre {
 		~F_directional_light_cascaded_shadow_render_view_attachment();
 
 	public:
-		void update();
+		void update(KPA_valid_render_command_list_handle render_command_list_p);
 
 	};
 
@@ -109,12 +119,14 @@ namespace nre {
 	class NRE_API A_directional_light_cascaded_shadow : public A_directional_light_shadow {
 
 	private:
-		u32 map_count_ = 3;
-		F_vector2_u map_size_;
+		u32 map_count_ = NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT;
+		F_vector2_u map_size_ = { NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE, NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE };
+		TG_vector<f32> map_depths_ = NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_DEPTHS;
 
 	public:
 		NCPP_FORCE_INLINE u32 map_count() const noexcept { return map_count_; }
 		NCPP_FORCE_INLINE F_vector2_u map_size() const noexcept { return map_size_; }
+		NCPP_FORCE_INLINE const TG_vector<f32>& map_depths() const noexcept { return map_depths_; }
 
 
 
@@ -127,6 +139,7 @@ namespace nre {
 				NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE,
 				NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE
 			},
+			const TG_vector<f32>& map_depths = NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_DEPTHS,
 			F_shadow_mask mask = 0
 		);
 
@@ -148,6 +161,7 @@ namespace nre {
 				NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE,
 				NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE
 			},
+			const TG_vector<f32>& map_depths = NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_DEPTHS,
 			F_shadow_mask mask = 0
 		);
 		F_directional_light_cascaded_shadow(
@@ -158,6 +172,7 @@ namespace nre {
 				NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE,
 				NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE
 			},
+			const TG_vector<f32>& map_depths = NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_DEPTHS,
 			F_shadow_mask mask = 0
 		);
 		virtual ~F_directional_light_cascaded_shadow();

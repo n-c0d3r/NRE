@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nre/rendering/light.hpp>
+#include <nre/hierarchy/transform_node.hpp>
 
 
 
@@ -77,6 +78,22 @@ namespace nre {
 		F_vector3 color = F_vector3::one();
 
 		f32 intensity = 0.0f;
+
+	public:
+		NCPP_FORCE_INLINE F_vector3 direction() const noexcept {
+
+			return normalize(
+				transform_node_p()->transform.forward.xyz()
+			);
+		}
+		NCPP_FORCE_INLINE F_vector3 plane_right() const noexcept {
+
+			return normalize(transform_node_p()->transform.right.xyz());
+		}
+		NCPP_FORCE_INLINE F_vector3 plane_up() const noexcept {
+
+			return normalize(transform_node_p()->transform.up.xyz());
+		}
 
 
 
