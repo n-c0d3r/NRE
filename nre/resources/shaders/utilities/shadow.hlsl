@@ -53,11 +53,12 @@ struct F_directional_light_cascaded_shadow {
 
 float ComputeDirectionalLightCascadedShadow(
     DIRECTIONAL_LIGHT_CASCADED_SHADOW_FUNCTION_PARAMS,
-    in F_surface surface,
+    float3 vertex_position,
+    float3 vertex_normal,
     float3 camera_position
 ) {
     float depthValue = max(
-        dot(surface.position - camera_position, directional_light_cascaded_shadow.view_direction), 
+        dot(vertex_position - camera_position, directional_light_cascaded_shadow.view_direction), 
         0.0f
     ) / directional_light_cascaded_shadow.max_depth;
         
@@ -73,7 +74,7 @@ float ComputeDirectionalLightCascadedShadow(
 
     float4 light_space_vertex_position = mul(
         light_space_matrix,
-        float4(surface.position, 1.0f)
+        float4(vertex_position, 1.0f)
     );
     light_space_vertex_position /= light_space_vertex_position.w;
 
@@ -83,12 +84,13 @@ float ComputeDirectionalLightCascadedShadow(
         return 1.0f;
 
     // calculate bias to deal with shadow acne
-    float bias = max(0.05f * (1.0f - dot(surface.normal, -directional_light.direction)), 0.005f);
+    float bias = max(0.05f * (1.0f - dot(vertex_normal, -directional_light.direction)), 0.005f);
     bias *= 1.0f / directional_light_cascaded_shadow.max_depth / (
         (layer == (DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT - 1))
         ? (0.5f)
         : (directional_light_cascaded_shadow.light_distances[layer + 1] * 0.5f)
     );
+    bias += 0.01f;
 
     // PCF
     float shadow = 0.0;
@@ -100,24 +102,32 @@ float ComputeDirectionalLightCascadedShadow(
 
     float2 texel_size = 1.0f / float2(shadow_map_width, shadow_map_height);
 
-    float2 center_uv = light_space_vertex_position.xy * 0.5f + 0.5f;
-    center_uv.y = 1.0f - center_uv.y;
+    float2 center_uv = light_space_vertex_position.xy * float2(0.5f, -0.5f) + float2(0.5f, 0.5f);
+    
+    float biased_light_space_normalized_depth = (light_space_vertex_position.z - bias);
 
-    for(int x = -1; x <= 1; ++x)
+    [unroll]
+    for(int x = -1; x <= 1; x++)
     {
-        for(int y = -1; y <= 1; ++y)
+        [unroll]
+        for(int y = -1; y <= 1; y++)
         {
-            float pcfDepth = directional_light_cascaded_shadow_maps.Sample(
-                default_sampler_state,
-                float3(
-                    saturate(center_uv + float2(x, y) * texel_size),
-                    layer
-                )
-            ).r; 
-            shadow += (light_space_vertex_position.z - bias) > pcfDepth ? 0.0 : 1.0;        
+            shadow += (
+                    biased_light_space_normalized_depth 
+                    > directional_light_cascaded_shadow_maps
+                    .Sample(
+                        default_sampler_state,
+                        float3(
+                            saturate(center_uv + float2(x, y) * texel_size),
+                            layer
+                        )
+                    ).r
+                ) 
+                ? 0.0f 
+                : 1.0f;  
         }    
     }
-    shadow /= 9.0;    
+    shadow /= 9.0f;    
 
     return shadow;
 }
@@ -125,11 +135,12 @@ float ComputeDirectionalLightCascadedShadow(
 // For debugging
 float3 ComputeDirectionalLightCascadedShadowMaskColor(
     in F_directional_light_cascaded_shadow directional_light_cascaded_shadow,
-    F_surface surface,
+    float3 vertex_position,
+    float3 vertex_normal,
     float3 camera_position
 ) {
     float depthValue = max(
-        dot(surface.position - camera_position, directional_light_cascaded_shadow.view_direction), 
+        dot(vertex_position - camera_position, directional_light_cascaded_shadow.view_direction), 
         0.0f
     ) / directional_light_cascaded_shadow.max_depth;
         
@@ -153,11 +164,12 @@ float3 ComputeDirectionalLightCascadedShadowMaskColor(
 // For debugging
 float ComputeDirectionalLightCascadedShadowMapDepth(
     DIRECTIONAL_LIGHT_CASCADED_SHADOW_FUNCTION_PARAMS,
-    in F_surface surface,
+    float3 vertex_position,
+    float3 vertex_normal,
     float3 camera_position
 ) {
     float depthValue = max(
-        dot(surface.position - camera_position, directional_light_cascaded_shadow.view_direction), 
+        dot(vertex_position - camera_position, directional_light_cascaded_shadow.view_direction), 
         0.0f
     ) / directional_light_cascaded_shadow.max_depth;
         
@@ -173,7 +185,7 @@ float ComputeDirectionalLightCascadedShadowMapDepth(
 
     float4 light_space_vertex_position = mul(
         light_space_matrix,
-        float4(surface.position, 1.0f)
+        float4(vertex_position, 1.0f)
     );
     light_space_vertex_position /= light_space_vertex_position.w;
 
@@ -183,7 +195,7 @@ float ComputeDirectionalLightCascadedShadowMapDepth(
         return 1.0f;
 
     // calculate bias to deal with shadow acne
-    float bias = max(0.05f * (1.0f - dot(surface.normal, -directional_light.direction)), 0.005f);
+    float bias = max(0.05f * (1.0f - dot(vertex_normal, -directional_light.direction)), 0.005f);
     bias *= 1.0f / directional_light_cascaded_shadow.max_depth / (
         (layer == (DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT - 1))
         ? (0.5f)

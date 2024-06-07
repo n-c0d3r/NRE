@@ -129,7 +129,8 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
     radiance += (
         ComputeDirectionalLightCascadedShadow(
             DIRECTIONAL_LIGHT_CASCADED_SHADOW_PARAMS,
-            surface,
+            input.world_position,
+            input.world_normal,
             camera_position
         ) 
         * ComputeDirectionalLight(
@@ -138,17 +139,8 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
             V
         )
     );
-    
-    // return float4(
-    //     ComputeDirectionalLightCascadedShadowMapDepth(
-    //         DIRECTIONAL_LIGHT_CASCADED_SHADOW_PARAMS,
-    //         surface,
-    //         camera_position
-    //     ),
-    //     0,
-    //     0,
-    //     1
-    // );
+
+
 
     float3 ldr_color = ACESToneMapping(radiance);
 
