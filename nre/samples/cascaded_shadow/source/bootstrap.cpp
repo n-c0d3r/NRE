@@ -98,7 +98,7 @@ int main() {
 
 	pbr_sphere5_drawable_p->mesh_p = plane_mesh_p;
 
-	pbr_sphere5_material_p->uv_scale *= 200.0f;
+	pbr_sphere5_material_p->uv_scale *= 50.0f;
 
 	pbr_sphere5_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/wcekcbdfw_4K_Albedo.jpg").T_cast<F_texture_2d_asset>()->texture_p;
 	pbr_sphere5_material_p->normal_map_p = convert_normal_map_standard(
