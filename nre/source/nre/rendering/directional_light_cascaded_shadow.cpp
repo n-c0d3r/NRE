@@ -62,6 +62,16 @@ namespace nre {
 			);
 		}
 
+		shadow_map_srv_p_ = H_resource_view::create_srv(
+			NRE_RENDER_DEVICE(),
+			{
+				.resource_p = NCPP_FOH_VALID(shadow_maps_p_),
+				.index = 0,
+				.count = map_count,
+				.overrided_format = E_format::R32_FLOAT
+			}
+		);
+
 		shadow_frame_buffer_p_vector_.resize(map_count);
 		for(u32 i = 0; i < map_count; ++i) {
 
@@ -103,6 +113,7 @@ namespace nre {
 		F_matrix4x4_f32 view_matrix = view_p()->view_matrix;
 		F_matrix4x4_f32 projection_matrix = view_p()->projection_matrix;
 		F_matrix4x4_f32 inv_projection_view_matrix = invert(projection_matrix * view_matrix);
+		F_matrix4x4_f32 inv_projection_matrix = invert(projection_matrix);
 
 		// compute frustum corners
 		{
@@ -144,13 +155,16 @@ namespace nre {
 			}
 		}
 
-		// update view direction
+		// update view direction and max depth
 		{
 			view_direction_ = normalize(
 				invert(
 					view_matrix.tl3x3()
 				).forward
 			);
+
+			F_vector4_f32 depth_test_point = inv_projection_matrix * F_vector4_f32(0, 0, 1, 1);
+			max_depth_ = depth_test_point.z / depth_test_point.w;
 		}
 
 		// update light view matrices
@@ -172,7 +186,7 @@ namespace nre {
 			u8* main_cb_cpu_data_p = (u8*)(main_cb_cpu_data.data());
 
 			// main cb cpu data attribute ptrs
-			F_vector3_f32* main_cb_cpu_data_view_direction_p = ((F_vector3_f32*)main_cb_cpu_data_p);
+			F_vector4_f32* main_cb_cpu_data_view_direction_p = ((F_vector4_f32*)main_cb_cpu_data_p);
 			F_matrix4x4_f32* main_cb_cpu_data_light_space_matrices_p = (F_matrix4x4_f32*)(
 				main_cb_cpu_data_view_direction_p
 				+ 1
@@ -183,12 +197,15 @@ namespace nre {
 			);
 			f32* main_cb_cpu_data_intensity_p = (f32*)(
 				main_cb_cpu_data_light_distances_p
-				+ light_view_count
+				+ (light_view_count - 1) * 4 + 1
 			);
 
-			// for view direction in cb
+			// for view direction, max depth in cb
 			{
-				*main_cb_cpu_data_view_direction_p = view_direction_;
+				*main_cb_cpu_data_view_direction_p = F_vector4_f32 {
+					view_direction_,
+					max_depth_
+				};
 			}
 
 			// for intensity
@@ -277,13 +294,8 @@ namespace nre {
 				);
 
 				// apply light view to main cb data
-				main_cb_cpu_data_light_space_matrices_p[i] = F_matrix4x4_f32 {
-					F_vector4_f32 { plane_right, 0.0f },
-					F_vector4_f32 { plane_up, 0.0f },
-					F_vector4_f32 { direction, 0.0f },
-					F_vector4_f32 { center, 1.0f }
-				};
-				main_cb_cpu_data_light_distances_p[i] = begin_t;
+				main_cb_cpu_data_light_space_matrices_p[i] = cpu_data.projection_matrix * cpu_data.view_matrix;
+				main_cb_cpu_data_light_distances_p[i * 4] = begin_t;
 			}
 
 			// upload main cb data to gpu

@@ -149,7 +149,7 @@ namespace nre {
 		TKPA_valid<A_frame_buffer> frame_buffer_p
 	)
 	{
-		bind_ibl(
+		bind_pbr_ibl(
 			render_command_list_p,
 			render_view_p,
 			frame_buffer_p
@@ -173,15 +173,15 @@ namespace nre {
 
 		render_command_list_p->ZPS_bind_srv(
 			NCPP_FOH_VALID(casted_material_p->albedo_map_p->srv_p()),
-			3
-		);
-		render_command_list_p->ZPS_bind_srv(
-			NCPP_FOH_VALID(casted_material_p->normal_map_p->srv_p()),
 			4
 		);
 		render_command_list_p->ZPS_bind_srv(
-			NCPP_FOH_VALID(casted_material_p->mask_map_p->srv_p()),
+			NCPP_FOH_VALID(casted_material_p->normal_map_p->srv_p()),
 			5
+		);
+		render_command_list_p->ZPS_bind_srv(
+			NCPP_FOH_VALID(casted_material_p->mask_map_p->srv_p()),
+			6
 		);
 
 		render_command_list_p->ZPS_bind_sampler_state(

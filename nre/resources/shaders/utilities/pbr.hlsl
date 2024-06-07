@@ -1,11 +1,11 @@
 #ifndef PBR_HLSL
 #define PBR_HLSL
 
+#include "utilities/default_sampler_state.hlsl"
 #include "utilities/constants.hlsl"
 #include "utilities/hammersley.hlsl"
 #include "utilities/aces_tone_mapping.hlsl"
 #include "utilities/normal.hlsl"
-#include "utilities/shadow.hlsl"
 #include "utilities/view.hlsl"
 
 
@@ -158,13 +158,6 @@ cbuffer ibl_sky_light_cbuffer : register(b##Index) {\
 
 
 
-#define PBR_DEFINE_SAMPLER_STATE(Index) \
-            SamplerState ibl_sampler_state : register(s##Index);
-
-#define PBR_DEFINE_SAMPLER_STATE_DEFAULT PBR_DEFINE_SAMPLER_STATE(0)
-
-
-
 #define PBR_DEFINE_BRDF_LUT(Index) \
             Texture2D brdf_lut : register(t##Index);
 
@@ -186,7 +179,6 @@ cbuffer ibl_sky_light_cbuffer : register(b##Index) {\
 
 #define PBR_DEFINE_DEFAULT \
             PBR_DEFINE_CB_DEFAULT;\
-            PBR_DEFINE_SAMPLER_STATE_DEFAULT;\
             PBR_DEFINE_RESOURCES_DEFAULT;
 
 
@@ -241,7 +233,7 @@ struct F_surface {
             in Texture2D brdf_lut,\
             in TextureCube prefiltered_env_cube,\
             in TextureCube irradiance_cube,\
-            in SamplerState ibl_sampler_state,\
+            in SamplerState default_sampler_state,\
             float3 ibl_sky_light_color,\
             float ibl_sky_light_intensity,\
             uint roughness_level_count
@@ -250,7 +242,7 @@ struct F_surface {
             brdf_lut, \
             prefiltered_env_cube, \
             irradiance_cube, \
-            ibl_sampler_state, \
+            default_sampler_state, \
             ibl_sky_light_color, \
             ibl_sky_light_intensity, \
             roughness_level_count
@@ -269,10 +261,10 @@ float3 ComputeIBLSkyLight(
 
     float NoV = saturate(dot(N, V));
 
-    float2 integrated_specular_brdf_parts = brdf_lut.Sample(ibl_sampler_state, float2(NoV, material.roughness)).xy;
+    float2 integrated_specular_brdf_parts = brdf_lut.Sample(default_sampler_state, float2(NoV, material.roughness)).xy;
     
     float3 specular_env_color = prefiltered_env_cube.SampleLevel(
-        ibl_sampler_state, 
+        default_sampler_state, 
         R, 
         material.roughness
         * (((float)roughness_level_count) - 1.0f)
@@ -281,7 +273,7 @@ float3 ComputeIBLSkyLight(
     float3 specular = (
         material.specular_color * integrated_specular_brdf_parts.x + integrated_specular_brdf_parts.y
     ) * specular_env_color;
-    float3 diffuse = material.diffuse_color * irradiance_cube.Sample(ibl_sampler_state, N).xyz;
+    float3 diffuse = material.diffuse_color * irradiance_cube.Sample(default_sampler_state, N).xyz;
 
     return ibl_sky_light_color * ibl_sky_light_intensity * MixDiffuseSpecular(
         diffuse,
@@ -322,5 +314,9 @@ float3 ComputeDirectionalLight(
         material.ao
     );
 }
+
+
+
+#include "utilities/shadow.hlsl"
 
 #endif // PBR_HLSL

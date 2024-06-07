@@ -147,7 +147,7 @@ namespace nre {
 		TKPA_valid <A_frame_buffer> frame_buffer_p
 	)
 	{
-		bind_ibl(
+		bind_pbr_ibl(
 			render_command_list_p,
 			render_view_p,
 			frame_buffer_p

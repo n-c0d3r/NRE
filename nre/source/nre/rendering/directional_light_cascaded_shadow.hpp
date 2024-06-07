@@ -7,9 +7,8 @@
 
 
 #define NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT 3
-#define NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE 1024
-#define NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_DEPTHS { 0.0f, 0.075f, 0.22f, 0.66f }
-#define NRE_MAX_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT (8)
+#define NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_SIZE 2048
+#define NRE_DEFAULT_DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_DEPTHS { 0.0f, 0.06f, 0.27f, 0.7f }
 
 
 
@@ -43,6 +42,7 @@ namespace nre {
 		TK<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p_;
 		U_texture_2d_array_handle shadow_maps_p_;
 		std::vector<U_dsv_handle> shadow_map_dsv_p_vector_;
+		U_srv_handle shadow_map_srv_p_;
 		std::vector<TU<A_frame_buffer>> shadow_frame_buffer_p_vector_;
 		std::vector<U_buffer_handle> shadow_view_constant_buffer_p_vector_;
 		TG_array<F_vector3_f32, 8> frustum_corners_;
@@ -50,6 +50,7 @@ namespace nre {
 		TG_array<F_vector3_f32, 4> far_frustum_corners_;
 		TG_vector<F_matrix4x4_f32> light_view_matrices_;
 		F_vector3_f32 view_direction_;
+		f32 max_depth_ = 0.0f;
 
 		U_buffer_handle main_constant_buffer_p_;
 
@@ -57,6 +58,7 @@ namespace nre {
 		NCPP_FORCE_INLINE TKPA<F_directional_light_cascaded_shadow_proxy> shadow_proxy_p() const noexcept { return shadow_proxy_p_; }
 		NCPP_FORCE_INLINE K_valid_texture_2d_array_handle shadow_maps_p() const noexcept { return NCPP_FOH_VALID(shadow_maps_p_); }
 		NCPP_FORCE_INLINE const std::vector<U_dsv_handle>& shadow_map_dsv_p_vector() const noexcept { return shadow_map_dsv_p_vector_; }
+		NCPP_FORCE_INLINE K_valid_srv_handle shadow_map_srv_p() const noexcept { return NCPP_FOH_VALID(shadow_map_srv_p_); }
 		NCPP_FORCE_INLINE const std::vector<TU<A_frame_buffer>>& shadow_frame_buffer_p_vector() const noexcept { return shadow_frame_buffer_p_vector_; }
 		NCPP_FORCE_INLINE const std::vector<U_buffer_handle>& shadow_view_constant_buffer_p_vector() const noexcept { return shadow_view_constant_buffer_p_vector_; }
 		NCPP_FORCE_INLINE const TG_array<F_vector3_f32, 8>& frustum_corners() const noexcept { return frustum_corners_; }
@@ -64,6 +66,7 @@ namespace nre {
 		NCPP_FORCE_INLINE const TG_array<F_vector3_f32, 4>& far_frustum_corners() const noexcept { return far_frustum_corners_; }
 		NCPP_FORCE_INLINE const TG_vector<F_matrix4x4_f32>& light_view_matrices() const noexcept { return light_view_matrices_; }
 		NCPP_FORCE_INLINE const F_vector3_f32& view_direction() const noexcept { return view_direction_; }
+		NCPP_FORCE_INLINE f32 max_depth() const noexcept { return max_depth_; }
 
 		NCPP_FORCE_INLINE K_valid_buffer_handle main_constant_buffer_p() const noexcept { return NCPP_FOH_VALID(main_constant_buffer_p_); }
 
@@ -72,8 +75,8 @@ namespace nre {
 			return align_size(
 				sizeof(F_vector3_f32)
 				+ sizeof(F_matrix4x4_f32) * shadow_view_constant_buffer_p_vector_.size()
-				+ sizeof(f32) * shadow_view_constant_buffer_p_vector_.size()
-				+ sizeof(f32),
+				+ sizeof(f32) * shadow_view_constant_buffer_p_vector_.size() * 4 // due to alignment of 4 bytes
+				+ sizeof(f32) * 4, // due to alignment of 4 bytes
 				32
 			);
 		}

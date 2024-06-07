@@ -20,9 +20,9 @@ PBR_DEFINE_DEFAULT;
 
 SamplerState maps_sampler_state : register(s1);
 
-Texture2D albedo_map : register(t3);
-Texture2D normal_map : register(t4);
-Texture2D mask_map : register(t5);
+Texture2D albedo_map : register(t4);
+Texture2D normal_map : register(t5);
+Texture2D mask_map : register(t6);
 
 
 
@@ -126,17 +126,29 @@ float4 pmain(F_vertex_to_pixel input) : SV_TARGET {
         V
     );
     
-    radiance += ComputeDirectionalLight(
-        directional_light,
-        surface,
-        V
+    radiance += (
+        ComputeDirectionalLightCascadedShadow(
+            DIRECTIONAL_LIGHT_CASCADED_SHADOW_PARAMS,
+            surface,
+            camera_position
+        ) 
+        * ComputeDirectionalLight(
+            directional_light,
+            surface,
+            V
+        )
     );
-
-
-
-    radiance *= material.ao;
-
     
+    // return float4(
+    //     ComputeDirectionalLightCascadedShadowMapDepth(
+    //         DIRECTIONAL_LIGHT_CASCADED_SHADOW_PARAMS,
+    //         surface,
+    //         camera_position
+    //     ),
+    //     0,
+    //     0,
+    //     1
+    // );
 
     float3 ldr_color = ACESToneMapping(radiance);
 

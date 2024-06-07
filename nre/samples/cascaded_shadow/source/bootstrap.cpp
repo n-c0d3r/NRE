@@ -25,6 +25,7 @@ int main() {
 
 
 	auto sphere_mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p;
+	auto plane_mesh_p = NRE_ASSET_SYSTEM()->load_asset("models/plane.obj").T_cast<F_static_mesh_asset>()->mesh_p;
 
 
 
@@ -81,6 +82,31 @@ int main() {
 	pbr_sphere4_material_p->mask_map_p = generate_mask_map(
 		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ulgmbhwn_4K_AO.jpg").T_cast<F_texture_2d_asset>()->texture_p,
 		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/ulgmbhwn_4K_Roughness.jpg").T_cast<F_texture_2d_asset>()->texture_p,
+		F_default_textures::instance_p()->black_texture_2d_p()
+	);
+
+	// create pbr sphere actor
+	auto pbr_sphere5_actor_p = level_p->T_create_actor();
+	auto pbr_sphere5_transform_node_p = pbr_sphere5_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere5_drawable_p = pbr_sphere5_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere5_material_p = pbr_sphere5_actor_p->template T_add_component<F_lit_static_mesh_material>();
+
+	pbr_sphere5_transform_node_p->transform *= make_translation({ 0, -1.0f, 0 });
+	pbr_sphere5_transform_node_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(
+		make_scale({ 300, 1, 300 })
+	);
+
+	pbr_sphere5_drawable_p->mesh_p = plane_mesh_p;
+
+	pbr_sphere5_material_p->uv_scale *= 200.0f;
+
+	pbr_sphere5_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/wcekcbdfw_4K_Albedo.jpg").T_cast<F_texture_2d_asset>()->texture_p;
+	pbr_sphere5_material_p->normal_map_p = convert_normal_map_standard(
+		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/wcekcbdfw_4K_Normal.jpg").T_cast<F_texture_2d_asset>()->texture_p
+	);
+	pbr_sphere5_material_p->mask_map_p = generate_mask_map(
+		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/wcekcbdfw_4K_AO.jpg").T_cast<F_texture_2d_asset>()->texture_p,
+		NRE_ASSET_SYSTEM()->load_asset("textures/pbr/wcekcbdfw_4K_Roughness.jpg").T_cast<F_texture_2d_asset>()->texture_p,
 		F_default_textures::instance_p()->black_texture_2d_p()
 	);
 

@@ -26,6 +26,7 @@ namespace nre {
 			u32 per_object_cb_index = 1;
 			u32 directional_light_cb_index = 2;
 			u32 ibl_sky_light_cb_index = 3;
+			u32 directional_light_cascaded_shadow_cb_index = 4;
 
 		};
 		struct F_bind_resource_indices {
@@ -33,6 +34,7 @@ namespace nre {
 			u32 brdf_lut_index = 0;
 			u32 prefiltered_env_cube_index = 1;
 			u32 irradiance_cube_index = 2;
+			u32 directional_light_cascaded_shadow_maps_index = 3;
 
 		};
 		struct F_bind_indices {
@@ -64,7 +66,7 @@ namespace nre {
 		NCPP_OBJECT(A_pbr_ibl_mesh_material_proxy);
 
 	protected:
-		void bind_ibl(
+		void bind_pbr_ibl(
 			KPA_valid_render_command_list_handle render_command_list_p,
 			TKPA_valid<A_render_view> render_view_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p,
