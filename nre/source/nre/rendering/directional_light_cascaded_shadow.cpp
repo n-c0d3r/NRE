@@ -348,12 +348,12 @@ namespace nre {
 			);
 
 			render_command_list_p->ZOM_bind_frame_buffer(shadow_frame_buffer_p);
-			NRE_MATERIAL_SYSTEM()->T_for_each<I_has_simple_depth_only_render_material_proxy>(
+			NRE_MATERIAL_SYSTEM()->T_for_each<I_has_simple_shadow_render_render_material_proxy>(
 				[&](const auto& material_p)
 				{
-				  	auto simple_depth_only_render_material_proxy_p = material_p->proxy_p().T_interface<I_has_simple_depth_only_render_material_proxy>();
+				  	auto simple_shadow_render_render_material_proxy_p = material_p->proxy_p().T_interface<I_has_simple_shadow_render_render_material_proxy>();
 
-				  	simple_depth_only_render_material_proxy_p->simple_depth_only_render(
+				  	simple_shadow_render_render_material_proxy_p->simple_shadow_render_render(
 					  	render_command_list_p,
 					 	NCPP_FOH_VALID(render_view_attachment_p->shadow_view_constant_buffer_p_vector()[i]),
 						shadow_frame_buffer_p

@@ -18,7 +18,7 @@ int main() {
 
 
 
-	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/st_peters_square_night_4k.hdr").T_cast<F_texture_2d_asset>();
+	auto panorama_asset_p = NRE_ASSET_SYSTEM()->load_asset("textures/quattro_canti_8k.hdr").T_cast<F_texture_2d_asset>();
 
 	auto skymap_p = panorama_to_cubemap(NCPP_FOH_VALID(panorama_asset_p->texture_p), 1320);
 
@@ -58,7 +58,8 @@ int main() {
 	auto directional_light_transform_node_p = directional_light_actor_p->template T_add_component<F_transform_node>();
 	auto directional_light_p = directional_light_actor_p->template T_add_component<F_directional_light>();
 
-	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.4_pi, 1.1_pi, 0 });
+	f32 directional_light_rotate_speed = 0.5f;
+	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.25_pi, 1.1_pi, 0 });
 	directional_light_p->intensity = 1.0f;
 
 	auto directional_light_cascaded_shadow_p = directional_light_actor_p->template T_add_component<F_directional_light_cascaded_shadow>();
@@ -110,6 +111,34 @@ int main() {
 		F_default_textures::instance_p()->black_texture_2d_p()
 	);
 
+	// create pbr sphere actor
+	auto pbr_sphere6_actor_p = level_p->T_create_actor();
+	auto pbr_sphere6_transform_node_p = pbr_sphere6_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere6_drawable_p = pbr_sphere6_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere6_material_p = pbr_sphere6_actor_p->template T_add_component<F_lit_static_mesh_material>();
+
+	pbr_sphere6_transform_node_p->transform *= make_translation({ 6, 0, 0 });
+
+	pbr_sphere6_drawable_p->mesh_p = sphere_mesh_p;
+
+	pbr_sphere6_material_p->albedo = F_vector3 { 1.0f, 1.0f, 1.0f };
+	pbr_sphere6_material_p->roughness_range = { 1.0f, 1.0f };
+	pbr_sphere6_material_p->metallic_range = { 1.0f, 1.0f };
+
+	// create pbr sphere actor
+	auto pbr_sphere7_actor_p = level_p->T_create_actor();
+	auto pbr_sphere7_transform_node_p = pbr_sphere7_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere7_drawable_p = pbr_sphere7_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere7_material_p = pbr_sphere7_actor_p->template T_add_component<F_lit_static_mesh_material>();
+
+	pbr_sphere7_transform_node_p->transform *= make_translation({ 6, 0, 6 });
+
+	pbr_sphere7_drawable_p->mesh_p = sphere_mesh_p;
+
+	pbr_sphere7_material_p->albedo = F_vector3 { 0.75f, 0.75f, 0.75f };
+	pbr_sphere7_material_p->roughness_range = { 0.72f, 0.72f };
+	pbr_sphere7_material_p->metallic_range = { 0.9f, 0.9f };
+
 
 
 	// application events
@@ -127,11 +156,22 @@ int main() {
 				NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());
 			};
 
+		  	directional_light_transform_node_p->transform = T_make_rotation(
+				  F_vector3 {
+					  0.25_pi * sin(
+						  directional_light_rotate_speed * 1_pi * application_p->delta_seconds()
+					  ),
+					  directional_light_rotate_speed * 1_pi * application_p->delta_seconds(),
+					  0
+				  }
+		  	) * directional_light_transform_node_p->transform;
+
 			// Settings
 			{
 				ImGui::Begin("Settings");
 
 				ImGui::InputFloat("Directional Light Intensity", &(directional_light_p->intensity));
+				ImGui::SliderFloat("Directional Light Rotate Speed", &directional_light_rotate_speed, 0.0f, 1.0f);
 				ImGui::InputFloat("IBL Sky Light Intensity", &(hdri_sky_ibl_light_p->intensity));
 				ImGui::InputFloat("HDRI Sky Intensity", &(hdri_sky_material_p->intensity));
 

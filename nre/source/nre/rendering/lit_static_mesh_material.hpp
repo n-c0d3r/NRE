@@ -30,7 +30,7 @@ namespace nre {
 	class NRE_API F_lit_static_mesh_material_proxy :
 		public A_lit_static_mesh_material_proxy,
 		public I_has_simple_render_material_proxy,
-		public I_has_simple_depth_only_render_material_proxy
+		public I_has_simple_shadow_render_render_material_proxy
 	{
 
 	public:
@@ -53,14 +53,14 @@ namespace nre {
 	private:
 		U_buffer_handle main_constant_buffer_p_;
 		U_graphics_pipeline_state_handle main_graphics_pso_p_;
-		U_graphics_pipeline_state_handle depth_only_graphics_pso_p_;
+		U_graphics_pipeline_state_handle shadow_render_graphics_pso_p_;
 		U_vertex_shader_handle main_vertex_shader_p_;
 		U_pixel_shader_handle main_pixel_shader_p_;
 		TU<A_sampler_state> maps_sampler_state_p_;
 
 	public:
 		NCPP_FORCE_INLINE K_valid_graphics_pipeline_state_handle main_graphics_pso_p() const noexcept { return NCPP_FOH_VALID(main_graphics_pso_p_); }
-		NCPP_FORCE_INLINE K_valid_graphics_pipeline_state_handle depth_only_graphics_pso_p() const noexcept { return NCPP_FOH_VALID(depth_only_graphics_pso_p_); }
+		NCPP_FORCE_INLINE K_valid_graphics_pipeline_state_handle shadow_render_graphics_pso_p() const noexcept { return NCPP_FOH_VALID(shadow_render_graphics_pso_p_); }
 		NCPP_FORCE_INLINE K_valid_vertex_shader_handle main_vertex_shader_p() const noexcept { return NCPP_FOH_VALID(main_vertex_shader_p_); }
 		NCPP_FORCE_INLINE K_valid_pixel_shader_handle main_pixel_shader_p() const noexcept { return NCPP_FOH_VALID(main_pixel_shader_p_); }
 		NCPP_FORCE_INLINE K_valid_buffer_handle main_constant_buffer_p() const noexcept { return NCPP_FOH_VALID(main_constant_buffer_p_); }
@@ -80,7 +80,7 @@ namespace nre {
 			TKPA_valid<A_render_view> render_view_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p
 		) override;
-		virtual void simple_depth_only_render(
+		virtual void simple_shadow_render_render(
 			KPA_valid_render_command_list_handle render_command_list_p,
 			KPA_valid_buffer_handle view_constant_buffer_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p
