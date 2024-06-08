@@ -158,8 +158,8 @@ int main() {
 
 		  	directional_light_transform_node_p->transform = T_make_rotation(
 				  F_vector3 {
-					  0.25_pi * sin(
-						  directional_light_rotate_speed * 1_pi * application_p->delta_seconds()
+					  0.2_pi * sin(
+						  2.0f * directional_light_rotate_speed * 1_pi * application_p->delta_seconds()
 					  ),
 					  directional_light_rotate_speed * 1_pi * application_p->delta_seconds(),
 					  0
