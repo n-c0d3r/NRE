@@ -45,6 +45,9 @@ F_vertex_to_pixel vmain(
     output.world_normal = world_normal;
     output.uv = uv;
 
+    // to make sure this vertex is on far plane
+    output.clip_position.z =  output.clip_position.w * 0.9999f;
+
     return output;
 }
 

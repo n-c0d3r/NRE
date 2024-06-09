@@ -59,7 +59,6 @@ int main() {
 	auto directional_light_p = directional_light_actor_p->template T_add_component<F_directional_light>();
 
 	f32 directional_light_rotate_speed = 0.5f;
-	directional_light_transform_node_p->transform *= T_make_rotation(F_vector3 { 0.25_pi, 1.1_pi, 0 });
 	directional_light_p->intensity = 1.0f;
 
 	auto directional_light_cascaded_shadow_p = directional_light_actor_p->template T_add_component<F_directional_light_cascaded_shadow>();
@@ -189,7 +188,7 @@ int main() {
 		  	directional_light_time += directional_light_rotate_speed * 1_pi * application_p->delta_seconds();
 		  	directional_light_transform_node_p->transform = T_identity<F_matrix4x4>() * T_make_rotation(
 				  F_vector3 {
-					  0.2_pi * sin(directional_light_time) + 0.25_pi,
+					  0.4f * (sin(directional_light_time) * 0.5f + 0.5f) + 0.1_pi,
 					  directional_light_time,
 					  0
 				  }

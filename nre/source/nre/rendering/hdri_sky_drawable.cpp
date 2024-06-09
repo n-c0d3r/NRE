@@ -16,7 +16,7 @@ namespace nre {
 	F_hdri_sky_drawable::F_hdri_sky_drawable(TKPA_valid<F_actor> actor_p, F_drawable_mask mask) :
 		F_static_mesh_drawable(
 			actor_p,
-			NRE_ASSET_SYSTEM()->load_asset("models/cube.obj").T_cast<F_static_mesh_asset>()->mesh_p,
+			NRE_ASSET_SYSTEM()->load_asset("models/lq_sphere.obj").T_cast<F_static_mesh_asset>()->mesh_p,
 			mask
 		)
 	{
