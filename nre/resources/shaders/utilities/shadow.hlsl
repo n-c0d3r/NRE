@@ -83,14 +83,21 @@ float ComputeDirectionalLightCascadedShadow(
     if(light_space_depth > 1.0f)
         return 1.0f;
 
-    // calculate bias to deal with shadow acne
-    float bias = max(0.05f * (1.0f - dot(vertex_normal, -directional_light.direction)), 0.005f);
-    bias *= 1.0f / directional_light_cascaded_shadow.max_depth / (
-        (layer == (DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT - 1))
-        ? (0.5f)
-        : (directional_light_cascaded_shadow.light_distances[layer + 1] * 0.5f)
+    float light_distance = (
+        (layer >= (DIRECTIONAL_LIGHT_CASCADED_SHADOW_MAP_COUNT - 1))
+        ? 1.0f
+        : directional_light_cascaded_shadow.light_distances[layer + 1]
     );
-    bias += 0.01f;
+
+    // calculate bias to deal with shadow acne
+    float bias_slope_factor = saturate(
+        1.0f - dot(vertex_normal, -directional_light.direction)
+    );
+    float bias = max(0.05f * bias_slope_factor, 0.005f);
+    bias = 2.0f * bias
+        / directional_light_cascaded_shadow.max_depth
+        / light_distance
+        + lerp(0.005f, 0.01f, light_distance) * bias_slope_factor;
 
     // PCF
     float shadow = 0.0;

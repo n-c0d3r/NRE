@@ -100,6 +100,7 @@ int main() {
 	pbr_sphere5_drawable_p->mesh_p = plane_mesh_p;
 
 	pbr_sphere5_material_p->uv_scale *= 50.0f;
+	pbr_sphere5_material_p->roughness_range = { 0.0f, 0.5f };
 
 	pbr_sphere5_material_p->albedo_map_p = NRE_ASSET_SYSTEM()->load_asset("textures/pbr/wcekcbdfw_4K_Albedo.jpg").T_cast<F_texture_2d_asset>()->texture_p;
 	pbr_sphere5_material_p->normal_map_p = convert_normal_map_standard(
@@ -139,6 +140,34 @@ int main() {
 	pbr_sphere7_material_p->roughness_range = { 0.72f, 0.72f };
 	pbr_sphere7_material_p->metallic_range = { 0.9f, 0.9f };
 
+	// create pbr sphere actor
+	auto pbr_sphere8_actor_p = level_p->T_create_actor();
+	auto pbr_sphere8_transform_node_p = pbr_sphere8_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere8_drawable_p = pbr_sphere8_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere8_material_p = pbr_sphere8_actor_p->template T_add_component<F_lit_static_mesh_material>();
+
+	pbr_sphere8_transform_node_p->transform *= make_translation({ 30, 0, 6 });
+
+	pbr_sphere8_drawable_p->mesh_p = sphere_mesh_p;
+
+	pbr_sphere8_material_p->albedo = F_vector3 { 0.75f, 0.75f, 0.75f };
+	pbr_sphere8_material_p->roughness_range = { 0.9f, 0.9f };
+	pbr_sphere8_material_p->metallic_range = { 0.1f, 0.1f };
+
+	// create pbr sphere actor
+	auto pbr_sphere9_actor_p = level_p->T_create_actor();
+	auto pbr_sphere9_transform_node_p = pbr_sphere9_actor_p->template T_add_component<F_transform_node>();
+	auto pbr_sphere9_drawable_p = pbr_sphere9_actor_p->template T_add_component<F_static_mesh_drawable>();
+	auto pbr_sphere9_material_p = pbr_sphere9_actor_p->template T_add_component<F_lit_static_mesh_material>();
+
+	pbr_sphere9_transform_node_p->transform *= make_translation({ 50, 0, 30 });
+
+	pbr_sphere9_drawable_p->mesh_p = sphere_mesh_p;
+
+	pbr_sphere9_material_p->albedo = F_vector3 { 0.75f, 0.75f, 0.75f };
+	pbr_sphere9_material_p->roughness_range = { 0.0f, 0.0f };
+	pbr_sphere9_material_p->metallic_range = { 0.3f, 0.3f };
+
 
 
 	// application events
@@ -156,15 +185,15 @@ int main() {
 				NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());
 			};
 
-		  	directional_light_transform_node_p->transform = T_make_rotation(
+			static f32 directional_light_time = 0.5f;
+		  	directional_light_time += directional_light_rotate_speed * 1_pi * application_p->delta_seconds();
+		  	directional_light_transform_node_p->transform = T_identity<F_matrix4x4>() * T_make_rotation(
 				  F_vector3 {
-					  0.2_pi * sin(
-						  2.0f * directional_light_rotate_speed * 1_pi * application_p->delta_seconds()
-					  ),
-					  directional_light_rotate_speed * 1_pi * application_p->delta_seconds(),
+					  0.2_pi * sin(directional_light_time) + 0.25_pi,
+					  directional_light_time,
 					  0
 				  }
-		  	) * directional_light_transform_node_p->transform;
+		  	);
 
 			// Settings
 			{
