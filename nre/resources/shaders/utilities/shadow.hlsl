@@ -107,7 +107,7 @@ float ComputeDirectionalLightCascadedShadow(
     );
     float bias = (
         0.1f
-        * lerp(3.0f, 27.0f, light_distance) // for PCF
+        * lerp(3.0f, 33.0f, light_distance) // for PCF
         * bias_slope_factor
         / directional_light_cascaded_shadow.max_depth
         / light_distance
