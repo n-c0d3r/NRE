@@ -22,7 +22,7 @@ namespace nre {
 		f32 vertical_fov = 0.35_pi;
 		f32 vertical_size = 5.0f;
 		f32 near_plane = 0.25f;
-		f32 far_plane = 300.0f;
+		f32 far_plane = 1000.0f;
 
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<F_transform_node> transform_node_p() const noexcept { return transform_node_p_; }
