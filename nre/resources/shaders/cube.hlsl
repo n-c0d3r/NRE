@@ -23,7 +23,6 @@ F_vertex_to_pixel vmain(
     float3 local_tangent : TANGENT, 
     float2 uv : UV
 ) {
-
     float3 world_position = mul(object_transform, float4(local_position, 1.0f)).xyz;
     float3 world_normal = normalize(mul((float3x3)object_transform, local_normal));
     float3 world_tangent = normalize(mul((float3x3)object_transform, local_tangent));

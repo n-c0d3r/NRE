@@ -13,36 +13,36 @@ namespace nre {
 
 	inline F_input_assembler_desc default_vertex_input_assembler_desc()
 	{
-		return {
-			.vertex_attribute_groups = {
-				{
-					{ // vertex position buffer
-						{
-							.name = "POSITION",
-							.format = E_format::R32G32B32_FLOAT
-						}
-					},
-					{ // vertex normal buffer
-						{
-							.name = "NORMAL",
-							.format = E_format::R32G32B32_FLOAT
-						}
-					},
-					{ // vertex tangent buffer
-						{
-							.name = "TANGENT",
-							.format = E_format::R32G32B32_FLOAT
-						}
-					},
-					{ // vertex uv buffer
-						{
-							.name = "UV",
-							.format = E_format::R32G32_FLOAT
-						}
-					}
+		F_input_assembler_desc result;
+
+		result.vertex_attribute_groups = TG_vector<TG_vector<F_vertex_attribute>>({
+			TG_vector<F_vertex_attribute>({ // vertex position buffer
+				F_vertex_attribute {
+					.name = "POSITION",
+					.format = E_format::R32G32B32_FLOAT
 				}
-			}
-		};
+			}),
+			TG_vector<F_vertex_attribute>({ // vertex normal buffer
+				F_vertex_attribute {
+					.name = "NORMAL",
+					.format = E_format::R32G32B32_FLOAT
+				}
+			}),
+			TG_vector<F_vertex_attribute>({ // vertex tangent buffer
+				F_vertex_attribute {
+					.name = "TANGENT",
+					.format = E_format::R32G32B32_FLOAT
+				}
+			}),
+			TG_vector<F_vertex_attribute>({ // vertex uv buffer
+				F_vertex_attribute {
+					.name = "UV",
+					.format = E_format::R32G32_FLOAT
+				}
+			})
+		});
+
+	  return std::move(result);
 	}
 
 }
