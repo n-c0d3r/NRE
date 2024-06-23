@@ -120,7 +120,7 @@ namespace nre {
 		}
 
 		// create shader classes
-		auto compute_brdf_lut_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/ibl_compute_brdf_lut.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
+		auto compute_brdf_lut_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/ibl_compute_brdf_lut.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
 			NCPP_INIL_SPAN(
 				F_shader_kernel_desc {
 					.name = "compute_brdf_lut",
@@ -128,7 +128,7 @@ namespace nre {
 				}
 			)
 		);
-		auto prefilter_env_cube_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/ibl_prefilter_env_cube.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
+		auto prefilter_env_cube_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/ibl_prefilter_env_cube.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
 			NCPP_INIL_SPAN(
 				F_shader_kernel_desc {
 					.name = "prefilter_env_cube",
@@ -136,7 +136,7 @@ namespace nre {
 				}
 			)
 		);
-		auto ibl_compute_irradiance_cube_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/ibl_compute_irradiance_cube.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
+		auto ibl_compute_irradiance_cube_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/ibl_compute_irradiance_cube.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
 			NCPP_INIL_SPAN(
 				F_shader_kernel_desc {
 					.name = "compute_irradiance_cube",
