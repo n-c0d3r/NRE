@@ -14,6 +14,7 @@
 #include <nre/asset/static_mesh_asset.hpp>
 #include <nre/asset/texture_2d_asset.hpp>
 #include <nre/asset/shader_asset.hpp>
+#include <nre/asset/hlsl_shader_asset.hpp>
 
 #include <nre/asset/obj_mesh_asset_factory.hpp>
 #include <nre/asset/text_asset_factory.hpp>

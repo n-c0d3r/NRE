@@ -3,7 +3,7 @@
 #include <nre/rendering/render_view.hpp>
 #include <nre/application/application.hpp>
 #include <nre/asset/asset_system.hpp>
-#include <nre/asset/shader_asset.hpp>
+#include <nre/asset/hlsl_shader_asset.hpp>
 
 
 
@@ -43,7 +43,7 @@ namespace nre {
 				}
 			};
 
-			auto shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/debug_line.hlsl").T_cast<F_shader_asset>()->runtime_compile_functor(
+			auto shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/debug_line.hlsl").T_cast<F_hlsl_shader_asset>()->runtime_compile_functor(
 				NCPP_INIL_SPAN(
 					F_shader_kernel_desc{
 						.name = "vmain",

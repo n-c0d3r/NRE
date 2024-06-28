@@ -4,11 +4,11 @@
 
 namespace nre {
 
-	F_shader_asset::F_shader_asset(const G_string& abs_path) :
+	A_shader_asset::A_shader_asset(const G_string& abs_path) :
 		A_asset(abs_path)
 	{
 	}
-	F_shader_asset::~F_shader_asset() {
+	A_shader_asset::~A_shader_asset() {
 	}
 
 }

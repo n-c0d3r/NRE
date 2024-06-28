@@ -11,7 +11,7 @@
 #include <nre/rendering/default_textures.hpp>
 #include <nre/rendering/directional_light_cascaded_shadow.hpp>
 #include <nre/asset/asset_system.hpp>
-#include <nre/asset/shader_asset.hpp>
+#include <nre/asset/hlsl_shader_asset.hpp>
 #include <nre/actor/actor.hpp>
 #include <nre/hierarchy/transform_node.hpp>
 

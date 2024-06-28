@@ -7,19 +7,16 @@
 
 namespace nre {
 
-	class NRE_API F_shader_asset : public A_asset {
+	class NRE_API A_shader_asset : public A_asset {
+
+	protected:
+		A_shader_asset(const G_string& abs_path);
 
 	public:
-		eastl::function<TS<A_shader_class>(const TG_span<F_shader_kernel_desc>& kernel_descs)> runtime_compile_functor;
-
-
+		virtual ~A_shader_asset();
 
 	public:
-		F_shader_asset(const G_string& abs_path);
-		~F_shader_asset();
-
-	public:
-		NCPP_OBJECT(F_shader_asset);
+		NCPP_OBJECT(A_shader_asset);
 
 	};
 
