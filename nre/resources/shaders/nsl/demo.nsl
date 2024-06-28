@@ -1,0 +1,33 @@
+import(nrhi)
+
+semantic POSITION(float3)
+semantic NORMAL(float3)
+
+input_assembler demo_input_assembler
+(
+    POSITION
+    NORMAL
+)
+
+@input_assembler(demo_input_assembler)
+vertex_shader vs_main
+(
+    position(POSITION)
+    normal(NORMAL)
+)
+{
+}
+
+pixel_shader ps_main
+(
+    out color(SV_TARGET)
+)
+{
+    color = float4(1, 1, 1, 1);
+}
+
+pipeline_state graphics_pso_main
+(
+    vs_main
+    ps_main
+)

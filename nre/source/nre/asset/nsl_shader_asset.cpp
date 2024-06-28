@@ -82,6 +82,9 @@ namespace nre {
 				shader_index
 			);
 
+			if(!shader_class_p)
+				return false;
+
 			TU<A_shader> shader_p;
 
 			switch(shader_reflection.type) {
@@ -114,7 +117,32 @@ namespace nre {
 				break;
 			}
 
-			int a = 5;
+			shader_p_vector_.push_back(
+				std::move(shader_p)
+			);
+		}
+
+		// create pipeline states
+		u32 pipeline_state_count = reflection.pipeline_states.size();
+		for(u32 pipeline_state_index = 0; pipeline_state_index < pipeline_state_count; ++pipeline_state_index) {
+
+			const auto& pipeline_state_reflection = reflection.pipeline_states[pipeline_state_index];
+
+			auto pipeline_state_desc = pipeline_state_reflection.desc;
+
+			for(u32 shader_index : pipeline_state_reflection.shader_indices)
+				pipeline_state_desc.shader_p_vector.push_back(
+					NCPP_FOH_VALID(
+						shader_p_vector_[shader_index]
+					)
+				);
+
+			pipeline_state_p_vector_.push_back(
+				H_pipeline_state::create(
+					NRE_RENDER_DEVICE(),
+					pipeline_state_desc
+				)
+			);
 		}
 
 		return true;
