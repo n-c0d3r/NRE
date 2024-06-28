@@ -14,10 +14,8 @@ namespace nre {
 
 
 
-	protected:
-		F_hlsl_shader_asset(const G_string& abs_path);
-
 	public:
+		F_hlsl_shader_asset(const G_string& abs_path);
 		virtual ~F_hlsl_shader_asset();
 
 	public:
