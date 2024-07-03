@@ -91,7 +91,7 @@ namespace nre
 		E_render_view_output_mode output_mode = E_render_view_output_mode::SWAPCHAIN;
 
 		F_vector4 clear_color = F_vector4::zero();
-		E_clear_flag clear_depth_stencil_flag = E_clear_flag::DEPTH;
+		ED_clear_flag clear_depth_stencil_flag = ED_clear_flag::DEPTH;
 		f32 clear_depth = 1.0f;
 		u8 clear_stencil = 0;
 

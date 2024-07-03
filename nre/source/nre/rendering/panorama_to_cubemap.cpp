@@ -12,7 +12,7 @@ namespace nre {
 		TKPA_valid<F_general_texture_2d> panorama_p,
 		u32 width,
 		F_texture_cube_builder& builder,
-		E_texture_cube_face face
+		ED_texture_cube_face face
 	) {
 		auto* face_p = &(builder[{0, 0, u32(face)}]);
 
@@ -22,22 +22,22 @@ namespace nre {
 
 		switch (face)
 		{
-		case E_texture_cube_face::RIGHT:
+		case ED_texture_cube_face::RIGHT:
 			face_rotation = T_make_rotation(F_vector3 { 0, 0.5_pi, 0 });
 			break;
-		case E_texture_cube_face::UP:
+		case ED_texture_cube_face::UP:
 			face_rotation = T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
 			break;
-		case E_texture_cube_face::FORWARD:
+		case ED_texture_cube_face::FORWARD:
 			face_rotation = T_identity<F_quaternion>();
 			break;
-		case E_texture_cube_face::LEFT:
+		case ED_texture_cube_face::LEFT:
 			face_rotation = T_make_rotation(F_vector3 { 0, -0.5_pi, 0 });
 			break;
-		case E_texture_cube_face::DOWN:
+		case ED_texture_cube_face::DOWN:
 			face_rotation = T_make_rotation(F_vector3 { -0.5_pi, 0, 0 });
 			break;
-		case E_texture_cube_face::BACK:
+		case ED_texture_cube_face::BACK:
 			face_rotation = T_make_rotation(F_vector3 { 0, 1_pi, 0 });
 			break;
 		}
@@ -97,46 +97,46 @@ namespace nre {
 			panorama_p,
 			width,
 			builder,
-			E_texture_cube_face::RIGHT
+			ED_texture_cube_face::RIGHT
 		);
 		build_cubemap_face_from_panorama(
 			panorama_p,
 			width,
 			builder,
-			E_texture_cube_face::UP
+			ED_texture_cube_face::UP
 		);
 		build_cubemap_face_from_panorama(
 			panorama_p,
 			width,
 			builder,
-			E_texture_cube_face::FORWARD
+			ED_texture_cube_face::FORWARD
 		);
 		build_cubemap_face_from_panorama(
 			panorama_p,
 			width,
 			builder,
-			E_texture_cube_face::LEFT
+			ED_texture_cube_face::LEFT
 		);
 		build_cubemap_face_from_panorama(
 			panorama_p,
 			width,
 			builder,
-			E_texture_cube_face::DOWN
+			ED_texture_cube_face::DOWN
 		);
 		build_cubemap_face_from_panorama(
 			panorama_p,
 			width,
 			builder,
-			E_texture_cube_face::BACK
+			ED_texture_cube_face::BACK
 		);
 
 		auto cube_p = TU<F_general_texture_cube>()(
 			std::move(builder),
-			E_format::R32G32B32A32_FLOAT,
+			ED_format::R32G32B32A32_FLOAT,
 			mip_level_count,
 			F_sample_desc {},
-			E_resource_bind_flag::SRV,
-			E_resource_heap_type::GREAD_GWRITE,
+			ED_resource_bind_flag::SRV,
+			ED_resource_heap_type::GREAD_GWRITE,
 			true
 		);
 

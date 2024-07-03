@@ -19,25 +19,25 @@ namespace nre {
 			TG_vector<F_vertex_attribute>({ // vertex position buffer
 				F_vertex_attribute {
 					.name = "POSITION",
-					.format = E_format::R32G32B32_FLOAT
+					.format = ED_format::R32G32B32_FLOAT
 				}
 			}),
 			TG_vector<F_vertex_attribute>({ // vertex normal buffer
 				F_vertex_attribute {
 					.name = "NORMAL",
-					.format = E_format::R32G32B32_FLOAT
+					.format = ED_format::R32G32B32_FLOAT
 				}
 			}),
 			TG_vector<F_vertex_attribute>({ // vertex tangent buffer
 				F_vertex_attribute {
 					.name = "TANGENT",
-					.format = E_format::R32G32B32_FLOAT
+					.format = ED_format::R32G32B32_FLOAT
 				}
 			}),
 			TG_vector<F_vertex_attribute>({ // vertex uv buffer
 				F_vertex_attribute {
 					.name = "UV",
-					.format = E_format::R32G32_FLOAT
+					.format = ED_format::R32G32_FLOAT
 				}
 			})
 		});

@@ -31,20 +31,20 @@ namespace nre
 						{},
 						resource_desc.width,
 						resource_desc.height,
-						E_format::D32_FLOAT,
+						ED_format::D32_FLOAT,
 						1,
 						{},
-						E_resource_bind_flag::DSV
+						ED_resource_bind_flag::DSV
 					);
 				else H_texture::rebuild_2d(
 						NCPP_FOH_VALID(depth_texture_2d_p_),
 						{},
 						resource_desc.width,
 						resource_desc.height,
-						E_format::D32_FLOAT,
+						ED_format::D32_FLOAT,
 						1,
 						{},
-						E_resource_bind_flag::DSV
+						ED_resource_bind_flag::DSV
 					);
 
 				if(!dsv_p_)

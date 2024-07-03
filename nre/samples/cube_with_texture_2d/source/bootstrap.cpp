@@ -92,24 +92,24 @@ int main() {
 		NCPP_INIL_SPAN(
 			F_shader_kernel_desc {
 				.name = "vmain",
-				.type = E_shader_type::VERTEX,
+				.type = ED_shader_type::VERTEX,
 				.input_assembler_desc = input_assembler_desc
 			},
 			F_shader_kernel_desc {
 				.name = "pmain_lambert_lighting",
-				.type = E_shader_type::PIXEL
+				.type = ED_shader_type::PIXEL
 			},
 			F_shader_kernel_desc {
 				.name = "pmain_show_world_position",
-				.type = E_shader_type::PIXEL
+				.type = ED_shader_type::PIXEL
 			},
 			F_shader_kernel_desc {
 				.name = "pmain_show_world_normal",
-				.type = E_shader_type::PIXEL
+				.type = ED_shader_type::PIXEL
 			},
 			F_shader_kernel_desc {
 				.name = "pmain_show_uv",
-				.type = E_shader_type::PIXEL
+				.type = ED_shader_type::PIXEL
 			}
 		)
 	);
@@ -157,8 +157,8 @@ int main() {
 				NRE_RENDER_DEVICE(),
 				{
 					.rasterizer_desc = {
-						.cull_mode = E_cull_mode::BACK,
-						.fill_mode = E_fill_mode::SOLID
+						.cull_mode = ED_cull_mode::BACK,
+						.fill_mode = ED_fill_mode::SOLID
 					},
 					.shader_p_vector = {
 						NCPP_AOH_VALID(vshader_p),

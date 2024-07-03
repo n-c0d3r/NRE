@@ -68,7 +68,7 @@ namespace nre {
 				width,
 				height,
 				buffer,
-				E_format::R8G8B8A8_UNORM,
+				ED_format::R8G8B8A8_UNORM,
 				element_max(
 					(u32)ceil(
 						log((f32)element_min(width, height))
@@ -77,8 +77,8 @@ namespace nre {
 					(u32)1
 				),
 				F_sample_desc {},
-				E_resource_bind_flag::SRV,
-				E_resource_heap_type::GREAD_GWRITE,
+				ED_resource_bind_flag::SRV,
+				ED_resource_heap_type::GREAD_GWRITE,
 				true
 			);
 			texture_2d_asset_p->texture_p->generate_mips();

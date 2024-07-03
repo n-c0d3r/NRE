@@ -32,13 +32,13 @@ namespace nre {
 			command_queue_p_ = H_command_queue::create(
 				NCPP_FOH_VALID(device_p_),
 				F_command_queue_desc {
-					E_command_list_type::DIRECT
+					ED_command_list_type::DIRECT
 				}
 			);
 			main_command_list_p_ = H_command_list::create(
 				NCPP_FOH_VALID(device_p_),
 				F_command_list_desc {
-					E_command_list_type::DIRECT
+					ED_command_list_type::DIRECT
 				}
 			);
 

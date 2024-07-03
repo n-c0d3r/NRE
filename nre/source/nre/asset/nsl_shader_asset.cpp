@@ -45,17 +45,18 @@ namespace nre {
 					.type = shader_reflection.type
 				};
 
-				switch(shader_reflection.type) {
-				case E_shader_type::VERTEX:
-					shader_kernel_desc.input_assembler_desc = reflection.input_assemblers[
-						shader_reflection.input_assembler_index
-					].desc;
-					break;
-				default:
-					break;
-				};
+				NRHI_ENUM_SWITCH(
+					shader_reflection.type,
+					NRHI_ENUM_CASE(
+						ED_shader_type::VERTEX,
+						shader_kernel_desc.input_assembler_desc = reflection.input_assemblers[
+							shader_reflection.input_assembler_index
+						].desc;
+						NRHI_ENUM_BREAK;
+					)
+				);
 
-				return H_shader_compiler::compile_hlsl(
+				return H_shader_compiler::compile_hlsl_from_src_content(
 					shader_reflection.name,
 					shader_built_src_content,
 					shader_asset_p->abs_path(),
@@ -87,35 +88,42 @@ namespace nre {
 
 			TU<A_shader> shader_p;
 
-			switch(shader_reflection.type) {
-			case E_shader_type::VERTEX:
-				shader_p = std::move(
-					H_vertex_shader::create(
-						NRE_RENDER_DEVICE(),
-						NCPP_FOH_VALID(shader_class_p),
-						"main"
-					).oref
-				);
-				break;
-			case E_shader_type::PIXEL:
-				shader_p = std::move(
-					H_pixel_shader::create(
-						NRE_RENDER_DEVICE(),
-						NCPP_FOH_VALID(shader_class_p),
-						"main"
-					).oref
-				);
-				break;
-			case E_shader_type::COMPUTE:
-				shader_p = std::move(
-					H_compute_shader::create(
-						NRE_RENDER_DEVICE(),
-						NCPP_FOH_VALID(shader_class_p),
-						"main"
-					).oref
-				);
-				break;
-			}
+			NRHI_ENUM_SWITCH(
+				shader_reflection.type,
+				NRHI_ENUM_CASE(
+					ED_shader_type::VERTEX,
+					shader_p = std::move(
+						H_vertex_shader::create(
+							NRE_RENDER_DEVICE(),
+							NCPP_FOH_VALID(shader_class_p),
+							"main"
+						).oref
+					);
+					NRHI_ENUM_BREAK;
+				)
+				NRHI_ENUM_CASE(
+					ED_shader_type::PIXEL,
+					shader_p = std::move(
+						H_pixel_shader::create(
+							NRE_RENDER_DEVICE(),
+							NCPP_FOH_VALID(shader_class_p),
+							"main"
+						).oref
+					);
+					NRHI_ENUM_BREAK;
+				)
+				NRHI_ENUM_CASE(
+					ED_shader_type::COMPUTE,
+					shader_p = std::move(
+						H_compute_shader::create(
+							NRE_RENDER_DEVICE(),
+							NCPP_FOH_VALID(shader_class_p),
+							"main"
+						).oref
+					);
+					NRHI_ENUM_BREAK;
+				)
+			);
 
 			shader_p_vector_.push_back(
 				std::move(shader_p)

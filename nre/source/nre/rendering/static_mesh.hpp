@@ -146,19 +146,19 @@ namespace nre {
 
 	private:
 		void upload_internal(
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
-			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		) {
 
 			auto mesh_p = mesh_p_.T_cast<F_mesh>();
 
 			is_has_srv_ = flag_is_has(
 				additional_bind_flag,
-				E_resource_bind_flag::SRV
+				ED_resource_bind_flag::SRV
 			);
 			is_has_uav_ = flag_is_has(
 				additional_bind_flag,
-				E_resource_bind_flag::UAV
+				ED_resource_bind_flag::UAV
 			);
 
 			using F_vertex_channel_indices = typename TF_template_targ_list<F_vertex_channel_datas__...>::F_indices;
@@ -187,20 +187,20 @@ namespace nre {
 				index_buffer_p_ = H_buffer::T_create<u32>(
 					NRE_RENDER_SYSTEM()->device_p(),
 					indices,
-					E_format::R32_UINT,
+					ED_format::R32_UINT,
 					flag_combine(
-						E_resource_bind_flag::IBV,
+						ED_resource_bind_flag::IBV,
 						additional_bind_flag
 					),
 					heap_type
 				);
 
 				if(is_has_srv_)
-					index_srv_p_ = H_resource_view::create_srv(
+					index_srv_p_ = H_resource_view::create_default_srv(
 						NCPP_FOH_VALID(index_buffer_p_)
 					);
 				if(is_has_uav_)
-					index_uav_p_ = H_resource_view::create_uav(
+					index_uav_p_ = H_resource_view::create_default_uav(
 						NCPP_FOH_VALID(index_buffer_p_)
 					);
 			}
@@ -227,8 +227,8 @@ namespace nre {
 		static void invoke(
 			TF_static_mesh_buffer<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>& static_mesh_buffer,
 			TKPA_valid<TF_static_mesh<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>> mesh_p,
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
-			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		)
 		{
 			using F_vertex_channel_data_targ_list = TF_template_targ_list<F_vertex_channel_datas__...>;
@@ -241,7 +241,7 @@ namespace nre {
 							eastl::get<indices>(mesh_p->vertex_channels())
 						),
 						flag_combine(
-							E_resource_bind_flag::VBV,
+							ED_resource_bind_flag::VBV,
 							additional_bind_flag
 						),
 						heap_type
@@ -367,8 +367,8 @@ namespace nre {
 
 	public:
 		TF_static_mesh(
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
-			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
 			const G_string& name = ""
 		) :
 			A_static_mesh(
@@ -390,8 +390,8 @@ namespace nre {
 			const F_vertex_channels& vertex_channels,
 			const F_indices& indices,
 			const F_static_submesh_headers& submesh_headers,
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
-			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE,
+			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
 			const G_string& name = ""
 		) :
 			A_static_mesh(
@@ -418,8 +418,8 @@ namespace nre {
 
 	public:
 		void rebuild(
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
-			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		)
 		{
 			vertex_channels_ = F_vertex_channels();
@@ -437,8 +437,8 @@ namespace nre {
 			const F_vertex_channels& vertex_channels,
 			const F_indices& indices,
 			const F_static_submesh_headers& submesh_headers,
-			E_resource_bind_flag additional_bind_flag = E_resource_bind_flag::SRV,
-			E_resource_heap_type heap_type = E_resource_heap_type::GREAD_GWRITE
+			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		)
 		{
 			vertex_channels_ = vertex_channels;
@@ -467,10 +467,10 @@ namespace nre {
 
 	using F_static_mesh_buffer = TF_static_mesh_buffer<
 	    TF_template_varg_list<
-	    	E_format::R32G32B32A32_FLOAT,
-	    	E_format::R32G32B32A32_FLOAT,
-	    	E_format::R32G32B32A32_FLOAT,
-	    	E_format::R32G32_FLOAT
+	    	ED_format::R32G32B32A32_FLOAT,
+	    	ED_format::R32G32B32A32_FLOAT,
+	    	ED_format::R32G32B32A32_FLOAT,
+	    	ED_format::R32G32_FLOAT
 		>,
 		F_vertex_position,
 		F_vertex_normal,
@@ -479,10 +479,10 @@ namespace nre {
 	>;
 	using F_static_mesh = TF_static_mesh<
 		TF_template_varg_list<
-			E_format::R32G32B32A32_FLOAT,
-			E_format::R32G32B32A32_FLOAT,
-			E_format::R32G32B32A32_FLOAT,
-			E_format::R32G32_FLOAT
+			ED_format::R32G32B32A32_FLOAT,
+			ED_format::R32G32B32A32_FLOAT,
+			ED_format::R32G32B32A32_FLOAT,
+			ED_format::R32G32_FLOAT
 		>,
 		F_vertex_position,
 		F_vertex_normal,

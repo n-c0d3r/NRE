@@ -10,11 +10,11 @@ namespace nre {
 		u32 height,
 		u32 array_size,
 		const F_data& data,
-		E_format format,
+		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		E_resource_bind_flag bind_flags,
-		E_resource_heap_type heap_type,
+		ED_resource_bind_flag bind_flags,
+		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable,
 		const G_string& name
 	) :
@@ -54,27 +54,27 @@ namespace nre {
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
 			{
-				srv_p_ = H_resource_view::create_srv(
+				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
 			{
-				uav_p_ = H_resource_view::create_uav(
+				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
 			{
-				rtv_p_ = H_resource_view::create_rtv(
+				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
 			{
-				dsv_p_ = H_resource_view::create_dsv(
+				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
@@ -85,11 +85,11 @@ namespace nre {
 		u32 height,
 		u32 array_size,
 		const F_texels& texels,
-		E_format format,
+		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		E_resource_bind_flag bind_flags,
-		E_resource_heap_type heap_type,
+		ED_resource_bind_flag bind_flags,
+		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable,
 		const G_string& name
 	) :
@@ -131,27 +131,27 @@ namespace nre {
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
 			{
-				srv_p_ = H_resource_view::create_srv(
+				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
 			{
-				uav_p_ = H_resource_view::create_uav(
+				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
 			{
-				rtv_p_ = H_resource_view::create_rtv(
+				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
 			{
-				dsv_p_ = H_resource_view::create_dsv(
+				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
@@ -159,11 +159,11 @@ namespace nre {
 	}
 	F_general_texture_2d_array::F_general_texture_2d_array(
 		const F_texture_2d_array_builder& builder,
-		E_format format,
+		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		E_resource_bind_flag bind_flags,
-		E_resource_heap_type heap_type,
+		ED_resource_bind_flag bind_flags,
+		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable,
 		const G_string& name
 	) :
@@ -205,27 +205,27 @@ namespace nre {
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
 			{
-				srv_p_ = H_resource_view::create_srv(
+				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
 			{
-				uav_p_ = H_resource_view::create_uav(
+				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
 			{
-				rtv_p_ = H_resource_view::create_rtv(
+				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
 			{
-				dsv_p_ = H_resource_view::create_dsv(
+				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
@@ -233,11 +233,11 @@ namespace nre {
 	}
 	F_general_texture_2d_array::F_general_texture_2d_array(
 		F_texture_2d_array_builder&& builder,
-		E_format format,
+		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		E_resource_bind_flag bind_flags,
-		E_resource_heap_type heap_type,
+		ED_resource_bind_flag bind_flags,
+		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable,
 		const G_string& name
 	) :
@@ -279,27 +279,27 @@ namespace nre {
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
 			{
-				srv_p_ = H_resource_view::create_srv(
+				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
 			{
-				uav_p_ = H_resource_view::create_uav(
+				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
 			{
-				rtv_p_ = H_resource_view::create_rtv(
+				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
 			{
-				dsv_p_ = H_resource_view::create_dsv(
+				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
@@ -330,11 +330,11 @@ namespace nre {
 		u32 height,
 		u32 array_size,
 		const F_data& data,
-		E_format format,
+		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		E_resource_bind_flag bind_flags,
-		E_resource_heap_type heap_type,
+		ED_resource_bind_flag bind_flags,
+		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable
 	) {
 		release_resource_and_resource_views_internal();
@@ -380,27 +380,27 @@ namespace nre {
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
 			{
-				srv_p_ = H_resource_view::create_srv(
+				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
 			{
-				uav_p_ = H_resource_view::create_uav(
+				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
 			{
-				rtv_p_ = H_resource_view::create_rtv(
+				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
 			{
-				dsv_p_ = H_resource_view::create_dsv(
+				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
@@ -411,11 +411,11 @@ namespace nre {
 		u32 height,
 		u32 array_size,
 		const F_texels& texels,
-		E_format format,
+		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		E_resource_bind_flag bind_flags,
-		E_resource_heap_type heap_type,
+		ED_resource_bind_flag bind_flags,
+		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable
 	) {
 		release_resource_and_resource_views_internal();
@@ -462,27 +462,27 @@ namespace nre {
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
 			{
-				srv_p_ = H_resource_view::create_srv(
+				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
 			{
-				uav_p_ = H_resource_view::create_uav(
+				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
 			{
-				rtv_p_ = H_resource_view::create_rtv(
+				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
 			{
-				dsv_p_ = H_resource_view::create_dsv(
+				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
@@ -490,11 +490,11 @@ namespace nre {
 	}
 	void F_general_texture_2d_array::rebuild(
 		const F_texture_2d_array_builder& builder,
-		E_format format,
+		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		E_resource_bind_flag bind_flags,
-		E_resource_heap_type heap_type,
+		ED_resource_bind_flag bind_flags,
+		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable
 	) {
 		release_resource_and_resource_views_internal();
@@ -536,27 +536,27 @@ namespace nre {
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
 			{
-				srv_p_ = H_resource_view::create_srv(
+				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
 			{
-				uav_p_ = H_resource_view::create_uav(
+				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
 			{
-				rtv_p_ = H_resource_view::create_rtv(
+				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
 			{
-				dsv_p_ = H_resource_view::create_dsv(
+				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
@@ -564,11 +564,11 @@ namespace nre {
 	}
 	void F_general_texture_2d_array::rebuild(
 		F_texture_2d_array_builder&& builder,
-		E_format format,
+		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		E_resource_bind_flag bind_flags,
-		E_resource_heap_type heap_type,
+		ED_resource_bind_flag bind_flags,
+		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable
 	) {
 		release_resource_and_resource_views_internal();
@@ -610,27 +610,27 @@ namespace nre {
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, E_resource_bind_flag::SRV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
 			{
-				srv_p_ = H_resource_view::create_srv(
+				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::UAV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
 			{
-				uav_p_ = H_resource_view::create_uav(
+				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::RTV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
 			{
-				rtv_p_ = H_resource_view::create_rtv(
+				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, E_resource_bind_flag::DSV))
+			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
 			{
-				dsv_p_ = H_resource_view::create_dsv(
+				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}

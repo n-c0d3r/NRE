@@ -25,11 +25,11 @@ namespace nre {
 			H_sampler_state::create(
 				NRE_RENDER_DEVICE(),
 				{
-					E_filter::MIN_MAG_MIP_LINEAR,
+					ED_filter::MIN_MAG_MIP_LINEAR,
 					{
-						E_texcoord_address_mode::CLAMP,
-						E_texcoord_address_mode::CLAMP,
-						E_texcoord_address_mode::CLAMP
+						ED_texcoord_address_mode::CLAMP,
+						ED_texcoord_address_mode::CLAMP,
+						ED_texcoord_address_mode::CLAMP
 					}
 				}
 			)

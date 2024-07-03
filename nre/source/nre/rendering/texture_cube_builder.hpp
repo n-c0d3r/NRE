@@ -48,7 +48,7 @@ namespace nre {
 		{
 			NCPP_ASSERT(texels_.size() == (width_ * width * 6)) << "invalid texels";
 		}
-		F_texture_cube_builder(u32 width, const TG_span<u8>& data, E_format format) :
+		F_texture_cube_builder(u32 width, const TG_span<u8>& data, ED_format format) :
 			width_(width),
 			texels_(width * width * 6)
 		{
@@ -142,7 +142,7 @@ namespace nre {
 
 			return texels_[index];
 		}
-		NCPP_FORCE_INLINE TG_vector<u8> data(E_format format) const {
+		NCPP_FORCE_INLINE TG_vector<u8> data(ED_format format) const {
 
 			NCPP_ASSERT(is_texels_available()) << "texels not available";
 

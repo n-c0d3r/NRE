@@ -39,12 +39,12 @@ namespace nre {
 			shadow_p->map_size().x,
 			shadow_p->map_size().y,
 			map_count,
-			E_format::R32_TYPELESS,
+			ED_format::R32_TYPELESS,
 			1,
 			{},
 			flag_combine(
-				E_resource_bind_flag::SRV,
-				E_resource_bind_flag::DSV
+				ED_resource_bind_flag::SRV,
+				ED_resource_bind_flag::DSV
 			)
 		);
 
@@ -57,7 +57,7 @@ namespace nre {
 					.resource_p = NCPP_FOH_VALID(shadow_maps_p_),
 					.index = i,
 					.count = 1,
-					.overrided_format = E_format::D32_FLOAT
+					.overrided_format = ED_format::D32_FLOAT
 				}
 			);
 		}
@@ -68,7 +68,7 @@ namespace nre {
 				.resource_p = NCPP_FOH_VALID(shadow_maps_p_),
 				.index = 0,
 				.count = map_count,
-				.overrided_format = E_format::R32_FLOAT
+				.overrided_format = ED_format::R32_FLOAT
 			}
 		);
 
@@ -91,8 +91,8 @@ namespace nre {
 				{},
 				1,
 				sizeof(F_view_constant_buffer_cpu_data),
-				E_resource_bind_flag::CBV,
-				E_resource_heap_type::GREAD_CWRITE
+				ED_resource_bind_flag::CBV,
+				ED_resource_heap_type::GREAD_CWRITE
 			);
 		}
 
@@ -101,8 +101,8 @@ namespace nre {
 			{},
 			1,
 			main_constant_buffer_size(),
-			E_resource_bind_flag::CBV,
-			E_resource_heap_type::GREAD_CWRITE
+			ED_resource_bind_flag::CBV,
+			ED_resource_heap_type::GREAD_CWRITE
 		);
 	}
 	F_directional_light_cascaded_shadow_render_view_attachment::~F_directional_light_cascaded_shadow_render_view_attachment() {
@@ -342,7 +342,7 @@ namespace nre {
 
 			render_command_list_p->clear_dsv(
 				NCPP_FOH_VALID(render_view_attachment_p->shadow_map_dsv_p_vector()[i]),
-				E_clear_flag::DEPTH,
+				ED_clear_flag::DEPTH,
 				1.0f,
 				0
 			);

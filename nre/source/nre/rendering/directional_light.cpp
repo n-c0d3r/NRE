@@ -24,8 +24,8 @@ namespace nre {
 			{},
 			sizeof(F_main_constant_buffer_cpu_data),
 			1,
-			E_resource_bind_flag::CBV,
-			E_resource_heap_type::GREAD_CWRITE
+			ED_resource_bind_flag::CBV,
+			ED_resource_heap_type::GREAD_CWRITE
 		);
 	}
 	F_directional_light_proxy::~F_directional_light_proxy() {

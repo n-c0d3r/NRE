@@ -54,7 +54,7 @@ namespace nre {
 		{
 			NCPP_ASSERT(texels_.size() == (width_ * height_)) << "invalid texels";
 		}
-		F_texture_2d_builder(u32 width, u32 height, const TG_span<u8>& data, E_format format) :
+		F_texture_2d_builder(u32 width, u32 height, const TG_span<u8>& data, ED_format format) :
 			width_(width),
 			height_(height),
 			texels_(width * height)
@@ -88,7 +88,7 @@ namespace nre {
 		{
 			NCPP_ASSERT(texels_.size() == (width_ * height_)) << "invalid texels";
 		}
-		F_texture_2d_builder(PA_vector2_u size, const TG_span<u8>& data, E_format format) :
+		F_texture_2d_builder(PA_vector2_u size, const TG_span<u8>& data, ED_format format) :
 			width_(size.x),
 			height_(size.y),
 			texels_(size.x * size.y)
@@ -203,7 +203,7 @@ namespace nre {
 
 			return texels_[index];
 		}
-		NCPP_FORCE_INLINE TG_vector<u8> data(E_format format) const {
+		NCPP_FORCE_INLINE TG_vector<u8> data(ED_format format) const {
 
 			NCPP_ASSERT(is_texels_available()) << "texels not available";
 

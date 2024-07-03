@@ -65,7 +65,7 @@ namespace nre {
 				width,
 				height,
 				texels,
-				E_format::R32G32B32_FLOAT
+				ED_format::R32G32B32_FLOAT
 			);
 
 			return std::move(texture_2d_asset_p);

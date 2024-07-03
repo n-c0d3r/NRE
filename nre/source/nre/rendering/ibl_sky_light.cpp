@@ -38,11 +38,11 @@ namespace nre {
 		auto ibl_sampler_state_p = H_sampler_state::create(
 			NRE_RENDER_DEVICE(),
 			{
-				E_filter::MIN_MAG_MIP_LINEAR,
+				ED_filter::MIN_MAG_MIP_LINEAR,
 				{
-					E_texcoord_address_mode::CLAMP,
-					E_texcoord_address_mode::CLAMP,
-					E_texcoord_address_mode::CLAMP
+					ED_texcoord_address_mode::CLAMP,
+					ED_texcoord_address_mode::CLAMP,
+					ED_texcoord_address_mode::CLAMP
 				}
 			}
 		);
@@ -54,12 +54,12 @@ namespace nre {
 				{},
 				brdf_lut_width_,
 				brdf_lut_width_,
-				E_format::R32G32_FLOAT,
+				ED_format::R32G32_FLOAT,
 				1,
 				{},
 				flag_combine(
-					E_resource_bind_flag::SRV,
-					E_resource_bind_flag::UAV
+					ED_resource_bind_flag::SRV,
+					ED_resource_bind_flag::UAV
 				)
 			);
 
@@ -68,12 +68,12 @@ namespace nre {
 				NRE_RENDER_DEVICE(),
 				{},
 				prefiltered_env_cube_width_,
-				E_format::R16G16B16A16_FLOAT,
+				ED_format::R16G16B16A16_FLOAT,
 				max_prefiltered_env_cube_mip_level_count,
 				{},
 				flag_combine(
-					E_resource_bind_flag::SRV,
-					E_resource_bind_flag::UAV
+					ED_resource_bind_flag::SRV,
+					ED_resource_bind_flag::UAV
 				)
 			);
 
@@ -81,24 +81,24 @@ namespace nre {
 				NRE_RENDER_DEVICE(),
 				{},
 				irradiance_cube_width_,
-				E_format::R16G16B16A16_FLOAT,
+				ED_format::R16G16B16A16_FLOAT,
 				1,
 				{},
 				flag_combine(
-					E_resource_bind_flag::SRV,
-					E_resource_bind_flag::UAV
+					ED_resource_bind_flag::SRV,
+					ED_resource_bind_flag::UAV
 				)
 			);
 
-			brdf_lut_srv_p_ = H_resource_view::create_srv(
+			brdf_lut_srv_p_ = H_resource_view::create_default_srv(
 				NCPP_FOH_VALID(brdf_lut_p_)
 			);
 
-			prefiltered_env_cube_srv_p_ = H_resource_view::create_srv(
+			prefiltered_env_cube_srv_p_ = H_resource_view::create_default_srv(
 				NCPP_FOH_VALID(prefiltered_env_cube_p_)
 			);
 
-			irradiance_cube_srv_p_ = H_resource_view::create_srv(
+			irradiance_cube_srv_p_ = H_resource_view::create_default_srv(
 				NCPP_FOH_VALID(irradiance_cube_p_)
 			);
 		}
@@ -114,8 +114,8 @@ namespace nre {
 				{ { .data_p = &main_constant_buffer_cpu_data } },
 				sizeof(F_main_constant_buffer_cpu_data),
 				1,
-				E_resource_bind_flag::CBV,
-				E_resource_heap_type::GREAD_CWRITE
+				ED_resource_bind_flag::CBV,
+				ED_resource_heap_type::GREAD_CWRITE
 			);
 		}
 
@@ -124,7 +124,7 @@ namespace nre {
 			NCPP_INIL_SPAN(
 				F_shader_kernel_desc {
 					.name = "compute_brdf_lut",
-					.type = E_shader_type::COMPUTE
+					.type = ED_shader_type::COMPUTE
 				}
 			)
 		);
@@ -132,7 +132,7 @@ namespace nre {
 			NCPP_INIL_SPAN(
 				F_shader_kernel_desc {
 					.name = "prefilter_env_cube",
-					.type = E_shader_type::COMPUTE
+					.type = ED_shader_type::COMPUTE
 				}
 			)
 		);
@@ -140,7 +140,7 @@ namespace nre {
 			NCPP_INIL_SPAN(
 				F_shader_kernel_desc {
 					.name = "compute_irradiance_cube",
-					.type = E_shader_type::COMPUTE
+					.type = ED_shader_type::COMPUTE
 				}
 			)
 		);
@@ -191,7 +191,7 @@ namespace nre {
 		auto command_list_p = H_command_list::create(
 			NRE_RENDER_DEVICE(),
 			{
-				E_command_list_type::DIRECT
+				ED_command_list_type::DIRECT
 			}
 		);
 
@@ -206,12 +206,12 @@ namespace nre {
 				{ { .data_p = &compute_brdf_cb_cpu_data } },
 				sizeof(F_compute_brdf_lut_constant_buffer_cpu_data),
 				1,
-				E_resource_bind_flag::CBV,
-				E_resource_heap_type::GREAD_GWRITE
+				ED_resource_bind_flag::CBV,
+				ED_resource_heap_type::GREAD_GWRITE
 			);
 
 			// create brdf lut uav
-			auto brdf_lut_uav_p = H_resource_view::create_uav(
+			auto brdf_lut_uav_p = H_resource_view::create_default_uav(
 				NCPP_FOH_VALID(brdf_lut_p_)
 			);
 
@@ -254,7 +254,7 @@ namespace nre {
 			auto prefiltered_env_cube_uav_p = H_resource_view::create_uav(
 				NRE_RENDER_DEVICE(),
 				{
-					.overrided_resource_type = E_resource_type::TEXTURE_2D_ARRAY,
+					.overrided_resource_type = ED_resource_type::TEXTURE_2D_ARRAY,
 					.resource_p = NCPP_FOH_VALID(prefiltered_env_cube_p_),
 					.target_mip_level = mip_level_index,
 					.count = 6
@@ -270,22 +270,22 @@ namespace nre {
 				)
 			};
 			prefilter_env_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::RIGHT)
+				u32(ED_texture_cube_face::RIGHT)
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, 0.5_pi, 0 });
 			prefilter_env_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::UP)
+				u32(ED_texture_cube_face::UP)
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { -0.5_pi, 0, 0 });
 			prefilter_env_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::FORWARD)
+				u32(ED_texture_cube_face::FORWARD)
 			] = T_identity<F_matrix4x4>();
 			prefilter_env_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::LEFT)
+				u32(ED_texture_cube_face::LEFT)
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, -0.5_pi, 0 });
 			prefilter_env_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::DOWN)
+				u32(ED_texture_cube_face::DOWN)
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
 			prefilter_env_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::BACK)
+				u32(ED_texture_cube_face::BACK)
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, 1_pi, 0 });
 
 			auto prefilter_env_cube_cb_p = H_buffer::create(
@@ -293,8 +293,8 @@ namespace nre {
 				{ { .data_p = &prefilter_env_cube_cb_cpu_data } },
 				1,
 				sizeof(F_prefilter_env_cube_constant_buffer_cpu_data),
-				E_resource_bind_flag::CBV,
-				E_resource_heap_type::GREAD_GWRITE
+				ED_resource_bind_flag::CBV,
+				ED_resource_heap_type::GREAD_GWRITE
 			);
 
 			// compute
@@ -341,7 +341,7 @@ namespace nre {
 			auto irradiance_cube_uav_p = H_resource_view::create_uav(
 				NRE_RENDER_DEVICE(),
 				{
-					.overrided_resource_type = E_resource_type::TEXTURE_2D_ARRAY,
+					.overrided_resource_type = ED_resource_type::TEXTURE_2D_ARRAY,
 					.resource_p = NCPP_FOH_VALID(irradiance_cube_p_),
 					.target_mip_level = 0,
 					.count = 6
@@ -354,22 +354,22 @@ namespace nre {
 				.width = irradiance_cube_width_
 			};
 			irradiance_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::RIGHT)
+				u32(ED_texture_cube_face::RIGHT)
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, 0.5_pi, 0 });
 			irradiance_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::UP)
+				u32(ED_texture_cube_face::UP)
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { -0.5_pi, 0, 0 });
 			irradiance_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::FORWARD)
+				u32(ED_texture_cube_face::FORWARD)
 			] = T_identity<F_matrix4x4>();
 			irradiance_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::LEFT)
+				u32(ED_texture_cube_face::LEFT)
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, -0.5_pi, 0 });
 			irradiance_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::DOWN)
+				u32(ED_texture_cube_face::DOWN)
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
 			irradiance_cube_cb_cpu_data.face_transforms[
-				u32(E_texture_cube_face::BACK)
+				u32(ED_texture_cube_face::BACK)
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, 1_pi, 0 });
 
 			auto irradiance_cube_cb_p = H_buffer::create(
@@ -377,8 +377,8 @@ namespace nre {
 				{ { .data_p = &irradiance_cube_cb_cpu_data } },
 				1,
 				sizeof(F_irradiance_cube_constant_buffer_cpu_data),
-				E_resource_bind_flag::CBV,
-				E_resource_heap_type::GREAD_GWRITE
+				ED_resource_bind_flag::CBV,
+				ED_resource_heap_type::GREAD_GWRITE
 			);
 
 			// compute

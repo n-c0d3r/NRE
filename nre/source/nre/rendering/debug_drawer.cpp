@@ -22,8 +22,8 @@ namespace nre {
 				{},
 				NRE_MAX_DEBUG_LINE_COUNT_PER_DRAWCALL * 2,
 				sizeof(F_debug_line_vertex),
-				E_resource_bind_flag::VBV,
-				E_resource_heap_type::GREAD_CWRITE
+				ED_resource_bind_flag::VBV,
+				ED_resource_heap_type::GREAD_CWRITE
 			);
 
 			F_input_assembler_desc input_assembler_desc = {
@@ -32,11 +32,11 @@ namespace nre {
 						{ // vertex position buffer
 							{
 								.name = "POSITION",
-								.format = E_format::R32G32B32_FLOAT
+								.format = ED_format::R32G32B32_FLOAT
 							},
 							{
 								.name = "COLOR",
-								.format = E_format::R32G32B32A32_FLOAT
+								.format = ED_format::R32G32B32A32_FLOAT
 							}
 						}
 					}
@@ -47,12 +47,12 @@ namespace nre {
 				NCPP_INIL_SPAN(
 					F_shader_kernel_desc{
 						.name = "vmain",
-						.type = E_shader_type::VERTEX,
+						.type = ED_shader_type::VERTEX,
 						.input_assembler_desc = input_assembler_desc
 					},
 					F_shader_kernel_desc{
 						.name = "pmain",
-						.type = E_shader_type::PIXEL
+						.type = ED_shader_type::PIXEL
 					}
 				)
 			);
@@ -72,10 +72,10 @@ namespace nre {
 				NRE_RENDER_DEVICE(),
 				{
 					.rasterizer_desc = {
-						.cull_mode = E_cull_mode::NONE,
-						.fill_mode = E_fill_mode::WIREFRAME
+						.cull_mode = ED_cull_mode::NONE,
+						.fill_mode = ED_fill_mode::WIREFRAME
 					},
-					.primitive_topology = E_primitive_topology::LINE_LIST,
+					.primitive_topology = ED_primitive_topology::LINE_LIST,
 					.shader_p_vector = {
 						NCPP_AOH_VALID(line_draw_vertex_shader_p_),
 						NCPP_AOH_VALID(line_draw_pixel_shader_p_)
