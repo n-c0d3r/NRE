@@ -11,9 +11,9 @@ namespace nre {
 	class A_static_mesh_buffer;
 	class A_static_mesh;
 
-	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
+	template<typename... F_vertex_channel_datas__>
 	class TF_static_mesh_buffer;
-	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
+	template<typename... F_vertex_channel_datas__>
 	class TF_static_mesh;
 
 
@@ -89,13 +89,13 @@ namespace nre {
 		NCPP_OBJECT(A_static_mesh_buffer);
 	};
 
-	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
+	template<typename... F_vertex_channel_datas__>
 	class TF_static_mesh_buffer : public A_static_mesh_buffer {
 
 	public:
 		using F_vertex_channel_data_targ_list = TF_template_targ_list<F_vertex_channel_datas__...>;
 
-		using F_mesh = TF_static_mesh<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>;
+		using F_mesh = TF_static_mesh<F_vertex_channel_datas__...>;
 
 	public:
 		friend F_mesh;
@@ -212,9 +212,9 @@ namespace nre {
 
 	};
 
-	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
+	template<typename... F_vertex_channel_datas__>
 	template<sz... indices>
-	struct TF_static_mesh_buffer<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>::TF_upload_vertex_buffers_helper<TF_template_varg_list<indices...>>
+	struct TF_static_mesh_buffer<F_vertex_channel_datas__...>::TF_upload_vertex_buffers_helper<TF_template_varg_list<indices...>>
 	{
 
 	private:
@@ -225,8 +225,8 @@ namespace nre {
 
 	public:
 		static void invoke(
-			TF_static_mesh_buffer<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>& static_mesh_buffer,
-			TKPA_valid<TF_static_mesh<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>> mesh_p,
+			TF_static_mesh_buffer<F_vertex_channel_datas__...>& static_mesh_buffer,
+			TKPA_valid<TF_static_mesh<F_vertex_channel_datas__...>> mesh_p,
 			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		)
@@ -249,6 +249,8 @@ namespace nre {
 				)...
 			};
 
+			const auto& vertex_channel_formats = mesh_p->vertex_channel_formats();
+
 			if(static_mesh_buffer.is_has_srv_) {
 				static_mesh_buffer.vertex_srv_p_array_ = {
 					(
@@ -256,7 +258,7 @@ namespace nre {
 							NRE_RENDER_SYSTEM()->device_p(),
 							{
 								.resource_p = NCPP_FOH_VALID(static_mesh_buffer.vertex_buffer_p_array_[indices]),
-								.overrided_format = F_vertex_channel_format_varg_list__::template T_at<indices>
+								.overrided_format = vertex_channel_formats[indices]
 							}
 						)
 					)...
@@ -274,7 +276,7 @@ namespace nre {
 							NRE_RENDER_SYSTEM()->device_p(),
 							{
 								.resource_p = NCPP_FOH_VALID(static_mesh_buffer.vertex_buffer_p_array_[indices]),
-								.overrided_format = F_vertex_channel_format_varg_list__::template T_at<indices>
+								.overrided_format = vertex_channel_formats[indices]
 							}
 						)
 					)...
@@ -309,6 +311,7 @@ namespace nre {
 	protected:
 		F_indices indices_;
 		F_static_submesh_headers submesh_headers_;
+		TG_vector<ED_format> vertex_channel_formats_;
 		u32 vertex_count_;
 		u32 vertex_channel_count_;
 		TU<A_static_mesh_buffer> buffer_p_;
@@ -318,6 +321,7 @@ namespace nre {
 		NCPP_FORCE_INLINE void set_name(const G_string& value) noexcept { name_ = value; }
 		NCPP_FORCE_INLINE const F_indices& indices() const noexcept { return indices_; }
 		NCPP_FORCE_INLINE const F_static_submesh_headers& submesh_headers() const noexcept { return submesh_headers_; }
+		NCPP_FORCE_INLINE const auto& vertex_channel_formats() const noexcept { return vertex_channel_formats_; }
 		NCPP_FORCE_INLINE u32 vertex_count() const noexcept { return vertex_count_; }
 		NCPP_FORCE_INLINE u32 vertex_channel_count() const noexcept { return vertex_channel_count_; }
 		NCPP_FORCE_INLINE TK<A_static_mesh_buffer> buffer_p() const noexcept { return buffer_p_; }
@@ -328,7 +332,8 @@ namespace nre {
 		A_static_mesh(
 			const G_string& name,
 			F_indices indices,
-			F_static_submesh_headers submesh_headers
+			F_static_submesh_headers submesh_headers,
+			const TG_vector<ED_format>& vertex_channel_formats
 		);
 
 	public:
@@ -342,7 +347,7 @@ namespace nre {
 
 	};
 
-	template<class F_vertex_channel_format_varg_list__, typename... F_vertex_channel_datas__>
+	template<typename... F_vertex_channel_datas__>
 	class TF_static_mesh : public A_static_mesh {
 
 	public:
@@ -350,7 +355,7 @@ namespace nre {
 
 		using F_vertex_channels = TG_tuple<TG_vector<F_vertex_channel_datas__>...>;
 
-		using F_buffer = TF_static_mesh_buffer<F_vertex_channel_format_varg_list__, F_vertex_channel_datas__...>;
+		using F_buffer = TF_static_mesh_buffer<F_vertex_channel_datas__...>;
 
 	public:
 		friend F_buffer;
@@ -374,7 +379,13 @@ namespace nre {
 			A_static_mesh(
 				name,
 				{},
-				{}
+				{},
+				{
+					ED_format::R32G32B32A32_FLOAT,
+					ED_format::R32G32B32A32_FLOAT,
+					ED_format::R32G32B32A32_FLOAT,
+					ED_format::R32G32_FLOAT
+				}
 			)
 		{
 			vertex_count_ = 0;
@@ -397,7 +408,13 @@ namespace nre {
 			A_static_mesh(
 				name,
 				indices,
-				submesh_headers
+				submesh_headers,
+				{
+					ED_format::R32G32B32A32_FLOAT,
+				 	ED_format::R32G32B32A32_FLOAT,
+				 	ED_format::R32G32B32A32_FLOAT,
+				 	ED_format::R32G32_FLOAT
+				}
 			),
 			vertex_channels_(vertex_channels)
 		{
@@ -466,24 +483,12 @@ namespace nre {
 
 
 	using F_static_mesh_buffer = TF_static_mesh_buffer<
-	    TF_template_varg_list<
-	    	ED_format::R32G32B32A32_FLOAT,
-	    	ED_format::R32G32B32A32_FLOAT,
-	    	ED_format::R32G32B32A32_FLOAT,
-	    	ED_format::R32G32_FLOAT
-		>,
 		F_vertex_position,
 		F_vertex_normal,
 		F_vertex_tangent,
 		F_vertex_uv
 	>;
 	using F_static_mesh = TF_static_mesh<
-		TF_template_varg_list<
-			ED_format::R32G32B32A32_FLOAT,
-			ED_format::R32G32B32A32_FLOAT,
-			ED_format::R32G32B32A32_FLOAT,
-			ED_format::R32G32_FLOAT
-		>,
 		F_vertex_position,
 		F_vertex_normal,
 		F_vertex_tangent,

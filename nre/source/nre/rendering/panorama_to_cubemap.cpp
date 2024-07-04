@@ -20,27 +20,33 @@ namespace nre {
 
 		F_quaternion face_rotation;
 
-		switch (face)
-		{
-		case ED_texture_cube_face::RIGHT:
-			face_rotation = T_make_rotation(F_vector3 { 0, 0.5_pi, 0 });
-			break;
-		case ED_texture_cube_face::UP:
-			face_rotation = T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
-			break;
-		case ED_texture_cube_face::FORWARD:
-			face_rotation = T_identity<F_quaternion>();
-			break;
-		case ED_texture_cube_face::LEFT:
-			face_rotation = T_make_rotation(F_vector3 { 0, -0.5_pi, 0 });
-			break;
-		case ED_texture_cube_face::DOWN:
-			face_rotation = T_make_rotation(F_vector3 { -0.5_pi, 0, 0 });
-			break;
-		case ED_texture_cube_face::BACK:
-			face_rotation = T_make_rotation(F_vector3 { 0, 1_pi, 0 });
-			break;
-		}
+		NRHI_ENUM_SWITCH(
+			face,
+			NRHI_ENUM_CASE(
+				ED_texture_cube_face::RIGHT,
+				face_rotation = T_make_rotation(F_vector3 { 0, 0.5_pi, 0 });
+			)
+			NRHI_ENUM_CASE(
+				ED_texture_cube_face::UP,
+				face_rotation = T_make_rotation(F_vector3 { 0.5_pi, 0, 0 });
+			)
+			NRHI_ENUM_CASE(
+				ED_texture_cube_face::FORWARD,
+				face_rotation = T_identity<F_quaternion>();
+			)
+			NRHI_ENUM_CASE(
+				ED_texture_cube_face::LEFT,
+				face_rotation = T_make_rotation(F_vector3 { 0, -0.5_pi, 0 });
+			)
+			NRHI_ENUM_CASE(
+				ED_texture_cube_face::DOWN,
+				face_rotation = T_make_rotation(F_vector3 { -0.5_pi, 0, 0 });
+			)
+			NRHI_ENUM_CASE(
+				ED_texture_cube_face::BACK,
+				face_rotation = T_make_rotation(F_vector3 { 0, 1_pi, 0 });
+			)
+		);
 
 		f32 to_center = -(f32(width) - 1.0f) * 0.5f;
 
