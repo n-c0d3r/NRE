@@ -43,8 +43,8 @@ namespace nre {
 			1,
 			{},
 			flag_combine(
-				ED_resource_bind_flag::SRV,
-				ED_resource_bind_flag::DSV
+				ED_resource_flag::SHADER_RESOURCE,
+				ED_resource_flag::DSV
 			)
 		);
 
@@ -91,7 +91,7 @@ namespace nre {
 				{},
 				1,
 				sizeof(F_view_constant_buffer_cpu_data),
-				ED_resource_bind_flag::CBV,
+				ED_resource_flag::CONST_BUFFER,
 				ED_resource_heap_type::GREAD_CWRITE
 			);
 		}
@@ -101,7 +101,7 @@ namespace nre {
 			{},
 			1,
 			main_constant_buffer_size(),
-			ED_resource_bind_flag::CBV,
+			ED_resource_flag::CONST_BUFFER,
 			ED_resource_heap_type::GREAD_CWRITE
 		);
 	}

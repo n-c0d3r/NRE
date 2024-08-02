@@ -18,13 +18,22 @@ namespace nre {
 		auto shader_asset_p = TS<F_hlsl_shader_asset>()(abs_path);
 
 		shader_asset_p->runtime_compile_functor = (
-			[abs_path, file_name = H_path::file_name(abs_path)](const TG_span<F_shader_kernel_desc>& kernel_descs)
-			-> TS<A_shader_class>
+			[abs_path, file_name = H_path::file_name(abs_path)](
+				const G_string& entry_point,
+				u32 model_major,
+				u32 model_minor,
+				ED_shader_type shader_type
+			)
+			-> F_shader_binary
 			{
 				return H_shader_compiler::compile_hlsl(
 					file_name,
+					entry_point,
+					entry_point,
 					abs_path,
-					kernel_descs
+					model_major,
+					model_minor,
+					shader_type
 				);
 			}
 		);

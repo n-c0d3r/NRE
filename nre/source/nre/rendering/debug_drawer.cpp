@@ -22,7 +22,7 @@ namespace nre {
 				{},
 				NRE_MAX_DEBUG_LINE_COUNT_PER_DRAWCALL * 2,
 				sizeof(F_debug_line_vertex),
-				ED_resource_bind_flag::VBV,
+				ED_resource_flag::INPUT_BUFFER,
 				ED_resource_heap_type::GREAD_CWRITE
 			);
 

@@ -34,7 +34,7 @@ namespace nre
 						ED_format::D32_FLOAT,
 						1,
 						{},
-						ED_resource_bind_flag::DSV
+						ED_resource_flag::DSV
 					);
 				else H_texture::rebuild_2d(
 						NCPP_FOH_VALID(depth_texture_2d_p_),
@@ -44,7 +44,7 @@ namespace nre
 						ED_format::D32_FLOAT,
 						1,
 						{},
-						ED_resource_bind_flag::DSV
+						ED_resource_flag::DSV
 					);
 
 				if(!dsv_p_)

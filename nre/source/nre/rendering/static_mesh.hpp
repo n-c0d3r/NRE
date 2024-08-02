@@ -146,19 +146,19 @@ namespace nre {
 
 	private:
 		void upload_internal(
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		) {
 
 			auto mesh_p = mesh_p_.T_cast<F_mesh>();
 
 			is_has_srv_ = flag_is_has(
-				additional_bind_flag,
-				ED_resource_bind_flag::SRV
+				additional_flag,
+				ED_resource_flag::SHADER_RESOURCE
 			);
 			is_has_uav_ = flag_is_has(
-				additional_bind_flag,
-				ED_resource_bind_flag::UAV
+				additional_flag,
+				ED_resource_flag::UNORDERED_ACCESS
 			);
 
 			using F_vertex_channel_indices = typename TF_template_targ_list<F_vertex_channel_datas__...>::F_indices;
@@ -176,7 +176,7 @@ namespace nre {
 				TF_upload_vertex_buffers_helper<F_vertex_channel_indices>::invoke(
 					*this,
 					mesh_p,
-					additional_bind_flag,
+					additional_flag,
 					heap_type
 				);
 			}
@@ -189,8 +189,8 @@ namespace nre {
 					indices,
 					ED_format::R32_UINT,
 					flag_combine(
-						ED_resource_bind_flag::IBV,
-						additional_bind_flag
+						ED_resource_flag::IBV,
+						additional_flag
 					),
 					heap_type
 				);
@@ -227,7 +227,7 @@ namespace nre {
 		static void invoke(
 			TF_static_mesh_buffer<F_vertex_channel_datas__...>& static_mesh_buffer,
 			TKPA_valid<TF_static_mesh<F_vertex_channel_datas__...>> mesh_p,
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		)
 		{
@@ -241,8 +241,8 @@ namespace nre {
 							eastl::get<indices>(mesh_p->vertex_channels())
 						),
 						flag_combine(
-							ED_resource_bind_flag::VBV,
-							additional_bind_flag
+							ED_resource_flag::INPUT_BUFFER,
+							additional_flag
 						),
 						heap_type
 					)
@@ -372,7 +372,7 @@ namespace nre {
 
 	public:
 		TF_static_mesh(
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
 			const G_string& name = ""
 		) :
@@ -393,7 +393,7 @@ namespace nre {
 
 			buffer_p_ = TU<F_buffer>()(NCPP_KTHIS());
 			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
-				additional_bind_flag,
+				additional_flag,
 				heap_type
 			);
 		}
@@ -401,7 +401,7 @@ namespace nre {
 			const F_vertex_channels& vertex_channels,
 			const F_indices& indices,
 			const F_static_submesh_headers& submesh_headers,
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
 			const G_string& name = ""
 		) :
@@ -423,7 +423,7 @@ namespace nre {
 
 			buffer_p_ = TU<F_buffer>()(NCPP_KTHIS());
 			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
-				additional_bind_flag,
+				additional_flag,
 				heap_type
 			);
 		}
@@ -435,7 +435,7 @@ namespace nre {
 
 	public:
 		void rebuild(
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		)
 		{
@@ -446,7 +446,7 @@ namespace nre {
 			vertex_count_ = 0;
 
 			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
-				additional_bind_flag,
+				additional_flag,
 				heap_type
 			);
 		}
@@ -454,7 +454,7 @@ namespace nre {
 			const F_vertex_channels& vertex_channels,
 			const F_indices& indices,
 			const F_static_submesh_headers& submesh_headers,
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		)
 		{
@@ -465,7 +465,7 @@ namespace nre {
 			vertex_count_ = eastl::get<0>(vertex_channels).size();
 
 			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
-				additional_bind_flag,
+				additional_flag,
 				heap_type
 			);
 		}

@@ -44,8 +44,8 @@ int main() {
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
 		NRE_RENDER_DEVICE(),
 		NCPP_INIL_SPAN(uniform_data),
-		E_resource_bind_flag::CBV,
-		E_resource_heap_type::GREAD_CWRITE
+		ED_resource_flag::CONST_BUFFER,
+		ED_resource_heap_type::GREAD_CWRITE
 	);
 
 	auto depth_texture_2d_p = H_texture::create_2d(
@@ -56,7 +56,7 @@ int main() {
 		E_format::D32_FLOAT,
 		1,
 		{},
-		E_resource_bind_flag::DSV
+		ED_resource_flag::DSV
 	);
 	auto dsv_p = H_resource_view::create_dsv(
 		NRE_RENDER_DEVICE(),
@@ -208,7 +208,7 @@ int main() {
 					E_format::D32_FLOAT,
 					1,
 					{},
-					E_resource_bind_flag::DSV
+					ED_resource_flag::DSV
 				);
 				dsv_p->rebuild();
 				frame_buffer_p->rebuild();

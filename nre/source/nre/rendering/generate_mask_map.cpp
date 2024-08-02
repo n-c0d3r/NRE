@@ -87,7 +87,7 @@ namespace nre {
 				(u32)1
 			),
 			F_sample_desc {},
-			ED_resource_bind_flag::SRV,
+			ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type::GREAD_GWRITE,
 			true
 		);

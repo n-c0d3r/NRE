@@ -58,8 +58,8 @@ namespace nre {
 				1,
 				{},
 				flag_combine(
-					ED_resource_bind_flag::SRV,
-					ED_resource_bind_flag::UAV
+					ED_resource_flag::SHADER_RESOURCE,
+					ED_resource_flag::UNORDERED_ACCESS
 				)
 			);
 
@@ -72,8 +72,8 @@ namespace nre {
 				max_prefiltered_env_cube_mip_level_count,
 				{},
 				flag_combine(
-					ED_resource_bind_flag::SRV,
-					ED_resource_bind_flag::UAV
+					ED_resource_flag::SHADER_RESOURCE,
+					ED_resource_flag::UNORDERED_ACCESS
 				)
 			);
 
@@ -85,8 +85,8 @@ namespace nre {
 				1,
 				{},
 				flag_combine(
-					ED_resource_bind_flag::SRV,
-					ED_resource_bind_flag::UAV
+					ED_resource_flag::SHADER_RESOURCE,
+					ED_resource_flag::UNORDERED_ACCESS
 				)
 			);
 
@@ -114,7 +114,7 @@ namespace nre {
 				{ { .data_p = &main_constant_buffer_cpu_data } },
 				sizeof(F_main_constant_buffer_cpu_data),
 				1,
-				ED_resource_bind_flag::CBV,
+				ED_resource_flag::CONST_BUFFER,
 				ED_resource_heap_type::GREAD_CWRITE
 			);
 		}
@@ -206,7 +206,7 @@ namespace nre {
 				{ { .data_p = &compute_brdf_cb_cpu_data } },
 				sizeof(F_compute_brdf_lut_constant_buffer_cpu_data),
 				1,
-				ED_resource_bind_flag::CBV,
+				ED_resource_flag::CONST_BUFFER,
 				ED_resource_heap_type::GREAD_GWRITE
 			);
 
@@ -293,7 +293,7 @@ namespace nre {
 				{ { .data_p = &prefilter_env_cube_cb_cpu_data } },
 				1,
 				sizeof(F_prefilter_env_cube_constant_buffer_cpu_data),
-				ED_resource_bind_flag::CBV,
+				ED_resource_flag::CONST_BUFFER,
 				ED_resource_heap_type::GREAD_GWRITE
 			);
 
@@ -377,7 +377,7 @@ namespace nre {
 				{ { .data_p = &irradiance_cube_cb_cpu_data } },
 				1,
 				sizeof(F_irradiance_cube_constant_buffer_cpu_data),
-				ED_resource_bind_flag::CBV,
+				ED_resource_flag::CONST_BUFFER,
 				ED_resource_heap_type::GREAD_GWRITE
 			);
 

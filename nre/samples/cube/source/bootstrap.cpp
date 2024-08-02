@@ -45,8 +45,8 @@ int main() {
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
 		NRE_RENDER_DEVICE(),
 		NCPP_INIL_SPAN(uniform_data),
-		E_resource_bind_flag::CBV,
-		E_resource_heap_type::GREAD_CWRITE
+		ED_resource_flag::CONST_BUFFER,
+		ED_resource_heap_type::GREAD_CWRITE
 	);
 
 	F_input_assembler_desc input_assembler_desc = {

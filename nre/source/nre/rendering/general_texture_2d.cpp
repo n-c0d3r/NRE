@@ -12,7 +12,7 @@ namespace nre {
 		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		ED_resource_bind_flag bind_flags,
+		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable,
 		const G_string& name
@@ -37,33 +37,33 @@ namespace nre {
 				format,
 				mip_level_count,
 				sample_desc,
-				bind_flags,
+				flags,
 				heap_type,
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
+			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
 
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
+			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
 
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RTV))
 			{
 
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DSV))
 			{
 
 				dsv_p_ = H_resource_view::create_default_dsv(
@@ -79,7 +79,7 @@ namespace nre {
 		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		ED_resource_bind_flag bind_flags,
+		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable,
 		const G_string& name
@@ -106,33 +106,33 @@ namespace nre {
 				format,
 				mip_level_count,
 				sample_desc,
-				bind_flags,
+				flags,
 				heap_type,
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
+			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
 
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
+			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
 
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RTV))
 			{
 
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DSV))
 			{
 
 				dsv_p_ = H_resource_view::create_default_dsv(
@@ -146,7 +146,7 @@ namespace nre {
 		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		ED_resource_bind_flag bind_flags,
+		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable,
 		const G_string& name
@@ -173,33 +173,33 @@ namespace nre {
 				format,
 				mip_level_count,
 				sample_desc,
-				bind_flags,
+				flags,
 				heap_type,
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
+			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
 
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
+			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
 
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RTV))
 			{
 
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DSV))
 			{
 
 				dsv_p_ = H_resource_view::create_default_dsv(
@@ -213,7 +213,7 @@ namespace nre {
 		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		ED_resource_bind_flag bind_flags,
+		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable,
 		const G_string& name
@@ -240,33 +240,33 @@ namespace nre {
 				format,
 				mip_level_count,
 				sample_desc,
-				bind_flags,
+				flags,
 				heap_type,
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
+			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
 
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
+			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
 
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RTV))
 			{
 
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DSV))
 			{
 
 				dsv_p_ = H_resource_view::create_default_dsv(
@@ -302,7 +302,7 @@ namespace nre {
 		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		ED_resource_bind_flag bind_flags,
+		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable
 	) {
@@ -332,33 +332,33 @@ namespace nre {
 				format,
 				mip_level_count,
 				sample_desc,
-				bind_flags,
+				flags,
 				heap_type,
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
+			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
 
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
+			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
 
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RTV))
 			{
 
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DSV))
 			{
 
 				dsv_p_ = H_resource_view::create_default_dsv(
@@ -374,7 +374,7 @@ namespace nre {
 		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		ED_resource_bind_flag bind_flags,
+		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable
 	) {
@@ -405,33 +405,33 @@ namespace nre {
 				format,
 				mip_level_count,
 				sample_desc,
-				bind_flags,
+				flags,
 				heap_type,
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
+			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
 
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
+			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
 
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RTV))
 			{
 
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DSV))
 			{
 
 				dsv_p_ = H_resource_view::create_default_dsv(
@@ -445,7 +445,7 @@ namespace nre {
 		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		ED_resource_bind_flag bind_flags,
+		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable
 	) {
@@ -472,33 +472,33 @@ namespace nre {
 				format,
 				mip_level_count,
 				sample_desc,
-				bind_flags,
+				flags,
 				heap_type,
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
+			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
 
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
+			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
 
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RTV))
 			{
 
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DSV))
 			{
 
 				dsv_p_ = H_resource_view::create_default_dsv(
@@ -512,7 +512,7 @@ namespace nre {
 		ED_format format,
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
-		ED_resource_bind_flag bind_flags,
+		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
 		b8 is_mip_map_generatable
 	) {
@@ -539,33 +539,33 @@ namespace nre {
 				format,
 				mip_level_count,
 				sample_desc,
-				bind_flags,
+				flags,
 				heap_type,
 				is_mip_map_generatable
 			);
 
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::SRV))
+			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
 
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::UAV))
+			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
 
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RTV))
 			{
 
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(bind_flags, ED_resource_bind_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DSV))
 			{
 
 				dsv_p_ = H_resource_view::create_default_dsv(

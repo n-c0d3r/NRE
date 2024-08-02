@@ -141,7 +141,7 @@ namespace nre {
 			ED_format::R32G32B32A32_FLOAT,
 			mip_level_count,
 			F_sample_desc {},
-			ED_resource_bind_flag::SRV,
+			ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type::GREAD_GWRITE,
 			true
 		);
