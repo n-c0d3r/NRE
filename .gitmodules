@@ -10,6 +10,3 @@
 [submodule "submodules/NRHI"]
 	path = submodules/NRHI
 	url = https://github.com/n-c0d3r/NRHI
-[submodule "submodules/OBJ-Loader"]
-	path = submodules/OBJ-Loader
-	url = https://github.com/Bly7/OBJ-Loader
