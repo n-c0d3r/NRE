@@ -85,11 +85,6 @@ set_target_properties(nre
         FOLDER "NCoder/nre"
 )
 
-target_precompile_headers(nre
-    PRIVATE
-        source/nre/prerequisites.hpp
-)
-
 target_include_directories(nre
     PUBLIC 
         "${CMAKE_CURRENT_SOURCE_DIR}/source"
@@ -105,6 +100,10 @@ target_link_libraries(nre
         nrhi
         FreeImage
         ${NRE_THIRD_PARTY_TARGETS}
+)
+target_precompile_headers(nre
+    PRIVATE
+        source/nre/prerequisites.hpp
 )
 
 # MSVC compile options
@@ -136,7 +135,7 @@ add_dependencies(nre
 
 
 #####################################################################################
-#   Add dependencies
+#   Add samples
 #####################################################################################
 add_subdirectory(samples)
 
