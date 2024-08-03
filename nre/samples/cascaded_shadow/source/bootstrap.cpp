@@ -209,8 +209,6 @@ int main() {
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p)
 		{
-			// get some essential objects
-			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			K_valid_render_command_list_handle main_command_list_p = { NRE_RENDER_SYSTEM()->main_command_list_p() };
 
 			NRE_RENDER_VIEW_SYSTEM()->T_for_each(
