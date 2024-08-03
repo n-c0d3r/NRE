@@ -41,6 +41,7 @@ namespace nre {
 					ED_command_list_type::DIRECT
 				}
 			);
+			main_command_list_p_->end();
 
 			// setup imgui render device and context
 			{
@@ -91,6 +92,25 @@ namespace nre {
 		if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
 			ImGui_ImplDX11_Shutdown();
 #endif
+	}
+
+	void F_render_system::begin_main_command_list() {
+
+		main_command_list_p_->begin();
+
+		is_main_command_list_ended_ = false;
+	}
+	void F_render_system::submit_main_command_list() {
+
+		if(is_main_command_list_ended_)
+			return;
+
+		main_command_list_p_->end();
+		command_queue_p_->execute_command_list(
+			main_command_list_p()
+		);
+
+		is_main_command_list_ended_ = true;
 	}
 
 }

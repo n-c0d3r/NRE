@@ -49,6 +49,8 @@ namespace nre {
 		TU<F_pso_library> pso_library_p_;
 		TU<F_shader_library> shader_library_p_;
 
+		b8 is_main_command_list_ended_ = true;
+
 	public:
 		NCPP_FORCE_INLINE TK_valid<A_device> device_p() const noexcept { return NCPP_FOH_VALID(device_p_); }
 		NCPP_FORCE_INLINE TK_valid<A_command_queue> command_queue_p() const noexcept { return NCPP_FOH_VALID(command_queue_p_); }
@@ -67,6 +69,10 @@ namespace nre {
 
 	public:
 		NCPP_OBJECT(F_render_system);
+
+	public:
+		void begin_main_command_list();
+		void submit_main_command_list();
 
 	};
 

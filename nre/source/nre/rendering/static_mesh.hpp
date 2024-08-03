@@ -42,9 +42,9 @@ namespace nre {
 	public:
 		NCPP_FORCE_INLINE TKPA_valid<A_static_mesh> mesh_p() const noexcept { return mesh_p_; }
 
-		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const = 0;
-		virtual TG_span<K_buffer_handle> vertex_buffer_p_span() const = 0;
-		virtual u32 vertex_buffer_count() const = 0;
+		virtual K_buffer_handle input_buffer_p(u32 index = 0) const = 0;
+		virtual TG_span<K_buffer_handle> input_buffer_p_span() const = 0;
+		virtual u32 input_buffer_count() const = 0;
 		virtual K_srv_handle vertex_srv_p(u32 index = 0) const { return {}; }
 		virtual TG_span<K_srv_handle> vertex_srv_p_span() const { return {}; }
 		virtual K_uav_handle vertex_uav_p(u32 index = 0) const { return {}; }
@@ -56,13 +56,13 @@ namespace nre {
 		NCPP_FORCE_INLINE K_srv_handle index_srv_p() const noexcept { return index_srv_p_; }
 		NCPP_FORCE_INLINE K_uav_handle index_uav_p() const noexcept { return index_uav_p_; }
 
-		NCPP_FORCE_INLINE u32 uploaded_vertex_buffer_count() const noexcept {
+		NCPP_FORCE_INLINE u32 uploaded_input_buffer_count() const noexcept {
 
-			return vertex_buffer_p_span().size();
+			return input_buffer_p_span().size();
 		}
 		NCPP_FORCE_INLINE u32 uploaded_vertex_count() const noexcept {
 
-			auto vs = vertex_buffer_p_span();
+			auto vs = input_buffer_p_span();
 
 			if(vs.size())
 				return vs[0]->desc().element_count;
@@ -103,20 +103,20 @@ namespace nre {
 
 
 	private:
-		TG_array<U_buffer_handle, sizeof...(F_vertex_channel_datas__)> vertex_buffer_p_array_;
-		TG_array<K_buffer_handle, sizeof...(F_vertex_channel_datas__)> keyed_vertex_buffer_p_array_;
+		TG_array<U_buffer_handle, sizeof...(F_vertex_channel_datas__)> input_buffer_p_array_;
+		TG_array<K_buffer_handle, sizeof...(F_vertex_channel_datas__)> keyed_input_buffer_p_array_;
 		TG_array<U_srv_handle, sizeof...(F_vertex_channel_datas__)> vertex_srv_p_array_;
 		TG_array<K_srv_handle, sizeof...(F_vertex_channel_datas__)> keyed_vertex_srv_p_array_;
 		TG_array<U_uav_handle, sizeof...(F_vertex_channel_datas__)> vertex_uav_p_array_;
 		TG_array<K_uav_handle, sizeof...(F_vertex_channel_datas__)> keyed_vertex_uav_p_array_;
 
 	public:
-		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const override { return vertex_buffer_p_array_[index].keyed(); }
-		virtual TG_span<K_buffer_handle> vertex_buffer_p_span() const override
+		virtual K_buffer_handle input_buffer_p(u32 index = 0) const override { return input_buffer_p_array_[index].keyed(); }
+		virtual TG_span<K_buffer_handle> input_buffer_p_span() const override
 		{
-			return (TG_array<K_buffer_handle, sizeof...(F_vertex_channel_datas__)>&)keyed_vertex_buffer_p_array_;
+			return (TG_array<K_buffer_handle, sizeof...(F_vertex_channel_datas__)>&)keyed_input_buffer_p_array_;
 		}
-		virtual u32 vertex_buffer_count() const override
+		virtual u32 input_buffer_count() const override
 		{
 			return sizeof...(F_vertex_channel_datas__);
 		}
@@ -146,37 +146,37 @@ namespace nre {
 
 	private:
 		void upload_internal(
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		) {
 
 			auto mesh_p = mesh_p_.T_cast<F_mesh>();
 
 			is_has_srv_ = flag_is_has(
-				additional_bind_flag,
-				ED_resource_bind_flag::SRV
+				additional_flag,
+				ED_resource_flag::SHADER_RESOURCE
 			);
 			is_has_uav_ = flag_is_has(
-				additional_bind_flag,
-				ED_resource_bind_flag::UAV
+				additional_flag,
+				ED_resource_flag::UNORDERED_ACCESS
 			);
 
 			using F_vertex_channel_indices = typename TF_template_targ_list<F_vertex_channel_datas__...>::F_indices;
 
-			for(auto& vertex_buffer_p : vertex_buffer_p_array_)
+			for(auto& input_buffer_p : input_buffer_p_array_)
 			{
-				if(vertex_buffer_p)
-					vertex_buffer_p.reset();
+				if(input_buffer_p)
+					input_buffer_p.reset();
 			}
 			if(index_buffer_p_)
 				index_buffer_p_.reset();
 
 			if(mesh_p->vertex_count())
 			{
-				TF_upload_vertex_buffers_helper<F_vertex_channel_indices>::invoke(
+				TF_upload_input_buffers_helper<F_vertex_channel_indices>::invoke(
 					*this,
 					mesh_p,
-					additional_bind_flag,
+					additional_flag,
 					heap_type
 				);
 			}
@@ -189,8 +189,8 @@ namespace nre {
 					indices,
 					ED_format::R32_UINT,
 					flag_combine(
-						ED_resource_bind_flag::IBV,
-						additional_bind_flag
+						ED_resource_flag::INDEX_BUFFER,
+						additional_flag
 					),
 					heap_type
 				);
@@ -208,13 +208,13 @@ namespace nre {
 
 	private:
 		template<typename F__>
-		struct TF_upload_vertex_buffers_helper;
+		struct TF_upload_input_buffers_helper;
 
 	};
 
 	template<typename... F_vertex_channel_datas__>
 	template<sz... indices>
-	struct TF_static_mesh_buffer<F_vertex_channel_datas__...>::TF_upload_vertex_buffers_helper<TF_template_varg_list<indices...>>
+	struct TF_static_mesh_buffer<F_vertex_channel_datas__...>::TF_upload_input_buffers_helper<TF_template_varg_list<indices...>>
 	{
 
 	private:
@@ -227,13 +227,13 @@ namespace nre {
 		static void invoke(
 			TF_static_mesh_buffer<F_vertex_channel_datas__...>& static_mesh_buffer,
 			TKPA_valid<TF_static_mesh<F_vertex_channel_datas__...>> mesh_p,
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		)
 		{
 			using F_vertex_channel_data_targ_list = TF_template_targ_list<F_vertex_channel_datas__...>;
 
-			static_mesh_buffer.vertex_buffer_p_array_ = {
+			static_mesh_buffer.input_buffer_p_array_ = {
 				(
 					H_buffer::T_create<F_vertex_channel_data_targ_list::template TF_at<indices>>(
 						NRE_RENDER_SYSTEM()->device_p(),
@@ -241,8 +241,8 @@ namespace nre {
 							eastl::get<indices>(mesh_p->vertex_channels())
 						),
 						flag_combine(
-							ED_resource_bind_flag::VBV,
-							additional_bind_flag
+							ED_resource_flag::INPUT_BUFFER,
+							additional_flag
 						),
 						heap_type
 					)
@@ -257,7 +257,7 @@ namespace nre {
 						H_resource_view::create_srv(
 							NRE_RENDER_SYSTEM()->device_p(),
 							{
-								.resource_p = NCPP_FOH_VALID(static_mesh_buffer.vertex_buffer_p_array_[indices]),
+								.resource_p = NCPP_FOH_VALID(static_mesh_buffer.input_buffer_p_array_[indices]),
 								.overrided_format = vertex_channel_formats[indices]
 							}
 						)
@@ -275,7 +275,7 @@ namespace nre {
 						H_resource_view::create_uav(
 							NRE_RENDER_SYSTEM()->device_p(),
 							{
-								.resource_p = NCPP_FOH_VALID(static_mesh_buffer.vertex_buffer_p_array_[indices]),
+								.resource_p = NCPP_FOH_VALID(static_mesh_buffer.input_buffer_p_array_[indices]),
 								.overrided_format = vertex_channel_formats[indices]
 							}
 						)
@@ -289,7 +289,7 @@ namespace nre {
 
 			for(u32 i = 0; i < sizeof...(F_vertex_channel_datas__); ++i)
 			{
-				static_mesh_buffer.keyed_vertex_buffer_p_array_[i] = static_mesh_buffer.vertex_buffer_p_array_[i].keyed();
+				static_mesh_buffer.keyed_input_buffer_p_array_[i] = static_mesh_buffer.input_buffer_p_array_[i].keyed();
 			}
 		}
 	};
@@ -372,7 +372,7 @@ namespace nre {
 
 	public:
 		TF_static_mesh(
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
 			const G_string& name = ""
 		) :
@@ -393,7 +393,7 @@ namespace nre {
 
 			buffer_p_ = TU<F_buffer>()(NCPP_KTHIS());
 			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
-				additional_bind_flag,
+				additional_flag,
 				heap_type
 			);
 		}
@@ -401,7 +401,7 @@ namespace nre {
 			const F_vertex_channels& vertex_channels,
 			const F_indices& indices,
 			const F_static_submesh_headers& submesh_headers,
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
 			const G_string& name = ""
 		) :
@@ -423,7 +423,7 @@ namespace nre {
 
 			buffer_p_ = TU<F_buffer>()(NCPP_KTHIS());
 			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
-				additional_bind_flag,
+				additional_flag,
 				heap_type
 			);
 		}
@@ -435,7 +435,7 @@ namespace nre {
 
 	public:
 		void rebuild(
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		)
 		{
@@ -446,7 +446,7 @@ namespace nre {
 			vertex_count_ = 0;
 
 			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
-				additional_bind_flag,
+				additional_flag,
 				heap_type
 			);
 		}
@@ -454,7 +454,7 @@ namespace nre {
 			const F_vertex_channels& vertex_channels,
 			const F_indices& indices,
 			const F_static_submesh_headers& submesh_headers,
-			ED_resource_bind_flag additional_bind_flag = ED_resource_bind_flag::SRV,
+			ED_resource_flag additional_flag = ED_resource_flag::SHADER_RESOURCE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE
 		)
 		{
@@ -465,7 +465,7 @@ namespace nre {
 			vertex_count_ = eastl::get<0>(vertex_channels).size();
 
 			NCPP_FOH_VALID(buffer_p_).T_cast<F_buffer>()->upload_internal(
-				additional_bind_flag,
+				additional_flag,
 				heap_type
 			);
 		}

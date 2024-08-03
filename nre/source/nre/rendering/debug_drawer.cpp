@@ -17,17 +17,17 @@ namespace nre {
 
 		// for debug line drawing
 		{
-			line_vertex_buffer_p_ = H_buffer::create(
+			line_input_buffer_p_ = H_buffer::create(
 				NRE_RENDER_DEVICE(),
 				{},
 				NRE_MAX_DEBUG_LINE_COUNT_PER_DRAWCALL * 2,
 				sizeof(F_debug_line_vertex),
-				ED_resource_bind_flag::VBV,
+				ED_resource_flag::INPUT_BUFFER,
 				ED_resource_heap_type::GREAD_CWRITE
 			);
 
 			F_input_assembler_desc input_assembler_desc = {
-				.vertex_attribute_groups = {
+				.attribute_groups = {
 					{
 						{ // vertex position buffer
 							{
@@ -43,29 +43,15 @@ namespace nre {
 				}
 			};
 
-			auto shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/debug_line.hlsl").T_cast<F_hlsl_shader_asset>()->runtime_compile_functor(
-				NCPP_INIL_SPAN(
-					F_shader_kernel_desc{
-						.name = "vmain",
-						.type = ED_shader_type::VERTEX,
-						.input_assembler_desc = input_assembler_desc
-					},
-					F_shader_kernel_desc{
-						.name = "pmain",
-						.type = ED_shader_type::PIXEL
-					}
-				)
-			);
+			auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/debug_line.hlsl").T_cast<F_hlsl_shader_asset>();
 
-			line_draw_vertex_shader_p_ = H_vertex_shader::create(
-				NRE_RENDER_DEVICE(),
-				NCPP_FOH_VALID(shader_class_p),
-				"vmain"
+			auto vshader_binary = shader_asset_p->runtime_compile_auto(
+				"vmain",
+				ED_shader_type::VERTEX
 			);
-			line_draw_pixel_shader_p_ = H_pixel_shader::create(
-				NRE_RENDER_DEVICE(),
-				NCPP_FOH_VALID(shader_class_p),
-				"pmain"
+			auto pshader_binary = shader_asset_p->runtime_compile_auto(
+				"pmain",
+				ED_shader_type::PIXEL
 			);
 
 			line_draw_pso_p_ = H_graphics_pipeline_state::create(
@@ -76,9 +62,10 @@ namespace nre {
 						.fill_mode = ED_fill_mode::WIREFRAME
 					},
 					.primitive_topology = ED_primitive_topology::LINE_LIST,
-					.shader_p_vector = {
-						NCPP_AOH_VALID(line_draw_vertex_shader_p_),
-						NCPP_AOH_VALID(line_draw_pixel_shader_p_)
+					.input_assembler_desc = input_assembler_desc,
+					.shader_binaries = {
+						vshader_binary,
+						(F_shader_binary_temp)pshader_binary
 					}
 				}
 			);
@@ -121,7 +108,7 @@ namespace nre {
 				}
 
 				render_command_list_p->update_resource_data(
-					NCPP_AOH_VALID(line_vertex_buffer_p_),
+					NCPP_AOH_VALID(line_input_buffer_p_),
 					(void*)(vertices.data()),
 					2 * line_count * sizeof(F_debug_line_vertex)
 				);
@@ -149,8 +136,8 @@ namespace nre {
 						(u32)line_remains
 					);
 
-					render_command_list_p->ZIA_bind_vertex_buffer(
-						NCPP_FOH_VALID(line_vertex_buffer_p_),
+					render_command_list_p->ZIA_bind_input_buffer(
+						NCPP_FOH_VALID(line_input_buffer_p_),
 						0,
 						0
 					);
@@ -167,7 +154,7 @@ namespace nre {
 						NCPP_FOH_VALID(render_view_frame_buffer_p)
 					);
 
-					render_command_list_p->bind_graphics_pipeline_state(
+					render_command_list_p->ZG_bind_pipeline_state(
 						NCPP_FOH_VALID(line_draw_pso_p_)
 					);
 

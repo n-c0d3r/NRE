@@ -18,8 +18,8 @@ namespace nre
 
 			u32 vertex_channel_count = static_mesh_p->vertex_channel_count();
 			for(u32 i = 0; i < vertex_channel_count; ++i)
-				command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(mesh_buffer_p->vertex_buffer_p(i)),
+				command_list_p->ZIA_bind_input_buffer(
+					NCPP_FOH_VALID(mesh_buffer_p->input_buffer_p(i)),
 					0,
 					i
 				);

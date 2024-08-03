@@ -41,7 +41,7 @@ endif()
 #   Add FreeImage subdirectory
 #####################################################################################
 if(NOT TARGET FreeImage)
-    add_subdirectory("${NRE_SUBMODULES_DIR}/FreeImage" "${NRE_BINARY_DIR}/submodules/FreeImage")
+    add_subdirectory("${NRE_DEPENDENCIES_DIR}/FreeImage" "${NRE_BINARY_DIR}/dependencies/FreeImage")
 endif()
 
 

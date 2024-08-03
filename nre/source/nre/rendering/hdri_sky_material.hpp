@@ -51,14 +51,10 @@ namespace nre {
 
 	private:
 		U_graphics_pipeline_state_handle main_graphics_pso_p_;
-		U_vertex_shader_handle vertex_shader_p_;
-		U_pixel_shader_handle pixel_shader_p_;
 		U_buffer_handle main_constant_buffer_p_;
 
 	public:
 		NCPP_FORCE_INLINE K_valid_graphics_pipeline_state_handle main_graphics_pso_p() const noexcept { return NCPP_FOH_VALID(main_graphics_pso_p_); }
-		NCPP_FORCE_INLINE K_valid_vertex_shader_handle vertex_shader_p() const noexcept { return NCPP_FOH_VALID(vertex_shader_p_); }
-		NCPP_FORCE_INLINE K_valid_pixel_shader_handle pixel_shader_p() const noexcept { return NCPP_FOH_VALID(pixel_shader_p_); }
 		NCPP_FORCE_INLINE K_valid_buffer_handle main_constant_buffer_p() const noexcept { return NCPP_FOH_VALID(main_constant_buffer_p_); }
 
 

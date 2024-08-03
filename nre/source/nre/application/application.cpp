@@ -51,6 +51,8 @@ namespace nre {
 
 		asset_system_p_ = TU<F_asset_system>()();
 		render_system_p_ = TU<F_render_system>()();
+
+		render_system_p_->begin_main_command_list();
 	}
 	F_application::~F_application() {
 
@@ -85,9 +87,13 @@ namespace nre {
 
 		startup_event_.invoke();
 
+		render_system_p_->submit_main_command_list();
+
 		surface_manager_p_->T_run([this](F_surface_manager& surface_manager){
 
 		  	if(main_surface_p_) {
+
+				render_system_p_->begin_main_command_list();
 
 				// begin imgui frame
 				{
@@ -134,6 +140,8 @@ namespace nre {
 					}
 #endif
 				}
+
+				render_system_p_->submit_main_command_list();
 
 				render_system_p_->main_swapchain_p()->present();
 		  	}

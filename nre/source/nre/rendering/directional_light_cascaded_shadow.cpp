@@ -43,8 +43,8 @@ namespace nre {
 			1,
 			{},
 			flag_combine(
-				ED_resource_bind_flag::SRV,
-				ED_resource_bind_flag::DSV
+				ED_resource_flag::SHADER_RESOURCE,
+				ED_resource_flag::DEPTH_STENCIL
 			)
 		);
 
@@ -56,7 +56,7 @@ namespace nre {
 				{
 					.resource_p = NCPP_FOH_VALID(shadow_maps_p_),
 					.index = i,
-					.count = 1,
+					.overrided_array_size = 1,
 					.overrided_format = ED_format::D32_FLOAT
 				}
 			);
@@ -67,7 +67,7 @@ namespace nre {
 			{
 				.resource_p = NCPP_FOH_VALID(shadow_maps_p_),
 				.index = 0,
-				.count = map_count,
+				.overrided_array_size = map_count,
 				.overrided_format = ED_format::R32_FLOAT
 			}
 		);
@@ -91,7 +91,7 @@ namespace nre {
 				{},
 				1,
 				sizeof(F_view_constant_buffer_cpu_data),
-				ED_resource_bind_flag::CBV,
+				ED_resource_flag::CONSTANT_BUFFER,
 				ED_resource_heap_type::GREAD_CWRITE
 			);
 		}
@@ -101,7 +101,7 @@ namespace nre {
 			{},
 			1,
 			main_constant_buffer_size(),
-			ED_resource_bind_flag::CBV,
+			ED_resource_flag::CONSTANT_BUFFER,
 			ED_resource_heap_type::GREAD_CWRITE
 		);
 	}

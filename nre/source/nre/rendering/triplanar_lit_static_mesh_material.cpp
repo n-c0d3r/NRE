@@ -40,12 +40,12 @@ namespace nre {
 			{},
 			sizeof(F_main_constant_buffer_cpu_data),
 			1,
-			ED_resource_bind_flag::CBV,
+			ED_resource_flag::CONSTANT_BUFFER,
 			ED_resource_heap_type::GREAD_CWRITE
 		);
 
 		F_input_assembler_desc input_assembler_desc = {
-			.vertex_attribute_groups = {
+			.attribute_groups = {
 				{
 					{ // vertex position buffer
 						{
@@ -75,29 +75,14 @@ namespace nre {
 			}
 		};
 
-		auto shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/triplanar_lit_static_mesh.hlsl").T_cast<F_hlsl_shader_asset>()->runtime_compile_functor(
-			NCPP_INIL_SPAN(
-				F_shader_kernel_desc {
-					.name = "vmain",
-					.type = ED_shader_type::VERTEX,
-					.input_assembler_desc = input_assembler_desc
-				},
-				F_shader_kernel_desc {
-					.name = "pmain",
-					.type = ED_shader_type::PIXEL
-				}
-			)
+		auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/triplanar_lit_static_mesh.hlsl").T_cast<F_hlsl_shader_asset>();
+		auto vshader_binary = shader_asset_p->runtime_compile_auto(
+			"vmain",
+			ED_shader_type::VERTEX
 		);
-
-		main_vertex_shader_p_ = H_vertex_shader::create(
-			NRE_RENDER_DEVICE(),
-			NCPP_FOH_VALID(shader_class_p),
-			"vmain"
-		);
-		main_pixel_shader_p_ = H_pixel_shader::create(
-			NRE_RENDER_DEVICE(),
-			NCPP_FOH_VALID(shader_class_p),
-			"pmain"
+		auto pshader_binary = shader_asset_p->runtime_compile_auto(
+			"pmain",
+			ED_shader_type::PIXEL
 		);
 
 		maps_sampler_state_p_ = H_sampler_state::create(
@@ -119,9 +104,10 @@ namespace nre {
 					.cull_mode = ED_cull_mode::BACK,
 					.fill_mode = ED_fill_mode::SOLID
 				},
-				.shader_p_vector = {
-					NCPP_AOH_VALID(main_vertex_shader_p_),
-					NCPP_AOH_VALID(main_pixel_shader_p_)
+				.input_assembler_desc = input_assembler_desc,
+				.shader_binaries = {
+					vshader_binary,
+					F_shader_binary_temp(pshader_binary)
 				}
 			}
 		);
@@ -132,8 +118,9 @@ namespace nre {
 					.cull_mode = ED_cull_mode::BACK,
 					.fill_mode = ED_fill_mode::SOLID
 				},
-				.shader_p_vector = {
-					NCPP_AOH_VALID(main_vertex_shader_p_)
+				.input_assembler_desc = input_assembler_desc,
+				.shader_binaries = {
+					vshader_binary
 				}
 			}
 		);
@@ -155,7 +142,7 @@ namespace nre {
 
 		auto casted_material_p = material_p().T_cast<A_triplanar_lit_static_mesh_material>();
 
-		render_command_list_p->bind_graphics_pipeline_state(
+		render_command_list_p->ZG_bind_pipeline_state(
 			NCPP_FOH_VALID(main_graphics_pso_p_)
 		);
 
@@ -198,7 +185,7 @@ namespace nre {
 	) {
 		auto casted_material_p = material_p().T_cast<A_triplanar_lit_static_mesh_material>();
 
-		render_command_list_p->bind_graphics_pipeline_state(
+		render_command_list_p->ZG_bind_pipeline_state(
 			NCPP_FOH_VALID(shadow_render_graphics_pso_p_)
 		);
 

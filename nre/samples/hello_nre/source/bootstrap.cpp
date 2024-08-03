@@ -28,10 +28,6 @@ int main() {
 
 
 
-	auto demo_shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/nsl/demo.nsl");
-
-
-
 	NRE_APPLICATION_STARTUP(application_p) {
 
 	};

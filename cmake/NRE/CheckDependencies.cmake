@@ -69,30 +69,18 @@ if(NOT EXISTS "${NRE_SUBMODULES_DIR}/OBJ-Loader")
     endif()
 endif()
 
-######################################################################################
-##   FreeImage checking
-######################################################################################
-if(NOT TARGET FreeImage)
-    if(NOT EXISTS "${NRE_SUBMODULES_DIR}/FreeImage")
-        if(WIN32)
-            execute_process(COMMAND "${NRE_SCRIPTS_DIR}/check_submodules.bat")
-        elseif(UNIX)
-            execute_process(COMMAND "${NRE_SCRIPTS_DIR}/check_submodules.sh")
-        endif()
-    endif()
-endif()
-
-######################################################################################
-##   FreeImage checking
-######################################################################################
-if(NOT TARGET FreeImage)
-    if(NOT EXISTS "${NRE_SUBMODULES_DIR}/FreeImage")
-        if(WIN32)
-            execute_process(COMMAND "${NRE_SCRIPTS_DIR}/check_submodules.bat")
-        elseif(UNIX)
-            execute_process(COMMAND "${NRE_SCRIPTS_DIR}/check_submodules.sh")
-        endif()
-    endif()
+#####################################################################################
+#   FreeImage checking
+#####################################################################################
+if(NOT EXISTS "${NRE_DEPENDENCIES_DIR}/FreeImage")
+    file(MAKE_DIRECTORY "${NRE_DEPENDENCIES_DIR}/FreeImage")
+    NCPP_GitHelper_Clone(
+        PROJECT_NAME "FreeImage"
+        GIT_URL "https://github.com/danoli3/FreeImage"
+        GIT_COMMIT "9643901a833647ae5d93f97f5f08fd3f87cae1ab"
+        GIT_BRANCH "master"
+        DIRECTORY "${NRE_DEPENDENCIES_DIR}"
+    )
 endif()
 
 #####################################################################################

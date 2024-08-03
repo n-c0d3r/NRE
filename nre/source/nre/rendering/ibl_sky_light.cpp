@@ -58,35 +58,41 @@ namespace nre {
 				1,
 				{},
 				flag_combine(
-					ED_resource_bind_flag::SRV,
-					ED_resource_bind_flag::UAV
+					ED_resource_flag::SHADER_RESOURCE,
+					ED_resource_flag::UNORDERED_ACCESS
 				)
 			);
 
 			prefiltered_env_cube_mip_level_count_ = max_prefiltered_env_cube_mip_level_count - 5;
-			prefiltered_env_cube_p_ = H_texture::create_cube(
+			prefiltered_env_cube_p_ = H_texture::create_2d_array(
 				NRE_RENDER_DEVICE(),
 				{},
 				prefiltered_env_cube_width_,
+				prefiltered_env_cube_width_,
+				6,
 				ED_format::R16G16B16A16_FLOAT,
 				max_prefiltered_env_cube_mip_level_count,
 				{},
 				flag_combine(
-					ED_resource_bind_flag::SRV,
-					ED_resource_bind_flag::UAV
+					ED_resource_flag::SHADER_RESOURCE,
+					ED_resource_flag::UNORDERED_ACCESS,
+					ED_resource_flag::TEXTURE_CUBE
 				)
 			);
 
-			irradiance_cube_p_ = H_texture::create_cube(
+			irradiance_cube_p_ = H_texture::create_2d_array(
 				NRE_RENDER_DEVICE(),
 				{},
 				irradiance_cube_width_,
+				irradiance_cube_width_,
+				6,
 				ED_format::R16G16B16A16_FLOAT,
 				1,
 				{},
 				flag_combine(
-					ED_resource_bind_flag::SRV,
-					ED_resource_bind_flag::UAV
+					ED_resource_flag::SHADER_RESOURCE,
+					ED_resource_flag::UNORDERED_ACCESS,
+					ED_resource_flag::TEXTURE_CUBE
 				)
 			);
 
@@ -114,76 +120,52 @@ namespace nre {
 				{ { .data_p = &main_constant_buffer_cpu_data } },
 				sizeof(F_main_constant_buffer_cpu_data),
 				1,
-				ED_resource_bind_flag::CBV,
+				ED_resource_flag::CONSTANT_BUFFER,
 				ED_resource_heap_type::GREAD_CWRITE
 			);
 		}
 
 		// create shader classes
-		auto compute_brdf_lut_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/ibl_compute_brdf_lut.hlsl").T_cast<F_hlsl_shader_asset>()->runtime_compile_functor(
-			NCPP_INIL_SPAN(
-				F_shader_kernel_desc {
-					.name = "compute_brdf_lut",
-					.type = ED_shader_type::COMPUTE
-				}
-			)
-		);
-		auto prefilter_env_cube_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/ibl_prefilter_env_cube.hlsl").T_cast<F_hlsl_shader_asset>()->runtime_compile_functor(
-			NCPP_INIL_SPAN(
-				F_shader_kernel_desc {
-					.name = "prefilter_env_cube",
-					.type = ED_shader_type::COMPUTE
-				}
-			)
-		);
-		auto ibl_compute_irradiance_cube_shader_class_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/ibl_compute_irradiance_cube.hlsl").T_cast<F_hlsl_shader_asset>()->runtime_compile_functor(
-			NCPP_INIL_SPAN(
-				F_shader_kernel_desc {
-					.name = "compute_irradiance_cube",
-					.type = ED_shader_type::COMPUTE
-				}
-			)
+		auto compute_brdf_lut_shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/ibl_compute_brdf_lut.hlsl").T_cast<F_hlsl_shader_asset>();
+		auto compute_brdf_lut_shader_binary = compute_brdf_lut_shader_asset_p->runtime_compile_auto(
+			"compute_brdf_lut",
+			ED_shader_type::COMPUTE
 		);
 
-		// create shaders
-		auto compute_brdf_lut_shader_p = H_compute_shader::create(
-			NRE_RENDER_DEVICE(),
-			NCPP_FOH_VALID(compute_brdf_lut_shader_class_p),
-			"compute_brdf_lut"
+		auto prefilter_env_cube_shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/ibl_prefilter_env_cube.hlsl").T_cast<F_hlsl_shader_asset>();
+		auto prefilter_env_cube_shader_binary = prefilter_env_cube_shader_asset_p->runtime_compile_auto(
+			"prefilter_env_cube",
+			ED_shader_type::COMPUTE
 		);
-		auto prefilter_env_cube_shader_p = H_compute_shader::create(
-			NRE_RENDER_DEVICE(),
-			NCPP_FOH_VALID(prefilter_env_cube_shader_class_p),
-			"prefilter_env_cube"
-		);
-		auto compute_irradiance_cube_shader_p = H_compute_shader::create(
-			NRE_RENDER_DEVICE(),
-			NCPP_FOH_VALID(ibl_compute_irradiance_cube_shader_class_p),
-			"compute_irradiance_cube"
+
+		auto ibl_compute_irradiance_cube_shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/ibl_compute_irradiance_cube.hlsl").T_cast<F_hlsl_shader_asset>();
+		auto ibl_compute_irradiance_cube_shader_binary = ibl_compute_irradiance_cube_shader_asset_p->runtime_compile_auto(
+			"compute_irradiance_cube",
+			ED_shader_type::COMPUTE
 		);
 
 		// create pso
 		auto compute_brdf_lut_pso_p = H_compute_pipeline_state::create(
 			NRE_RENDER_DEVICE(),
 			{
-				.shader_p_vector = {
-					NCPP_FOH_VALID(compute_brdf_lut_shader_p)
+				.shader_binaries = {
+					compute_brdf_lut_shader_binary
 				}
 			}
 		);
 		auto prefilter_env_cube_pso_p = H_compute_pipeline_state::create(
 			NRE_RENDER_DEVICE(),
 			{
-				.shader_p_vector = {
-					NCPP_FOH_VALID(prefilter_env_cube_shader_p)
+				.shader_binaries = {
+					prefilter_env_cube_shader_binary
 				}
 			}
 		);
 		auto compute_irradiance_cube_pso_p = H_compute_pipeline_state::create(
 			NRE_RENDER_DEVICE(),
 			{
-				.shader_p_vector = {
-					NCPP_FOH_VALID(compute_irradiance_cube_shader_p)
+				.shader_binaries = {
+					ibl_compute_irradiance_cube_shader_binary
 				}
 			}
 		);
@@ -206,7 +188,7 @@ namespace nre {
 				{ { .data_p = &compute_brdf_cb_cpu_data } },
 				sizeof(F_compute_brdf_lut_constant_buffer_cpu_data),
 				1,
-				ED_resource_bind_flag::CBV,
+				ED_resource_flag::CONSTANT_BUFFER,
 				ED_resource_heap_type::GREAD_GWRITE
 			);
 
@@ -217,7 +199,7 @@ namespace nre {
 
 			// compute
 			{
-				command_list_p->bind_compute_pipeline_state(
+				command_list_p->ZC_bind_pipeline_state(
 					NCPP_FOH_VALID(compute_brdf_lut_pso_p)
 				);
 
@@ -257,7 +239,7 @@ namespace nre {
 					.overrided_resource_type = ED_resource_type::TEXTURE_2D_ARRAY,
 					.resource_p = NCPP_FOH_VALID(prefiltered_env_cube_p_),
 					.target_mip_level = mip_level_index,
-					.count = 6
+					.overrided_array_size = 6
 				}
 			);
 
@@ -293,13 +275,13 @@ namespace nre {
 				{ { .data_p = &prefilter_env_cube_cb_cpu_data } },
 				1,
 				sizeof(F_prefilter_env_cube_constant_buffer_cpu_data),
-				ED_resource_bind_flag::CBV,
+				ED_resource_flag::CONSTANT_BUFFER,
 				ED_resource_heap_type::GREAD_GWRITE
 			);
 
 			// compute
 			{
-				command_list_p->bind_compute_pipeline_state(
+				command_list_p->ZC_bind_pipeline_state(
 					NCPP_FOH_VALID(prefilter_env_cube_pso_p)
 				);
 
@@ -344,7 +326,7 @@ namespace nre {
 					.overrided_resource_type = ED_resource_type::TEXTURE_2D_ARRAY,
 					.resource_p = NCPP_FOH_VALID(irradiance_cube_p_),
 					.target_mip_level = 0,
-					.count = 6
+					.overrided_array_size = 6
 				}
 			);
 
@@ -377,13 +359,13 @@ namespace nre {
 				{ { .data_p = &irradiance_cube_cb_cpu_data } },
 				1,
 				sizeof(F_irradiance_cube_constant_buffer_cpu_data),
-				ED_resource_bind_flag::CBV,
+				ED_resource_flag::CONSTANT_BUFFER,
 				ED_resource_heap_type::GREAD_GWRITE
 			);
 
 			// compute
 			{
-				command_list_p->bind_compute_pipeline_state(
+				command_list_p->ZC_bind_pipeline_state(
 					NCPP_FOH_VALID(compute_irradiance_cube_pso_p)
 				);
 

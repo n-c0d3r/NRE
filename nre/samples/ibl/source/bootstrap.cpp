@@ -287,8 +287,6 @@ int main() {
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p)
 		{
-			// get some essential objects
-			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			K_valid_render_command_list_handle main_command_list_p = { NRE_RENDER_SYSTEM()->main_command_list_p() };
 
 			NRE_RENDER_VIEW_SYSTEM()->T_for_each(
@@ -327,11 +325,8 @@ int main() {
 				}
 			);
 
-			// submit command lists to GPU
-			command_queue_p->execute_command_list(
-				NCPP_FOH_VALID(main_command_list_p)
-			);
-
+			// submit main command list
+		  	NRE_RENDER_SYSTEM()->submit_main_command_list();
 		};
 	}
 

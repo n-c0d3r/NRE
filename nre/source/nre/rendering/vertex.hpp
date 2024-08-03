@@ -15,27 +15,27 @@ namespace nre {
 	{
 		F_input_assembler_desc result;
 
-		result.vertex_attribute_groups = TG_vector<TG_vector<F_vertex_attribute>>({
-			TG_vector<F_vertex_attribute>({ // vertex position buffer
-				F_vertex_attribute {
+		result.attribute_groups = TG_vector<TG_vector<F_input_attribute>>({
+			TG_vector<F_input_attribute>({ // vertex position buffer
+				F_input_attribute {
 					.name = "POSITION",
 					.format = ED_format::R32G32B32_FLOAT
 				}
 			}),
-			TG_vector<F_vertex_attribute>({ // vertex normal buffer
-				F_vertex_attribute {
+			TG_vector<F_input_attribute>({ // vertex normal buffer
+				F_input_attribute {
 					.name = "NORMAL",
 					.format = ED_format::R32G32B32_FLOAT
 				}
 			}),
-			TG_vector<F_vertex_attribute>({ // vertex tangent buffer
-				F_vertex_attribute {
+			TG_vector<F_input_attribute>({ // vertex tangent buffer
+				F_input_attribute {
 					.name = "TANGENT",
 					.format = ED_format::R32G32B32_FLOAT
 				}
 			}),
-			TG_vector<F_vertex_attribute>({ // vertex uv buffer
-				F_vertex_attribute {
+			TG_vector<F_input_attribute>({ // vertex uv buffer
+				F_input_attribute {
 					.name = "UV",
 					.format = ED_format::R32G32_FLOAT
 				}
