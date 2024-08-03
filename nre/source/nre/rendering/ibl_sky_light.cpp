@@ -75,7 +75,8 @@ namespace nre {
 				{},
 				flag_combine(
 					ED_resource_flag::SHADER_RESOURCE,
-					ED_resource_flag::UNORDERED_ACCESS
+					ED_resource_flag::UNORDERED_ACCESS,
+					ED_resource_flag::TEXTURE_CUBE
 				)
 			);
 
@@ -90,7 +91,8 @@ namespace nre {
 				{},
 				flag_combine(
 					ED_resource_flag::SHADER_RESOURCE,
-					ED_resource_flag::UNORDERED_ACCESS
+					ED_resource_flag::UNORDERED_ACCESS,
+					ED_resource_flag::TEXTURE_CUBE
 				)
 			);
 
