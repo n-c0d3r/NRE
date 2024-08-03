@@ -102,17 +102,15 @@ namespace nre {
 	}
 	void F_render_system::submit_main_command_list() {
 
+		if(is_main_command_list_ended_)
+			return;
+
 		main_command_list_p_->end();
 		command_queue_p_->execute_command_list(
 			main_command_list_p()
 		);
 
 		is_main_command_list_ended_ = true;
-	}
-	void F_render_system::end_main_command_list() {
-
-		if(!is_main_command_list_ended_)
-			main_command_list_p_->end();
 	}
 
 }

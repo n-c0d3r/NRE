@@ -376,7 +376,6 @@ int main() {
 
 			// submit main command list
 			NRE_RENDER_SYSTEM()->submit_main_command_list();
-
 		};
 	}
 

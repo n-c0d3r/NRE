@@ -262,11 +262,8 @@ int main() {
 				}
 			);
 
-			// submit command lists to GPU
-			command_queue_p->execute_command_list(
-				NCPP_FOH_VALID(main_command_list_p)
-			);
-
+		  	// submit main command list
+		  	NRE_RENDER_SYSTEM()->submit_main_command_list();
 		};
 	}
 

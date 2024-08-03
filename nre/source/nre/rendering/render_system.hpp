@@ -73,7 +73,6 @@ namespace nre {
 	public:
 		void begin_main_command_list();
 		void submit_main_command_list();
-		void end_main_command_list();
 
 	};
 
