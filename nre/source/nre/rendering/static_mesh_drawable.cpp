@@ -15,7 +15,7 @@ namespace nre {
 			mask
 			| NRE_DRAWABLE_SYSTEM()->T_mask<
 				I_has_simple_draw_drawable,
-				I_has_vertex_buffer_drawable,
+				I_has_input_buffer_drawable,
 				I_has_index_buffer_drawable
 			>()
 		)
@@ -28,7 +28,7 @@ namespace nre {
 			mask
 			| NRE_DRAWABLE_SYSTEM()->T_mask<
 				I_has_simple_draw_drawable,
-				I_has_vertex_buffer_drawable,
+				I_has_input_buffer_drawable,
 				I_has_index_buffer_drawable
 			>()
 		),
@@ -40,16 +40,16 @@ namespace nre {
 	{
 	}
 
-	K_buffer_handle F_static_mesh_drawable::vertex_buffer_p(u32 index) const {
+	K_buffer_handle F_static_mesh_drawable::input_buffer_p(u32 index) const {
 
 		NCPP_ASSERT(mesh_p) << "mesh not found";
 
-		return mesh_p->buffer_p()->vertex_buffer_p(index);
+		return mesh_p->buffer_p()->input_buffer_p(index);
 	}
-	u32 F_static_mesh_drawable::vertex_buffer_count() const {
+	u32 F_static_mesh_drawable::input_buffer_count() const {
 
 		if(mesh_p)
-			return mesh_p->buffer_p()->vertex_buffer_count();
+			return mesh_p->buffer_p()->input_buffer_count();
 
 		return 0;
 	}

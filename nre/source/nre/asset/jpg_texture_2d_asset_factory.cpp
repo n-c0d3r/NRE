@@ -77,9 +77,8 @@ namespace nre {
 					(u32)1
 				),
 				F_sample_desc {},
-				ED_resource_flag::SHADER_RESOURCE,
-				ED_resource_heap_type::GREAD_GWRITE,
-				true
+				ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::MIPS_GENERATABLE,
+				ED_resource_heap_type::GREAD_GWRITE
 			);
 			texture_2d_asset_p->texture_p->generate_mips();
 

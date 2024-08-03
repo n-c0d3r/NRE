@@ -47,16 +47,12 @@ namespace nre {
 
 	private:
 		TG_vector<F_debug_line> lines_;
-		U_buffer_handle line_vertex_buffer_p_;
-		U_vertex_shader_handle line_draw_vertex_shader_p_;
-		U_pixel_shader_handle line_draw_pixel_shader_p_;
+		U_buffer_handle line_input_buffer_p_;
 		U_graphics_pipeline_state_handle line_draw_pso_p_;
 
 	public:
 		NCPP_FORCE_INLINE const TG_vector<F_debug_line>& lines() const noexcept { return lines_; }
-		NCPP_FORCE_INLINE K_valid_buffer_handle line_vertex_buffer_p() const noexcept { return NCPP_FOH_VALID(line_vertex_buffer_p_); }
-		NCPP_FORCE_INLINE K_valid_vertex_shader_handle line_draw_vertex_shader_p() const noexcept { return NCPP_FOH_VALID(line_draw_vertex_shader_p_); }
-		NCPP_FORCE_INLINE K_valid_pixel_shader_handle line_draw_pixel_shader_p() const noexcept { return NCPP_FOH_VALID(line_draw_pixel_shader_p_); }
+		NCPP_FORCE_INLINE K_valid_buffer_handle line_input_buffer_p() const noexcept { return NCPP_FOH_VALID(line_input_buffer_p_); }
 		NCPP_FORCE_INLINE K_valid_graphics_pipeline_state_handle line_draw_pso_p() const noexcept { return NCPP_FOH_VALID(line_draw_pso_p_); }
 
 

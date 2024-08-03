@@ -15,7 +15,6 @@ namespace nre {
 		F_sample_desc sample_desc,
 		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
-		b8 is_mip_map_generatable,
 		const G_string& name
 	) :
 		builder_(width, height, array_size, (F_data&)data, format),
@@ -50,8 +49,7 @@ namespace nre {
 				mip_level_count,
 				sample_desc,
 				flags,
-				heap_type,
-				is_mip_map_generatable
+				heap_type
 			);
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
@@ -66,13 +64,13 @@ namespace nre {
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
@@ -90,7 +88,6 @@ namespace nre {
 		F_sample_desc sample_desc,
 		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
-		b8 is_mip_map_generatable,
 		const G_string& name
 	) :
 		builder_(width, height, array_size, texels),
@@ -127,8 +124,7 @@ namespace nre {
 				mip_level_count,
 				sample_desc,
 				flags,
-				heap_type,
-				is_mip_map_generatable
+				heap_type
 			);
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
@@ -143,13 +139,13 @@ namespace nre {
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
@@ -164,7 +160,6 @@ namespace nre {
 		F_sample_desc sample_desc,
 		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
-		b8 is_mip_map_generatable,
 		const G_string& name
 	) :
 		builder_(builder),
@@ -201,8 +196,7 @@ namespace nre {
 				mip_level_count,
 				sample_desc,
 				flags,
-				heap_type,
-				is_mip_map_generatable
+				heap_type
 			);
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
@@ -217,13 +211,13 @@ namespace nre {
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
@@ -238,7 +232,6 @@ namespace nre {
 		F_sample_desc sample_desc,
 		ED_resource_flag flags,
 		ED_resource_heap_type heap_type,
-		b8 is_mip_map_generatable,
 		const G_string& name
 	) :
 		builder_(std::move(builder)),
@@ -275,8 +268,7 @@ namespace nre {
 				mip_level_count,
 				sample_desc,
 				flags,
-				heap_type,
-				is_mip_map_generatable
+				heap_type
 			);
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
@@ -291,13 +283,13 @@ namespace nre {
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
@@ -334,8 +326,7 @@ namespace nre {
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
 		ED_resource_flag flags,
-		ED_resource_heap_type heap_type,
-		b8 is_mip_map_generatable
+		ED_resource_heap_type heap_type
 	) {
 		release_resource_and_resource_views_internal();
 
@@ -376,8 +367,7 @@ namespace nre {
 				mip_level_count,
 				sample_desc,
 				flags,
-				heap_type,
-				is_mip_map_generatable
+				heap_type
 			);
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
@@ -392,13 +382,13 @@ namespace nre {
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
@@ -415,8 +405,7 @@ namespace nre {
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
 		ED_resource_flag flags,
-		ED_resource_heap_type heap_type,
-		b8 is_mip_map_generatable
+		ED_resource_heap_type heap_type
 	) {
 		release_resource_and_resource_views_internal();
 
@@ -458,8 +447,7 @@ namespace nre {
 				mip_level_count,
 				sample_desc,
 				flags,
-				heap_type,
-				is_mip_map_generatable
+				heap_type
 			);
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
@@ -474,13 +462,13 @@ namespace nre {
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
@@ -494,8 +482,7 @@ namespace nre {
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
 		ED_resource_flag flags,
-		ED_resource_heap_type heap_type,
-		b8 is_mip_map_generatable
+		ED_resource_heap_type heap_type
 	) {
 		release_resource_and_resource_views_internal();
 
@@ -532,8 +519,7 @@ namespace nre {
 				mip_level_count,
 				sample_desc,
 				flags,
-				heap_type,
-				is_mip_map_generatable
+				heap_type
 			);
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
@@ -548,13 +534,13 @@ namespace nre {
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
@@ -568,8 +554,7 @@ namespace nre {
 		u32 mip_level_count,
 		F_sample_desc sample_desc,
 		ED_resource_flag flags,
-		ED_resource_heap_type heap_type,
-		b8 is_mip_map_generatable
+		ED_resource_heap_type heap_type
 	) {
 		release_resource_and_resource_views_internal();
 
@@ -606,8 +591,7 @@ namespace nre {
 				mip_level_count,
 				sample_desc,
 				flags,
-				heap_type,
-				is_mip_map_generatable
+				heap_type
 			);
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
@@ -622,13 +606,13 @@ namespace nre {
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::RTV))
+			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
-			if (flag_is_has(flags, ED_resource_flag::DSV))
+			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
@@ -639,7 +623,6 @@ namespace nre {
 	void F_general_texture_2d_array::generate_mips() {
 
 		NCPP_ASSERT(buffer_p_.is_valid()) << "this texture is not valid";
-		NCPP_ASSERT(buffer_p_->desc().is_mip_map_generatable) << "this texture is not mip map generatable";
 
 		auto command_list_p = H_command_list::create(
 			NRE_RENDER_DEVICE(),

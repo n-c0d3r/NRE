@@ -22,11 +22,11 @@ namespace nre {
 		) = 0;
 
 	};
-	class I_has_vertex_buffer_drawable {
+	class I_has_input_buffer_drawable {
 
 	public:
-		virtual K_buffer_handle vertex_buffer_p(u32 index = 0) const = 0;
-		virtual u32 vertex_buffer_count() const = 0;
+		virtual K_buffer_handle input_buffer_p(u32 index = 0) const = 0;
+		virtual u32 input_buffer_count() const = 0;
 
 		virtual K_srv_handle vertex_srv_p(u32 index = 0) const { return { null }; }
 		virtual K_uav_handle vertex_uav_p(u32 index = 0) const { return { null }; }

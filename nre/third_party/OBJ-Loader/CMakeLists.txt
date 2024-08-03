@@ -2,7 +2,12 @@
 include(NCPP/Utilities/SetGlobal)
 
 if(NOT TARGET OBJ-Loader)
-    add_library(OBJ-Loader INTERFACE ${OBJ-Loader_sources})
+    add_library(OBJ-Loader INTERFACE)
+
+    target_include_directories(OBJ-Loader
+        INTERFACE
+            "${CMAKE_CURRENT_LIST_DIR}/source"
+    )
 
     set_target_properties(OBJ-Loader
         PROPERTIES

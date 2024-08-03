@@ -7,6 +7,3 @@
 [submodule "submodules/NSurface"]
 	path = submodules/NSurface
 	url = https://github.com/n-c0d3r/NSurface
-[submodule "submodules/NRHI"]
-	path = submodules/NRHI
-	url = https://github.com/n-c0d3r/NRHI

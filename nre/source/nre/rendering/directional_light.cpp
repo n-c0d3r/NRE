@@ -24,7 +24,7 @@ namespace nre {
 			{},
 			sizeof(F_main_constant_buffer_cpu_data),
 			1,
-			ED_resource_flag::CONST_BUFFER,
+			ED_resource_flag::CONSTANT_BUFFER,
 			ED_resource_heap_type::GREAD_CWRITE
 		);
 	}

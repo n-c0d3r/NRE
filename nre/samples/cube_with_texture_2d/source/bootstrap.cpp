@@ -49,7 +49,7 @@ int main() {
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
 		NRE_RENDER_DEVICE(),
 		NCPP_INIL_SPAN(uniform_data),
-		ED_resource_flag::CONST_BUFFER,
+		ED_resource_flag::CONSTANT_BUFFER,
 		ED_resource_heap_type::GREAD_CWRITE
 	);
 
@@ -294,27 +294,27 @@ int main() {
 			{
 				main_command_list_p->clear_state();
 
-				main_command_list_p->bind_graphics_pipeline_state(
+				main_command_list_p->ZG_bind_pipeline_state(
 					NCPP_FOH_VALID(pipeline_state_p)
 				);
 
-				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(cube_mesh_buffer_p->vertex_buffer_p(0)), // vertex position buffer
+				main_command_list_p->ZIA_bind_input_buffer(
+					NCPP_FOH_VALID(cube_mesh_buffer_p->input_buffer_p(0)), // vertex position buffer
 					0,
 					0
 				);
-				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(cube_mesh_buffer_p->vertex_buffer_p(1)), // vertex normal buffer
+				main_command_list_p->ZIA_bind_input_buffer(
+					NCPP_FOH_VALID(cube_mesh_buffer_p->input_buffer_p(1)), // vertex normal buffer
 					0,
 					1
 				);
-				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(cube_mesh_buffer_p->vertex_buffer_p(2)), // vertex tangent buffer
+				main_command_list_p->ZIA_bind_input_buffer(
+					NCPP_FOH_VALID(cube_mesh_buffer_p->input_buffer_p(2)), // vertex tangent buffer
 					0,
 					2
 				);
-				main_command_list_p->ZIA_bind_vertex_buffer(
-					NCPP_FOH_VALID(cube_mesh_buffer_p->vertex_buffer_p(3)), // vertex uv buffer
+				main_command_list_p->ZIA_bind_input_buffer(
+					NCPP_FOH_VALID(cube_mesh_buffer_p->input_buffer_p(3)), // vertex uv buffer
 					0,
 					3
 				);
