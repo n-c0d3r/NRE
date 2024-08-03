@@ -54,117 +54,110 @@ int main() {
 	);
 
 	F_input_assembler_desc input_assembler_desc = {
-		.vertex_attribute_groups = {
+		.attribute_groups = {
 			{
 				{ // vertex position buffer
 					{
 						.name = "POSITION",
-						.format = E_format::R32G32B32_FLOAT
+						.format = ED_format::R32G32B32_FLOAT
 					}
 				},
 				{ // vertex normal buffer
 					{
 						.name = "NORMAL",
-						.format = E_format::R32G32B32_FLOAT
+						.format = ED_format::R32G32B32_FLOAT
 					}
 				},
 				{ // vertex tangent buffer
 					{
 						.name = "TANGENT",
-						.format = E_format::R32G32B32_FLOAT
+						.format = ED_format::R32G32B32_FLOAT
 					}
 				},
 				{ // vertex uv buffer
 					{
 						.name = "UV",
-						.format = E_format::R32G32_FLOAT
+						.format = ED_format::R32G32_FLOAT
 					}
 				}
 			}
 		}
 	};
 
-	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/cube_with_texture_2d.hlsl", "u8_txt").T_cast<F_u8_text_asset>();
-	auto shader_class_p = H_shader_compiler::compile_hlsl(
-		"Cube",
-		shader_asset_p->content,
-		shader_asset_p->abs_path(),
-		NCPP_INIL_SPAN(
-			F_shader_kernel_desc {
-				.name = "vmain",
-				.type = ED_shader_type::VERTEX,
-				.input_assembler_desc = input_assembler_desc
-			},
-			F_shader_kernel_desc {
-				.name = "pmain_lambert_lighting",
-				.type = ED_shader_type::PIXEL
-			},
-			F_shader_kernel_desc {
-				.name = "pmain_show_world_position",
-				.type = ED_shader_type::PIXEL
-			},
-			F_shader_kernel_desc {
-				.name = "pmain_show_world_normal",
-				.type = ED_shader_type::PIXEL
-			},
-			F_shader_kernel_desc {
-				.name = "pmain_show_uv",
-				.type = ED_shader_type::PIXEL
-			}
-		)
-	);
-
-	auto vshader_p = H_vertex_shader::create(
-		NRE_RENDER_DEVICE(),
-		NCPP_FOH_VALID(shader_class_p),
-		"vmain"
-	);
-	TG_vector<U_pixel_shader_handle> pshader_p_vector;
-	pshader_p_vector.push_back(
-		H_pixel_shader::create(
-			NRE_RENDER_DEVICE(),
-			NCPP_FOH_VALID(shader_class_p),
-			"pmain_lambert_lighting"
-		)
-	);
-	pshader_p_vector.push_back(
-		H_pixel_shader::create(
-			NRE_RENDER_DEVICE(),
-			NCPP_FOH_VALID(shader_class_p),
-			"pmain_show_world_position"
-		)
-	);
-	pshader_p_vector.push_back(
-		H_pixel_shader::create(
-			NRE_RENDER_DEVICE(),
-			NCPP_FOH_VALID(shader_class_p),
-			"pmain_show_world_normal"
-		)
-	);
-	pshader_p_vector.push_back(
-		H_pixel_shader::create(
-			NRE_RENDER_DEVICE(),
-			NCPP_FOH_VALID(shader_class_p),
-			"pmain_show_uv"
-		)
+	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/hlsl/cube_with_texture_2d.hlsl").T_cast<F_hlsl_shader_asset>();
+	auto vshader_binary = shader_asset_p->runtime_compile_auto(
+		"vmain",
+		ED_shader_type::VERTEX
 	);
 
 	TG_vector<U_graphics_pipeline_state_handle> pipeline_state_p_vector;
-	for(const auto& pshader_p : pshader_p_vector)
+	F_graphics_pipeline_state_options pipeline_state_options = {
+		.rasterizer_desc = {
+			.cull_mode = ED_cull_mode::BACK,
+			.fill_mode = ED_fill_mode::SOLID
+		},
+		.input_assembler_desc = input_assembler_desc,
+		.shader_binaries = {
+			vshader_binary
+		}
+	};
 	{
+		auto pshader_binary = shader_asset_p->runtime_compile_auto(
+			"pmain_lambert_lighting",
+			ED_shader_type::PIXEL
+		);
+
+		pipeline_state_options.shader_binaries.pixel = F_shader_binary_temp(pshader_binary);
+
 		pipeline_state_p_vector.push_back(
 			H_graphics_pipeline_state::create(
 				NRE_RENDER_DEVICE(),
-				{
-					.rasterizer_desc = {
-						.cull_mode = ED_cull_mode::BACK,
-						.fill_mode = ED_fill_mode::SOLID
-					},
-					.shader_p_vector = {
-						NCPP_AOH_VALID(vshader_p),
-						NCPP_AOH_VALID(pshader_p)
-					}
-				}
+				pipeline_state_options
+			)
+		);
+	}
+	{
+		auto pshader_binary = shader_asset_p->runtime_compile_auto(
+			"pmain_show_world_position",
+			ED_shader_type::PIXEL
+		);
+
+		pipeline_state_options.shader_binaries.pixel = F_shader_binary_temp(pshader_binary);
+
+		pipeline_state_p_vector.push_back(
+			H_graphics_pipeline_state::create(
+				NRE_RENDER_DEVICE(),
+				pipeline_state_options
+			)
+		);
+	}
+	{
+		auto pshader_binary = shader_asset_p->runtime_compile_auto(
+			"pmain_show_world_normal",
+			ED_shader_type::PIXEL
+		);
+
+		pipeline_state_options.shader_binaries.pixel = F_shader_binary_temp(pshader_binary);
+
+		pipeline_state_p_vector.push_back(
+			H_graphics_pipeline_state::create(
+				NRE_RENDER_DEVICE(),
+				pipeline_state_options
+			)
+		);
+	}
+	{
+		auto pshader_binary = shader_asset_p->runtime_compile_auto(
+			"pmain_show_uv",
+			ED_shader_type::PIXEL
+		);
+
+		pipeline_state_options.shader_binaries.pixel = F_shader_binary_temp(pshader_binary);
+
+		pipeline_state_p_vector.push_back(
+			H_graphics_pipeline_state::create(
+				NRE_RENDER_DEVICE(),
+				pipeline_state_options
 			)
 		);
 	}
@@ -229,8 +222,6 @@ int main() {
 			// these objects are depends on render device that is destroyed when the main surface closed (before the end of the main function),
 			// so we need to release them before the application is released
 			cbuffer_p.reset();
-			vshader_p.reset();
-			pshader_p_vector.clear();
 			pipeline_state_p_vector.clear();
 		  	level_p.reset();
 		};
@@ -263,7 +254,6 @@ int main() {
 		NRE_APPLICATION_RENDER_TICK(application_p) {
 
 			// get some essential objects
-			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
 		 	auto main_frame_buffer_p = spectator_camera_p->render_view_p()->main_frame_buffer_p();
 			auto main_rtv_p = main_frame_buffer_p->desc().color_attachments[0];
@@ -348,11 +338,8 @@ int main() {
 				);
 			}
 
-			// submit command lists to GPU
-			command_queue_p->execute_command_list(
-				NCPP_FOH_VALID(main_command_list_p)
-			);
-
+			// submit main command list
+			NRE_RENDER_SYSTEM()->submit_main_command_list();
 		};
 	}
 

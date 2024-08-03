@@ -250,13 +250,9 @@ int main() {
 		NRE_APPLICATION_RENDER_TICK(application_p) {
 
 			// get some essential objects
-			auto command_queue_p = NRE_RENDER_COMMAND_QUEUE();
 			auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
 			auto main_frame_buffer_p = spectator_camera_p->render_view_p()->main_frame_buffer_p();
 			auto main_rtv_p = main_frame_buffer_p->desc().color_attachments[0];
-
-			// begin main command list
-			main_command_list_p->begin();
 
 			// clear frame buffer
 			{
@@ -334,14 +330,8 @@ int main() {
 				);
 			}
 
-			// end main command list
-			main_command_list_p->end();
-
-			// submit command lists to GPU
-			command_queue_p->execute_command_list(
-				NCPP_FOH_VALID(main_command_list_p)
-			);
-
+			// submit main command list
+		 	NRE_RENDER_SYSTEM()->submit_main_command_list();
 		};
 	}
 

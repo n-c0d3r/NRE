@@ -89,6 +89,8 @@ namespace nre {
 
 		  	if(main_surface_p_) {
 
+				render_system_p_->begin_main_command_list();
+
 				// begin imgui frame
 				{
 #ifdef NRHI_DRIVER_DIRECTX_11
@@ -134,6 +136,8 @@ namespace nre {
 					}
 #endif
 				}
+
+				render_system_p_->end_main_command_list();
 
 				render_system_p_->main_swapchain_p()->present();
 		  	}
