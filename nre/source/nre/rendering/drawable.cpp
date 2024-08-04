@@ -1,5 +1,6 @@
 ﻿#include <nre/rendering/drawable.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/drawable_system.hpp>
 #include <nre/rendering/material.hpp>
 #include <nre/application/application.hpp>

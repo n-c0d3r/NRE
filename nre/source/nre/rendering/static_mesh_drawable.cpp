@@ -1,5 +1,6 @@
 ﻿#include <nre/rendering/static_mesh_drawable.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/render_command_list.hpp>
 #include <nre/rendering/drawable_system.hpp>
 #include <nre/rendering/material.hpp>

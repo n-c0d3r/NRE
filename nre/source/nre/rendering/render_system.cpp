@@ -1,4 +1,5 @@
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/render_view_system.hpp>
 #include <nre/rendering/drawable_system.hpp>
 #include <nre/rendering/material_system.hpp>
@@ -8,7 +9,12 @@
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/default_textures.hpp>
 #include <nre/rendering/debug_drawer.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/application/application.hpp>
+
+#ifdef NRE_ENABLE_FIRST_RENDER_PIPELINE
+#include <nre/rendering/firstrp/render_pipeline.hpp>
+#endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
 
 
 
@@ -27,50 +33,21 @@ namespace nre {
 	{
 		instance_ps = NCPP_KTHIS_UNSAFE();
 
-		// create render objects
+		//
+#ifdef NRE_ENABLE_FIRST_RENDER_PIPELINE
+		pipeline_p_ = TU<firstrp::F_render_pipeline>()();
+#endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
+
+
+		// setup imgui render device and context
 		{
-			command_queue_p_ = H_command_queue::create(
-				NCPP_FOH_VALID(device_p_),
-				F_command_queue_desc {
-					ED_command_list_type::DIRECT
-				}
-			);
-			main_command_list_p_ = H_command_list::create(
-				NCPP_FOH_VALID(device_p_),
-				F_command_list_desc {
-					ED_command_list_type::DIRECT
-				}
-			);
-			main_command_list_p_->end();
-
-			// setup imgui render device and context
-			{
 #ifdef NRHI_DRIVER_DIRECTX_11
-				if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
-					ImGui_ImplDX11_Init(
-						NCPP_FOH_VALID(device_p_).T_cast<F_directx11_device>()->d3d11_device_p(),
-						NCPP_FOH_VALID(command_queue_p_).T_cast<F_directx11_command_queue>()->d3d11_device_context_p()
-					);
+			if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
+				ImGui_ImplDX11_Init(
+					NCPP_FOH_VALID(device_p_).T_cast<F_directx11_device>()->d3d11_device_p(),
+					NRE_MAIN_COMMAND_QUEUE().T_cast<F_directx11_command_queue>()->d3d11_device_context_p()
+				);
 #endif
-			}
-
-			main_swapchain_p_ = H_swapchain::create(
-				NCPP_FOH_VALID(command_queue_p_),
-				NCPP_FOH_VALID(
-					NRE_APPLICATION()->main_surface_p()
-				),
-				F_swapchain_desc {
-				}
-			);
-
-			main_frame_buffer_p_ = H_frame_buffer::create(
-				NCPP_FOH_VALID(device_p_),
-				{
-					.color_attachments = {
-						main_swapchain_p()->back_rtv_p()
-					}
-				}
-			);
 		}
 
 		// create subsystems
@@ -92,25 +69,6 @@ namespace nre {
 		if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
 			ImGui_ImplDX11_Shutdown();
 #endif
-	}
-
-	void F_render_system::begin_main_command_list() {
-
-		main_command_list_p_->begin();
-
-		is_main_command_list_ended_ = false;
-	}
-	void F_render_system::submit_main_command_list() {
-
-		if(is_main_command_list_ended_)
-			return;
-
-		main_command_list_p_->end();
-		command_queue_p_->execute_command_list(
-			main_command_list_p()
-		);
-
-		is_main_command_list_ended_ = true;
 	}
 
 }

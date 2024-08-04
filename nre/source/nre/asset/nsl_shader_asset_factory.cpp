@@ -2,6 +2,7 @@
 #include <nre/asset/nsl_shader_asset.hpp>
 #include <nre/asset/path.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 
 
 
@@ -52,7 +53,7 @@ namespace nre {
 			abs_path,
 			compiled_result,
 			H_nsl_factory::create_pipeline_states(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				compiled_result
 			)
 		);

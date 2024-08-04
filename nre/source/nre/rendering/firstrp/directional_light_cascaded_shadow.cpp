@@ -3,6 +3,7 @@
 #include <nre/rendering/shadow_system.hpp>
 #include <nre/rendering/render_view.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/debug_drawer.hpp>
 #include <nre/rendering/material_system.hpp>
 #include <nre/rendering/drawable.hpp>
@@ -34,7 +35,7 @@ namespace nre {
 		u32 map_count = shadow_p->map_count();
 
 		shadow_maps_p_  = H_texture::create_2d_array(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{},
 			shadow_p->map_size().x,
 			shadow_p->map_size().y,
@@ -52,7 +53,7 @@ namespace nre {
 		for(u32 i = 0; i < map_count; ++i) {
 
 			shadow_map_dsv_p_vector_[i] = H_resource_view::create_dsv(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{
 					.resource_p = NCPP_FOH_VALID(shadow_maps_p_),
 					.index = i,
@@ -63,7 +64,7 @@ namespace nre {
 		}
 
 		shadow_map_srv_p_ = H_resource_view::create_srv(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{
 				.resource_p = NCPP_FOH_VALID(shadow_maps_p_),
 				.index = 0,
@@ -76,7 +77,7 @@ namespace nre {
 		for(u32 i = 0; i < map_count; ++i) {
 
 			shadow_frame_buffer_p_vector_[i] = H_frame_buffer::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{
 					.depth_stencil_attachment = shadow_map_dsv_p_vector_[i].keyed()
 				}
@@ -87,7 +88,7 @@ namespace nre {
 		for(u32 i = 0; i < map_count; ++i) {
 
 			shadow_view_constant_buffer_p_vector_[i] = H_buffer::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{},
 				1,
 				sizeof(F_view_constant_buffer_cpu_data),
@@ -97,7 +98,7 @@ namespace nre {
 		}
 
 		main_constant_buffer_p_ = H_buffer::create(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{},
 			1,
 			main_constant_buffer_size(),

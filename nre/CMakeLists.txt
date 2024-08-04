@@ -19,7 +19,7 @@ option(NRE_ENABLE_FRAME_DEBUG "If enabled, some frame debugging functionalities 
 
 # NRE render pipelines
 option(NRE_ENABLE_FIRST_RENDER_PIPELINE "FirstRP render pipeline, the first render pipeline of NRE" ON)
-option(NRE_ENABLE_NEWRG_RENDER_PIPELINE "NewRG render pipeline" ON)
+option(NRE_ENABLE_NEWRG_RENDER_PIPELINE "NewRG render pipeline" OFF)
 
 NCPP_SetGlobal(NRE_RESOURCES_DIR_PATH "${CMAKE_CURRENT_LIST_DIR}/resources")
 
@@ -46,6 +46,13 @@ file(GLOB_RECURSE source_files
     "source/*.mm"
     "source/*.h"
 )
+
+if(NOT NRE_ENABLE_FIRST_RENDER_PIPELINE)
+    list(FILTER source_files EXCLUDE REGEX "source/nre/rendering/firstrp/*.*")
+endif()
+if(NOT NRE_ENABLE_NEWRG_RENDER_PIPELINE)
+    list(FILTER source_files EXCLUDE REGEX "source/nre/rendering/newrg/*.*")
+endif()
 
 # Create source group
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/source PREFIX source FILES ${source_files})

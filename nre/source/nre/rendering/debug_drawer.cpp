@@ -1,5 +1,6 @@
 #include <nre/rendering/debug_drawer.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/render_view.hpp>
 #include <nre/application/application.hpp>
 #include <nre/asset/asset_system.hpp>
@@ -18,7 +19,7 @@ namespace nre {
 		// for debug line drawing
 		{
 			line_input_buffer_p_ = H_buffer::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{},
 				NRE_MAX_DEBUG_LINE_COUNT_PER_DRAWCALL * 2,
 				sizeof(F_debug_line_vertex),
@@ -55,7 +56,7 @@ namespace nre {
 			);
 
 			line_draw_pso_p_ = H_graphics_pipeline_state::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{
 					.rasterizer_desc = {
 						.cull_mode = ED_cull_mode::NONE,

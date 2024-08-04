@@ -2,10 +2,15 @@
 
 #include <nre/prerequisites.hpp>
 
+#ifdef NRE_ENABLE_FIRST_RENDER_PIPELINE
 #include <nre/rendering/firstrp/.hpp>
+#endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
+#ifdef NRE_ENABLE_NEWRG_RENDER_PIPELINE
 #include <nre/rendering/newrg/.hpp>
+#endif // NRE_ENABLE_NEWRG_RENDER_PIPELINE
 
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/render_view.hpp>
 #include <nre/rendering/simple_render_view.hpp>
 #include <nre/rendering/drawable.hpp>

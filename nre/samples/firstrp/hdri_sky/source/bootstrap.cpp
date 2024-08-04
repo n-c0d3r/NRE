@@ -83,7 +83,7 @@ int main() {
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p)
 		{
-			TK_valid<A_command_list> main_command_list_p = { NRE_RENDER_SYSTEM()->main_command_list_p() };
+			TK_valid<A_command_list> main_command_list_p = { NRE_MAIN_COMMAND_LIST() };
 
 			NRE_RENDER_VIEW_SYSTEM()->T_for_each(
 				[&](const auto& render_view_p) {
@@ -122,7 +122,7 @@ int main() {
 			);
 
 		  	// submit main command list
-		  	NRE_RENDER_SYSTEM()->submit_main_command_list();
+		  	NRE_FIRSTRP_RENDER_PIPELINE()->submit_main_command_list();
 		};
 	}
 

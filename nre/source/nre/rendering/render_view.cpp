@@ -1,5 +1,6 @@
 ﻿#include <nre/rendering/render_view.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/render_view_system.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
 
@@ -21,7 +22,7 @@ namespace nre
 
 	A_render_view::A_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
 		A_actor_component(actor_p),
-		swapchain_p(NRE_RENDER_SYSTEM()->main_swapchain_p().no_requirements()),
+		swapchain_p(NRE_MAIN_SWAPCHAIN().no_requirements()),
 		mask_(mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_render_view);
@@ -39,7 +40,7 @@ namespace nre
 
 			if(!main_constant_buffer_p_)
 				main_constant_buffer_p_ = H_buffer::create(
-					NRE_RENDER_DEVICE(),
+					NRE_MAIN_DEVICE(),
 					{},
 					sizeof(F_main_constant_buffer_cpu_data),
 					1,

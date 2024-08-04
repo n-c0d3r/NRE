@@ -1,5 +1,6 @@
 #include <nre/application/application.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/asset/asset_system.hpp>
 
 
@@ -52,7 +53,7 @@ namespace nre {
 		asset_system_p_ = TU<F_asset_system>()();
 		render_system_p_ = TU<F_render_system>()();
 
-		render_system_p_->begin_main_command_list();
+		NRE_RENDER_PIPELINE()->begin_setup();
 	}
 	F_application::~F_application() {
 
@@ -87,13 +88,13 @@ namespace nre {
 
 		startup_event_.invoke();
 
-		render_system_p_->submit_main_command_list();
+		NRE_RENDER_PIPELINE()->end_setup();
 
 		surface_manager_p_->T_run([this](F_surface_manager& surface_manager){
 
 		  	if(main_surface_p_) {
 
-				render_system_p_->begin_main_command_list();
+				NRE_RENDER_PIPELINE()->begin_render();
 
 				// begin imgui frame
 				{
@@ -127,9 +128,9 @@ namespace nre {
 					if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
 					{
 						ID3D11RenderTargetView* d3d11_rtv_p = (ID3D11RenderTargetView*)(
-							render_system_p_->main_swapchain_p()->back_rtv_p().T_cast<F_directx11_resource_view>()->d3d11_view_p()
+							NRE_MAIN_SWAPCHAIN()->back_rtv_p().T_cast<F_directx11_resource_view>()->d3d11_view_p()
 						);
-						ID3D11DeviceContext* d3d11_ctx_p = render_system_p_->command_queue_p().T_cast<F_directx11_command_queue>()->d3d11_device_context_p();
+						ID3D11DeviceContext* d3d11_ctx_p = NRE_MAIN_COMMAND_QUEUE().T_cast<F_directx11_command_queue>()->d3d11_device_context_p();
 						d3d11_ctx_p->OMSetRenderTargets(
 							1,
 							&d3d11_rtv_p,
@@ -141,9 +142,7 @@ namespace nre {
 #endif
 				}
 
-				render_system_p_->submit_main_command_list();
-
-				render_system_p_->main_swapchain_p()->present();
+				NRE_RENDER_PIPELINE()->end_render();
 		  	}
 
 		  	frame_start_ = frame_end_;

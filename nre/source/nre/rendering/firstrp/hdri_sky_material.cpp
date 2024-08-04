@@ -1,5 +1,6 @@
 #include <nre/rendering/firstrp/hdri_sky_material.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/render_view.hpp>
@@ -31,7 +32,7 @@ namespace nre {
 		)
 	{
 		main_constant_buffer_p_ = H_buffer::create(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{},
 			sizeof(F_main_constant_buffer_cpu_data),
 			1,
@@ -76,7 +77,7 @@ namespace nre {
 		);
 
 		main_graphics_pso_p_ = H_graphics_pipeline_state::create(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{
 				.rasterizer_desc = {
 					.cull_mode = ED_cull_mode::NONE,

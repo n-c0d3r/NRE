@@ -1,5 +1,6 @@
 #include <nre/rendering/directional_light.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/hierarchy/transform_node.hpp>
 #include <nre/actor/actor.hpp>
 
@@ -20,7 +21,7 @@ namespace nre {
 		A_directional_light_proxy(light_p, mask)
 	{
 		main_constant_buffer_p_ = H_buffer::create(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{},
 			sizeof(F_main_constant_buffer_cpu_data),
 			1,

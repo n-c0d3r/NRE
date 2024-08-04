@@ -42,14 +42,14 @@ int main() {
 
 	F_uniform_data uniform_data;
 	U_buffer_handle cbuffer_p = H_buffer::T_create<F_uniform_data>(
-		NRE_RENDER_DEVICE(),
+		NRE_MAIN_DEVICE(),
 		NCPP_INIL_SPAN(uniform_data),
 		ED_resource_flag::CONSTANT_BUFFER,
 		ED_resource_heap_type::GREAD_CWRITE
 	);
 
 	auto depth_texture_2d_p = H_texture::create_2d(
-		NRE_RENDER_DEVICE(),
+		NRE_MAIN_DEVICE(),
 		{},
 		NRE_MAIN_SURFACE()->desc().size.x,
 		NRE_MAIN_SURFACE()->desc().size.y,
@@ -59,13 +59,13 @@ int main() {
 		ED_resource_flag::DEPTH_STENCIL
 	);
 	auto dsv_p = H_resource_view::create_dsv(
-		NRE_RENDER_DEVICE(),
+		NRE_MAIN_DEVICE(),
 		{
 			.resource_p = NCPP_AOH_VALID(depth_texture_2d_p)
 		}
 	);
 	auto frame_buffer_p = H_frame_buffer::create(
-		NRE_RENDER_DEVICE(),
+		NRE_MAIN_DEVICE(),
 		{
 			.color_attachments = {
 				NRE_MAIN_SWAPCHAIN()->back_rtv_p()
@@ -132,7 +132,7 @@ int main() {
 
 		pipeline_state_p_vector.push_back(
 			H_graphics_pipeline_state::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				pipeline_state_options
 			)
 		);
@@ -147,7 +147,7 @@ int main() {
 
 		pipeline_state_p_vector.push_back(
 			H_graphics_pipeline_state::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				pipeline_state_options
 			)
 		);
@@ -162,7 +162,7 @@ int main() {
 
 		pipeline_state_p_vector.push_back(
 			H_graphics_pipeline_state::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				pipeline_state_options
 			)
 		);
@@ -177,7 +177,7 @@ int main() {
 
 		pipeline_state_p_vector.push_back(
 			H_graphics_pipeline_state::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				pipeline_state_options
 			)
 		);
@@ -288,7 +288,7 @@ int main() {
 		NRE_APPLICATION_RENDER_TICK(application_p) {
 
 			// get some essential objects
-			auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
+			auto main_command_list_p = NRE_MAIN_COMMAND_LIST();
 		 	auto main_frame_buffer_p = spectator_camera_p->render_view_p()->main_frame_buffer_p();
 			auto main_rtv_p = main_frame_buffer_p->desc().color_attachments[0];
 
@@ -375,7 +375,7 @@ int main() {
 			}
 
 			// submit main command list
-			NRE_RENDER_SYSTEM()->submit_main_command_list();
+			NRE_FIRSTRP_RENDER_PIPELINE()->submit_main_command_list();
 		};
 	}
 

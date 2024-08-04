@@ -44,9 +44,8 @@ int main() {
 	};
 	NRE_APPLICATION_RENDER_TICK(application_p) {
 
-		auto command_queue_p = NRE_RENDER_SYSTEM()->command_queue_p();
-		auto main_command_list_p = NRE_RENDER_SYSTEM()->main_command_list_p();
-		auto main_swapchain_p = NRE_RENDER_SYSTEM()->main_swapchain_p();
+		auto main_command_list_p = NRE_MAIN_COMMAND_LIST();
+		auto main_swapchain_p = NRE_MAIN_SWAPCHAIN();
 
 		f32 c = sin(application_p->start_seconds()) * 0.5f + 0.5f;
 
@@ -55,12 +54,7 @@ int main() {
 		  	{ 0.0f, c * 0.75f, c, 1.0f }
 	  	);
 
-	  	command_queue_p->execute_command_lists(
-		  	NCPP_INIL_SPAN(
-				main_command_list_p
-		  	)
-	  	);
-
+	 	NRE_FIRSTRP_RENDER_PIPELINE()->submit_main_command_list();
 	};
 
 	application_p->start();

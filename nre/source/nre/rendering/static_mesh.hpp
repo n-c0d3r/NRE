@@ -3,6 +3,7 @@
 #include <nre/prerequisites.hpp>
 #include <nre/rendering/vertex.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 
 
 

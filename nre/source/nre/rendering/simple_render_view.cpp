@@ -1,6 +1,7 @@
 #include <nre/rendering/simple_render_view.hpp>
 #include <nre/rendering/render_view_system.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/application/application.hpp>
 
 
@@ -27,7 +28,7 @@ namespace nre
 
 				if(!depth_texture_2d_p_)
 					depth_texture_2d_p_ = H_texture::create_2d(
-						NRE_RENDER_DEVICE(),
+						NRE_MAIN_DEVICE(),
 						{},
 						resource_desc.width,
 						resource_desc.height,
@@ -49,7 +50,7 @@ namespace nre
 
 				if(!dsv_p_)
 					dsv_p_ = H_resource_view::create_dsv(
-						NRE_RENDER_DEVICE(),
+						NRE_MAIN_DEVICE(),
 						{
 							.resource_p = NCPP_AOH_VALID(depth_texture_2d_p_)
 						}
@@ -58,7 +59,7 @@ namespace nre
 
 				if(!main_frame_buffer_p_)
 					main_frame_buffer_p_ = H_frame_buffer::create(
-						NRE_RENDER_DEVICE(),
+						NRE_MAIN_DEVICE(),
 						{
 							.color_attachments = {
 								NCPP_FOH_VALID(main_rtv_p_)

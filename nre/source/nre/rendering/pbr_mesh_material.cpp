@@ -1,5 +1,6 @@
 #include <nre/rendering/pbr_mesh_material.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/render_view.hpp>
 #include <nre/rendering/default_textures.hpp>
 #include <nre/actor/actor.hpp>

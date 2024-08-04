@@ -1,5 +1,6 @@
 #include <nre/rendering/default_textures.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 
 
 

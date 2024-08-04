@@ -1,6 +1,7 @@
 #include <nre/rendering/firstrp/ibl_sky_light.hpp>
 #include <nre/rendering/firstrp/hdri_sky_material.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/general_texture_cube.hpp>
 #include <nre/actor/actor.hpp>
 #include <nre/asset/asset_system.hpp>
@@ -36,7 +37,7 @@ namespace nre {
 
 		// ibl sampler state
 		auto ibl_sampler_state_p = H_sampler_state::create(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{
 				ED_filter::MIN_MAG_MIP_LINEAR,
 				{
@@ -50,7 +51,7 @@ namespace nre {
 		// create output textures
 		{
 			brdf_lut_p_ = H_texture::create_2d(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{},
 				brdf_lut_width_,
 				brdf_lut_width_,
@@ -65,7 +66,7 @@ namespace nre {
 
 			prefiltered_env_cube_mip_level_count_ = max_prefiltered_env_cube_mip_level_count - 5;
 			prefiltered_env_cube_p_ = H_texture::create_2d_array(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{},
 				prefiltered_env_cube_width_,
 				prefiltered_env_cube_width_,
@@ -81,7 +82,7 @@ namespace nre {
 			);
 
 			irradiance_cube_p_ = H_texture::create_2d_array(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{},
 				irradiance_cube_width_,
 				irradiance_cube_width_,
@@ -116,7 +117,7 @@ namespace nre {
 				.roughness_level_count = prefiltered_env_cube_mip_level_count_
 			};
 			main_constant_buffer_p_ = H_buffer::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{ { .data_p = &main_constant_buffer_cpu_data } },
 				sizeof(F_main_constant_buffer_cpu_data),
 				1,
@@ -146,7 +147,7 @@ namespace nre {
 
 		// create pso
 		auto compute_brdf_lut_pso_p = H_compute_pipeline_state::create(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{
 				.shader_binaries = {
 					compute_brdf_lut_shader_binary
@@ -154,7 +155,7 @@ namespace nre {
 			}
 		);
 		auto prefilter_env_cube_pso_p = H_compute_pipeline_state::create(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{
 				.shader_binaries = {
 					prefilter_env_cube_shader_binary
@@ -162,7 +163,7 @@ namespace nre {
 			}
 		);
 		auto compute_irradiance_cube_pso_p = H_compute_pipeline_state::create(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{
 				.shader_binaries = {
 					ibl_compute_irradiance_cube_shader_binary
@@ -171,7 +172,7 @@ namespace nre {
 		);
 
 		auto command_list_p = H_command_list::create(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{
 				ED_command_list_type::DIRECT
 			}
@@ -184,7 +185,7 @@ namespace nre {
 				.width = brdf_lut_width_
 			};
 			auto compute_brdf_cb_p = H_buffer::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{ { .data_p = &compute_brdf_cb_cpu_data } },
 				sizeof(F_compute_brdf_lut_constant_buffer_cpu_data),
 				1,
@@ -234,7 +235,7 @@ namespace nre {
 		for(u32 mip_level_index = 0; mip_level_index < max_prefiltered_env_cube_mip_level_count; ++mip_level_index) {
 
 			auto prefiltered_env_cube_uav_p = H_resource_view::create_uav(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{
 					.overrided_resource_type = ED_resource_type::TEXTURE_2D_ARRAY,
 					.resource_p = NCPP_FOH_VALID(prefiltered_env_cube_p_),
@@ -271,7 +272,7 @@ namespace nre {
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, 1_pi, 0 });
 
 			auto prefilter_env_cube_cb_p = H_buffer::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{ { .data_p = &prefilter_env_cube_cb_cpu_data } },
 				1,
 				sizeof(F_prefilter_env_cube_constant_buffer_cpu_data),
@@ -321,7 +322,7 @@ namespace nre {
 		{
 			// create uav
 			auto irradiance_cube_uav_p = H_resource_view::create_uav(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{
 					.overrided_resource_type = ED_resource_type::TEXTURE_2D_ARRAY,
 					.resource_p = NCPP_FOH_VALID(irradiance_cube_p_),
@@ -355,7 +356,7 @@ namespace nre {
 			] = T_identity<F_matrix4x4>() * T_make_rotation(F_vector3 { 0, 1_pi, 0 });
 
 			auto irradiance_cube_cb_p = H_buffer::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{ { .data_p = &irradiance_cube_cb_cpu_data } },
 				1,
 				sizeof(F_irradiance_cube_constant_buffer_cpu_data),
@@ -399,7 +400,7 @@ namespace nre {
 		}
 
 		// execute command list
-		NRE_RENDER_COMMAND_QUEUE()->execute_command_list(
+		NRE_MAIN_COMMAND_QUEUE()->execute_command_list(
 			NCPP_FOH_VALID(command_list_p)
 		);
 		NRE_FRAME_DEBUG_POINT();

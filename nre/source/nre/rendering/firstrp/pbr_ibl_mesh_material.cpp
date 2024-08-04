@@ -1,5 +1,6 @@
 #include <nre/rendering/firstrp/pbr_ibl_mesh_material.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/firstrp/hdri_sky_material.hpp>
@@ -23,7 +24,7 @@ namespace nre {
 		A_pbr_mesh_material_proxy(material_p, mask),
 		ibl_sampler_state_p_(
 			H_sampler_state::create(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				{
 					ED_filter::MIN_MAG_MIP_LINEAR,
 					{

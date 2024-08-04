@@ -3,6 +3,7 @@
 #include <nre/rendering/general_texture_2d.hpp>
 #include <nre/rendering/general_texture_cube.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 
 
 

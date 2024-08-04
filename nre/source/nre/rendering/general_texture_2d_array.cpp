@@ -1,5 +1,6 @@
 #include <nre/rendering/general_texture_2d_array.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 
 
 
@@ -40,7 +41,7 @@ namespace nre {
 			);
 
 			buffer_p_ = H_texture::create_2d_array(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				initial_resource_data,
 				width,
 				height,
@@ -115,7 +116,7 @@ namespace nre {
 			);
 
 			buffer_p_ = H_texture::create_2d_array(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				initial_resource_data,
 				width,
 				height,
@@ -187,7 +188,7 @@ namespace nre {
 			);
 
 			buffer_p_ = H_texture::create_2d_array(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				initial_resource_data,
 				builder_.width(),
 				builder_.height(),
@@ -259,7 +260,7 @@ namespace nre {
 			);
 
 			buffer_p_ = H_texture::create_2d_array(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				initial_resource_data,
 				builder_.width(),
 				builder_.height(),
@@ -358,7 +359,7 @@ namespace nre {
 			);
 
 			buffer_p_ = H_texture::create_2d_array(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				initial_resource_data,
 				width,
 				height,
@@ -438,7 +439,7 @@ namespace nre {
 			);
 
 			buffer_p_ = H_texture::create_2d_array(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				initial_resource_data,
 				width,
 				height,
@@ -510,7 +511,7 @@ namespace nre {
 			);
 
 			buffer_p_ = H_texture::create_2d_array(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				initial_resource_data,
 				builder_.width(),
 				builder_.height(),
@@ -582,7 +583,7 @@ namespace nre {
 			);
 
 			buffer_p_ = H_texture::create_2d_array(
-				NRE_RENDER_DEVICE(),
+				NRE_MAIN_DEVICE(),
 				initial_resource_data,
 				builder_.width(),
 				builder_.height(),
@@ -625,7 +626,7 @@ namespace nre {
 		NCPP_ASSERT(buffer_p_.is_valid()) << "this texture is not valid";
 
 		auto command_list_p = H_command_list::create(
-			NRE_RENDER_DEVICE(),
+			NRE_MAIN_DEVICE(),
 			{}
 		);
 
@@ -633,7 +634,7 @@ namespace nre {
 			NCPP_FOH_VALID(srv_p_)
 		);
 
-		NRE_RENDER_COMMAND_QUEUE()->execute_command_list(
+		NRE_MAIN_COMMAND_QUEUE()->execute_command_list(
 			NCPP_FOH_VALID(command_list_p)
 		);
 	}
