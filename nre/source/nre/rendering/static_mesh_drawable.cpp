@@ -88,12 +88,13 @@ namespace nre {
 	}
 
 	void F_static_mesh_drawable::simple_draw(
-		KPA_valid_render_command_list_handle render_command_list_p
+		TKPA_valid<A_command_list> render_command_list_p
 	) {
 		if(!mesh_p)
 			return;
 
-		render_command_list_p.draw_static_mesh(
+		H_render_command_list::draw_static_mesh(
+			render_command_list_p,
 			NCPP_FOH_VALID(mesh_p)
 		);
 	}

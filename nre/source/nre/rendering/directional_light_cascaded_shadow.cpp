@@ -108,7 +108,7 @@ namespace nre {
 	F_directional_light_cascaded_shadow_render_view_attachment::~F_directional_light_cascaded_shadow_render_view_attachment() {
 	}
 
-	void F_directional_light_cascaded_shadow_render_view_attachment::update(KPA_valid_render_command_list_handle render_command_list_p) {
+	void F_directional_light_cascaded_shadow_render_view_attachment::update(TKPA_valid<A_command_list> render_command_list_p) {
 
 		F_matrix4x4_f32 view_matrix = view_p()->view_matrix;
 		F_matrix4x4_f32 projection_matrix = view_p()->projection_matrix;
@@ -320,7 +320,7 @@ namespace nre {
 	}
 
 	void F_directional_light_cascaded_shadow_proxy::view_based_simple_compute(
-		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_command_list> render_command_list_p,
 		TKPA_valid<A_render_view> render_view_p,
 		TKPA_valid<A_frame_buffer> frame_buffer_p
 	) {

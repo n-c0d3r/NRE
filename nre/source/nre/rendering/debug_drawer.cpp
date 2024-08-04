@@ -73,7 +73,7 @@ namespace nre {
 	}
 
 	void F_debug_drawer::render_lines_internal(
-		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_command_list> render_command_list_p,
 		const TG_span<TK_valid<A_render_view>>& render_view_p_span,
 		const TG_span<TK_valid<A_frame_buffer>>& frame_buffer_p_span
 	)
@@ -192,7 +192,7 @@ namespace nre {
 	}
 
 	void F_debug_drawer::render(
-		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_command_list> render_command_list_p,
 		const TG_span<TK_valid<A_render_view>>& render_view_p_span,
 		const TG_span<TK_valid<A_frame_buffer>>& frame_buffer_p_span
 	) {
