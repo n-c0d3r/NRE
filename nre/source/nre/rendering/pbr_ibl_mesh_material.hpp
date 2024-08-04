@@ -67,7 +67,7 @@ namespace nre {
 
 	protected:
 		void bind_pbr_ibl(
-			KPA_valid_render_command_list_handle render_command_list_p,
+			TKPA_valid<A_command_list> render_command_list_p,
 			TKPA_valid<A_render_view> render_view_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p,
 			const F_bind_indices& indices = {}

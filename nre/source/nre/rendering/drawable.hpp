@@ -18,7 +18,7 @@ namespace nre {
 
 	public:
 		virtual void simple_draw(
-			KPA_valid_render_command_list_handle render_command_list_p
+			TKPA_valid<A_command_list> render_command_list_p
 		) = 0;
 
 	};

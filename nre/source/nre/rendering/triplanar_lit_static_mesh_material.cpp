@@ -129,7 +129,7 @@ namespace nre {
 	}
 
 	void F_triplanar_lit_static_mesh_material_proxy::simple_render(
-		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_command_list> render_command_list_p,
 		TKPA_valid<A_render_view> render_view_p,
 		TKPA_valid <A_frame_buffer> frame_buffer_p
 	)
@@ -179,7 +179,7 @@ namespace nre {
 		);
 	}
 	void F_triplanar_lit_static_mesh_material_proxy::simple_shadow_render_render(
-		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_command_list> render_command_list_p,
 		KPA_valid_buffer_handle view_constant_buffer_p,
 		TKPA_valid<A_frame_buffer> frame_buffer_p
 	) {

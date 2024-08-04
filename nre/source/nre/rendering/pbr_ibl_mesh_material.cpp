@@ -40,7 +40,7 @@ namespace nre {
 	}
 
 	void A_pbr_ibl_mesh_material_proxy::bind_pbr_ibl(
-		KPA_valid_render_command_list_handle render_command_list_p,
+		TKPA_valid<A_command_list> render_command_list_p,
 		TKPA_valid<A_render_view> render_view_p,
 		TKPA_valid<A_frame_buffer> frame_buffer_p,
 		const F_bind_indices& indices
@@ -88,7 +88,7 @@ namespace nre {
 			}
 		}
 
-		if(auto directional_light_cascaded_shadow_render_view_attachment_p = render_view_p->actor_p()->T_component<F_directional_light_cascaded_shadow_render_view_attachment>()) {
+		if(auto directional_light_cascaded_shadow_render_view_attachment_p = render_view_p->actor_p()->T_try_component<F_directional_light_cascaded_shadow_render_view_attachment>()) {
 
 			render_command_list_p->ZPS_bind_srv(
 				directional_light_cascaded_shadow_render_view_attachment_p->shadow_map_srv_p(),

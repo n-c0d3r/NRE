@@ -83,7 +83,7 @@ int main() {
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p)
 		{
-			K_valid_render_command_list_handle main_command_list_p = { NRE_RENDER_SYSTEM()->main_command_list_p() };
+			TK_valid<A_command_list> main_command_list_p = { NRE_RENDER_SYSTEM()->main_command_list_p() };
 
 			NRE_RENDER_VIEW_SYSTEM()->T_for_each(
 				[&](const auto& render_view_p) {

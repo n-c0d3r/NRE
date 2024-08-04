@@ -92,7 +92,7 @@ namespace nre {
 		~F_directional_light_cascaded_shadow_render_view_attachment();
 
 	public:
-		void update(KPA_valid_render_command_list_handle render_command_list_p);
+		void update(TKPA_valid<A_command_list> render_command_list_p);
 
 	};
 
@@ -110,7 +110,7 @@ namespace nre {
 
 	public:
 		virtual void view_based_simple_compute(
-			KPA_valid_render_command_list_handle render_command_list_p,
+			TKPA_valid<A_command_list> render_command_list_p,
 			TKPA_valid<A_render_view> render_view_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p
 		) override;

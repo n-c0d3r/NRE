@@ -109,6 +109,16 @@ namespace nre {
 		{
 			return component_multimap_.equal_range(T_type_hash_code<F_component__>);
 		}
+		template<typename F_component__>
+		TK<F_component__> T_try_component() const
+		{
+			auto it = component_multimap_.find(T_type_hash_code<F_component__>);
+
+			if(it == component_multimap_.end())
+				return null;
+
+			return it->second.T_cast<F_component__>();
+		}
 		template<typename F_search_component__, typename F_new_component__ = F_search_component__, typename... F_args__>
 		requires requires(F_args__&&... args) {
 //			F_component__(TK_valid<F_actor>(), std::forward<F_args__>(args)...);
