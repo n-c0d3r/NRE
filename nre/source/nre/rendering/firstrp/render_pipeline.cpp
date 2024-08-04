@@ -47,6 +47,16 @@ namespace nre::firstrp {
 		{
 			keyed_main_command_queue_p_ = main_command_queue_p_;
 			keyed_main_command_list_p_ = main_command_list_p_;
+
+			keyed_infrequent_upload_command_queue_p_ = main_command_queue_p_;
+			keyed_infrequent_upload_command_list_p_ = main_command_list_p_;
+
+			keyed_infrequent_direct_command_queue_p_ = main_command_queue_p_;
+			keyed_infrequent_direct_command_list_p_ = main_command_list_p_;
+
+			keyed_frame_upload_command_queue_p_ = main_command_queue_p_;
+			keyed_frame_upload_command_list_p_ = main_command_list_p_;
+
 			keyed_main_swapchain_p_ = main_swapchain_p_;
 			keyed_main_frame_buffer_p_ = main_frame_buffer_p_;
 		}
@@ -60,7 +70,6 @@ namespace nre::firstrp {
 
 		is_main_command_list_ended_ = false;
 	}
-
 	void F_render_pipeline::submit_main_command_list() {
 
 		if(is_main_command_list_ended_)
@@ -74,22 +83,9 @@ namespace nre::firstrp {
 		is_main_command_list_ended_ = true;
 	}
 
-	void F_render_pipeline::begin_setup() {
-
-		begin_main_command_list();
-	}
-	void F_render_pipeline::end_setup() {
-
-		submit_main_command_list();
-	}
-
-	void F_render_pipeline::begin_render() {
-
-		begin_main_command_list();
-	}
 	void F_render_pipeline::end_render() {
 
-		submit_main_command_list();
+		A_render_pipeline::end_render();
 
 		main_swapchain_p_->present();
 	}

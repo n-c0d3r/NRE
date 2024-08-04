@@ -12,6 +12,7 @@ namespace nre::firstrp {
 	private:
 		TU<A_command_queue> main_command_queue_p_;
 		TU<A_command_list> main_command_list_p_;
+
 		TU<A_swapchain> main_swapchain_p_;
 		TU<A_frame_buffer> main_frame_buffer_p_;
 
@@ -26,18 +27,11 @@ namespace nre::firstrp {
 	public:
 		NCPP_OBJECT(F_render_pipeline);
 
-	private:
-		void begin_main_command_list();
+	public:
+		virtual void begin_main_command_list() override;
+		virtual void submit_main_command_list() override;
 
 	public:
-		void submit_main_command_list();
-
-	public:
-		virtual void begin_setup() override;
-		virtual void end_setup() override;
-
-	public:
-		virtual void begin_render() override;
 		virtual void end_render() override;
 
 	};

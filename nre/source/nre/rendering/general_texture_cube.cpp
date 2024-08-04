@@ -607,17 +607,8 @@ namespace nre {
 
 		NCPP_ASSERT(buffer_p_.is_valid()) << "this texture is not valid";
 
-		auto command_list_p = H_command_list::create(
-			NRE_MAIN_DEVICE(),
-			{}
-		);
-
-		command_list_p->generate_mips(
+		NRE_INFREQUENT_DIRECT_COMMAND_LIST()->generate_mips(
 			NCPP_FOH_VALID(srv_p_)
-		);
-
-		NRE_MAIN_COMMAND_QUEUE()->execute_command_list(
-			NCPP_FOH_VALID(command_list_p)
 		);
 	}
 

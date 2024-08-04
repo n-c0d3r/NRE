@@ -229,7 +229,7 @@ namespace nre {
 			}
 		};
 
-		NRE_MAIN_COMMAND_LIST()->update_resource_data(
+		NRE_FRAME_UPLOAD_COMMAND_LIST()->update_resource_data(
 			NCPP_FOH_VALID(main_constant_buffer_p_),
 			&cpu_data,
 			sizeof(F_main_constant_buffer_cpu_data),
