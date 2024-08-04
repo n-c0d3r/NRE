@@ -1,5 +1,5 @@
-#include <nre/rendering/ibl_sky_light.hpp>
-#include <nre/rendering/hdri_sky_material.hpp>
+#include <nre/rendering/firstrp/ibl_sky_light.hpp>
+#include <nre/rendering/firstrp/hdri_sky_material.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/general_texture_cube.hpp>
 #include <nre/actor/actor.hpp>

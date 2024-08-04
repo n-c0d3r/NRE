@@ -1,9 +1,9 @@
-#include <nre/rendering/lit_static_mesh_material.hpp>
+#include <nre/rendering/firstrp/lit_static_mesh_material.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/pso_library.hpp>
-#include <nre/rendering/hdri_sky_material.hpp>
-#include <nre/rendering/ibl_sky_light.hpp>
+#include <nre/rendering/firstrp/hdri_sky_material.hpp>
+#include <nre/rendering/firstrp/ibl_sky_light.hpp>
 #include <nre/rendering/render_view.hpp>
 #include <nre/rendering/directional_light.hpp>
 #include <nre/rendering/general_texture_cube.hpp>

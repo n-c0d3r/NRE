@@ -1,4 +1,4 @@
-#include <nre/rendering/hdri_sky_material.hpp>
+#include <nre/rendering/firstrp/hdri_sky_material.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/pso_library.hpp>

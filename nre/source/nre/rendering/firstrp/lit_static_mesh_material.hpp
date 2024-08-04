@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nre/rendering/pbr_ibl_mesh_material.hpp>
+#include <nre/rendering/firstrp/pbr_ibl_mesh_material.hpp>
 
 
 

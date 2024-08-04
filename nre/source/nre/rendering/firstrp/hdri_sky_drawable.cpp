@@ -1,4 +1,4 @@
-#include <nre/rendering/hdri_sky_drawable.hpp>
+#include <nre/rendering/firstrp/hdri_sky_drawable.hpp>
 #include <nre/rendering/drawable_system.hpp>
 #include <nre/rendering/static_mesh.hpp>
 #include <nre/rendering/material.hpp>

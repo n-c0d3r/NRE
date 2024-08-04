@@ -2,25 +2,20 @@
 
 #include <nre/prerequisites.hpp>
 
+#include <nre/rendering/firstrp/.hpp>
+#include <nre/rendering/newrg/.hpp>
+
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/render_view.hpp>
 #include <nre/rendering/simple_render_view.hpp>
-#include <nre/rendering/sky_light.hpp>
-#include <nre/rendering/ibl_sky_light.hpp>
 #include <nre/rendering/drawable.hpp>
 #include <nre/rendering/static_mesh_drawable.hpp>
-#include <nre/rendering/hdri_sky_drawable.hpp>
 #include <nre/rendering/render_view_system.hpp>
 #include <nre/rendering/drawable_system.hpp>
 #include <nre/rendering/material_system.hpp>
 #include <nre/rendering/static_mesh.hpp>
 #include <nre/rendering/vertex.hpp>
 #include <nre/rendering/material.hpp>
-#include <nre/rendering/hdri_sky_material.hpp>
-#include <nre/rendering/pbr_ibl_mesh_material.hpp>
-#include <nre/rendering/lit_static_mesh_material.hpp>
-#include <nre/rendering/triplanar_lit_static_mesh_material.hpp>
-#include <nre/rendering/pbr_mesh_material.hpp>
 #include <nre/rendering/camera.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
 #include <nre/rendering/general_texture_2d_array.hpp>
@@ -34,13 +29,15 @@
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/light.hpp>
-#include <nre/rendering/directional_light.hpp>
 #include <nre/rendering/light_system.hpp>
 #include <nre/rendering/default_textures.hpp>
 #include <nre/rendering/generate_mask_map.hpp>
 #include <nre/rendering/convert_normal_map_standard.hpp>
 #include <nre/rendering/shadow.hpp>
-#include <nre/rendering/directional_light_shadow.hpp>
-#include <nre/rendering/directional_light_cascaded_shadow.hpp>
 #include <nre/rendering/shadow_system.hpp>
 #include <nre/rendering/debug_drawer.hpp>
+
+#include <nre/rendering/pbr_mesh_material.hpp>
+#include <nre/rendering/sky_light.hpp>
+#include <nre/rendering/directional_light.hpp>
+#include <nre/rendering/directional_light_shadow.hpp>

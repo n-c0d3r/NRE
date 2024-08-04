@@ -1,7 +1,7 @@
 #include <nre/rendering/sky_light.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/hierarchy/transform_node.hpp>
-#include <nre/rendering/hdri_sky_material.hpp>
+#include <nre/rendering/firstrp/hdri_sky_material.hpp>
 #include <nre/actor/actor.hpp>
 
 

@@ -1,4 +1,4 @@
-#include <nre/rendering/directional_light_cascaded_shadow.hpp>
+#include <nre/rendering/firstrp/directional_light_cascaded_shadow.hpp>
 #include <nre/rendering/directional_light.hpp>
 #include <nre/rendering/shadow_system.hpp>
 #include <nre/rendering/render_view.hpp>
