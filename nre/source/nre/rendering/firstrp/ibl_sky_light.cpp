@@ -171,12 +171,7 @@ namespace nre {
 			}
 		);
 
-		auto command_list_p = H_command_list::create(
-			NRE_MAIN_DEVICE(),
-			{
-				ED_command_list_type::DIRECT
-			}
-		);
+		auto command_list_p = NRE_INFREQUENT_DIRECT_COMMAND_LIST();
 
 		// compute brdf lut
 		{
@@ -398,11 +393,6 @@ namespace nre {
 				command_list_p->dispatch(thread_group_count_3d);
 			}
 		}
-
-		// execute command list
-		NRE_MAIN_COMMAND_QUEUE()->execute_command_list(
-			NCPP_FOH_VALID(command_list_p)
-		);
 		NRE_FRAME_DEBUG_POINT();
 	}
 	F_ibl_sky_light_proxy::~F_ibl_sky_light_proxy() {
