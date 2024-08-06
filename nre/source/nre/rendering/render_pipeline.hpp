@@ -26,8 +26,8 @@ namespace nre {
 		TK<A_command_queue> keyed_infrequent_upload_command_queue_p_;
 		TK<A_command_list> keyed_infrequent_upload_command_list_p_;
 
-		TK<A_command_queue> keyed_infrequent_direct_command_queue_p_;
-		TK<A_command_list> keyed_infrequent_direct_command_list_p_;
+		TK<A_command_queue> keyed_infrequent_compute_command_queue_p_;
+		TK<A_command_list> keyed_infrequent_compute_command_list_p_;
 
 		TK<A_command_queue> keyed_frame_upload_command_queue_p_;
 		TK<A_command_list> keyed_frame_upload_command_list_p_;
@@ -42,8 +42,8 @@ namespace nre {
 		NCPP_FORCE_INLINE TK_valid<A_command_queue> infrequent_upload_command_queue_p() const noexcept { return NCPP_FOH_VALID(keyed_infrequent_upload_command_queue_p_); }
 		NCPP_FORCE_INLINE TK_valid<A_command_list> infrequent_upload_command_list_p() const noexcept { return NCPP_FOH_VALID(keyed_infrequent_upload_command_list_p_); }
 
-		NCPP_FORCE_INLINE TK_valid<A_command_queue> infrequent_direct_command_queue_p() const noexcept { return NCPP_FOH_VALID(keyed_infrequent_direct_command_queue_p_); }
-		NCPP_FORCE_INLINE TK_valid<A_command_list> infrequent_direct_command_list_p() const noexcept { return NCPP_FOH_VALID(keyed_infrequent_direct_command_list_p_); }
+		NCPP_FORCE_INLINE TK_valid<A_command_queue> infrequent_compute_command_queue_p() const noexcept { return NCPP_FOH_VALID(keyed_infrequent_compute_command_queue_p_); }
+		NCPP_FORCE_INLINE TK_valid<A_command_list> infrequent_compute_command_list_p() const noexcept { return NCPP_FOH_VALID(keyed_infrequent_compute_command_list_p_); }
 
 		NCPP_FORCE_INLINE TK_valid<A_command_queue> frame_upload_command_queue_p() const noexcept { return NCPP_FOH_VALID(keyed_frame_upload_command_queue_p_); }
 		NCPP_FORCE_INLINE TK_valid<A_command_list> frame_upload_command_list_p() const noexcept { return NCPP_FOH_VALID(keyed_frame_upload_command_list_p_); }
@@ -69,8 +69,8 @@ namespace nre {
 		virtual void submit_infrequent_upload_command_list();
 
 	public:
-		virtual void begin_infrequent_direct_command_list();
-		virtual void submit_infrequent_direct_command_list();
+		virtual void begin_infrequent_compute_command_list();
+		virtual void submit_infrequent_compute_command_list();
 
 	public:
 		virtual void begin_frame_upload_command_list();
@@ -96,8 +96,8 @@ namespace nre {
 #define NRE_INFREQUENT_UPLOAD_COMMAND_QUEUE(...) (NRE_RENDER_PIPELINE()->infrequent_upload_command_queue_p())
 #define NRE_INFREQUENT_UPLOAD_COMMAND_LIST(...) (NRE_RENDER_PIPELINE()->infrequent_upload_command_list_p())
 
-#define NRE_INFREQUENT_DIRECT_COMMAND_QUEUE(...) (NRE_RENDER_PIPELINE()->infrequent_direct_command_queue_p())
-#define NRE_INFREQUENT_DIRECT_COMMAND_LIST(...) (NRE_RENDER_PIPELINE()->infrequent_direct_command_list_p())
+#define NRE_INFREQUENT_COMPUTE_COMMAND_QUEUE(...) (NRE_RENDER_PIPELINE()->infrequent_compute_command_queue_p())
+#define NRE_INFREQUENT_COMPUTE_COMMAND_LIST(...) (NRE_RENDER_PIPELINE()->infrequent_compute_command_list_p())
 
 #define NRE_FRAME_UPLOAD_COMMAND_QUEUE(...) (NRE_RENDER_PIPELINE()->frame_upload_command_queue_p())
 #define NRE_FRAME_UPLOAD_COMMAND_LIST(...) (NRE_RENDER_PIPELINE()->frame_upload_command_list_p())

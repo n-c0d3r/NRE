@@ -171,7 +171,7 @@ namespace nre {
 			}
 		);
 
-		auto command_list_p = NRE_INFREQUENT_DIRECT_COMMAND_LIST();
+		auto command_list_p = NRE_INFREQUENT_COMPUTE_COMMAND_LIST();
 
 		// compute brdf lut
 		{

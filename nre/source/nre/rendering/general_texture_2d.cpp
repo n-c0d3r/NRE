@@ -563,7 +563,7 @@ namespace nre {
 
 		NCPP_ASSERT(buffer_p_.is_valid()) << "this texture is not valid";
 
-		NRE_INFREQUENT_DIRECT_COMMAND_LIST()->generate_mips(
+		NRE_INFREQUENT_COMPUTE_COMMAND_LIST()->generate_mips(
 			NCPP_FOH_VALID(srv_p_)
 		);
 	}
