@@ -16,6 +16,10 @@
 #include <nre/rendering/firstrp/render_pipeline.hpp>
 #endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
 
+#ifdef NRE_ENABLE_NEWRG_RENDER_PIPELINE
+#include <nre/rendering/newrg/render_pipeline.hpp>
+#endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
+
 
 
 namespace nre {
@@ -36,6 +40,11 @@ namespace nre {
 		//
 #ifdef NRE_ENABLE_FIRST_RENDER_PIPELINE
 		pipeline_p_ = TU<firstrp::F_render_pipeline>()();
+#endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
+
+		//
+#ifdef NRE_ENABLE_NEWRG_RENDER_PIPELINE
+		pipeline_p_ = TU<newrg::F_render_pipeline>()();
 #endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
 
 

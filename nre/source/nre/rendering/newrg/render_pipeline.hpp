@@ -27,6 +27,13 @@ namespace nre::newrg {
     public:
         NCPP_OBJECT(F_render_pipeline);
 
+
+
+    public:
+#ifdef NRE_ENABLE_TASK_SYSTEM
+        virtual F_task_system_desc task_system_desc() const override;
+#endif
+
     };
 
 }

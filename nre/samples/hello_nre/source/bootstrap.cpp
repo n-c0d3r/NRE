@@ -43,18 +43,6 @@ int main() {
 
 	};
 	NRE_APPLICATION_RENDER_TICK(application_p) {
-
-		auto main_command_list_p = NRE_MAIN_COMMAND_LIST();
-		auto main_swapchain_p = NRE_MAIN_SWAPCHAIN();
-
-		f32 c = sin(application_p->start_seconds()) * 0.5f + 0.5f;
-
-	  	main_command_list_p->clear_rtv(
-			main_swapchain_p->back_rtv_p(),
-		  	{ 0.0f, c * 0.75f, c, 1.0f }
-	  	);
-
-	 	NRE_FIRSTRP_RENDER_PIPELINE()->submit_main_command_list();
 	};
 
 	application_p->start();

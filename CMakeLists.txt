@@ -43,6 +43,21 @@ include(NRE/ConfigureNCPP)
 
 
 #####################################################################################
+#   Pre-Configure Options
+#####################################################################################
+# NRE render pipelines
+option(NRE_ENABLE_FIRST_RENDER_PIPELINE "FirstRP render pipeline, the first render pipeline of NRE" ON)
+option(NRE_ENABLE_NEWRG_RENDER_PIPELINE "NewRG render pipeline" OFF)
+
+NCPP_SetGlobal(NRE_ENABLE_TASK_SYSTEM OFF)
+if(NRE_ENABLE_NEWRG_RENDER_PIPELINE)
+    NCPP_SetGlobal(NRE_ENABLE_TASK_SYSTEM ON)
+    NCPP_SetGlobal(NRHI_DRIVER_ENABLE_INTERFACE_ONLY_SUPPORTS ON)
+endif()
+
+
+
+#####################################################################################
 #   Dependencies
 #####################################################################################
 include(NRE/CheckDependencies)

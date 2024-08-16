@@ -87,18 +87,7 @@ namespace nre {
 #ifdef NRE_ENABLE_TASK_SYSTEM
 		virtual F_task_system_desc task_system_desc() const
 		{
-			u8 worker_thread_count = eastl::max(
-				ceil(
-					f32(std::thread::hardware_concurrency())
-					* 0.75f
-				),
-				4
-			);
-
-			return {
-				.worker_thread_count = worker_thread_count,
-				.non_schedulable_thread_indices = { 0, 1 }
-			};
+			return {};
 		}
 #endif
 

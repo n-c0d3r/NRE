@@ -55,7 +55,7 @@ namespace nre {
 
 #ifdef NRE_ENABLE_TASK_SYSTEM
 		task_system_p_ = TU<F_task_system>()(
-			NRE_RENDER_PIPELINE()->task_system_desc();
+			NRE_RENDER_PIPELINE()->task_system_desc()
 		);
 #endif
 
