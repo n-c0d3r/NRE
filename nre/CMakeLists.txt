@@ -109,6 +109,7 @@ target_link_libraries(nre
         nmath
         nsurface
         nrhi
+        nts
         FreeImage
         ${NRE_THIRD_PARTY_TARGETS}
 )
@@ -139,6 +140,7 @@ add_dependencies(nre
     nmath
     nsurface
     nrhi
+    nts
     FreeImage
     ${NRE_THIRD_PARTY_TARGETS}
 )
