@@ -61,7 +61,13 @@ namespace nre {
 		{
 			NCPP_ASSERT(data.size() >= (width_ * height_)) << "invalid texels";
 
-			H_texel::store(data, texels_, format);
+			H_texel::store(
+				data,
+				texels_,
+				format,
+				width_,
+				height_
+			);
 		}
 		F_texture_2d_builder(PA_vector2_u size) :
 			width_(size.x),
@@ -95,7 +101,13 @@ namespace nre {
 		{
 			NCPP_ASSERT(data.size() >= (width_ * height_)) << "invalid texels";
 
-			H_texel::store(data, texels_, format);
+			H_texel::store(
+				data,
+				texels_,
+				format,
+				width_,
+				height_
+			);
 		}
 		F_texture_2d_builder(const F_texture_2d_builder& x) :
 			width_(x.width_),
@@ -209,7 +221,13 @@ namespace nre {
 
 			TG_vector<u8> result;
 
-			H_texel::load(result, (F_texels&)texels_, format);
+			H_texel::load(
+				result,
+				(F_texels&)texels_,
+				format,
+				width_,
+				height_
+			);
 
 			return std::move(result);
 		}

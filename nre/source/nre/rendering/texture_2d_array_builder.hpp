@@ -67,7 +67,14 @@ namespace nre {
 			texels_(width * height * array_size)
 		{
 			if(data.size())
-				H_texel::store(data, texels_, format);
+				H_texel::store(
+					data,
+					texels_,
+					format,
+					width_,
+					height_,
+					array_size_
+				);
 		}
 		F_texture_2d_array_builder(PA_vector3_u size) :
 			width_(size.x),
@@ -105,7 +112,14 @@ namespace nre {
 			texels_(size.x * size.y * size.z)
 		{
 			if(data.size())
-				H_texel::store(data, texels_, format);
+				H_texel::store(
+					data,
+					texels_,
+					format,
+					width_,
+					height_,
+					array_size_
+				);
 		}
 		F_texture_2d_array_builder(const F_texture_2d_array_builder& x) :
 			width_(x.width_),
@@ -233,7 +247,14 @@ namespace nre {
 
 			TG_vector<u8> result;
 
-			H_texel::load(result, (F_texels&)texels_, format);
+			H_texel::load(
+				result,
+				(F_texels&)texels_,
+				format,
+				width_,
+				height_,
+				array_size_
+			);
 
 			return std::move(result);
 		}

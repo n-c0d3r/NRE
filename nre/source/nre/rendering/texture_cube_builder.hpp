@@ -53,7 +53,14 @@ namespace nre {
 			texels_(width * width * 6)
 		{
 			if(data.size())
-				H_texel::store(data, texels_, format);
+				H_texel::store(
+					data,
+					texels_,
+					format,
+					width_,
+					width_,
+					6
+				);
 		}
 		F_texture_cube_builder(const F_texture_cube_builder& x) :
 			width_(x.width_),
@@ -148,7 +155,14 @@ namespace nre {
 
 			TG_vector<u8> result;
 
-			H_texel::load(result, (F_texels&)texels_, format);
+			H_texel::load(
+				result,
+				(F_texels&)texels_,
+				format,
+				width_,
+				width_,
+				6
+			);
 
 			return std::move(result);
 		}

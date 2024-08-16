@@ -39,7 +39,10 @@ namespace nre::newrg
     }
     F_resource_uploader::~F_resource_uploader()
     {
-        command_list_p_->end();
+        command_list_p_->async_end();
+
+        command_list_p_.reset();
+        command_allocator_p_.reset();
     }
 
 
@@ -52,7 +55,7 @@ namespace nre::newrg
         const auto& desc = resource_p->desc();
 
         // this resource will be used to upload
-        TU<A_resource> temp_resource_p = H_buffer::create_committed(
+        U_buffer_handle temp_resource_p = H_buffer::create_committed(
             NRE_MAIN_DEVICE(),
             desc.size,
             sizeof(u8),
@@ -62,38 +65,28 @@ namespace nre::newrg
         );
 
         // copy temp resource to target resource
-        NRHI_ENUM_SWITCH(
-            desc.type,
-            NRHI_ENUM_CASE(
-                ED_resource_type::BUFFER,
-                command_list_p_->async_copy_buffer_region(
-                    resource_p,
-                    NCPP_FOH_VALID(temp_resource_p),
-                    0,
-                    0,
-                    desc.size
-                );
-            )
-            // NRHI_ENUM_CASE(
-            //     ED_resource_type::TEXTURE_1D,
-            //     command_list_p_->async_copy_buffer_region(
-            //         resource_p,
-            //         NCPP_FOH_VALID(temp_resource_p),
-            //         0,
-            //         0,
-            //         desc.size
-            //     );
-            // )
-        );
+        if(desc.type == ED_resource_type::BUFFER)
+        {
+            command_list_p_->async_copy_buffer_region(
+                resource_p,
+                NCPP_FOH_VALID(temp_resource_p),
+                0,
+                0,
+                desc.size
+            );
+        }
+        else
+        {
+        }
 
         // push back temp resource into temp_resource_p_vector_ to release it after synchronization
         temp_resource_p_vector_.push_back(
-            std::move(temp_resource_p)
+            std::move(temp_resource_p.oref)
         );
     }
     void F_resource_uploader::sync()
     {
-        command_list_p_->end();
+        command_list_p_->async_end();
 
         // sync command queue
         {
@@ -113,6 +106,8 @@ namespace nre::newrg
             temp_resource_p_vector_.clear();
         }
 
-        command_list_p_->begin();
+        command_list_p_->async_begin(
+            NCPP_FOH_VALID(command_allocator_p_)
+        );
     }
 }

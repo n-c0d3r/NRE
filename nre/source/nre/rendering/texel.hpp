@@ -124,95 +124,230 @@ namespace nre {
 			);
 		}
 
-		static NCPP_FORCE_INLINE void load(TG_vector<u8>& out_data_span, const TG_span<F_vector4>& color_span, ED_format format) {
+		static NCPP_FORCE_INLINE void load(
+			TG_vector<u8>& out_data_span,
+			const TG_span<F_vector4>& color_span,
+			ED_format format,
+			u32 width,
+			u32 height = 1,
+			u32 depth = 1
+		) {
+			u32 format_stride = H_format::stride(format);
+			sz first_pitch = H_resource::first_pitch(
+				format_stride,
+				width
+			);
+			sz second_pitch = H_resource::second_pitch(
+				first_pitch,
+				width
+			);
+			sz third_pitch = H_resource::third_pitch(
+				second_pitch,
+				width
+			);
+			out_data_span.resize(third_pitch);
+
+			u32 width_time_height = width * height;
 
 			NRHI_ENUM_SWITCH(
 				format,
 				NRHI_ENUM_CASE(
 					ED_format::R8G8B8A8_UNORM,
-					out_data_span.resize(color_span.size() * sizeof(u32));
-					for(u32 i = 0; i < color_span.size(); ++i) {
-						auto& data = out_data_span[i * sizeof(u32)];
-						auto& color = color_span[i];
-						load_r8g8b8a8_unorm((void*)&data, color);
+					for(u32 i = 0; i < width; ++i)
+					{
+						for(u32 j = 0; j < height; ++j)
+						{
+							for(u32 t = 0; t < depth; ++t)
+							{
+								auto& data = out_data_span[
+									(j * first_pitch + i) * second_pitch
+									+ t
+								];
+								auto& color = color_span[
+									(j * width + i) * width_time_height
+									+ t
+								];
+								load_r8g8b8a8_unorm((void*)&data, color);
+							}
+						}
 					}
-					NRHI_ENUM_BREAK;
 				)
 				NRHI_ENUM_CASE(
 					ED_format::R32G32B32A32_FLOAT,
-					out_data_span.resize(color_span.size() * sizeof(F_vector4));
-					memcpy(
-						(void*)(out_data_span.data()),
-						(void*)(color_span.data()),
-						color_span.size() * sizeof(F_vector4)
-					);
-					NRHI_ENUM_BREAK;
+					for(u32 i = 0; i < width; ++i)
+					{
+						for(u32 j = 0; j < height; ++j)
+						{
+							for(u32 t = 0; t < depth; ++t)
+							{
+								auto& data = out_data_span[
+									(j * first_pitch + i) * second_pitch
+									+ t
+								];
+								auto& color = color_span[
+									(j * width + i) * width_time_height
+									+ t
+								];
+								load_r32g32b32a32_float((void*)&data, color);
+							}
+						}
+					}
 				)
 				NRHI_ENUM_CASE(
 					ED_format::R32G32B32_FLOAT,
-					out_data_span.resize(color_span.size() * sizeof(f32) * 3);
-					for(u32 i = 0; i < color_span.size(); ++i) {
-						auto& data = out_data_span[i * sizeof(f32) * 3];
-						auto& color = color_span[i];
-						load_r32g32b32_float((void*)&data, color);
+					for(u32 i = 0; i < width; ++i)
+					{
+						for(u32 j = 0; j < height; ++j)
+						{
+							for(u32 t = 0; t < depth; ++t)
+							{
+								auto& data = out_data_span[
+									(j * first_pitch + i) * second_pitch
+									+ t
+								];
+								auto& color = color_span[
+									(j * width + i) * width_time_height
+									+ t
+								];
+								load_r32g32b32_float((void*)&data, color);
+							}
+						}
 					}
-					NRHI_ENUM_BREAK;
 				)
 				NRHI_ENUM_CASE(
 					ED_format::R32_FLOAT,
-					out_data_span.resize(color_span.size() * sizeof(f32));
-					for(u32 i = 0; i < color_span.size(); ++i) {
-						auto& data = out_data_span[i * sizeof(f32)];
-						auto& color = color_span[i];
-						load_r32_float((void*)&data, color);
+					for(u32 i = 0; i < width; ++i)
+					{
+						for(u32 j = 0; j < height; ++j)
+						{
+							for(u32 t = 0; t < depth; ++t)
+							{
+								auto& data = out_data_span[
+									(j * first_pitch + i) * second_pitch
+									+ t
+								];
+								auto& color = color_span[
+									(j * width + i) * width_time_height
+									+ t
+								];
+								load_r32_float((void*)&data, color);
+							}
+						}
 					}
-					NRHI_ENUM_BREAK;
 				)
 			);
 		}
-		static NCPP_FORCE_INLINE void store(const TG_span<u8>& in_data_span, TG_vector<F_vector4>& color_span, ED_format format) {
+		static NCPP_FORCE_INLINE void store(
+			const TG_span<u8>& in_data_span,
+			TG_vector<F_vector4>& color_span,
+			ED_format format,
+			u32 width,
+			u32 height = 1,
+			u32 depth = 1
+		) {
+			u32 format_stride = H_format::stride(format);
+			sz first_pitch = H_resource::first_pitch(
+				format_stride,
+				width
+			);
+			sz second_pitch = H_resource::second_pitch(
+				first_pitch,
+				width
+			);
+			sz third_pitch = H_resource::third_pitch(
+				second_pitch,
+				width
+			);
+
+			u32 width_time_height = width * height;
+
+			color_span.resize(width_time_height * depth);
 
 			NRHI_ENUM_SWITCH(
 				format,
 				NRHI_ENUM_CASE(
 					ED_format::R8G8B8A8_UNORM,
-					color_span.resize(in_data_span.size() / sizeof(u32));
-					for(u32 i = 0; i < color_span.size(); ++i) {
-						auto& data = in_data_span[i * sizeof(u32)];
-						auto& color = color_span[i];
-						store_r8g8b8a8_unorm((void*)&data, color);
+					for(u32 i = 0; i < width; ++i)
+					{
+						for(u32 j = 0; j < height; ++j)
+						{
+							for(u32 t = 0; t < depth; ++t)
+							{
+								auto& data = in_data_span[
+									(j * first_pitch + i) * second_pitch
+									+ t
+								];
+								auto& color = color_span[
+									(j * width + i) * width_time_height
+									+ t
+								];
+								store_r8g8b8a8_unorm((void*)&data, color);
+							}
+						}
 					}
-					NRHI_ENUM_BREAK;
 				)
 				NRHI_ENUM_CASE(
 					ED_format::R32G32B32A32_FLOAT,
-					color_span.resize(in_data_span.size() / sizeof(F_vector4));
-					memcpy(
-						(void*)(color_span.data()),
-						(void*)(in_data_span.data()),
-						color_span.size() * sizeof(F_vector4)
-					);
-					NRHI_ENUM_BREAK;
+					for(u32 i = 0; i < width; ++i)
+					{
+						for(u32 j = 0; j < height; ++j)
+						{
+							for(u32 t = 0; t < depth; ++t)
+							{
+								auto& data = in_data_span[
+									(j * first_pitch + i) * second_pitch
+									+ t
+								];
+								auto& color = color_span[
+									(j * width + i) * width_time_height
+									+ t
+								];
+								store_r32g32b32a32_float((void*)&data, color);
+							}
+						}
+					}
 				)
 				NRHI_ENUM_CASE(
 					ED_format::R32G32B32_FLOAT,
-					color_span.resize(in_data_span.size() / sizeof(f32) / 3);
-					for(u32 i = 0; i < color_span.size(); ++i) {
-						auto& data = in_data_span[i * sizeof(f32) * 3];
-						auto& color = color_span[i];
-						store_r32g32b32_float((void*)&data, color);
+					for(u32 i = 0; i < width; ++i)
+					{
+						for(u32 j = 0; j < height; ++j)
+						{
+							for(u32 t = 0; t < depth; ++t)
+							{
+								auto& data = in_data_span[
+									(j * first_pitch + i) * second_pitch
+									+ t
+								];
+								auto& color = color_span[
+									(j * width + i) * width_time_height
+									+ t
+								];
+								store_r32g32b32_float((void*)&data, color);
+							}
+						}
 					}
-					NRHI_ENUM_BREAK;
 				)
 				NRHI_ENUM_CASE(
 					ED_format::R32_FLOAT,
-					color_span.resize(in_data_span.size() / sizeof(f32));
-					for(u32 i = 0; i < color_span.size(); ++i) {
-						auto& data = in_data_span[i * sizeof(f32)];
-						auto& color = color_span[i];
-						store_r32_float((void*)&data, color);
+					for(u32 i = 0; i < width; ++i)
+					{
+						for(u32 j = 0; j < height; ++j)
+						{
+							for(u32 t = 0; t < depth; ++t)
+							{
+								auto& data = in_data_span[
+									(j * first_pitch + i) * second_pitch
+									+ t
+								];
+								auto& color = color_span[
+									(j * width + i) * width_time_height
+									+ t
+								];
+								store_r32_float((void*)&data, color);
+							}
+						}
 					}
-					NRHI_ENUM_BREAK;
 				)
 			);
 		}
