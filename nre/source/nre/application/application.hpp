@@ -49,6 +49,10 @@ namespace nre {
 		TU<F_render_system> render_system_p_;
 		TU<F_asset_system> asset_system_p_;
 
+#ifdef NRE_ENABLE_TASK_SYSTEM
+		TU<F_task_system> task_system_p_;
+#endif
+
 		eastl::chrono::system_clock::time_point start_;
 		eastl::chrono::system_clock::time_point frame_start_;
 		eastl::chrono::system_clock::time_point frame_end_;

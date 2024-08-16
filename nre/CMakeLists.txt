@@ -23,6 +23,11 @@ option(NRE_ENABLE_NEWRG_RENDER_PIPELINE "NewRG render pipeline" OFF)
 
 NCPP_SetGlobal(NRE_RESOURCES_DIR_PATH "${CMAKE_CURRENT_LIST_DIR}/resources")
 
+NCPP_SetGlobal(NRE_ENABLE_TASK_SYSTEM OFF)
+if(NRE_ENABLE_NEWRG_RENDER_PIPELINE)
+    NCPP_SetGlobal(NRE_ENABLE_TASK_SYSTEM ON)
+endif()
+
 
 
 #####################################################################################

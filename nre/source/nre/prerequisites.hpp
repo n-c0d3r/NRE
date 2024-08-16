@@ -154,7 +154,8 @@ namespace nre {}
 	using namespace ncpp;\
 	using namespace nmath;\
 	using namespace nsurface;\
-	using namespace nrhi;
+	using namespace nrhi;\
+	using namespace nts;
 
 #pragma endregion
 

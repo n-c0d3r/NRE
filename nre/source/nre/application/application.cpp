@@ -53,6 +53,12 @@ namespace nre {
 		asset_system_p_ = TU<F_asset_system>()();
 		render_system_p_ = TU<F_render_system>()();
 
+#ifdef NRE_ENABLE_TASK_SYSTEM
+		task_system_p_ = TU<F_task_system>()(
+			NRE_RENDER_PIPELINE()->task_system_desc();
+		);
+#endif
+
 		NRE_RENDER_PIPELINE()->begin_setup();
 	}
 	F_application::~F_application() {
