@@ -35,6 +35,11 @@ namespace nre {
 		TK<A_swapchain> keyed_main_swapchain_p_;
 		TK<A_frame_buffer> keyed_main_frame_buffer_p_;
 
+#ifdef NRE_ENABLE_TASK_SYSTEM
+	protected:
+		F_task_system_desc task_system_desc_;
+#endif
+
 	public:
 		NCPP_FORCE_INLINE TK_valid<A_command_queue> main_command_queue_p() const noexcept { return NCPP_FOH_VALID(keyed_main_command_queue_p_); }
 		NCPP_FORCE_INLINE TK_valid<A_command_list> main_command_list_p() const noexcept { return NCPP_FOH_VALID(keyed_main_command_list_p_); }
@@ -50,6 +55,10 @@ namespace nre {
 
 		NCPP_FORCE_INLINE TK_valid<A_swapchain> main_swapchain_p() const noexcept { return NCPP_FOH_VALID(keyed_main_swapchain_p_); }
 		NCPP_FORCE_INLINE TK_valid<A_frame_buffer> main_frame_buffer_p() const noexcept { return NCPP_FOH_VALID(keyed_main_frame_buffer_p_); }
+
+#ifdef NRE_ENABLE_TASK_SYSTEM
+		NCPP_FORCE_INLINE const F_task_system_desc& task_system_desc() const noexcept { return task_system_desc_; }
+#endif
 
 
 
@@ -83,13 +92,6 @@ namespace nre {
 	public:
 		virtual void begin_render();
 		virtual void end_render();
-
-#ifdef NRE_ENABLE_TASK_SYSTEM
-		virtual F_task_system_desc task_system_desc() const
-		{
-			return {};
-		}
-#endif
 
 	};
 

@@ -17,6 +17,9 @@ option(NRE_DLL "Build NRE as DLL or not" OFF)
 # NRE debug options
 option(NRE_ENABLE_FRAME_DEBUG "If enabled, some frame debugging functionalities will be enabled" ON)
 
+# NRE other options
+option(NRE_ENABLE_ASYNC_COMPUTE "If enabled, async compute will be turned on and some render passes can run on async compute queue" ON)
+
 NCPP_SetGlobal(NRE_RESOURCES_DIR_PATH "${CMAKE_CURRENT_LIST_DIR}/resources")
 
 

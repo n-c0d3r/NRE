@@ -37,16 +37,16 @@ namespace nre {
 	{
 		instance_ps = NCPP_KTHIS_UNSAFE();
 
-		//
+		// create pipeline
+		{
 #ifdef NRE_ENABLE_FIRST_RENDER_PIPELINE
-		pipeline_p_ = TU<firstrp::F_render_pipeline>()();
+			pipeline_p_ = TU<firstrp::F_render_pipeline>()();
 #endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
 
-		//
 #ifdef NRE_ENABLE_NEWRG_RENDER_PIPELINE
-		pipeline_p_ = TU<newrg::F_render_pipeline>()();
+			pipeline_p_ = TU<newrg::F_render_pipeline>()();
 #endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
-
+		}
 
 		// setup imgui render device and context
 		{
@@ -56,6 +56,17 @@ namespace nre {
 					NCPP_FOH_VALID(device_p_).T_cast<F_directx11_device>()->d3d11_device_p(),
 					NRE_MAIN_COMMAND_QUEUE().T_cast<F_directx11_command_queue>()->d3d11_device_context_p()
 				);
+#endif
+
+#ifdef NRHI_DRIVER_DIRECTX_12
+			// if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_12)
+			// 	ImGui_ImplDX12_Init(
+			// 		NCPP_FOH_VALID(device_p_).T_cast<F_directx12_device>()->d3d12_device_p(),
+			// 		,
+			// 		DXGI_FORMAT(
+			// 			NRE_MAIN_SWAPCHAIN()->desc().format
+			// 		)
+			// 	);
 #endif
 		}
 
@@ -77,6 +88,11 @@ namespace nre {
 #ifdef NRHI_DRIVER_DIRECTX_11
 		if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
 			ImGui_ImplDX11_Shutdown();
+#endif
+
+#ifdef NRHI_DRIVER_DIRECTX_12
+		if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_12)
+			ImGui_ImplDX12_Shutdown();
 #endif
 	}
 

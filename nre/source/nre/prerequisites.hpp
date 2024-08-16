@@ -81,6 +81,10 @@ namespace nre {}
 	#include "backends/imgui_impl_dx11.h"
 #endif
 
+#ifdef NRHI_DRIVER_DIRECTX_12
+    #include "backends/imgui_impl_dx12.h"
+#endif
+
 #pragma endregion
 
 

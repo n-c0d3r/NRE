@@ -43,28 +43,24 @@ namespace nre {
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
-
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
-
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
-
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
-
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -240,28 +236,24 @@ namespace nre {
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
-
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
-
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
-
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
-
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -330,28 +322,24 @@ namespace nre {
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
-
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
-
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
-
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
-
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -401,28 +389,24 @@ namespace nre {
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
-
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
-
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
-
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
-
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -466,28 +450,24 @@ namespace nre {
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
-
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
-
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
-
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
-
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
@@ -531,28 +511,24 @@ namespace nre {
 
 			if (flag_is_has(flags, ED_resource_flag::SHADER_RESOURCE))
 			{
-
 				srv_p_ = H_resource_view::create_default_srv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS))
 			{
-
 				uav_p_ = H_resource_view::create_default_uav(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::RENDER_TARGET))
 			{
-
 				rtv_p_ = H_resource_view::create_default_rtv(
 					NCPP_FOH_VALID(buffer_p_)
 				);
 			}
 			if (flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL))
 			{
-
 				dsv_p_ = H_resource_view::create_default_dsv(
 					NCPP_FOH_VALID(buffer_p_)
 				);

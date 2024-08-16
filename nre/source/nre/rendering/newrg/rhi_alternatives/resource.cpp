@@ -1,6 +1,9 @@
 #include <nre/prerequisites.hpp>
 
+#include <nre/rendering/newrg/resource_uploader.hpp>
+
 using namespace nre;
+using namespace nre::newrg;
 
 
 
@@ -36,7 +39,19 @@ U_texture_2d_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_texture_2d
     const F_resource_desc& desc
 )
 {
-    return {};
+    auto resource_p = H_resource::create_committed(
+        device_p,
+        desc
+    );
+
+    auto resource_uploader_p = F_resource_uploader::instance_p();
+    resource_uploader_p->upload(
+        NCPP_FOH_VALID(resource_p),
+        initial_resource_data
+    );
+    resource_uploader_p->sync();
+
+    return { std::move(resource_p) };
 }
 U_texture_3d_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_texture_3d(
     TKPA_valid<A_device> device_p,

@@ -109,6 +109,11 @@ namespace nre {
 						ImGui_ImplDX11_NewFrame();
 #endif
 
+#ifdef NRHI_DRIVER_DIRECTX_12
+					if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_12)
+						ImGui_ImplDX12_NewFrame();
+#endif
+
 #ifdef EA_PLATFORM_WINDOWS
 					ImGui_ImplWin32_NewFrame();
 #endif
@@ -144,6 +149,13 @@ namespace nre {
 						);
 
 						ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+					}
+#endif
+
+#ifdef NRHI_DRIVER_DIRECTX_12
+					if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_12)
+					{
+
 					}
 #endif
 				}

@@ -15,6 +15,11 @@ if(NRHI_DRIVER_DIRECTX_11)
     list(APPEND imgui_sources "${NRE_DEPENDENCIES_DIR}/imgui/backends/imgui_impl_dx11.h")
 endif()
 
+if(NRHI_DRIVER_DIRECTX_12)
+    list(APPEND imgui_sources "${NRE_DEPENDENCIES_DIR}/imgui/backends/imgui_impl_dx12.cpp")
+    list(APPEND imgui_sources "${NRE_DEPENDENCIES_DIR}/imgui/backends/imgui_impl_dx12.h")
+endif()
+
 add_library(imgui STATIC ${imgui_sources})
 
 target_include_directories(imgui
