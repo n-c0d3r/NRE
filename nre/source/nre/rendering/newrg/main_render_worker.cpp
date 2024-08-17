@@ -35,6 +35,10 @@ namespace nre::newrg
     {
         A_render_worker::tick();
     }
+    void F_main_render_worker::subtick()
+    {
+        A_render_worker::subtick();
+    }
     void F_main_render_worker::begin_frame()
     {
         A_render_worker::begin_frame();

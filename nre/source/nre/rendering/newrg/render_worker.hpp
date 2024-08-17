@@ -66,6 +66,7 @@ namespace nre::newrg
 
     protected:
         virtual void tick();
+        virtual void subtick();
         virtual void begin_frame();
         virtual void end_frame();
         virtual void before_cpu_gpu_synchronization();
@@ -134,6 +135,16 @@ namespace nre::newrg
         {
             end_sync_point_.producer_signal();
             end_sync_point_.producer_wait();
+        }
+        constexpr u8 size() const { return sizeof...(F_render_workers__); }
+        NCPP_FORCE_INLINE TG_fixed_vector<u8, 64, false> worker_thread_indices() const
+        {
+            TG_fixed_vector<u8, 64, false> result;
+            for(const auto& render_worker_p : render_worker_p_array_)
+            {
+                result.push_back(render_worker_p->worker_thread_index());
+            }
+            return result;
         }
     };
 

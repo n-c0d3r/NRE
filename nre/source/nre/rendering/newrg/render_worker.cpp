@@ -42,6 +42,19 @@ namespace nre::newrg
     void A_render_worker::tick()
     {
     }
+    void A_render_worker::subtick()
+    {
+        // execute enqueued command lists
+        {
+            TK<A_command_list> command_list_p;
+            if(command_list_p_ring_buffer_.try_pop(command_list_p))
+            {
+                command_queue_p_->async_execute_command_list(
+                    NCPP_FOH_VALID(command_list_p)
+                );
+            }
+        }
+    }
     void A_render_worker::begin_frame()
     {
         begin_sync_point_.consumer_wait();
@@ -56,7 +69,12 @@ namespace nre::newrg
     }
     void A_render_worker::end_frame()
     {
-        end_sync_point_.consumer_wait();
+        end_sync_point_.consumer_wait(
+            [this]()
+            {
+                subtick();
+            }
+        );
 
         if(F_task_system::instance_p()->is_stopped())
         {
@@ -68,25 +86,8 @@ namespace nre::newrg
             is_in_frame_ = false;
         );
 
-        // execute enqueued command lists
-        {
-            TG_vector<TK_valid<A_command_list>> command_list_p_vector;
-            command_list_p_vector.reserve(command_list_p_ring_buffer_.size());
-
-            // get all command lists
-            TK<A_command_list> command_list_p;
-            while(command_list_p_ring_buffer_.try_pop(command_list_p))
-            {
-                command_list_p_vector.push_back(
-                    NCPP_FOH_VALID(command_list_p)
-                );
-            }
-
-            // execute all command lists
-            command_queue_p_->async_execute_command_lists(
-                command_list_p_vector
-            );
-        }
+        // to make sure that we dont miss the last subtick
+        subtick();
 
         //
         before_cpu_gpu_synchronization();
@@ -131,7 +132,6 @@ namespace nre::newrg
                 if(F_task_system::instance_p()->is_stopped())
                     return;
 
-                tick();
                 end_frame();
             },
             frame_param_

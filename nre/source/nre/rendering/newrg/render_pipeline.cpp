@@ -33,14 +33,17 @@ namespace nre::newrg {
 		// setup task system desc
 		{
 			// 1 for main thread
-			// 1 for main render worker
-			// 1 for async compute render worker
+			// some for render workers
 			// and the rest for task system
-			NCPP_ASSERT(std::thread::hardware_concurrency() >= 4) << "require at least 4 hardware threads";
+			u8 min_worker_thread_count = 1 + render_worker_list_.size() + 1;
+			NCPP_ASSERT(std::thread::hardware_concurrency() >= min_worker_thread_count)
+				<< "require at least "
+				<< min_worker_thread_count
+				<< " hardware threads";
 
 			task_system_desc_.worker_thread_count = eastl::max<u8>(
 				task_system_desc_.worker_thread_count,
-				4
+				min_worker_thread_count
 			);
 
 			TG_fixed_vector<u8, 64, false> non_schedulable_thread_indices;
@@ -48,15 +51,10 @@ namespace nre::newrg {
 			// main thread
 			non_schedulable_thread_indices.push_back(0);
 
-			// main render worker
-			non_schedulable_thread_indices.push_back(
-				main_render_worker_p->worker_thread_index()
-			);
-
-			// async compute render worker
-			non_schedulable_thread_indices.push_back(
-				async_compute_render_worker_p->worker_thread_index()
-			);
+			// render workers
+			auto render_worker_thread_indices = render_worker_list_.worker_thread_indices();
+			for(auto worker_thread_index : render_worker_thread_indices)
+				non_schedulable_thread_indices.push_back(worker_thread_index);
 
 			task_system_desc_.non_schedulable_thread_indices = non_schedulable_thread_indices;
 		}

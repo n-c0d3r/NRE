@@ -41,6 +41,16 @@ namespace nre
                     return;
             }
         }
+        void consumer_wait(auto&& loop_callback)
+        {
+            while(!was_producer_signaled())
+            {
+                if(is_need_to_stop_waiting_internal())
+                    return;
+
+                loop_callback();
+            }
+        }
         void consumer_signal()
         {
             signal_catched_consumer_thread_count_.fetch_add(1, eastl::memory_order_acq_rel);
@@ -57,6 +67,17 @@ namespace nre
             {
                 if(is_need_to_stop_waiting_internal())
                     return;
+            }
+            was_producer_signaled_.store(false, eastl::memory_order_release);
+        }
+        void producer_wait(auto&& loop_callback)
+        {
+            while(signal_catched_consumer_thread_count() != consumer_thread_count_)
+            {
+                if(is_need_to_stop_waiting_internal())
+                    return;
+
+                loop_callback();
             }
             was_producer_signaled_.store(false, eastl::memory_order_release);
         }

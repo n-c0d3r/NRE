@@ -34,6 +34,7 @@ namespace nre::newrg
 
     protected:
         virtual void tick() override;
+        virtual void subtick() override;
         virtual void begin_frame() override;
         virtual void end_frame() override;
         virtual void before_cpu_gpu_synchronization() override;
