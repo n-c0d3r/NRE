@@ -9,8 +9,16 @@ namespace nre::newrg
 
 
 
-    F_async_compute_render_worker::F_async_compute_render_worker(u32 index) :
-        A_render_worker(index, ED_command_list_type::COMPUTE)
+    F_async_compute_render_worker::F_async_compute_render_worker(
+        u32 index,
+        u8 worker_thread_index
+    ) :
+        A_render_worker(
+            index,
+            worker_thread_index,
+            NRE_FRAME_PARAM_ASYNC_COMPUTE_RENDER_WORKER,
+            ED_command_list_type::COMPUTE
+        )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
     }

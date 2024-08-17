@@ -20,7 +20,10 @@ namespace nre::newrg
 
 
     public:
-        F_async_compute_render_worker(u32 index = 1);
+        F_async_compute_render_worker(
+            u32 index,
+            u8 worker_thread_index
+        );
         virtual ~F_async_compute_render_worker();
 
     public:

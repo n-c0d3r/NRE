@@ -71,7 +71,11 @@ namespace nre {
 
 		main_surface_p_->T_get_event<F_surface_destroy_event>().T_push_back_listener(
 			[this](auto& e){
-			  	shutdown_event_.invoke();
+				shutdown_event_.invoke();
+
+#ifdef NRE_ENABLE_TASK_SYSTEM
+				task_system_p_->join();
+#endif
 			  	render_system_p_.reset();
 			}
 		);
@@ -101,7 +105,6 @@ namespace nre {
 		  	frame_end_ = eastl::chrono::high_resolution_clock::now();
 
 		});
-
 	}
 
 }

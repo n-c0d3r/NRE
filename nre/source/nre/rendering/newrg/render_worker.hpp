@@ -4,6 +4,7 @@
 
 #include <nre/rendering/cpu_gpu_sync_point.hpp>
 #include <nre/threading/threads_sync_point.hpp>
+#include <nre/frame_params.hpp>
 
 
 
@@ -15,6 +16,7 @@ namespace nre::newrg
         u8 index_ = 0;
         u8 worker_thread_index_ = 0;
         ED_command_list_type command_list_type_ = ED_command_list_type::DIRECT;
+        F_frame_param frame_param_;
 
         TU<A_command_queue> command_queue_p_;
 
@@ -24,6 +26,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE u8 index() const noexcept { return index_; }
         NCPP_FORCE_INLINE u8 worker_thread_index() const noexcept { return worker_thread_index_; }
         NCPP_FORCE_INLINE ED_command_list_type command_list_type() const noexcept { return command_list_type_; }
+        NCPP_FORCE_INLINE F_frame_param frame_param() const noexcept { return frame_param_; }
 
         NCPP_FORCE_INLINE TK_valid<A_command_queue> command_queue_p() const noexcept { return NCPP_FOH_VALID(command_queue_p_); }
 
@@ -32,13 +35,25 @@ namespace nre::newrg
 
 
     protected:
-        A_render_worker(u8 index, u8 worker_thread_index, ED_command_list_type command_list_type = ED_command_list_type::DIRECT);
+        A_render_worker(
+            u8 index,
+            u8 worker_thread_index,
+            F_frame_param frame_param = 0,
+            ED_command_list_type command_list_type = ED_command_list_type::DIRECT
+        );
 
     public:
         virtual ~A_render_worker();
 
     public:
         NCPP_OBJECT(A_render_worker);
+
+
+
+    protected:
+        virtual void tick();
+        virtual void begin_frame();
+        virtual void end_frame();
 
 
 

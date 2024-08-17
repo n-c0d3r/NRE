@@ -19,7 +19,10 @@ namespace nre::newrg
 
 
     public:
-        F_main_render_worker(u32 index = 0);
+        F_main_render_worker(
+            u32 index,
+            u8 worker_thread_index
+        );
         virtual ~F_main_render_worker();
 
     public:
