@@ -68,6 +68,8 @@ namespace nre::newrg
         virtual void tick();
         virtual void begin_frame();
         virtual void end_frame();
+        virtual void before_cpu_gpu_synchronization();
+        virtual void after_cpu_gpu_synchronization();
 
 
 

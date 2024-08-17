@@ -1,5 +1,5 @@
 #include <nre/rendering/newrg/main_render_worker.hpp>
-
+#include <nre/rendering/render_pipeline.hpp>
 
 
 namespace nre::newrg
@@ -27,6 +27,33 @@ namespace nre::newrg
     }
     F_main_render_worker::~F_main_render_worker()
     {
+    }
+
+
+
+    void F_main_render_worker::tick()
+    {
+        A_render_worker::tick();
+    }
+    void F_main_render_worker::begin_frame()
+    {
+        A_render_worker::begin_frame();
+    }
+    void F_main_render_worker::end_frame()
+    {
+        A_render_worker::end_frame();
+    }
+    void F_main_render_worker::before_cpu_gpu_synchronization()
+    {
+        A_render_worker::before_cpu_gpu_synchronization();
+
+        NRE_MAIN_SWAPCHAIN()->async_present();
+    }
+    void F_main_render_worker::after_cpu_gpu_synchronization()
+    {
+        A_render_worker::after_cpu_gpu_synchronization();
+
+        NRE_MAIN_SWAPCHAIN()->update_back_rtv();
     }
 
 }

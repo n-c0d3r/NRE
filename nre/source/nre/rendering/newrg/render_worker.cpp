@@ -88,15 +88,28 @@ namespace nre::newrg
             );
         }
 
+        //
+        before_cpu_gpu_synchronization();
+
         // sync with the command queue
         cpu_gpu_sync_point_.async_signal(
             NCPP_FOH_VALID(command_queue_p_)
         );
         cpu_gpu_sync_point_.wait();
 
+        //
+        after_cpu_gpu_synchronization();
+
         // signal back to producer to let it do other stuff
         end_sync_point_.consumer_signal();
     }
+    void A_render_worker::before_cpu_gpu_synchronization()
+    {
+    }
+    void A_render_worker::after_cpu_gpu_synchronization()
+    {
+    }
+
 
 
 
