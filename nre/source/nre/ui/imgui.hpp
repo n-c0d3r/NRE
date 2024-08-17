@@ -6,6 +6,12 @@
 
 namespace nre
 {
+	/**
+	 *	The main class implementing imgui.
+	 *	Requirements:
+	 *	- NRE_MAIN_SWAPCHAIN()
+	 *	- NRE_MAIN_COMMAND_QUEUE()
+	 */
 	class NRE_API F_imgui {
 
 	private:
