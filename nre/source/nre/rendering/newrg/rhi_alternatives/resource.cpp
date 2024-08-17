@@ -15,15 +15,25 @@ namespace
         const F_resource_desc& desc
     )
     {
-        F_resource_desc parsed_desc = desc;
+         TU<A_resource> resource_p;
 
-        if(parsed_desc.heap_type == ED_resource_heap_type::GREAD_CWRITE)
+        if(desc.heap_type == ED_resource_heap_type::GREAD_CWRITE)
+        {
+            F_resource_desc parsed_desc = desc;
             parsed_desc.initial_state = ED_resource_state::_GENERIC_READ;
 
-        auto resource_p = H_resource::create_committed(
-            device_p,
-            parsed_desc
-        );
+            resource_p = H_resource::create_committed(
+                device_p,
+                parsed_desc
+            );
+        }
+        else
+        {
+            resource_p = H_resource::create_committed(
+                device_p,
+                desc
+            );
+        }
 
         if(initial_resource_data.size())
         {
