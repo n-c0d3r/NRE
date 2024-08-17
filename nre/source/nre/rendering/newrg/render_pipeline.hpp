@@ -56,6 +56,9 @@ namespace nre::newrg
 
 
     public:
+        virtual void install() override;
+
+    public:
         virtual void async_begin_main_command_list() override;
         virtual void async_submit_main_command_list() override;
 

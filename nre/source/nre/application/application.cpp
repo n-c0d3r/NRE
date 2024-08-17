@@ -63,6 +63,8 @@ namespace nre {
 		frame_start_ = start_;
 		frame_end_ = start_;
 
+		NRE_RENDER_PIPELINE()->install();
+
 #ifdef NRE_ENABLE_TASK_SYSTEM
 		task_system_p_->start();
 #endif

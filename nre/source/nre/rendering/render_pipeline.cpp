@@ -15,6 +15,10 @@ namespace nre {
 	A_render_pipeline::~A_render_pipeline() {
 	}
 
+	void A_render_pipeline::install()
+	{
+	}
+
 	void A_render_pipeline::begin_main_command_list() {
 	}
 	void A_render_pipeline::submit_main_command_list() {

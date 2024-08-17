@@ -1,0 +1,16 @@
+#pragma once
+
+#include <nre/prerequisites.hpp>
+
+
+
+namespace nre {
+
+#define NRE_FRAME_PARAM_MAIN 0
+#define NRE_FRAME_PARAM_RENDER 1
+#define NRE_FRAME_PARAM_MAIN_RENDER_WORKER 2
+#define NRE_FRAME_PARAM_ASYNC_COMPUTE_RENDER_WORKER 3
+
+#define NRE_FRAME_PARAM_PERMANENT NTS_FRAME_PARAM_PERMANENT
+
+}

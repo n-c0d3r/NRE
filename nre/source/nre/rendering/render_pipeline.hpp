@@ -70,6 +70,9 @@ namespace nre {
 		NCPP_OBJECT(A_render_pipeline);
 
 	public:
+		virtual void install();
+
+	public:
 		virtual void begin_main_command_list();
 		virtual void submit_main_command_list();
 		virtual void async_begin_main_command_list();

@@ -8,7 +8,7 @@
 namespace nre::newrg {
 
 	F_render_pipeline::F_render_pipeline() :
-		render_worker_list_(),
+		render_worker_list_(1),
 		main_render_worker_p_(F_main_render_worker::instance_p()),
 		async_compute_render_worker_p_(F_async_compute_render_worker::instance_p())
 	{
@@ -32,7 +32,16 @@ namespace nre::newrg {
 
 		// setup task system desc
 		{
+			// 1 for main thread
+			// 1 for main render worker
+			// 1 for async compute render worker
+			// and the rest for task system
 			NCPP_ASSERT(std::thread::hardware_concurrency() >= 4) << "require at least 4 hardware threads";
+
+			task_system_desc_.worker_thread_count = eastl::max<u8>(
+				task_system_desc_.worker_thread_count,
+				4
+			);
 
 			TG_fixed_vector<u8, 64, false> non_schedulable_thread_indices;
 
@@ -41,12 +50,12 @@ namespace nre::newrg {
 
 			// main render worker
 			non_schedulable_thread_indices.push_back(
-				main_render_worker_p->index()
+				main_render_worker_p->worker_thread_index()
 			);
 
 			// async compute render worker
 			non_schedulable_thread_indices.push_back(
-				async_compute_render_worker_p->index()
+				async_compute_render_worker_p->worker_thread_index()
 			);
 
 			task_system_desc_.non_schedulable_thread_indices = non_schedulable_thread_indices;
@@ -121,6 +130,11 @@ namespace nre::newrg {
 	}
 
 
+
+	void F_render_pipeline::install()
+	{
+		render_worker_list_.install();
+	}
 
 	void F_render_pipeline::async_begin_main_command_list()
 	{
