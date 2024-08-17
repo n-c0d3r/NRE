@@ -77,6 +77,48 @@ namespace nre::newrg
         }
         else
         {
+            F_texture_copy_location dst_location = {
+                .resource_p = resource_p.no_requirements()
+            };
+            F_texture_copy_location src_location = {
+                .resource_p = temp_resource_p.oref
+            };
+
+            F_vector3_u32 volume = { desc.width, desc.height, desc.depth };
+            F_vector3_u32 mip_divisor;
+            NRHI_ENUM_SWITCH(
+                desc.type,
+                NRHI_ENUM_CASE(
+                    ED_resource_type::TEXTURE_1D,
+                    mip_divisor = element_min(F_vector3_u32 { 2, 1, 1 }, F_vector3_u32::one());
+                )
+                NRHI_ENUM_CASE(
+                    ED_resource_type::TEXTURE_2D,
+                    mip_divisor = element_min(F_vector3_u32 { 2, 2, 1 }, F_vector3_u32::one());
+                )
+                NRHI_ENUM_CASE(
+                    ED_resource_type::TEXTURE_2D_ARRAY,
+                    mip_divisor = element_min(F_vector3_u32 { 2, 2, 1 }, F_vector3_u32::one());
+                )
+                NRHI_ENUM_CASE(
+                    ED_resource_type::TEXTURE_3D,
+                    mip_divisor = element_min(F_vector3_u32 { 2, 2, 2 }, F_vector3_u32::one());
+                )
+            );
+
+            for(u32 i = 0; i < desc.mip_level_count; ++i)
+            {
+                dst_location.subresource_index = i;
+                src_location.subresource_index = i;
+                command_list_p_->async_copy_texture_region(
+                    dst_location,
+                    src_location,
+                    F_vector3_u32::zero(),
+                    F_vector3_u32::zero(),
+                    volume
+                );
+                volume /= mip_divisor;
+            }
         }
 
         // push back temp resource into temp_resource_p_vector_ to release it after synchronization
