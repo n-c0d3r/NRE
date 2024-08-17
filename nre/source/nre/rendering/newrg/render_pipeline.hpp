@@ -18,10 +18,12 @@ namespace nre::newrg
     class NRE_API F_render_pipeline : public A_render_pipeline {
 
     private:
+        TU<A_command_list> main_command_list_p_;
+        TU<A_command_allocator> main_command_allocator_p_;
+        b8 is_main_command_list_ended_ = true;
+
         TU<A_swapchain> main_swapchain_p_;
         TU<A_frame_buffer> main_frame_buffer_p_;
-
-        b8 is_main_command_list_ended_ = true;
 
         TF_render_worker_list<
             F_main_render_worker,
@@ -30,7 +32,14 @@ namespace nre::newrg
 
         TU<F_resource_uploader> resource_uploader_p_;
 
-        TU<A_command_queue> infrequent_upload_command_queue_p_;
+        TU<A_command_queue> blit_command_queue_p_;
+
+        TU<A_descriptor_heap> imgui_descriptor_heap_p_;
+
+    public:
+        NCPP_FORCE_INLINE auto blit_command_queue_p() const noexcept { return NCPP_FOH_VALID(blit_command_queue_p_); }
+
+        NCPP_FORCE_INLINE auto imgui_descriptor_heap_p() const noexcept { return NCPP_FOH_VALID(imgui_descriptor_heap_p_); }
 
 
 
@@ -41,8 +50,26 @@ namespace nre::newrg
     public:
         NCPP_OBJECT(F_render_pipeline);
 
+
+
+    public:
+        virtual void async_begin_main_command_list() override;
+        virtual void async_submit_main_command_list() override;
+
+    public:
+        virtual void begin_setup() override;
+        virtual void end_setup() override;
+
+    public:
+        virtual void begin_render() override;
+        virtual void end_render() override;
+
     };
 
 }
 
 #define NRE_NEWRG_RENDER_PIPELINE(...) NRE_RENDER_PIPELINE().T_cast<nre::newrg::F_render_pipeline>()
+
+#define NRE_IMGUI_DESCRIPTOR_HEAP(...) NRE_NEWRG_RENDER_PIPELINE()->imgui_descriptor_heap_p()
+#define NRE_IMGUI_SRV_DESCRIPTOR_CPU_ADDRESS(...) NRE_IMGUI_DESCRIPTOR_HEAP()->base_cpu_address()
+#define NRE_IMGUI_SRV_DESCRIPTOR_GPU_ADDRESS(...) NRE_IMGUI_DESCRIPTOR_HEAP()->base_gpu_address()

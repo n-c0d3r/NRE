@@ -72,18 +72,26 @@ namespace nre {
 	public:
 		virtual void begin_main_command_list();
 		virtual void submit_main_command_list();
+		virtual void async_begin_main_command_list();
+		virtual void async_submit_main_command_list();
 
 	public:
 		virtual void begin_infrequent_upload_command_list();
 		virtual void submit_infrequent_upload_command_list();
+		virtual void async_begin_infrequent_upload_command_list();
+		virtual void async_submit_infrequent_upload_command_list();
 
 	public:
 		virtual void begin_infrequent_compute_command_list();
 		virtual void submit_infrequent_compute_command_list();
+		virtual void async_begin_infrequent_compute_command_list();
+		virtual void async_submit_infrequent_compute_command_list();
 
 	public:
 		virtual void begin_frame_upload_command_list();
 		virtual void submit_frame_upload_command_list();
+		virtual void async_begin_frame_upload_command_list();
+		virtual void async_submit_frame_upload_command_list();
 
 	public:
 		virtual void begin_setup();

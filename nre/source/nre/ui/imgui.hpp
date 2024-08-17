@@ -2,6 +2,8 @@
 
 #include <nre/prerequisites.hpp>
 
+#include <nre/rendering/current_render_pipeline.hpp>
+
 
 
 namespace nre
@@ -11,6 +13,10 @@ namespace nre
 	 *	Requirements:
 	 *	- NRE_MAIN_SWAPCHAIN()
 	 *	- NRE_MAIN_COMMAND_QUEUE()
+	 *	- NRE_MAIN_COMMAND_LIST()
+	 *	- NRE_IMGUI_DESCRIPTOR_HEAP() (for advanced resource binding)
+	 *	- NRE_IMGUI_SRV_DESCRIPTOR_CPU_ADDRESS() (for advanced resource binding)
+	 *	- NRE_IMGUI_SRV_DESCRIPTOR_GPU_ADDRESS() (for advanced resource binding)
 	 */
 	class NRE_API F_imgui {
 
