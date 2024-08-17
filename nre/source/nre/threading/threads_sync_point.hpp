@@ -27,10 +27,39 @@ namespace nre
 
 
 
+    private:
+        b8 is_need_to_stop_waiting_internal();
+
+
+
     public:
-        void consumer_wait();
-        void producer_signal();
-        void producer_wait();
+        void consumer_wait()
+        {
+            while(!was_producer_signaled())
+            {
+                if(is_need_to_stop_waiting_internal())
+                    return;
+            }
+        }
+        void consumer_signal()
+        {
+            signal_catched_consumer_thread_count_.fetch_add(1, eastl::memory_order_acq_rel);
+        }
+        void producer_signal()
+        {
+            NCPP_ASSERT(!was_producer_signaled());
+            signal_catched_consumer_thread_count_.store(0, eastl::memory_order_release);
+            was_producer_signaled_.store(true, eastl::memory_order_release);
+        }
+        void producer_wait()
+        {
+            while(signal_catched_consumer_thread_count() != consumer_thread_count_)
+            {
+                if(is_need_to_stop_waiting_internal())
+                    return;
+            }
+            was_producer_signaled_.store(false, eastl::memory_order_release);
+        }
     };
 }
 #endif

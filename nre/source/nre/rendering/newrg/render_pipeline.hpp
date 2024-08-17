@@ -20,7 +20,6 @@ namespace nre::newrg
     private:
         TU<A_command_list> main_command_list_p_;
         TU<A_command_allocator> main_command_allocator_p_;
-        b8 is_main_command_list_ended_ = true;
 
         TU<A_swapchain> main_swapchain_p_;
         TU<A_frame_buffer> main_frame_buffer_p_;
@@ -55,12 +54,14 @@ namespace nre::newrg
 
 
 
-    public:
-        virtual void install() override;
+    private:
+        void async_begin_command_lists_internal();
+        void async_end_command_lists_internal();
+
+
 
     public:
-        virtual void async_begin_main_command_list() override;
-        virtual void async_submit_main_command_list() override;
+        virtual void install() override;
 
     public:
         virtual void begin_setup() override;

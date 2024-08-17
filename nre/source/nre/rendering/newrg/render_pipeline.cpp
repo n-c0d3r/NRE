@@ -131,51 +131,51 @@ namespace nre::newrg {
 
 
 
+	void F_render_pipeline::async_begin_command_lists_internal()
+	{
+		main_command_allocator_p_->flush();
+		main_command_list_p_->async_begin(
+			NCPP_FOH_VALID(main_command_allocator_p_)
+		);
+	}
+	void F_render_pipeline::async_end_command_lists_internal()
+	{
+		main_command_list_p_->async_end();
+		main_render_worker_p_->enqueue_command_list(
+			NCPP_FOH_VALID(main_command_list_p_)
+		);
+	}
+
+
+
 	void F_render_pipeline::install()
 	{
 		render_worker_list_.install();
 	}
 
-	void F_render_pipeline::async_begin_main_command_list()
-	{
-		main_command_list_p_->async_begin(
-			NCPP_FOH_VALID(main_command_allocator_p_)
-		);
-
-		is_main_command_list_ended_ = false;
-	}
-	void F_render_pipeline::async_submit_main_command_list()
-	{
-		if(is_main_command_list_ended_)
-			return;
-
-		main_command_list_p_->async_end();
-		F_main_render_worker::instance_p()->enqueue_command_list(
-			main_command_list_p()
-		);
-
-		is_main_command_list_ended_ = true;
-	}
-
 	void F_render_pipeline::begin_setup()
 	{
+		async_begin_command_lists_internal();
+
 		render_worker_list_.begin_frame();
-		async_begin_main_command_list();
 	}
 	void F_render_pipeline::end_setup()
 	{
-		async_submit_main_command_list();
+		async_end_command_lists_internal();
+
 		render_worker_list_.end_frame();
 	}
 
 	void F_render_pipeline::begin_render()
 	{
+		async_begin_command_lists_internal();
+
 		render_worker_list_.begin_frame();
-		async_begin_main_command_list();
 	}
 	void F_render_pipeline::end_render()
 	{
-		async_submit_main_command_list();
+		async_end_command_lists_internal();
+
 		render_worker_list_.end_frame();
 	}
 

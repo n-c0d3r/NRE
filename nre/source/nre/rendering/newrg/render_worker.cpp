@@ -45,6 +45,7 @@ namespace nre::newrg
     void A_render_worker::begin_frame()
     {
         begin_sync_point_.consumer_wait();
+        begin_sync_point_.consumer_signal();
 
         if(F_task_system::instance_p()->is_stopped())
             return;
@@ -58,7 +59,10 @@ namespace nre::newrg
         end_sync_point_.consumer_wait();
 
         if(F_task_system::instance_p()->is_stopped())
+        {
+            end_sync_point_.consumer_signal();
             return;
+        }
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(
             is_in_frame_ = false;
@@ -89,6 +93,9 @@ namespace nre::newrg
             NCPP_FOH_VALID(command_queue_p_)
         );
         cpu_gpu_sync_point_.wait();
+
+        // signal back to producer to let it do other stuff
+        end_sync_point_.consumer_signal();
     }
 
 

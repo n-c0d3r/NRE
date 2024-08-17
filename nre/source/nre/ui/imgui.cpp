@@ -80,7 +80,6 @@ namespace nre {
 #endif
 	}
 	void F_imgui::begin_frame() {
-return;
 #ifdef NRHI_DRIVER_DIRECTX_11
 		if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
 			ImGui_ImplDX11_NewFrame();
@@ -98,7 +97,6 @@ return;
 		ImGui::NewFrame();
 	}
 	void F_imgui::end_frame() {
-return;
 		// end imgui frame
 		{
 			ImGui::EndFrame();
@@ -138,6 +136,12 @@ return;
 						.state_before = ED_resource_state::PRESENT,
 						.state_after = ED_resource_state::RENDER_TARGET
 					})
+				);
+
+				main_command_list_p->bind_descriptor_heaps(
+					NCPP_INIL_SPAN(
+						NRE_IMGUI_DESCRIPTOR_HEAP()
+					)
 				);
 
 				// uase dx12 instead of cross-driver API due to the need of frame buffer
