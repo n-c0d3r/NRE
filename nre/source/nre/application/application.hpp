@@ -12,6 +12,7 @@ namespace nre {
 
 	class F_render_system;
 	class F_asset_system;
+	class F_imgui;
 
 
 
@@ -46,6 +47,7 @@ namespace nre {
 		TU<F_surface_manager> surface_manager_p_;
 		TK<F_surface> main_surface_p_;
 
+		TU<F_imgui> imgui_p_;
 		TU<F_render_system> render_system_p_;
 		TU<F_asset_system> asset_system_p_;
 
@@ -57,7 +59,7 @@ namespace nre {
 		eastl::chrono::system_clock::time_point frame_start_;
 		eastl::chrono::system_clock::time_point frame_end_;
 
-		b8 is_imgui_focused_ = false;
+		b8 is_focused_ = false;
 
 	public:
 		NCPP_FORCE_INLINE const F_application_desc& desc() const noexcept { return desc_; }
@@ -90,8 +92,6 @@ namespace nre {
 
 			return 1.0f / delta_seconds();
 		}
-
-		NCPP_FORCE_INLINE b8 is_imgui_focused() const noexcept { return is_imgui_focused_; }
 
 
 

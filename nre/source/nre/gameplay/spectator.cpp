@@ -2,7 +2,7 @@
 #include <nre/application/application.hpp>
 #include <nre/hierarchy/transform_node.hpp>
 #include <nre/actor/actor.hpp>
-
+#include <nre/ui/imgui.hpp>
 
 
 namespace nre {
@@ -152,7 +152,7 @@ namespace nre {
 
 		if(will_check_for_enabling_mouse_lock_next_frame_) {
 
-			if(!(NRE_APPLICATION()->is_imgui_focused()))
+			if(!(NRE_IMGUI()->is_focused()))
 				mouse_lock = true;
 		}
 		will_check_for_enabling_mouse_lock_next_frame_ = false;

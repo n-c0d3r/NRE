@@ -3,6 +3,7 @@
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/asset/asset_system.hpp>
 
+#include "nre/ui/imgui.hpp"
 
 
 #ifdef EA_PLATFORM_WINDOWS
@@ -34,23 +35,8 @@ namespace nre {
 
 		nrhi::initialize_system();
 
-		// init imgui
-		{
-			IMGUI_CHECKVERSION();
-			ImGui::CreateContext();
-			ImGuiIO& io = ImGui::GetIO();
-			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-			io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-
-#ifdef EA_PLATFORM_WINDOWS
-			ImGui_ImplWin32_Init(main_surface_p_->handle());
-			main_surface_p_->registry_custom_window_proc_handler(
-				ImGui_ImplWin32_WndProcHandler
-			);
-#endif
-		}
-
 		asset_system_p_ = TU<F_asset_system>()();
+		imgui_p_ = TU<F_imgui>()();
 		render_system_p_ = TU<F_render_system>()();
 
 #ifdef NRE_ENABLE_TASK_SYSTEM
@@ -64,15 +50,7 @@ namespace nre {
 	F_application::~F_application() {
 
 		render_system_p_.reset();
-
-		// release imgui
-		{
-#ifdef EA_PLATFORM_WINDOWS
-			ImGui_ImplWin32_Shutdown();
-#endif
-
-			ImGui::DestroyContext();
-		}
+		imgui_p_.reset();
 
 		nrhi::release_system();
 
@@ -102,63 +80,13 @@ namespace nre {
 
 				NRE_RENDER_PIPELINE()->begin_render();
 
-				// begin imgui frame
-				{
-#ifdef NRHI_DRIVER_DIRECTX_11
-					if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
-						ImGui_ImplDX11_NewFrame();
-#endif
-
-#ifdef NRHI_DRIVER_DIRECTX_12
-					if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_12)
-						ImGui_ImplDX12_NewFrame();
-#endif
-
-#ifdef EA_PLATFORM_WINDOWS
-					ImGui_ImplWin32_NewFrame();
-#endif
-
-					ImGui::NewFrame();
-				}
+				imgui_p_->begin_frame();
 
 				gameplay_tick_event_.invoke();
 
 				render_tick_event_.invoke();
 
-				// end imgui frame
-				{
-					ImGui::EndFrame();
-					is_imgui_focused_ = ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
-				}
-
-				// render imgui
-				{
-					ImGui::Render();
-
-#ifdef NRHI_DRIVER_DIRECTX_11
-					if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
-					{
-						ID3D11RenderTargetView* d3d11_rtv_p = (ID3D11RenderTargetView*)(
-							NRE_MAIN_SWAPCHAIN()->back_rtv_p().T_cast<F_directx11_resource_view>()->d3d11_view_p()
-						);
-						ID3D11DeviceContext* d3d11_ctx_p = NRE_MAIN_COMMAND_QUEUE().T_cast<F_directx11_command_queue>()->d3d11_device_context_p();
-						d3d11_ctx_p->OMSetRenderTargets(
-							1,
-							&d3d11_rtv_p,
-							0
-						);
-
-						ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-					}
-#endif
-
-#ifdef NRHI_DRIVER_DIRECTX_12
-					if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_12)
-					{
-
-					}
-#endif
-				}
+				imgui_p_->end_frame();
 
 				NRE_RENDER_PIPELINE()->end_render();
 		  	}

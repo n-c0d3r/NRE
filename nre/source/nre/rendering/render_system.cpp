@@ -11,6 +11,7 @@
 #include <nre/rendering/debug_drawer.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/application/application.hpp>
+#include <nre/ui/imgui.hpp>
 
 #ifdef NRE_ENABLE_FIRST_RENDER_PIPELINE
 #include <nre/rendering/firstrp/render_pipeline.hpp>
@@ -48,27 +49,8 @@ namespace nre {
 #endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
 		}
 
-		// setup imgui render device and context
-		{
-#ifdef NRHI_DRIVER_DIRECTX_11
-			if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
-				ImGui_ImplDX11_Init(
-					NCPP_FOH_VALID(device_p_).T_cast<F_directx11_device>()->d3d11_device_p(),
-					NRE_MAIN_COMMAND_QUEUE().T_cast<F_directx11_command_queue>()->d3d11_device_context_p()
-				);
-#endif
-
-#ifdef NRHI_DRIVER_DIRECTX_12
-			// if (driver_index() == NRHI_DRIVER_INDEX_DIRECTX_12)
-			// 	ImGui_ImplDX12_Init(
-			// 		NCPP_FOH_VALID(device_p_).T_cast<F_directx12_device>()->d3d12_device_p(),
-			// 		,
-			// 		DXGI_FORMAT(
-			// 			NRE_MAIN_SWAPCHAIN()->desc().format
-			// 		)
-			// 	);
-#endif
-		}
+		// setup imgui renderer
+		F_imgui::instance_p()->init_renderer();
 
 		// create subsystems
 		default_textures_p_ = TU<F_default_textures>()();
@@ -85,15 +67,7 @@ namespace nre {
 	}
 	F_render_system::~F_render_system() {
 
-#ifdef NRHI_DRIVER_DIRECTX_11
-		if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
-			ImGui_ImplDX11_Shutdown();
-#endif
-
-#ifdef NRHI_DRIVER_DIRECTX_12
-		if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_12)
-			ImGui_ImplDX12_Shutdown();
-#endif
+		F_imgui::instance_p()->deinit_renderer();
 	}
 
 }
