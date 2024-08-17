@@ -143,7 +143,7 @@ namespace nre {
 			);
 			sz third_pitch = H_resource::third_pitch(
 				second_pitch,
-				width
+				depth
 			);
 			out_data_span.resize(third_pitch);
 
@@ -160,12 +160,14 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = out_data_span[
-									(j * first_pitch + i) * second_pitch
-									+ t
+									t * second_pitch
+									+ j * first_pitch
+									+ i * format_stride
 								];
 								auto& color = color_span[
-									(j * width + i) * width_time_height
-									+ t
+									t * width_time_height
+									+ j * width
+									+ i
 								];
 								load_r8g8b8a8_unorm((void*)&data, color);
 							}
@@ -181,12 +183,14 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = out_data_span[
-									(j * first_pitch + i) * second_pitch
-									+ t
+									t * second_pitch
+									+ j * first_pitch
+									+ i * format_stride
 								];
 								auto& color = color_span[
-									(j * width + i) * width_time_height
-									+ t
+									t * width_time_height
+									+ j * width
+									+ i
 								];
 								load_r32g32b32a32_float((void*)&data, color);
 							}
@@ -202,12 +206,14 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = out_data_span[
-									(j * first_pitch + i) * second_pitch
-									+ t
+									t * second_pitch
+									+ j * first_pitch
+									+ i * format_stride
 								];
 								auto& color = color_span[
-									(j * width + i) * width_time_height
-									+ t
+									t * width_time_height
+									+ j * width
+									+ i
 								];
 								load_r32g32b32_float((void*)&data, color);
 							}
@@ -223,12 +229,14 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = out_data_span[
-									(j * first_pitch + i) * second_pitch
-									+ t
+									t * second_pitch
+									+ j * first_pitch
+									+ i * format_stride
 								];
 								auto& color = color_span[
-									(j * width + i) * width_time_height
-									+ t
+									t * width_time_height
+									+ j * width
+									+ i
 								];
 								load_r32_float((void*)&data, color);
 							}
@@ -256,7 +264,7 @@ namespace nre {
 			);
 			sz third_pitch = H_resource::third_pitch(
 				second_pitch,
-				width
+				depth
 			);
 
 			u32 width_time_height = width * height;
@@ -274,12 +282,14 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = in_data_span[
-									(j * first_pitch + i) * second_pitch
-									+ t
+									t * second_pitch
+									+ j * first_pitch
+									+ i * format_stride
 								];
 								auto& color = color_span[
-									(j * width + i) * width_time_height
-									+ t
+									t * width_time_height
+									+ j * width
+									+ i
 								];
 								store_r8g8b8a8_unorm((void*)&data, color);
 							}
@@ -295,12 +305,14 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = in_data_span[
-									(j * first_pitch + i) * second_pitch
-									+ t
+									t * second_pitch
+									+ j * first_pitch
+									+ i * format_stride
 								];
 								auto& color = color_span[
-									(j * width + i) * width_time_height
-									+ t
+									t * width_time_height
+									+ j * width
+									+ i
 								];
 								store_r32g32b32a32_float((void*)&data, color);
 							}
@@ -316,12 +328,14 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = in_data_span[
-									(j * first_pitch + i) * second_pitch
-									+ t
+									t * second_pitch
+									+ j * first_pitch
+									+ i * format_stride
 								];
 								auto& color = color_span[
-									(j * width + i) * width_time_height
-									+ t
+									t * width_time_height
+									+ j * width
+									+ i
 								];
 								store_r32g32b32_float((void*)&data, color);
 							}
@@ -337,12 +351,14 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = in_data_span[
-									(j * first_pitch + i) * second_pitch
-									+ t
+									t * second_pitch
+									+ j * first_pitch
+									+ i * format_stride
 								];
 								auto& color = color_span[
-									(j * width + i) * width_time_height
-									+ t
+									t * width_time_height
+									+ j * width
+									+ i
 								];
 								store_r32_float((void*)&data, color);
 							}

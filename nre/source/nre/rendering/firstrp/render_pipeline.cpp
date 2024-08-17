@@ -8,6 +8,20 @@ namespace nre::firstrp {
 
 	F_render_pipeline::F_render_pipeline()
 	{
+		// check driver
+		{
+			NCPP_ENABLE_IF_ASSERTION_ENABLED(
+				b8 is_compatible_driver_detected = false;
+			);
+
+#ifdef NRHI_DRIVER_DIRECTX_11
+			if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
+				is_compatible_driver_detected = true;
+#endif
+
+			NCPP_ASSERT(is_compatible_driver_detected);
+		}
+
 		// create render objects
 		{
 			main_command_queue_p_ = H_command_queue::create(

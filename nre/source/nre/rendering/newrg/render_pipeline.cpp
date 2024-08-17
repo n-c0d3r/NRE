@@ -9,7 +9,7 @@ namespace nre::newrg {
 
 	F_render_pipeline::F_render_pipeline()
 	{
-		// assert driver
+		// check driver
 		{
 			NCPP_ENABLE_IF_ASSERTION_ENABLED(
 				b8 is_compatible_driver_detected = false;
