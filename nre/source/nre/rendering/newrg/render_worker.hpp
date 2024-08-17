@@ -15,6 +15,8 @@ namespace nre::newrg
     private:
         u8 index_ = 0;
         u8 worker_thread_index_ = 0;
+        F_threads_sync_point& begin_sync_point_;
+        F_threads_sync_point& end_sync_point_;
         ED_command_list_type command_list_type_ = ED_command_list_type::DIRECT;
         F_frame_param frame_param_;
 
@@ -22,9 +24,17 @@ namespace nre::newrg
 
         F_cpu_gpu_sync_point cpu_gpu_sync_point_;
 
+        TG_concurrent_ring_buffer<TK<A_command_list>> command_list_p_ring_buffer_;
+
+        NCPP_ENABLE_IF_ASSERTION_ENABLED(
+            ab8 is_in_frame_ = false;
+        );
+
     public:
         NCPP_FORCE_INLINE u8 index() const noexcept { return index_; }
         NCPP_FORCE_INLINE u8 worker_thread_index() const noexcept { return worker_thread_index_; }
+        NCPP_FORCE_INLINE const auto& begin_sync_point() const noexcept { return begin_sync_point_; }
+        NCPP_FORCE_INLINE const auto& end_sync_point() const noexcept { return end_sync_point_; }
         NCPP_FORCE_INLINE ED_command_list_type command_list_type() const noexcept { return command_list_type_; }
         NCPP_FORCE_INLINE F_frame_param frame_param() const noexcept { return frame_param_; }
 
@@ -32,12 +42,16 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const F_cpu_gpu_sync_point& cpu_gpu_sync_point() const noexcept { return cpu_gpu_sync_point_; }
 
+        NCPP_FORCE_INLINE const auto& command_list_p_ring_buffer() const noexcept { return command_list_p_ring_buffer_; }
+
 
 
     protected:
         A_render_worker(
             u8 index,
             u8 worker_thread_index,
+            F_threads_sync_point& begin_sync_point,
+            F_threads_sync_point& end_sync_point,
             F_frame_param frame_param = 0,
             ED_command_list_type command_list_type = ED_command_list_type::DIRECT
         );
@@ -59,6 +73,9 @@ namespace nre::newrg
 
     public:
         virtual void install();
+
+    public:
+        void enqueue_command_list(TKPA_valid<A_command_list> command_list_p);
     };
 
 
@@ -83,7 +100,11 @@ namespace nre::newrg
             begin_sync_point_(F_render_worker_targs::count),
             end_sync_point_(F_render_worker_targs::count)
         {
-            TF_init_workers_helper<F_render_worker_targs::F_indices>::invoke(render_worker_p_array_, base_worker_thread_index);
+            TF_init_workers_helper<F_render_worker_targs::F_indices>::invoke(
+                render_worker_p_array_, base_worker_thread_index,
+                begin_sync_point_,
+                end_sync_point_
+            );
         }
 
 
@@ -104,9 +125,13 @@ namespace nre::newrg
         }
         void begin_frame()
         {
+            begin_sync_point_.producer_signal();
+            begin_sync_point_.producer_wait();
         }
         void end_frame()
         {
+            end_sync_point_.producer_signal();
+            end_sync_point_.producer_wait();
         }
     };
 
@@ -115,13 +140,20 @@ namespace nre::newrg
     struct TF_render_worker_list<F_render_workers__...>::TF_init_workers_helper<TF_template_varg_list<indices__...>>
     {
     public:
-        static void invoke(TG_array<TU<A_render_worker>, sizeof...(F_render_workers__)>& array, u8 base_worker_thread_index)
+        static void invoke(
+            TG_array<TU<A_render_worker>, sizeof...(F_render_workers__)>& array,
+            u8 base_worker_thread_index,
+            F_threads_sync_point& begin_sync_point,
+            F_threads_sync_point& end_sync_point
+        )
         {
             using F_render_worker_targs = TF_template_targ_list<F_render_workers__...>;
             array = {
                 TU<F_render_worker_targs::template TF_at<indices__>>()(
                     indices__ + 1,
-                    base_worker_thread_index + indices__
+                    base_worker_thread_index + indices__,
+                    begin_sync_point,
+                    end_sync_point
                 )...
             };
         }

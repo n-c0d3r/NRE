@@ -150,7 +150,7 @@ namespace nre::newrg {
 			return;
 
 		main_command_list_p_->async_end();
-		F_main_render_worker::instance_p()->command_queue_p()->async_execute_command_list(
+		F_main_render_worker::instance_p()->enqueue_command_list(
 			main_command_list_p()
 		);
 
@@ -159,20 +159,24 @@ namespace nre::newrg {
 
 	void F_render_pipeline::begin_setup()
 	{
+		render_worker_list_.begin_frame();
 		async_begin_main_command_list();
 	}
 	void F_render_pipeline::end_setup()
 	{
 		async_submit_main_command_list();
+		render_worker_list_.end_frame();
 	}
 
 	void F_render_pipeline::begin_render()
 	{
+		render_worker_list_.begin_frame();
 		async_begin_main_command_list();
 	}
 	void F_render_pipeline::end_render()
 	{
 		async_submit_main_command_list();
+		render_worker_list_.end_frame();
 	}
 
 }

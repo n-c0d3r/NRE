@@ -45,6 +45,12 @@ namespace nre {
 		);
 #endif
 
+		NRE_RENDER_PIPELINE()->install();
+
+#ifdef NRE_ENABLE_TASK_SYSTEM
+		task_system_p_->start();
+#endif
+
 		NRE_RENDER_PIPELINE()->begin_setup();
 	}
 	F_application::~F_application() {
@@ -62,12 +68,6 @@ namespace nre {
 		start_ = eastl::chrono::high_resolution_clock::now();
 		frame_start_ = start_;
 		frame_end_ = start_;
-
-		NRE_RENDER_PIPELINE()->install();
-
-#ifdef NRE_ENABLE_TASK_SYSTEM
-		task_system_p_->start();
-#endif
 
 		main_surface_p_->T_get_event<F_surface_destroy_event>().T_push_back_listener(
 			[this](auto& e){

@@ -21,7 +21,9 @@ namespace nre::newrg
     public:
         F_main_render_worker(
             u32 index,
-            u8 worker_thread_index
+            u8 worker_thread_index,
+            F_threads_sync_point& begin_sync_point,
+            F_threads_sync_point& end_sync_point
         );
         virtual ~F_main_render_worker();
 

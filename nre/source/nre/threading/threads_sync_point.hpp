@@ -4,13 +4,14 @@
 
 
 
+#ifdef NRE_ENABLE_TASK_SYSTEM
 namespace nre
 {
     class NRE_API F_threads_sync_point
     {
     private:
         u8 consumer_thread_count_ = 0;
-        ab8 was_producer_signaled_ = 0;
+        ab8 was_producer_signaled_ = false;
         au8 signal_catched_consumer_thread_count_ = 0;
 
     public:
@@ -32,3 +33,4 @@ namespace nre
         void producer_wait();
     };
 }
+#endif
