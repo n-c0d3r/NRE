@@ -46,3 +46,5 @@
 #include <nre/rendering/sky_light.hpp>
 #include <nre/rendering/directional_light.hpp>
 #include <nre/rendering/directional_light_shadow.hpp>
+
+#include <nre/rendering/cpu_gpu_sync_point.hpp>
