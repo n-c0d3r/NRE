@@ -13,7 +13,22 @@ TU<A_resource> NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create(
     const F_resource_desc& desc
 )
 {
-    return {};
+    auto resource_p = H_resource::create_committed(
+        device_p,
+        desc
+    );
+
+    if(initial_resource_data.size())
+    {
+        auto resource_uploader_p = F_resource_uploader::instance_p();
+        resource_uploader_p->upload(
+            NCPP_FOH_VALID(resource_p),
+            initial_resource_data
+        );
+        resource_uploader_p->sync();
+    }
+
+    return { std::move(resource_p) };
 }
 
 U_buffer_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_buffer(
@@ -22,7 +37,22 @@ U_buffer_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_buffer(
     const F_resource_desc& desc
 )
 {
-    return {};
+    auto resource_p = H_resource::create_committed(
+        device_p,
+        desc
+    );
+
+    if(initial_resource_data.size())
+    {
+        auto resource_uploader_p = F_resource_uploader::instance_p();
+        resource_uploader_p->upload(
+            NCPP_FOH_VALID(resource_p),
+            initial_resource_data
+        );
+        resource_uploader_p->sync();
+    }
+
+    return { std::move(resource_p) };
 }
 
 U_texture_1d_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_texture_1d(
@@ -31,7 +61,22 @@ U_texture_1d_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_texture_1d
     const F_resource_desc& desc
 )
 {
-    return {};
+    auto resource_p = H_resource::create_committed(
+        device_p,
+        desc
+    );
+
+    if(initial_resource_data.size())
+    {
+        auto resource_uploader_p = F_resource_uploader::instance_p();
+        resource_uploader_p->upload(
+            NCPP_FOH_VALID(resource_p),
+            initial_resource_data
+        );
+        resource_uploader_p->sync();
+    }
+
+    return { std::move(resource_p) };
 }
 U_texture_2d_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_texture_2d(
     TKPA_valid<A_device> device_p,
@@ -44,12 +89,15 @@ U_texture_2d_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_texture_2d
         desc
     );
 
-    auto resource_uploader_p = F_resource_uploader::instance_p();
-    resource_uploader_p->upload(
-        NCPP_FOH_VALID(resource_p),
-        initial_resource_data
-    );
-    resource_uploader_p->sync();
+    if(initial_resource_data.size())
+    {
+        auto resource_uploader_p = F_resource_uploader::instance_p();
+        resource_uploader_p->upload(
+            NCPP_FOH_VALID(resource_p),
+            initial_resource_data
+        );
+        resource_uploader_p->sync();
+    }
 
     return { std::move(resource_p) };
 }
@@ -59,7 +107,22 @@ U_texture_3d_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_texture_3d
     const F_resource_desc& desc
 )
 {
-    return {};
+    auto resource_p = H_resource::create_committed(
+        device_p,
+        desc
+    );
+
+    if(initial_resource_data.size())
+    {
+        auto resource_uploader_p = F_resource_uploader::instance_p();
+        resource_uploader_p->upload(
+            NCPP_FOH_VALID(resource_p),
+            initial_resource_data
+        );
+        resource_uploader_p->sync();
+    }
+
+    return { std::move(resource_p) };
 }
 U_texture_2d_array_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_texture_2d_array(
     TKPA_valid<A_device> device_p,
@@ -67,5 +130,20 @@ U_texture_2d_array_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource)::create_text
     const F_resource_desc& desc
 )
 {
-    return {};
+    auto resource_p = H_resource::create_committed(
+        device_p,
+        desc
+    );
+
+    if(initial_resource_data.size())
+    {
+        auto resource_uploader_p = F_resource_uploader::instance_p();
+        resource_uploader_p->upload(
+            NCPP_FOH_VALID(resource_p),
+            initial_resource_data
+        );
+        resource_uploader_p->sync();
+    }
+
+    return { std::move(resource_p) };
 }

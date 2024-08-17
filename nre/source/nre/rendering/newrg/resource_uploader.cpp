@@ -84,27 +84,11 @@ namespace nre::newrg
                 .resource_p = temp_resource_p.oref
             };
 
-            F_vector3_u32 volume = { desc.width, desc.height, desc.depth };
-            F_vector3_u32 mip_divisor;
-            NRHI_ENUM_SWITCH(
+            F_vector3_u32 volume = H_resource::most_detailed_subresource_volume(
                 desc.type,
-                NRHI_ENUM_CASE(
-                    ED_resource_type::TEXTURE_1D,
-                    mip_divisor = element_min(F_vector3_u32 { 2, 1, 1 }, F_vector3_u32::one());
-                )
-                NRHI_ENUM_CASE(
-                    ED_resource_type::TEXTURE_2D,
-                    mip_divisor = element_min(F_vector3_u32 { 2, 2, 1 }, F_vector3_u32::one());
-                )
-                NRHI_ENUM_CASE(
-                    ED_resource_type::TEXTURE_2D_ARRAY,
-                    mip_divisor = element_min(F_vector3_u32 { 2, 2, 1 }, F_vector3_u32::one());
-                )
-                NRHI_ENUM_CASE(
-                    ED_resource_type::TEXTURE_3D,
-                    mip_divisor = element_min(F_vector3_u32 { 2, 2, 2 }, F_vector3_u32::one());
-                )
+                { desc.width, desc.height, desc.depth }
             );
+            F_vector3_u32 mip_divisor = H_resource::mip_divisor(desc.type);
 
             for(u32 i = 0; i < desc.mip_level_count; ++i)
             {
@@ -117,7 +101,10 @@ namespace nre::newrg
                     F_vector3_u32::zero(),
                     volume
                 );
-                volume /= mip_divisor;
+                volume = element_max(
+                    volume / mip_divisor,
+                    F_vector3_u32::one()
+                );
             }
         }
 
