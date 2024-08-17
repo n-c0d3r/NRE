@@ -68,6 +68,8 @@ namespace nre {
 	F_render_system::~F_render_system() {
 
 		F_imgui::instance_p()->deinit_renderer();
+
+		pipeline_p_.reset();
 	}
 
 }
