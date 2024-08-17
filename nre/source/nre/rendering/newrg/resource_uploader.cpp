@@ -53,6 +53,29 @@ namespace nre::newrg
     )
     {
         const auto& desc = resource_p->desc();
+        const auto& subresources = desc.subresources;
+        u32 subresource_count = subresources.size();
+
+        // if the heap type is GREAD_CWRITE, upload data directly into it
+        if(desc.heap_type == ED_resource_heap_type::GREAD_CWRITE)
+        {
+            for(u32 i = 0; i < subresource_count; ++i)
+            {
+                const auto& subresource = subresources[i];
+                const auto& subresource_data = initial_resource_data[i];
+
+                auto mapped_subresource = resource_p->map(i);
+
+                memcpy(
+                    mapped_subresource.data(),
+                    subresource_data.data_p,
+                    subresource.size
+                );
+
+                resource_p->unmap(i);
+            }
+            return;
+        }
 
         // this resource will be used to upload
         U_buffer_handle temp_resource_p = H_buffer::create_committed(
@@ -63,6 +86,25 @@ namespace nre::newrg
             ED_resource_heap_type::GREAD_CWRITE,
             ED_resource_state::_GENERIC_READ
         );
+
+        // map temp resource and upload data to it
+        {
+            for(u32 i = 0; i < subresource_count; ++i)
+            {
+                const auto& subresource = subresources[i];
+                const auto& subresource_data = initial_resource_data[i];
+
+                auto mapped_subresource = temp_resource_p->map(i);
+
+                memcpy(
+                    mapped_subresource.data(),
+                    subresource_data.data_p,
+                    subresource.size
+                );
+
+                temp_resource_p->unmap(i);
+            }
+        }
 
         // copy temp resource to target resource
         if(desc.type == ED_resource_type::BUFFER)
@@ -80,30 +122,39 @@ namespace nre::newrg
             F_texture_copy_location dst_location = {
                 .resource_p = resource_p.no_requirements()
             };
+            dst_location.subresource_index = 0;
+
             F_texture_copy_location src_location = {
-                .resource_p = temp_resource_p.oref
+                .resource_p = temp_resource_p.oref,
+                .type = ED_texture_copy_location_type::SUBRESOURCE_FOOTPRINT
             };
+            src_location.subresource_footprint.format = desc.format;
 
-            F_vector3_u32 volume = H_resource::most_detailed_subresource_volume(
-                desc.type,
-                { desc.width, desc.height, desc.depth }
-            );
-            F_vector3_u32 mip_divisor = H_resource::mip_divisor(desc.type);
-
-            for(u32 i = 0; i < desc.mip_level_count; ++i)
+            for(u32 i = 0; i < subresource_count; ++i)
             {
+                const auto& subresource = subresources[i];
+
                 dst_location.subresource_index = i;
-                src_location.subresource_index = i;
+
+                src_location.subresource_footprint.offset = subresource.offset;
+                src_location.subresource_footprint.width = subresource.width;
+                src_location.subresource_footprint.height = subresource.height;
+                src_location.subresource_footprint.depth = subresource.depth;
+                src_location.subresource_footprint.first_pitch = H_resource::first_pitch(
+                    H_format::stride(desc.format),
+                    desc.width
+                );
+
                 command_list_p_->async_copy_texture_region(
                     dst_location,
                     src_location,
                     F_vector3_u32::zero(),
                     F_vector3_u32::zero(),
-                    volume
-                );
-                volume = element_max(
-                    volume / mip_divisor,
-                    F_vector3_u32::one()
+                    {
+                        subresource.width,
+                        subresource.height,
+                        subresource.depth
+                    }
                 );
             }
         }
