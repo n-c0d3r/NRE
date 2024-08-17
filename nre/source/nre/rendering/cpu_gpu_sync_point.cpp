@@ -34,15 +34,11 @@ namespace nre
             target_fence_value_
         );
     }
-    b8 F_cpu_gpu_sync_point::is_synchronized(
-        TKPA_valid<A_command_queue> command_queue_p
-    )
+    b8 F_cpu_gpu_sync_point::is_synchronized()
     {
         return (fence_p_->value() == target_fence_value_);
     }
-    void F_cpu_gpu_sync_point::wait(
-        TKPA_valid<A_command_queue> command_queue_p
-    )
+    void F_cpu_gpu_sync_point::wait()
     {
         fence_p_->wait(target_fence_value_);
     }

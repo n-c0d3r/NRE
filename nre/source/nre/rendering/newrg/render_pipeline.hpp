@@ -36,6 +36,9 @@ namespace nre::newrg
 
         TU<A_descriptor_heap> imgui_descriptor_heap_p_;
 
+        TK_valid<F_main_render_worker> main_render_worker_p_;
+        TK_valid<F_async_compute_render_worker> async_compute_render_worker_p_;
+
     public:
         NCPP_FORCE_INLINE auto blit_command_queue_p() const noexcept { return NCPP_FOH_VALID(blit_command_queue_p_); }
 

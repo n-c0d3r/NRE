@@ -8,3 +8,4 @@
 #include <nre/hierarchy/.hpp>
 #include <nre/rendering/.hpp>
 #include <nre/gameplay/.hpp>
+#include <nre/threading/.hpp>

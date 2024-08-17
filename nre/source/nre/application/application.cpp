@@ -63,6 +63,10 @@ namespace nre {
 		frame_start_ = start_;
 		frame_end_ = start_;
 
+#ifdef NRE_ENABLE_TASK_SYSTEM
+		task_system_p_->start();
+#endif
+
 		main_surface_p_->T_get_event<F_surface_destroy_event>().T_push_back_listener(
 			[this](auto& e){
 			  	shutdown_event_.invoke();

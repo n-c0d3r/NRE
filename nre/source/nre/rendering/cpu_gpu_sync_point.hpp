@@ -7,10 +7,10 @@
 #ifdef NRHI_DRIVER_SUPPORT_ADVANCED_WORK_SUBMISSION
 namespace nre
 {
-    class F_cpu_gpu_sync_point
+    class NRE_API F_cpu_gpu_sync_point
     {
     private:
-        u64 target_fence_value_ = 0;
+        u64 target_fence_value_ = 1;
         TU<A_fence> fence_p_;
 
     public:
@@ -31,12 +31,8 @@ namespace nre
         void async_signal(
             TKPA_valid<A_command_queue> command_queue_p
         );
-        b8 is_synchronized(
-            TKPA_valid<A_command_queue> command_queue_p
-        );
-        void wait(
-            TKPA_valid<A_command_queue> command_queue_p
-        );
+        b8 is_synchronized();
+        void wait();
     };
 }
 #endif

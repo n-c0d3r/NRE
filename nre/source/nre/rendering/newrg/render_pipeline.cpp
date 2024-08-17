@@ -7,7 +7,10 @@
 
 namespace nre::newrg {
 
-	F_render_pipeline::F_render_pipeline()
+	F_render_pipeline::F_render_pipeline() :
+		render_worker_list_(),
+		main_render_worker_p_(F_main_render_worker::instance_p()),
+		async_compute_render_worker_p_(F_async_compute_render_worker::instance_p())
 	{
 		// check driver
 		{

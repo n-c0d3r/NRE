@@ -16,7 +16,8 @@ namespace nre::newrg
                     .type = command_list_type
                 }
             )
-        )
+        ),
+        cpu_gpu_sync_point_(NRE_MAIN_DEVICE())
     {
     }
 
