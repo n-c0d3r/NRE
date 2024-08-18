@@ -153,9 +153,9 @@ namespace nre::newrg {
 
 	void F_render_pipeline::begin_setup()
 	{
-		async_begin_command_lists_internal();
-
 		render_worker_list_.begin_frame();
+
+		async_begin_command_lists_internal();
 	}
 	void F_render_pipeline::end_setup()
 	{
@@ -166,9 +166,9 @@ namespace nre::newrg {
 
 	void F_render_pipeline::begin_render()
 	{
-		async_begin_command_lists_internal();
-
 		render_worker_list_.begin_frame();
+
+		async_begin_command_lists_internal();
 	}
 	void F_render_pipeline::end_render()
 	{
