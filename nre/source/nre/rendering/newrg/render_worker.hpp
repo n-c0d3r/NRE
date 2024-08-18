@@ -10,6 +10,11 @@
 
 namespace nre::newrg
 {
+    using F_command_list_batch = TG_fixed_vector<TK<A_command_list>, 1>;
+    using F_command_list_batch_valid = TG_fixed_vector<TK_valid<A_command_list>, 1>;
+
+
+
     class NRE_API A_render_worker
     {
     private:
@@ -24,7 +29,7 @@ namespace nre::newrg
 
         F_cpu_gpu_sync_point cpu_gpu_sync_point_;
 
-        TG_concurrent_ring_buffer<TK<A_command_list>> command_list_p_ring_buffer_;
+        TG_concurrent_ring_buffer<F_command_list_batch> command_list_batch_ring_buffer_;
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(
             ab8 is_in_frame_ = false;
@@ -42,7 +47,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const F_cpu_gpu_sync_point& cpu_gpu_sync_point() const noexcept { return cpu_gpu_sync_point_; }
 
-        NCPP_FORCE_INLINE const auto& command_list_p_ring_buffer() const noexcept { return command_list_p_ring_buffer_; }
+        NCPP_FORCE_INLINE const auto& command_list_batch_ring_buffer() const noexcept { return command_list_batch_ring_buffer_; }
 
 
 
@@ -79,6 +84,8 @@ namespace nre::newrg
 
     public:
         void enqueue_command_list(TKPA_valid<A_command_list> command_list_p);
+        void enqueue_command_list_batch(const F_command_list_batch& command_list_batch);
+        void enqueue_command_list_batch(F_command_list_batch&& command_list_batch);
     };
 
 

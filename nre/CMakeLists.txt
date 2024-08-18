@@ -19,7 +19,7 @@ option(NRE_ENABLE_FRAME_DEBUG "If enabled, some frame debugging functionalities 
 
 # NRE other options
 option(NRE_ENABLE_ASYNC_COMPUTE "If enabled, async compute will be turned on and some render passes can run on async compute queue" ON)
-set(NRE_COMMAND_LIST_P_RING_BUFFER_CAPACITY 512 CACHE STRING "")
+set(NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY 512 CACHE STRING "")
 
 NCPP_SetGlobal(NRE_RESOURCES_DIR_PATH "${CMAKE_CURRENT_LIST_DIR}/resources")
 

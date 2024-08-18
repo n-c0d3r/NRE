@@ -29,7 +29,7 @@ namespace nre::newrg
             )
         ),
         cpu_gpu_sync_point_(NRE_MAIN_DEVICE()),
-        command_list_p_ring_buffer_(NRE_COMMAND_LIST_P_RING_BUFFER_CAPACITY)
+        command_list_batch_ring_buffer_(NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY)
     {
     }
 
@@ -46,11 +46,11 @@ namespace nre::newrg
     {
         // execute enqueued command lists
         {
-            TK<A_command_list> command_list_p;
-            if(command_list_p_ring_buffer_.try_pop(command_list_p))
+            F_command_list_batch command_list_batch;
+            if(command_list_batch_ring_buffer_.try_pop(command_list_batch))
             {
-                command_queue_p_->async_execute_command_list(
-                    NCPP_FOH_VALID(command_list_p)
+                command_queue_p_->async_execute_command_lists(
+                    (F_command_list_batch_valid&)command_list_batch
                 );
             }
         }
@@ -141,6 +141,22 @@ namespace nre::newrg
     {
         NCPP_ASSERT(is_in_frame_);
 
-        command_list_p_ring_buffer_.push(command_list_p.no_requirements());
+        command_list_batch_ring_buffer_.push({
+            command_list_p.no_requirements()
+        });
+    }
+    void A_render_worker::enqueue_command_list_batch(const F_command_list_batch& command_list_batch)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        command_list_batch_ring_buffer_.push(command_list_batch);
+    }
+    void A_render_worker::enqueue_command_list_batch(F_command_list_batch&& command_list_batch)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        command_list_batch_ring_buffer_.push(
+            std::move(command_list_batch)
+        );
     }
 }
