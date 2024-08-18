@@ -15,8 +15,6 @@ namespace nre::newrg
     public:
         static NCPP_FORCE_INLINE F_frame_allocator* default_p() {
 
-            auto w = H_worker_thread::current_worker_thread_raw_p();
-
             return &(
                 H_worker_thread::current_worker_thread_raw_p()->frame_allocator(
                     NRE_FRAME_PARAM_RENDER
