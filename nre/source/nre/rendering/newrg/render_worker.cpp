@@ -113,7 +113,6 @@ namespace nre::newrg
 
 
 
-
     void A_render_worker::install()
     {
         auto task_system_p = F_task_system::instance_p();
