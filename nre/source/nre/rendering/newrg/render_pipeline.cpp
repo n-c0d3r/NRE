@@ -162,6 +162,8 @@ namespace nre::newrg {
 		async_end_command_lists_internal();
 
 		render_worker_list_.end_frame();
+
+		F_frame_heap::instance().reset_param(NRE_FRAME_PARAM_RENDER);
 	}
 
 	void F_render_pipeline::begin_render()
@@ -175,6 +177,8 @@ namespace nre::newrg {
 		async_end_command_lists_internal();
 
 		render_worker_list_.end_frame();
+
+		F_frame_heap::instance().reset_param(NRE_FRAME_PARAM_RENDER);
 	}
 
 }

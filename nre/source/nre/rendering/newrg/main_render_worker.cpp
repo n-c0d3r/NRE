@@ -19,7 +19,7 @@ namespace nre::newrg
             worker_thread_index,
             begin_sync_point,
             end_sync_point,
-            NRE_FRAME_PARAM_MAIN_RENDER_WORKER,
+            NRE_FRAME_PARAM_RENDER,
             ED_command_list_type::DIRECT
         )
     {

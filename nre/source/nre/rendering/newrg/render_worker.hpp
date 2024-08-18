@@ -10,8 +10,31 @@
 
 namespace nre::newrg
 {
-    using F_command_list_batch = TG_fixed_vector<TK<A_command_list>, 1>;
-    using F_command_list_batch_valid = TG_fixed_vector<TK_valid<A_command_list>, 1>;
+    class F_reference_render_frame_allocator_config : public TF_reference_frame_allocator_config<F_frame_heap, F_frame_allocator> {
+
+    public:
+        static NCPP_FORCE_INLINE F_frame_allocator* default_p() {
+
+            auto w = H_worker_thread::current_worker_thread_raw_p();
+
+            return &(
+                H_worker_thread::current_worker_thread_raw_p()->frame_allocator(
+                    NRE_FRAME_PARAM_RENDER
+                )
+            );
+        }
+
+    };
+
+    using F_reference_render_frame_allocator = TF_reference_allocator<
+        F_frame_allocator,
+        F_reference_render_frame_allocator_config
+    >;
+
+
+
+    using F_command_list_batch = TF_fixed_vector<TK<A_command_list>, 1, true, F_reference_render_frame_allocator>;
+    using F_command_list_batch_valid = TF_fixed_vector<TK_valid<A_command_list>, 1, true, F_reference_render_frame_allocator>;
 
 
 

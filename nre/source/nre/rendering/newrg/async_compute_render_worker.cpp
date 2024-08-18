@@ -20,7 +20,7 @@ namespace nre::newrg
             worker_thread_index,
             begin_sync_point,
             end_sync_point,
-            NRE_FRAME_PARAM_ASYNC_COMPUTE_RENDER_WORKER,
+            NRE_FRAME_PARAM_RENDER,
             ED_command_list_type::COMPUTE
         )
     {
