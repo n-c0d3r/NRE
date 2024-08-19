@@ -36,4 +36,13 @@ namespace nre::newrg
     {
         resource_states_.push_back(resource_state);
     }
+
+    void F_render_pass::execute(TKPA_valid<A_command_list> command_list_p)
+    {
+        functor_caller_p_(
+            this,
+            command_list_p,
+            functor_p_
+        );
+    }
 }

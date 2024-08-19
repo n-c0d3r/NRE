@@ -126,9 +126,16 @@ namespace nre::newrg
             );
 
             return create_pass_internal(
-                [](void* data_p)
+                [](
+                    F_render_pass* render_pass_p,
+                    TKPA_valid<A_command_list> command_list_p,
+                    void* data_p
+                )
                 {
-                    (*((F_functor*)data_p))();
+                    (*((F_functor*)data_p))(
+                        render_pass_p,
+                        command_list_p
+                    );
                 },
                 [](void* data_p)
                 {

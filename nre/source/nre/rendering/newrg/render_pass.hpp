@@ -57,5 +57,8 @@ namespace nre::newrg
         void add_resource_state(
             const F_render_resource_state& resource_state
         );
+
+    public:
+        void execute(TKPA_valid<A_command_list> command_list_p);
     };
 }

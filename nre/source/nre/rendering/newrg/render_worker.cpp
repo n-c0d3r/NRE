@@ -131,6 +131,8 @@ namespace nre::newrg
                 if(F_task_system::instance_p()->is_stopped())
                     return;
 
+                tick();
+
                 end_frame();
             },
             frame_param_

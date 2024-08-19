@@ -31,7 +31,7 @@ namespace nre::newrg
         );
 
         auto render_pass_p = render_graph_p->create_pass(
-            []()
+            [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
             {
             },
             ED_pipeline_state_type::GRAPHICS
