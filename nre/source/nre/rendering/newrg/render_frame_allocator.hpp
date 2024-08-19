@@ -21,6 +21,8 @@ namespace nre::newrg
                 )
             );
         }
+        static constexpr b8 is_always_default = true;
+        static constexpr b8 is_always_equal = true;
 
     };
 
