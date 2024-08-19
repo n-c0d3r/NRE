@@ -1,4 +1,6 @@
 #include <nre/rendering/newrg/main_render_worker.hpp>
+#include <nre/rendering/newrg/render_graph.hpp>
+#include <nre/rendering/newrg/renderer.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 
 
@@ -34,6 +36,10 @@ namespace nre::newrg
     void F_main_render_worker::tick()
     {
         A_render_worker::tick();
+
+        auto renderer_p = F_renderer::instance_p();
+        renderer_p->setup_frame();
+        renderer_p->render_frame();
     }
     void F_main_render_worker::subtick()
     {

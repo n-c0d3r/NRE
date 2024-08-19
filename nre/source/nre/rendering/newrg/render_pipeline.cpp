@@ -1,5 +1,7 @@
 #include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/resource_uploader.hpp>
+#include <nre/rendering/newrg/render_graph.hpp>
+#include <nre/rendering/newrg/renderer.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/application/application.hpp>
 
@@ -123,6 +125,12 @@ namespace nre::newrg {
 
 		//
 		resource_uploader_p_ = TU<F_resource_uploader>()();
+
+		//
+		render_graph_p_ = TU<F_render_graph>()();
+
+		//
+		renderer_p_ = TU<F_renderer>()();
 	}
 	F_render_pipeline::~F_render_pipeline() {
 	}
@@ -144,6 +152,23 @@ namespace nre::newrg {
 		);
 	}
 
+	void F_render_pipeline::begin_minimal_frame_internal()
+	{
+		render_worker_list_.begin_frame();
+
+		async_begin_command_lists_internal();
+	}
+	void F_render_pipeline::end_minimal_frame_internal()
+	{
+		async_end_command_lists_internal();
+
+		render_worker_list_.end_frame();
+
+		render_graph_p_->flush();
+
+		F_frame_heap::instance().reset_param(NRE_FRAME_PARAM_RENDER);
+	}
+
 
 
 	void F_render_pipeline::install()
@@ -153,32 +178,20 @@ namespace nre::newrg {
 
 	void F_render_pipeline::begin_setup()
 	{
-		render_worker_list_.begin_frame();
-
-		async_begin_command_lists_internal();
+		begin_minimal_frame_internal();
 	}
 	void F_render_pipeline::end_setup()
 	{
-		async_end_command_lists_internal();
-
-		render_worker_list_.end_frame();
-
-		F_frame_heap::instance().reset_param(NRE_FRAME_PARAM_RENDER);
+		end_minimal_frame_internal();
 	}
 
 	void F_render_pipeline::begin_render()
 	{
-		render_worker_list_.begin_frame();
-
-		async_begin_command_lists_internal();
+		begin_minimal_frame_internal();
 	}
 	void F_render_pipeline::end_render()
 	{
-		async_end_command_lists_internal();
-
-		render_worker_list_.end_frame();
-
-		F_frame_heap::instance().reset_param(NRE_FRAME_PARAM_RENDER);
+		end_minimal_frame_internal();
 	}
 
 }

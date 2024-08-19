@@ -12,6 +12,8 @@
 namespace nre::newrg
 {
     class F_resource_uploader;
+    class F_render_graph;
+    class F_renderer;
 
 
 
@@ -38,6 +40,9 @@ namespace nre::newrg
         TK_valid<F_main_render_worker> main_render_worker_p_;
         TK_valid<F_async_compute_render_worker> async_compute_render_worker_p_;
 
+        TU<F_render_graph> render_graph_p_;
+        TU<F_renderer> renderer_p_;
+
     public:
         NCPP_FORCE_INLINE auto blit_command_queue_p() const noexcept { return NCPP_FOH_VALID(blit_command_queue_p_); }
 
@@ -57,6 +62,10 @@ namespace nre::newrg
     private:
         void async_begin_command_lists_internal();
         void async_end_command_lists_internal();
+
+    private:
+        void begin_minimal_frame_internal();
+        void end_minimal_frame_internal();
 
 
 

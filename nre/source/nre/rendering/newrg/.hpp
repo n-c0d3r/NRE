@@ -11,6 +11,7 @@
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/render_resource_allocator.hpp>
 #include <nre/rendering/newrg/main_render_worker.hpp>
+#include <nre/rendering/newrg/render_pass_functor.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

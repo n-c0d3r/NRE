@@ -6,7 +6,7 @@
 
 namespace nre::newrg
 {
-    struct F_render_resource;
+    class F_render_resource;
 
 
 
