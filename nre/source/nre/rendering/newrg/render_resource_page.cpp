@@ -4,10 +4,10 @@
 
 namespace nre::newrg
 {
-    eastl::optional<F_render_resource_placed_range> F_render_resource_page::try_allocate(sz size)
+    eastl::optional<F_render_resource_placed_range> F_render_resource_page::try_allocate(sz size, u64 alignment)
     {
     }
-    void F_render_resource_page::deallocate(const F_render_resource_placed_range& allocated_range)
+    void F_render_resource_page::deallocate(sz heap_offset)
     {
     }
 }

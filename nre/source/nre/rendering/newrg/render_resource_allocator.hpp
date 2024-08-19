@@ -45,7 +45,7 @@ namespace nre::newrg
 
 
     private:
-        F_render_resource_page& create_page_internal();
+        F_render_resource_page& create_page_internal(u64 heap_alignment = 0);
 
 
 
