@@ -159,7 +159,17 @@ namespace nre {}
 	using namespace nmath;\
 	using namespace nsurface;\
 	using namespace nrhi;\
-	using namespace nts;
+using namespace nts;
+
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+#define NRE_OPTIONAL_DEBUG_PARAM(...) NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(, __VA_ARGS__)
+#else
+#define NRE_OPTIONAL_DEBUG_PARAM(...)
+#endif
 
 #pragma endregion
 

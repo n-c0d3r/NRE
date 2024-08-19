@@ -1,6 +1,7 @@
 #include <nre/rendering/newrg/renderer.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
-
+#include <nre/rendering/newrg/render_pass.hpp>
+#include <nre/rendering/newrg/render_resource.hpp>
 
 
 namespace nre::newrg
@@ -25,9 +26,10 @@ namespace nre::newrg
 
         auto render_resource_p = render_graph_p->create_resource(
             H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
-                128
+                128,
+                ED_resource_flag::INPUT_BUFFER
             )
-            NRE_OPT_PASS_RENDER_FRAME_NAME("demo_render_resource")
+            NRE_OPTIONAL_DEBUG_PARAM("demo_render_resource")
         );
 
         auto render_pass_p = render_graph_p->create_pass(
@@ -35,8 +37,13 @@ namespace nre::newrg
             {
             },
             ED_pipeline_state_type::GRAPHICS
-            NRE_OPT_PASS_RENDER_FRAME_NAME("demo_render_pass")
+            NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass")
         );
+
+        render_pass_p->add_resource_state({
+            render_resource_p,
+            ED_resource_flag::INPUT_BUFFER
+        });
     }
     void F_renderer::render_frame()
     {

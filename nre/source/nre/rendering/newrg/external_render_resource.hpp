@@ -8,7 +8,7 @@
 
 namespace nre::newrg
 {
-    class NRE_API F_render_resource final
+    class NRE_API F_external_render_resource final
     {
     public:
         friend class F_render_graph;
@@ -16,9 +16,7 @@ namespace nre::newrg
 
 
     private:
-        TK<A_resource> rhi_p_;
-
-        F_resource_desc* desc_to_create_p_ = 0;
+        TK_valid<A_resource> rhi_p_;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
@@ -27,8 +25,6 @@ namespace nre::newrg
     public:
         NCPP_FORCE_INLINE TKPA_valid<A_resource> rhi_p() const noexcept { return (TKPA_valid<A_resource>)rhi_p_; }
 
-        NCPP_FORCE_INLINE b8 need_to_create() const noexcept { return (desc_to_create_p_ != 0); }
-
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }
 #endif
@@ -36,18 +32,12 @@ namespace nre::newrg
 
 
     public:
-        F_render_resource(
-            F_resource_desc* desc_to_create_p
-#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , const F_render_frame_name& name
-#endif
-        );
-        F_render_resource(
+        F_external_render_resource(
             TKPA_valid<A_resource> rhi_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
 #endif
         );
-        ~F_render_resource();
+        ~F_external_render_resource();
     };
 }

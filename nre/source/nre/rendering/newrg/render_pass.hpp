@@ -12,10 +12,13 @@ namespace nre::newrg
 {
     class NRE_API F_render_pass final
     {
+    public:
+        friend class F_render_graph;
+
+
+
     private:
-        F_render_pass_functor_caller* functor_caller_p_ = 0;
-        F_render_pass_functor_destructor_caller* functor_destructor_caller_p_ = 0;
-        void* functor_p_ = 0;
+        F_render_pass_functor_cache functor_cache_;
 
         TF_render_frame_vector<F_render_resource_state> resource_states_;
 
@@ -26,9 +29,7 @@ namespace nre::newrg
 #endif
 
     public:
-        NCPP_FORCE_INLINE F_render_pass_functor_caller* functor_caller_p() const noexcept { return functor_caller_p_; }
-        NCPP_FORCE_INLINE F_render_pass_functor_destructor_caller* functor_destructor_caller_p() const noexcept { return functor_destructor_caller_p_; }
-        NCPP_FORCE_INLINE void* functor_p() const noexcept { return functor_p_; }
+        NCPP_FORCE_INLINE const auto& functor_cache() const noexcept { return functor_cache_; }
 
         NCPP_FORCE_INLINE const auto& resource_states() const noexcept { return resource_states_; }
         NCPP_FORCE_INLINE ED_pipeline_state_type pipeline_state_type() const noexcept { return pipeline_state_type_; }
@@ -41,9 +42,7 @@ namespace nre::newrg
 
     public:
         F_render_pass(
-            F_render_pass_functor_caller* functor_caller_p,
-            F_render_pass_functor_destructor_caller* functor_destructor_caller_p,
-            void* functor_p,
+            const F_render_pass_functor_cache& functor_cache,
             ED_pipeline_state_type pipeline_state_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name

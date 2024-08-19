@@ -18,8 +18,5 @@ namespace nre::newrg
         true,
         F_reference_frame_allocator
     >;
-#define NRE_OPT_PASS_RENDER_FRAME_NAME(...) NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(, __VA_ARGS__)
-#else
-#define NRE_OPT_PASS_RENDER_FRAME_NAME(...)
 #endif
 }

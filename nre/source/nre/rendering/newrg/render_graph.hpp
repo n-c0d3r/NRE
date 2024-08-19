@@ -29,15 +29,22 @@ namespace nre::newrg
         {
             void* object_p = 0;
             void (*object_destructor_caller_p)(void*) = 0;
+
+            NCPP_FORCE_INLINE void destruct()
+            {
+                object_destructor_caller_p(object_p);
+            }
         };
 
 
 
     private:
-        TG_vector<F_temp_object_cache> temp_object_caches_;
+        TF_concurrent_ring_buffer<F_temp_object_cache> temp_object_cache_ring_buffer_;
+        b8 is_rhi_available_ = false;
 
     public:
-        NCPP_FORCE_INLINE const auto& temp_object_caches() const noexcept { return temp_object_caches_; }
+        NCPP_FORCE_INLINE const auto& temp_object_cache_ring_buffer() const noexcept { return temp_object_cache_ring_buffer_; }
+        NCPP_FORCE_INLINE b8 is_rhi_available() const noexcept { return is_rhi_available_; }
 
 
 
@@ -52,12 +59,11 @@ namespace nre::newrg
 
     private:
         void flush_objects_internal();
+        void flush_states_internal();
 
     private:
         F_render_pass* create_pass_internal(
-            F_render_pass_functor_caller* functor_caller_p,
-            F_render_pass_functor_destructor_caller* functor_destructor_caller_p,
-            void* functor_p,
+            const F_render_pass_functor_cache& functor_cache,
             ED_pipeline_state_type pipeline_state_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name
@@ -89,15 +95,20 @@ namespace nre::newrg
                 NCPP_FORWARD(args)...
             );
 
-            temp_object_caches_.push_back({
-                .object_p = (void*)result_p,
+            T_register<F__>(result_p);
+
+            return result_p;
+        }
+        template<typename F__>
+        NCPP_FORCE_INLINE void T_register(F__* object_p)
+        {
+            temp_object_cache_ring_buffer_.push({
+                .object_p = (void*)object_p,
                 .object_destructor_caller_p = [](void* object_p)
                 {
                     ((F__*)object_p)->~F__();
                 }
             });
-
-            return result_p;
         }
 
     public:
@@ -126,22 +137,24 @@ namespace nre::newrg
             );
 
             return create_pass_internal(
-                [](
-                    F_render_pass* render_pass_p,
-                    TKPA_valid<A_command_list> command_list_p,
-                    void* data_p
-                )
                 {
-                    (*((F_functor*)data_p))(
-                        render_pass_p,
-                        command_list_p
-                    );
+                    [](
+                        F_render_pass* render_pass_p,
+                        TKPA_valid<A_command_list> command_list_p,
+                        void* data_p
+                    )
+                    {
+                        (*((F_functor*)data_p))(
+                            render_pass_p,
+                            command_list_p
+                        );
+                    },
+                    [](void* data_p)
+                    {
+                        ((F_functor*)data_p)->~F_functor();
+                    },
+                    functor_p
                 },
-                [](void* data_p)
-                {
-                    ((F_functor*)data_p)->~F_functor();
-                },
-                functor_p,
                 pipeline_state_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , name
