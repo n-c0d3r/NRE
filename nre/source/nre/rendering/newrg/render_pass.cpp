@@ -32,7 +32,7 @@ namespace nre::newrg
         resource_states_.push_back(resource_state);
     }
 
-    void F_render_pass::execute(TKPA_valid<A_command_list> command_list_p)
+    void F_render_pass::execute_internal(TKPA_valid<A_command_list> command_list_p)
     {
         functor_cache_.call(
             this,

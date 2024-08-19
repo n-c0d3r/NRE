@@ -4,6 +4,7 @@
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_functor.hpp>
+#include <nre/rendering/newrg/render_resource_allocator.hpp>
 
 
 
@@ -77,6 +78,9 @@ namespace nre::newrg
         void flush();
 
     public:
+        /**
+         *  Thread-safe
+         */
         template<typename F__>
         NCPP_FORCE_INLINE F__* T_allocate()
         {
@@ -88,6 +92,9 @@ namespace nre::newrg
                 )
             );
         }
+        /**
+         *  Thread-safe
+         */
         template<typename F__>
         NCPP_FORCE_INLINE F__* T_create(auto&&... args)
         {
@@ -99,6 +106,9 @@ namespace nre::newrg
 
             return result_p;
         }
+        /**
+         *  Thread-safe
+         */
         template<typename F__>
         NCPP_FORCE_INLINE void T_register(F__* object_p)
         {
@@ -112,12 +122,18 @@ namespace nre::newrg
         }
 
     public:
+        /**
+         *  Thread-safe
+         */
         F_render_resource* create_resource(
             const F_resource_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name
 #endif
         );
+        /**
+         *  Thread-safe
+         */
         F_render_pass* create_pass(
             auto&& functor,
             ED_pipeline_state_type pipeline_state_type
