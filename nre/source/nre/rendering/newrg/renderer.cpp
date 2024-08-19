@@ -32,15 +32,6 @@ namespace nre::newrg
 
         auto allocation_5 = resource_allocator.allocate(128 * 1024 * 1024);
 
-        auto resource_p = resource_allocator.create_resource(
-            allocation_5,
-            H_resource_desc::create_buffer_desc(
-                1024 * 1024,
-            128,
-                ED_resource_flag::INPUT_BUFFER
-            )
-        );
-
 
 
         auto render_graph_p = F_render_graph::instance_p();
