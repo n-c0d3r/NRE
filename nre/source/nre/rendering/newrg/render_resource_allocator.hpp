@@ -45,13 +45,24 @@ namespace nre::newrg
 
 
     private:
-        F_render_resource_page& create_page_internal(u64 heap_alignment = 0);
+        F_render_resource_page& create_page_internal(u64 alignment = u64(ED_resource_placement_alignment::DEFAULT));
 
 
 
     public:
-        F_render_resource_allocation allocate(sz size, u64 alignment = 0);
+        F_render_resource_allocation allocate(sz size, u64 alignment = u64(ED_resource_placement_alignment::DEFAULT));
         void deallocate(const F_render_resource_allocation& allocation);
+
+    public:
+        TU<A_resource> create_resource(
+            const F_render_resource_allocation& allocation,
+            const F_resource_desc& desc
+        );
+        void rebuild_resource(
+            TKPA_valid<A_resource>& resource_p,
+            const F_render_resource_allocation& allocation,
+            const F_resource_desc& desc
+        );
 
     public:
         void apply();
