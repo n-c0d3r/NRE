@@ -6,6 +6,7 @@ namespace nre::newrg
 {
     F_render_pass::F_render_pass(
         F_render_pass_functor_caller* functor_caller_p,
+        F_render_pass_functor_destructor_caller* functor_destructor_caller_p,
         void* functor_p,
         ED_pipeline_state_type pipeline_state_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -13,6 +14,7 @@ namespace nre::newrg
 #endif
     ) :
         functor_caller_p_(functor_caller_p),
+        functor_destructor_caller_p_(functor_destructor_caller_p),
         functor_p_(functor_p),
         pipeline_state_type_(pipeline_state_type)
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -22,6 +24,8 @@ namespace nre::newrg
     }
     F_render_pass::~F_render_pass()
     {
+        //
+        functor_destructor_caller_p_(functor_p_);
     }
 
 

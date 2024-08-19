@@ -30,6 +30,29 @@ namespace nre::newrg
         temp_object_caches_.clear();
     }
 
+    F_render_pass* F_render_graph::create_pass_internal(
+        F_render_pass_functor_caller* functor_caller_p,
+        F_render_pass_functor_destructor_caller* functor_destructor_caller_p,
+        void* functor_p,
+        ED_pipeline_state_type pipeline_state_type
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , F_render_frame_name name
+#endif
+    )
+    {
+        F_render_pass* render_pass_p = T_create<F_render_pass>(
+            functor_caller_p,
+            functor_destructor_caller_p,
+            functor_p,
+            pipeline_state_type
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , name
+#endif
+        );
+
+        return render_pass_p;
+    }
+
 
 
     void F_render_graph::execute()
@@ -54,23 +77,5 @@ namespace nre::newrg
         );
 
         return render_resource_p;
-    }
-    F_render_pass* F_render_graph::create_pass(
-        ED_pipeline_state_type pipeline_state_type
-#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
-#endif
-    )
-    {
-        F_render_pass* render_pass_p = T_create<F_render_pass>(
-            (F_render_pass_functor_caller*)0,
-            (void*)0,
-            pipeline_state_type
-#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , name
-#endif
-        );
-
-        return render_pass_p;
     }
 }

@@ -31,6 +31,9 @@ namespace nre::newrg
         );
 
         auto render_pass_p = render_graph_p->create_pass(
+            []()
+            {
+            },
             ED_pipeline_state_type::GRAPHICS
             NRE_OPT_PASS_RENDER_FRAME_NAME("demo_render_pass")
         );

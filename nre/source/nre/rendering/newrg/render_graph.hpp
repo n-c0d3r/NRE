@@ -3,6 +3,7 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
+#include <nre/rendering/newrg/render_pass_functor.hpp>
 
 
 
@@ -52,6 +53,17 @@ namespace nre::newrg
     private:
         void flush_objects_internal();
 
+    private:
+        F_render_pass* create_pass_internal(
+            F_render_pass_functor_caller* functor_caller_p,
+            F_render_pass_functor_destructor_caller* functor_destructor_caller_p,
+            void* functor_p,
+            ED_pipeline_state_type pipeline_state_type
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , F_render_frame_name name
+#endif
+        );
+
 
 
     public:
@@ -96,10 +108,38 @@ namespace nre::newrg
 #endif
         );
         F_render_pass* create_pass(
+            auto&& functor,
             ED_pipeline_state_type pipeline_state_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name
 #endif
-        );
+        )
+        {
+            using F_functor = std::remove_const_t<std::remove_reference_t<decltype(functor)>>;
+            NCPP_ASSERT(T_is_render_pass_functor<F_functor>, "invalid functor type");
+
+            F_functor* functor_p = (F_functor*)H_frame_heap::allocate(
+                sizeof(F_functor),
+                NCPP_ALIGNOF(F_functor),
+                0,
+                NRE_FRAME_PARAM_RENDER
+            );
+
+            return create_pass_internal(
+                [](void* data_p)
+                {
+                    (*((F_functor*)data_p))();
+                },
+                [](void* data_p)
+                {
+                    ((F_functor*)data_p)->~F_functor();
+                },
+                functor_p,
+                pipeline_state_type
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , name
+#endif
+            );
+        }
     };
 }
