@@ -110,11 +110,4 @@ namespace nre::newrg
             allocation.heap_offset
         );
     }
-
-    void F_render_resource_allocator::apply()
-    {
-    }
-    void F_render_resource_allocator::flush()
-    {
-    }
 }

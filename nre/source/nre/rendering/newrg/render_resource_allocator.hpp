@@ -63,9 +63,5 @@ namespace nre::newrg
             const F_render_resource_allocation& allocation,
             const F_resource_desc& desc
         );
-
-    public:
-        void apply();
-        void flush();
     };
 }
