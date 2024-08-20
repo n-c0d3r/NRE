@@ -3,11 +3,19 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
+#include <nre/rendering/newrg/render_pass_id.hpp>
 
 
 
 namespace nre::newrg
 {
+    class F_render_pass;
+
+
+
+    /**
+     *  Objects of this class are only exists in a frame
+     */
     class NRE_API F_render_resource final
     {
     public:

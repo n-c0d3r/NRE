@@ -5,11 +5,19 @@
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_functor.hpp>
+#include <nre/rendering/newrg/render_pass_id.hpp>
 
 
 
 namespace nre::newrg
 {
+    class F_render_resource;
+
+
+
+    /**
+     *  Objects of this class are only exists in a frame
+     */
     class NRE_API F_render_pass final
     {
     public:
@@ -18,9 +26,14 @@ namespace nre::newrg
 
 
     private:
+        F_render_pass_id id_ = NCPP_U32_MAX;
+
         F_render_pass_functor_cache functor_cache_;
 
         TF_render_frame_vector<F_render_resource_state> resource_states_;
+
+        TF_render_frame_vector<F_render_resource*> resource_to_allocate_vector_;
+        TF_render_frame_vector<F_render_resource*> resource_to_deallocate_vector_;
 
         ED_pipeline_state_type pipeline_state_type_ = ED_pipeline_state_type::NONE;
 
@@ -29,6 +42,8 @@ namespace nre::newrg
 #endif
 
     public:
+        NCPP_FORCE_INLINE F_render_pass_id id() const noexcept { return id_; }
+
         NCPP_FORCE_INLINE const auto& functor_cache() const noexcept { return functor_cache_; }
 
         NCPP_FORCE_INLINE const auto& resource_states() const noexcept { return resource_states_; }

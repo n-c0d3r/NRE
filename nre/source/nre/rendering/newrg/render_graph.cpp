@@ -12,7 +12,8 @@ namespace nre::newrg
 
 
     F_render_graph::F_render_graph() :
-        temp_object_cache_ring_buffer_(NRE_RENDER_GRAPH_TEMP_OBJECT_CACHE_RING_BUFFER_CAPACITY)
+        temp_object_cache_ring_buffer_(NRE_RENDER_GRAPH_TEMP_OBJECT_CACHE_RING_BUFFER_CAPACITY),
+        pass_p_owf_stack_(NRE_RENDER_GRAPH_PASS_OWF_STACK_CAPACITY)
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
@@ -48,6 +49,14 @@ namespace nre::newrg
 
 
 
+    void F_render_graph::setup_resource_allocation_lists_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+    }
+    void F_render_graph::setup_resource_deallocation_lists_internal()
+    {
+    }
+
     void F_render_graph::flush_objects_internal()
     {
         F_temp_object_cache temp_object_cache;
@@ -56,13 +65,17 @@ namespace nre::newrg
             temp_object_cache.destruct();
         }
     }
+    void F_render_graph::flush_passes_internal()
+    {
+        pass_p_owf_stack_.reset();
+    }
     void F_render_graph::flush_states_internal()
     {
         is_rhi_available_ = false;
     }
 
     F_render_pass* F_render_graph::create_pass_internal(
-            const F_render_pass_functor_cache& functor_cache,
+        const F_render_pass_functor_cache& functor_cache,
         ED_pipeline_state_type pipeline_state_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , F_render_frame_name name
@@ -77,6 +90,8 @@ namespace nre::newrg
 #endif
         );
 
+        pass_p_owf_stack_.push(render_pass_p);
+
         return render_pass_p;
     }
 
@@ -84,10 +99,13 @@ namespace nre::newrg
 
     void F_render_graph::execute()
     {
+        setup_resource_allocation_lists_internal();
+        setup_resource_deallocation_lists_internal();
     }
     void F_render_graph::flush()
     {
         flush_objects_internal();
+        flush_passes_internal();
         flush_states_internal();
     }
 
