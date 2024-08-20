@@ -75,12 +75,22 @@ namespace nre::newrg
 
     private:
         void setup_resource_passes_internal();
+        void setup_resource_min_pass_ids_internal();
+        void setup_resource_max_pass_ids_internal();
         void setup_resource_allocation_lists_internal();
         void setup_resource_deallocation_lists_internal();
 
     private:
+        void calculate_resource_allocations_internal();
+
+    private:
+        void create_rhi_resources_internal();
+        void flush_rhi_resources_internal();
+
+    private:
         void flush_objects_internal();
         void flush_passes_internal();
+        void flush_resources_internal();
         void flush_states_internal();
 
     private:

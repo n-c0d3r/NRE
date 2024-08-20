@@ -15,7 +15,7 @@ namespace nre::newrg
     private:
         ED_resource_type resource_type_ = ED_resource_type::NONE;
         F_rhi_placed_resource_pool* parent_p_;
-        TG_concurrent_ring_buffer<TU<A_resource>> rhi_placed_resource_p_ring_buffer_;
+        TG_ring_buffer<TU<A_resource>> rhi_placed_resource_p_ring_buffer_;
 
     public:
         NCPP_FORCE_INLINE ED_resource_type resource_type() const noexcept { return resource_type_; }
@@ -27,6 +27,7 @@ namespace nre::newrg
     public:
         F_rhi_placed_resource_pool() = default;
         F_rhi_placed_resource_pool(ED_resource_type resource_type, F_rhi_placed_resource_pool* parent_p = 0) :
+            resource_type_(resource_type),
             parent_p_(parent_p),
             rhi_placed_resource_p_ring_buffer_(NRE_RENDER_GRAPH_RHI_RESOURCE_POOL_CAPACITY)
         {
@@ -40,7 +41,7 @@ namespace nre::newrg
         {
             parent_p_ = x.parent_p_;
             resource_type_ = x.resource_type_;
-            rhi_placed_resource_p_ring_buffer_ = TG_concurrent_ring_buffer<TU<A_resource>>(
+            rhi_placed_resource_p_ring_buffer_ = TG_ring_buffer<TU<A_resource>>(
                 NRE_RENDER_GRAPH_RHI_RESOURCE_POOL_CAPACITY
             );
 
@@ -77,6 +78,8 @@ namespace nre::newrg
             u64 heap_offset
         )
         {
+            NCPP_ASSERT(desc.type == resource_type_);
+
             TU<A_resource> rhi_placed_resource_p;
             if(rhi_placed_resource_p_ring_buffer_.try_pop(rhi_placed_resource_p))
                 rhi_placed_resource_p->rebuild_placed(

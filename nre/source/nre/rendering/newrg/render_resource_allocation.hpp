@@ -10,7 +10,7 @@ namespace nre::newrg
 {
     struct F_render_resource_allocation
     {
-        u32 page_index = 0;
+        u32 page_index = NCPP_U32_MAX;
         sz heap_offset = 0;
     };
 }

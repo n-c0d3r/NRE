@@ -32,18 +32,33 @@ namespace nre::newrg
             NRE_OPTIONAL_DEBUG_PARAM("demo_render_resource")
         );
 
-        auto render_pass_p = render_graph_p->create_pass(
-            [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
-            {
-            },
-            ED_pipeline_state_type::GRAPHICS
-            NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass")
-        );
+        {
+            auto render_pass_p = render_graph_p->create_pass(
+                [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
+                {
+                },
+                ED_pipeline_state_type::GRAPHICS
+                NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_1")
+            );
+            render_pass_p->add_resource_state({
+                render_resource_p,
+                ED_resource_flag::INPUT_BUFFER
+            });
+        }
 
-        render_pass_p->add_resource_state({
-            render_resource_p,
-            ED_resource_flag::INPUT_BUFFER
-        });
+        {
+            auto render_pass_p = render_graph_p->create_pass(
+                [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
+                {
+                },
+                ED_pipeline_state_type::GRAPHICS
+                NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_2")
+            );
+            render_pass_p->add_resource_state({
+                render_resource_p,
+                ED_resource_flag::INPUT_BUFFER
+            });
+        }
     }
     void F_renderer::render_frame()
     {
