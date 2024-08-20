@@ -6,6 +6,7 @@
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_functor.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
+#include <nre/rendering/newrg/render_resource_id.hpp>
 
 
 

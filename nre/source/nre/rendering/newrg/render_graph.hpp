@@ -48,6 +48,7 @@ namespace nre::newrg
         TG_unordered_map<u32, F_rhi_placed_resource_pool> rhi_placed_resource_pools_;
 
         TG_concurrent_owf_stack<F_render_pass*> pass_p_owf_stack_;
+        TG_concurrent_owf_stack<F_render_resource*> resource_p_owf_stack_;
 
     public:
         NCPP_FORCE_INLINE const auto& temp_object_cache_ring_buffer() const noexcept { return temp_object_cache_ring_buffer_; }
@@ -59,6 +60,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& rhi_placed_resource_pools() noexcept { return rhi_placed_resource_pools_; }
 
         NCPP_FORCE_INLINE auto& pass_p_owf_stack() noexcept { return pass_p_owf_stack_; }
+        NCPP_FORCE_INLINE auto& resource_p_owf_stack() noexcept { return resource_p_owf_stack_; }
 
 
 
@@ -72,6 +74,7 @@ namespace nre::newrg
 
 
     private:
+        void setup_resource_passes_internal();
         void setup_resource_allocation_lists_internal();
         void setup_resource_deallocation_lists_internal();
 

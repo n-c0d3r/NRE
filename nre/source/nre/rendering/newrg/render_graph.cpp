@@ -49,6 +49,9 @@ namespace nre::newrg
 
 
 
+    void F_render_graph::setup_resource_passes_internal()
+    {
+    }
     void F_render_graph::setup_resource_allocation_lists_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
@@ -90,7 +93,7 @@ namespace nre::newrg
 #endif
         );
 
-        pass_p_owf_stack_.push(render_pass_p);
+        render_pass_p->id_ = pass_p_owf_stack_.push_and_return_index(render_pass_p);
 
         return render_pass_p;
     }
@@ -99,6 +102,7 @@ namespace nre::newrg
 
     void F_render_graph::execute()
     {
+        setup_resource_passes_internal();
         setup_resource_allocation_lists_internal();
         setup_resource_deallocation_lists_internal();
     }
@@ -124,6 +128,8 @@ namespace nre::newrg
             , name
 #endif
         );
+
+        render_resource_p->id_ = resource_p_owf_stack_.push_and_return_index(render_resource_p);
 
         return render_resource_p;
     }

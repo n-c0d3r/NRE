@@ -4,6 +4,7 @@
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
+#include <nre/rendering/newrg/render_resource_id.hpp>
 
 
 
@@ -24,6 +25,8 @@ namespace nre::newrg
 
 
     private:
+        F_render_resource_id id_ = NCPP_U32_MAX;
+
         TK<A_resource> rhi_p_;
 
         F_resource_desc* desc_to_create_p_ = 0;
@@ -33,6 +36,8 @@ namespace nre::newrg
 #endif
 
     public:
+        NCPP_FORCE_INLINE F_render_resource_id id() const noexcept { return id_; }
+
         NCPP_FORCE_INLINE TKPA_valid<A_resource> rhi_p() const noexcept { return (TKPA_valid<A_resource>)rhi_p_; }
 
         NCPP_FORCE_INLINE b8 need_to_create() const noexcept { return (desc_to_create_p_ != 0); }

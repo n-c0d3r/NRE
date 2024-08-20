@@ -9,6 +9,7 @@
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
+#include <nre/rendering/newrg/render_resource_id.hpp>
 #include <nre/rendering/newrg/external_render_resource.hpp>
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/render_resource_allocator.hpp>
