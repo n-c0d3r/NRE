@@ -15,6 +15,32 @@ namespace nre::newrg
         temp_object_cache_ring_buffer_(NRE_RENDER_GRAPH_TEMP_OBJECT_CACHE_RING_BUFFER_CAPACITY)
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
+
+        // setup resource allocators
+        {
+            resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_BUFFERS] = F_render_resource_allocator(
+                ED_resource_heap_type::DEFAULT,
+                ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
+            );
+            resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_RT_DS_TEXTURES] = F_render_resource_allocator(
+                ED_resource_heap_type::DEFAULT,
+                ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
+            );
+            resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_NON_RT_DS_TEXTURES] = F_render_resource_allocator(
+                ED_resource_heap_type::DEFAULT,
+                ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
+            );
+        }
+
+        // setup rhi placed resource pools
+        {
+            rhi_placed_resource_pools_[u32(ED_resource_type::BUFFER)] = F_rhi_placed_resource_pool(ED_resource_type::BUFFER);
+            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_1D)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_1D);
+            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_1D_ARRAY)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_1D_ARRAY);
+            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_2D)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_2D);
+            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_2D_ARRAY)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_2D_ARRAY);
+            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_3D)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_3D);
+        }
     }
     F_render_graph::~F_render_graph()
     {
@@ -82,5 +108,41 @@ namespace nre::newrg
         );
 
         return render_resource_p;
+    }
+
+    F_render_resource_allocator& F_render_graph::find_allocator(
+        ED_resource_type resource_type,
+        ED_resource_flag resource_flags
+    )
+    {
+        if(resource_type == ED_resource_type::BUFFER)
+            return resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_BUFFERS];
+
+        // only 2d textures can be render target and depth stencil,
+        // so 1d, 3d textures are always non-RT, non-DS
+        if(
+            (resource_type == ED_resource_type::TEXTURE_1D)
+            || (resource_type == ED_resource_type::TEXTURE_1D_ARRAY)
+            || (resource_type == ED_resource_type::TEXTURE_3D)
+        )
+            return resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_NON_RT_DS_TEXTURES];
+
+        if(
+            flag_is_has(
+                resource_flags,
+                ED_resource_flag::RENDER_TARGET
+            )
+            || flag_is_has(
+                resource_flags,
+                ED_resource_flag::DEPTH_STENCIL
+            )
+        )
+            return resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_RT_DS_TEXTURES];
+    }
+    F_rhi_placed_resource_pool& F_render_graph::find_rhi_placed_resource_pool(ED_resource_type resource_type)
+    {
+        return rhi_placed_resource_pools_[
+            u32(resource_type)
+        ];
     }
 }

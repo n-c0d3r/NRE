@@ -5,6 +5,7 @@
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_functor.hpp>
 #include <nre/rendering/newrg/render_resource_allocator.hpp>
+#include <nre/rendering/newrg/rhi_placed_resource_pool.hpp>
 
 
 
@@ -43,9 +44,17 @@ namespace nre::newrg
         TF_concurrent_ring_buffer<F_temp_object_cache> temp_object_cache_ring_buffer_;
         b8 is_rhi_available_ = false;
 
+        TG_array<F_render_resource_allocator, NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_COUNT> resource_allocators_;
+        TG_unordered_map<u32, F_rhi_placed_resource_pool> rhi_placed_resource_pools_;
+
     public:
         NCPP_FORCE_INLINE const auto& temp_object_cache_ring_buffer() const noexcept { return temp_object_cache_ring_buffer_; }
         NCPP_FORCE_INLINE b8 is_rhi_available() const noexcept { return is_rhi_available_; }
+
+        NCPP_FORCE_INLINE const auto& resource_allocators() const noexcept { return resource_allocators_; }
+        NCPP_FORCE_INLINE auto& resource_allocators() noexcept { return resource_allocators_; }
+        NCPP_FORCE_INLINE const auto& rhi_placed_resource_pools() const noexcept { return rhi_placed_resource_pools_; }
+        NCPP_FORCE_INLINE auto& rhi_placed_resource_pools() noexcept { return rhi_placed_resource_pools_; }
 
 
 
@@ -177,5 +186,18 @@ namespace nre::newrg
 #endif
             );
         }
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        F_render_resource_allocator& find_allocator(
+            ED_resource_type resource_type,
+            ED_resource_flag resource_flags
+        );
+        /**
+         *  Thread-safe
+         */
+        F_rhi_placed_resource_pool& find_rhi_placed_resource_pool(ED_resource_type resource_type);
     };
 }

@@ -22,18 +22,6 @@ namespace nre::newrg
 
     void F_renderer::setup_frame()
     {
-        F_render_resource_allocator resource_allocator;
-        auto allocation_1 = resource_allocator.allocate(128 * 1024 * 1024);
-        auto allocation_2 = resource_allocator.allocate(128 * 1024 * 1024);
-        auto allocation_3 = resource_allocator.allocate(128 * 1024 * 1024);
-        auto allocation_4 = resource_allocator.allocate(128 * 1024 * 1024);
-
-        resource_allocator.deallocate(allocation_1);
-
-        auto allocation_5 = resource_allocator.allocate(128 * 1024 * 1024);
-
-
-
         auto render_graph_p = F_render_graph::instance_p();
 
         auto render_resource_p = render_graph_p->create_resource(

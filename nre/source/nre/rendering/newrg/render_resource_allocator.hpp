@@ -36,10 +36,23 @@ namespace nre::newrg
 
 
     public:
+        F_render_resource_allocator() = default;
         F_render_resource_allocator(
-            ED_resource_heap_type heap_type = ED_resource_heap_type::DEFAULT,
-            ED_resource_heap_flag heap_flags = ED_resource_heap_flag::NONE
+            ED_resource_heap_type heap_type,
+            ED_resource_heap_flag heap_flags
         );
+        F_render_resource_allocator(const F_render_resource_allocator& x) :
+            F_render_resource_allocator(x.heap_type_, x.heap_flags_)
+        {
+        }
+        F_render_resource_allocator& operator = (const F_render_resource_allocator& x)
+        {
+            heap_type_ = x.heap_type_;
+            heap_flags_ = x.heap_flags_;
+            pages_.clear();
+
+            return *this;
+        }
         ~F_render_resource_allocator();
 
 
@@ -64,4 +77,14 @@ namespace nre::newrg
             const F_resource_desc& desc
         );
     };
+
+
+
+    // Buffers
+    // RT DS Textures
+    // Non RT DS Textures
+#define NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_COUNT 3
+#define NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_BUFFERS 0
+#define NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_RT_DS_TEXTURES 1
+#define NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_NON_RT_DS_TEXTURES 2
 }
