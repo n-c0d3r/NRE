@@ -15,8 +15,8 @@ namespace nre::newrg
         if(free_range_begin != allocated_range_begin)
         {
             free_ranges.push_back({
-                allocated_range_begin,
-                free_range_begin
+                free_range_begin,
+                allocated_range_begin
             });
         }
         if(free_range_end != allocated_range_end)
@@ -109,7 +109,7 @@ namespace nre::newrg
                     allocated_range_begin = free_range.begin;
 
                     eastl::swap(free_range, free_ranges.back());
-                    allocated_ranges.resize(free_ranges.size() - 1);
+                    free_ranges.resize(free_ranges.size() - 1);
                     break;
                 }
             }
@@ -124,7 +124,7 @@ namespace nre::newrg
                     allocated_range_end = free_range.end;
 
                     eastl::swap(free_range, free_ranges.back());
-                    allocated_ranges.resize(free_ranges.size() - 1);
+                    free_ranges.resize(free_ranges.size() - 1);
                     break;
                 }
             }
