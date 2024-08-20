@@ -109,6 +109,7 @@ namespace nre::newrg
             }
             else
             {
+                rhi_placed_resource_p->release_driver_specific_implementation();
                 rhi_placed_resource_p_ring_buffer_.push(std::move(rhi_placed_resource_p));
             }
         }
