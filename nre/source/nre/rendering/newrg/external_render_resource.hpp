@@ -29,7 +29,7 @@ namespace nre::newrg
         F_render_resource* internal_p_ = 0;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        F_render_frame_name name_;
+        F_debug_name name_;
 #endif
 
     public:
@@ -43,7 +43,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE b8 need_to_import() const noexcept { return (internal_p_ != 0); }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }
+        NCPP_FORCE_INLINE const F_debug_name& name() const noexcept { return name_; }
 #endif
 
 
@@ -51,7 +51,7 @@ namespace nre::newrg
     public:
         F_external_render_resource(
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            const F_render_frame_name& name
+            const F_debug_name& name
 #endif
         );
         ~F_external_render_resource();

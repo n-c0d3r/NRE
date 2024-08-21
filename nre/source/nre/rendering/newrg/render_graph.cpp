@@ -383,7 +383,7 @@ namespace nre::newrg
         {
             resource_p->external_p_ = TS<F_external_render_resource>()(
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-                resource_p->name_
+                resource_p->name_.c_str()
 #endif
             );
         }
@@ -402,7 +402,7 @@ namespace nre::newrg
                 std::move(external_resource_p->rhi_p_),
                 external_resource_p->allocation_
     #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-                , external_resource_p->name_
+                , external_resource_p->name_.c_str()
     #endif
             );
 
