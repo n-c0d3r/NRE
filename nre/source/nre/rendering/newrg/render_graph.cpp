@@ -307,6 +307,38 @@ namespace nre::newrg
         }
     }
 
+    void F_render_graph::create_resource_barriers_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        for(F_render_pass* pass_p : pass_span)
+        {
+            auto& resource_states = pass_p->resource_states_;
+            auto& resource_producer_states = pass_p->resource_producer_states_;
+
+            u32 resource_state_count = resource_states.size();
+            for(u32 i = 0; i < resource_state_count; ++i)
+            {
+                auto& resource_state = resource_states[i];
+                auto& resource_producer_state = resource_producer_states[i];
+
+                F_render_pass* producer_pass_p = resource_producer_state.pass_p;
+
+                // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
+                if(
+                    (
+                        flag_is_has(resource_producer_state.flags, ED_resource_flag::RENDER_TARGET)
+                        && flag_is_has(resource_state.flags, ED_resource_flag::RENDER_TARGET)
+                    )
+                    || (
+                        flag_is_has(resource_producer_state.flags, ED_resource_flag::DEPTH_STENCIL)
+                        && flag_is_has(resource_state.flags, ED_resource_flag::DEPTH_STENCIL)
+                    )
+                )
+                    continue;
+            }
+        }
+    }
+
     void F_render_graph::export_resources_internal()
     {
         auto resource_span = resource_p_owf_stack_.item_span();
@@ -371,6 +403,7 @@ namespace nre::newrg
         calculate_resource_allocations_internal();
 
         create_rhi_resources_internal();
+        create_resource_barriers_internal();
     }
 
     F_render_pass* F_render_graph::create_pass_internal(
