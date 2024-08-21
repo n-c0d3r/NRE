@@ -72,7 +72,7 @@ namespace nre::newrg
                 F_render_resource* resource_p = resource_state.resource_p;
                 resource_p->use_states_.push_back({
                     pass_p,
-                    resource_state.flags
+                    resource_state.states
                 });
             }
         }
@@ -193,7 +193,7 @@ namespace nre::newrg
 
                 // find out producer_state pass id
                 F_render_pass* producer_pass_p = 0;
-                ED_resource_flag producer_resource_flag = ED_resource_flag::NONE;
+                ED_resource_state producer_resource_states = ED_resource_state::COMMON;
                 F_render_pass_id producer_state_pass_id = NCPP_U32_MAX;
                 for(const auto& use_state : use_states)
                 {
@@ -209,7 +209,7 @@ namespace nre::newrg
                     if(producer_state_pass_id == NCPP_U32_MAX)
                     {
                         producer_pass_p = use_pass_p;
-                        producer_resource_flag = use_state.flags;
+                        producer_resource_states = use_state.states;
                         producer_state_pass_id = use_pass_id;
                     }
                     else
@@ -217,7 +217,7 @@ namespace nre::newrg
                         if(use_pass_id > producer_state_pass_id)
                         {
                             producer_pass_p = use_pass_p;
-                            producer_resource_flag = use_state.flags;
+                            producer_resource_states = use_state.states;
                             producer_state_pass_id = use_pass_id;
                         }
                     }
@@ -226,7 +226,7 @@ namespace nre::newrg
                 resource_producer_states.push_back({
                     resource_p,
                     producer_pass_p,
-                    producer_resource_flag
+                    producer_resource_states
                 });
             }
         }
@@ -324,17 +324,17 @@ namespace nre::newrg
                 F_render_pass* producer_pass_p = resource_producer_state.pass_p;
 
                 // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
-                if(
-                    (
-                        flag_is_has(resource_producer_state.flags, ED_resource_flag::RENDER_TARGET)
-                        && flag_is_has(resource_state.flags, ED_resource_flag::RENDER_TARGET)
-                    )
-                    || (
-                        flag_is_has(resource_producer_state.flags, ED_resource_flag::DEPTH_STENCIL)
-                        && flag_is_has(resource_state.flags, ED_resource_flag::DEPTH_STENCIL)
-                    )
-                )
-                    continue;
+                // if(
+                //     (
+                //         flag_is_has(resource_producer_state.states, ED_resource_flag::RENDER_TARGET)
+                //         && flag_is_has(resource_state.states, ED_resource_flag::RENDER_TARGET)
+                //     )
+                //     || (
+                //         flag_is_has(resource_producer_state.states, ED_resource_flag::DEPTH_STENCIL)
+                //         && flag_is_has(resource_state.states, ED_resource_flag::DEPTH_STENCIL)
+                //     )
+                // )
+                //     continue;
             }
         }
     }

@@ -17,15 +17,11 @@ namespace nre::newrg
     {
         F_render_resource* resource_p = 0;
         F_render_pass* pass_p = 0;
-        ED_resource_flag flags = ED_resource_flag::NONE;
+        ED_resource_state states = ED_resource_state::COMMON;
 
         NCPP_FORCE_INLINE b8 is_writable() const noexcept
         {
-            return (
-                flag_is_has(flags, ED_resource_flag::RENDER_TARGET)
-                || flag_is_has(flags, ED_resource_flag::DEPTH_STENCIL)
-                || flag_is_has(flags, ED_resource_flag::UNORDERED_ACCESS)
-            );
+            return H_resource_state::is_writable(states);
         }
     };
 }
