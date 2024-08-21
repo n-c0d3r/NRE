@@ -299,6 +299,20 @@ namespace nre::newrg
         is_rhi_available_ = false;
     }
 
+    void F_render_graph::setup_internal()
+    {
+        setup_resource_passes_internal();
+        setup_resource_min_pass_ids_internal();
+        setup_resource_max_pass_ids_internal();
+        setup_resource_allocation_lists_internal();
+        setup_resource_deallocation_lists_internal();
+        setup_resource_export_lists_internal();
+
+        calculate_resource_allocations_internal();
+
+        create_rhi_resources_internal();
+    }
+
     F_render_pass* F_render_graph::create_pass_internal(
         const F_render_pass_functor_cache& functor_cache,
         ED_pipeline_state_type pipeline_state_type
@@ -324,16 +338,10 @@ namespace nre::newrg
 
     void F_render_graph::execute()
     {
-        setup_resource_passes_internal();
-        setup_resource_min_pass_ids_internal();
-        setup_resource_max_pass_ids_internal();
-        setup_resource_allocation_lists_internal();
-        setup_resource_deallocation_lists_internal();
-        setup_resource_export_lists_internal();
-
-        calculate_resource_allocations_internal();
-
-        create_rhi_resources_internal();
+        setup_internal();
+    }
+    void F_render_graph::wait()
+    {
     }
     void F_render_graph::flush()
     {

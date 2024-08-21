@@ -111,6 +111,9 @@ namespace nre::newrg
         void flush_states_internal();
 
     private:
+        void setup_internal();
+
+    private:
         F_render_pass* create_pass_internal(
             const F_render_pass_functor_cache& functor_cache,
             ED_pipeline_state_type pipeline_state_type
@@ -123,6 +126,7 @@ namespace nre::newrg
 
     public:
         void execute();
+        void wait();
         void flush();
 
     public:

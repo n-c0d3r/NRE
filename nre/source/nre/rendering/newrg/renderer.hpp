@@ -37,7 +37,7 @@ namespace nre::newrg
 
 
     public:
-        void setup_frame();
-        void render_frame();
+        void begin_render_frame();
+        void end_render_frame();
     };
 }

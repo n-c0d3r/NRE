@@ -20,7 +20,7 @@ namespace nre::newrg
 
 
 
-    void F_renderer::setup_frame()
+    void F_renderer::begin_render_frame()
     {
         auto render_graph_p = F_render_graph::instance_p();
 
@@ -70,11 +70,14 @@ namespace nre::newrg
                 ED_resource_flag::INPUT_BUFFER
             });
         }
-    }
-    void F_renderer::render_frame()
-    {
-        auto render_graph_p = F_render_graph::instance_p();
 
         render_graph_p->execute();
     }
+    void F_renderer::end_render_frame()
+    {
+        auto render_graph_p = F_render_graph::instance_p();
+
+        render_graph_p->wait();
+    }
+
 }

@@ -38,8 +38,7 @@ namespace nre::newrg
         A_render_worker::tick();
 
         auto renderer_p = F_renderer::instance_p();
-        renderer_p->setup_frame();
-        renderer_p->render_frame();
+        renderer_p->begin_render_frame();
     }
     void F_main_render_worker::subtick()
     {
@@ -52,6 +51,13 @@ namespace nre::newrg
     void F_main_render_worker::end_frame()
     {
         A_render_worker::end_frame();
+    }
+    void F_main_render_worker::before_last_subtick()
+    {
+        A_render_worker::before_last_subtick();
+
+        auto renderer_p = F_renderer::instance_p();
+        renderer_p->end_render_frame();
     }
     void F_main_render_worker::before_cpu_gpu_synchronization()
     {

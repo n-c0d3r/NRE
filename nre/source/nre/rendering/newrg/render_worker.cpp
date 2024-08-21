@@ -85,7 +85,10 @@ namespace nre::newrg
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(
             is_in_frame_ = false;
-        );
+            );
+
+        //
+        before_last_subtick();
 
         // to make sure that we dont miss the last subtick
         subtick();
@@ -104,6 +107,9 @@ namespace nre::newrg
 
         // signal back to producer to let it do other stuff
         end_sync_point_.consumer_signal();
+    }
+    void A_render_worker::before_last_subtick()
+    {
     }
     void A_render_worker::before_cpu_gpu_synchronization()
     {

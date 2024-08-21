@@ -75,6 +75,7 @@ namespace nre::newrg
         virtual void subtick();
         virtual void begin_frame();
         virtual void end_frame();
+        virtual void before_last_subtick();
         virtual void before_cpu_gpu_synchronization();
         virtual void after_cpu_gpu_synchronization();
 
