@@ -83,12 +83,12 @@ namespace nre::newrg
             return;
         }
 
-        NCPP_ENABLE_IF_ASSERTION_ENABLED(
-            is_in_frame_ = false;
-            );
-
         //
         before_last_subtick();
+
+        NCPP_ENABLE_IF_ASSERTION_ENABLED(
+            is_in_frame_ = false;
+        );
 
         // to make sure that we dont miss the last subtick
         subtick();

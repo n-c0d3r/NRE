@@ -3,7 +3,7 @@
 #include <nre/rendering/newrg/render_resource.hpp>
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/external_render_resource.hpp>
-
+#include <nre/rendering/newrg/main_render_worker.hpp>
 
 
 namespace nre::newrg
@@ -422,10 +422,24 @@ namespace nre::newrg
     {
         NCPP_ASSERT(!(execute_range.is_async_compute)) << "async compute is not supported";
 
+        execute_range_command_list_p_->async_begin(
+            NCPP_FOH_VALID(execute_range_command_allocator_p_)
+        );
+
         for(F_render_pass* pass_p : execute_range.pass_p_vector)
         {
+            if(pass_p->resource_barrier_batch_.size())
+                execute_range_command_list_p_->async_resource_barriers(
+                    pass_p->resource_barrier_batch_
+                );
             pass_p->execute_internal(NCPP_FOH_VALID(execute_range_command_list_p_));
         }
+
+        execute_range_command_list_p_->async_end();
+
+        F_main_render_worker::instance_p()->enqueue_command_list(
+            NCPP_FOH_VALID(execute_range_command_list_p_)
+        );
     }
     void F_render_graph::execute_passes_internal()
     {
@@ -547,9 +561,6 @@ namespace nre::newrg
     void F_render_graph::execute()
     {
         execute_range_command_allocator_p_->flush();
-        execute_range_command_list_p_->async_begin(
-            NCPP_FOH_VALID(execute_range_command_allocator_p_)
-        );
 
         setup_internal();
         execute_passes_internal();
@@ -568,8 +579,6 @@ namespace nre::newrg
         flush_states_internal();
 
         flush_objects_internal();
-
-        execute_range_command_list_p_->async_end();
     }
 
     F_render_resource* F_render_graph::create_resource(
