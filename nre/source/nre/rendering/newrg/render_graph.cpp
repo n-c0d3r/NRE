@@ -22,7 +22,7 @@ namespace nre::newrg
 
 
     F_render_graph::F_render_graph() :
-        temp_object_cache_ring_buffer_(NRE_RENDER_GRAPH_TEMP_OBJECT_CACHE_RING_BUFFER_CAPACITY),
+        temp_object_cache_stack_(NRE_RENDER_GRAPH_TEMP_OBJECT_CACHE_STRACK_CAPACITY),
         pass_p_owf_stack_(NRE_RENDER_GRAPH_PASS_OWF_STACK_CAPACITY),
         resource_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY)
     {
@@ -270,11 +270,14 @@ namespace nre::newrg
 
     void F_render_graph::flush_objects_internal()
     {
-        F_temp_object_cache temp_object_cache;
-        while(temp_object_cache_ring_buffer_.try_pop(temp_object_cache))
+        auto object_cache_span = temp_object_cache_stack_.item_span();
+
+        for(auto it = object_cache_span.rbegin(); it != object_cache_span.rend(); ++it)
         {
-            temp_object_cache.destruct();
+            it->destruct();
         }
+
+        temp_object_cache_stack_.reset();
     }
     void F_render_graph::flush_passes_internal()
     {

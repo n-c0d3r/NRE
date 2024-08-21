@@ -42,7 +42,7 @@ namespace nre::newrg
 
 
     private:
-        TF_concurrent_ring_buffer<F_temp_object_cache> temp_object_cache_ring_buffer_;
+        TF_concurrent_owf_stack<F_temp_object_cache> temp_object_cache_stack_;
         b8 is_rhi_available_ = false;
 
         TG_array<F_render_resource_allocator, NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_COUNT> resource_allocators_;
@@ -59,7 +59,7 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_rhi_to_release> rhi_to_release_stack_;
 
     public:
-        NCPP_FORCE_INLINE const auto& temp_object_cache_ring_buffer() const noexcept { return temp_object_cache_ring_buffer_; }
+        NCPP_FORCE_INLINE const auto& temp_object_cache_stack() const noexcept { return temp_object_cache_stack_; }
         NCPP_FORCE_INLINE b8 is_rhi_available() const noexcept { return is_rhi_available_; }
 
         NCPP_FORCE_INLINE const auto& resource_allocators() const noexcept { return resource_allocators_; }
@@ -160,7 +160,7 @@ namespace nre::newrg
         template<typename F__>
         NCPP_FORCE_INLINE void T_register(F__* object_p)
         {
-            temp_object_cache_ring_buffer_.push({
+            temp_object_cache_stack_.push({
                 .object_p = (void*)object_p,
                 .object_destructor_caller_p = [](void* object_p)
                 {
