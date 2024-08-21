@@ -53,7 +53,7 @@ namespace nre::newrg
         for(u32 i = 0; i < page_count; ++i)
         {
             auto& page = pages_[i];
-            if(page.alignment % alignment != 0)
+            if(page.alignment != alignment)
                 continue;
 
             // try to allocate resource
