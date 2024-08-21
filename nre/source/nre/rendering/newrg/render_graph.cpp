@@ -56,6 +56,23 @@ namespace nre::newrg
             rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_2D_ARRAY)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_2D_ARRAY);
             rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_3D)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_3D);
         }
+
+        // create execute_range_command_list_p_ and execute_range_command_allocator_p_
+        {
+            execute_range_command_allocator_p_ = H_command_allocator::create(
+                NRE_MAIN_DEVICE(),
+                {
+                    .type = ED_command_list_type::DIRECT
+                }
+            );
+            execute_range_command_list_p_ = H_command_list::create(
+                NRE_MAIN_DEVICE(),
+                {
+                    .type = ED_command_list_type::DIRECT,
+                    .command_allocator_p = execute_range_command_allocator_p_.keyed()
+                }
+            );
+        }
     }
     F_render_graph::~F_render_graph()
     {
@@ -406,7 +423,7 @@ namespace nre::newrg
 
         for(F_render_pass* pass_p : execute_range.pass_p_vector)
         {
-            // pass_p->execute_internal();
+            pass_p->execute_internal(NCPP_FOH_VALID(execute_range_command_list_p_));
         }
     }
     void F_render_graph::execute_passes_internal()
@@ -528,6 +545,11 @@ namespace nre::newrg
 
     void F_render_graph::execute()
     {
+        execute_range_command_allocator_p_->flush();
+        execute_range_command_list_p_->async_begin(
+            NCPP_FOH_VALID(execute_range_command_allocator_p_)
+        );
+
         setup_internal();
         execute_passes_internal();
     }
@@ -545,6 +567,8 @@ namespace nre::newrg
         flush_states_internal();
 
         flush_objects_internal();
+
+        execute_range_command_list_p_->async_end();
     }
 
     F_render_resource* F_render_graph::create_resource(

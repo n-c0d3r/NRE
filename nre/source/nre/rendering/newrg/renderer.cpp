@@ -54,6 +54,7 @@ namespace nre::newrg
             auto render_pass_p = render_graph_p->create_pass(
                 [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
                 {
+                    int a = 5;
                 },
                 ED_pipeline_state_type::GRAPHICS,
                 E_render_pass_flag::NONE
@@ -69,6 +70,7 @@ namespace nre::newrg
             auto render_pass_p = render_graph_p->create_pass(
                 [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
                 {
+                    int a = 5;
                 },
                 ED_pipeline_state_type::GRAPHICS,
                 E_render_pass_flag::NONE
@@ -84,6 +86,7 @@ namespace nre::newrg
             auto render_pass_p = render_graph_p->create_pass(
                 [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
                 {
+                    int a = 5;
                 },
                 ED_pipeline_state_type::GRAPHICS,
                 E_render_pass_flag::NONE

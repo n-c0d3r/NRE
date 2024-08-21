@@ -63,6 +63,9 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_render_pass_execute_range> execute_range_owf_stack_;
         F_task_counter execute_passes_counter_ = 0;
 
+        TU<A_command_list> execute_range_command_list_p_;
+        TU<A_command_allocator> execute_range_command_allocator_p_;
+
     public:
         NCPP_FORCE_INLINE const auto& temp_object_cache_stack() const noexcept { return temp_object_cache_stack_; }
         NCPP_FORCE_INLINE b8 is_rhi_available() const noexcept { return is_rhi_available_; }
@@ -78,6 +81,9 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& rhi_to_release_owf_stack() noexcept { return rhi_to_release_owf_stack_; }
 
         NCPP_FORCE_INLINE const auto& execute_range_owf_stack() noexcept { return execute_range_owf_stack_; }
+
+        NCPP_FORCE_INLINE auto execute_range_command_list_p() noexcept { return NCPP_FOH_VALID(execute_range_command_list_p_); }
+        NCPP_FORCE_INLINE auto execute_range_command_allocator_p() noexcept { return NCPP_FOH_VALID(execute_range_command_allocator_p_); }
 
 
 
