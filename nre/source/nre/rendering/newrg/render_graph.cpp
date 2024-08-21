@@ -72,7 +72,8 @@ namespace nre::newrg
                 F_render_resource* resource_p = resource_state.resource_p;
                 resource_p->use_states_.push_back({
                     pass_p,
-                    resource_state.states
+                    resource_state.states,
+                    resource_state.subresource_index
                 });
             }
         }
@@ -200,6 +201,9 @@ namespace nre::newrg
                     F_render_pass* use_pass_p = use_state.pass_p;
                     F_render_pass_id use_pass_id = use_pass_p->id();
 
+                    if(use_state.subresource_index != resource_state.subresource_index)
+                        continue;
+
                     if(!(use_state.is_writable()))
                         continue;
 
@@ -324,17 +328,17 @@ namespace nre::newrg
                 F_render_pass* producer_pass_p = resource_producer_state.pass_p;
 
                 // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
-                // if(
-                //     (
-                //         flag_is_has(resource_producer_state.states, ED_resource_flag::RENDER_TARGET)
-                //         && flag_is_has(resource_state.states, ED_resource_flag::RENDER_TARGET)
-                //     )
-                //     || (
-                //         flag_is_has(resource_producer_state.states, ED_resource_flag::DEPTH_STENCIL)
-                //         && flag_is_has(resource_state.states, ED_resource_flag::DEPTH_STENCIL)
-                //     )
-                // )
-                //     continue;
+                if(
+                    (
+                        flag_is_has(resource_producer_state.states, ED_resource_flag::RENDER_TARGET)
+                        && flag_is_has(resource_state.states, ED_resource_flag::RENDER_TARGET)
+                    )
+                    || (
+                        flag_is_has(resource_producer_state.states, ED_resource_flag::DEPTH_STENCIL)
+                        && flag_is_has(resource_state.states, ED_resource_flag::DEPTH_STENCIL)
+                    )
+                )
+                    continue;
             }
         }
     }

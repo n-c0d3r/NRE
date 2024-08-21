@@ -17,6 +17,7 @@ namespace nre::newrg
     {
         F_render_pass* pass_p = 0;
         ED_resource_state states = ED_resource_state::COMMON;
+        u32 subresource_index = 0;
 
         NCPP_FORCE_INLINE b8 is_writable() const noexcept
         {
