@@ -72,6 +72,7 @@ namespace nre::newrg
                     .command_allocator_p = execute_range_command_allocator_p_.keyed()
                 }
             );
+            execute_range_command_list_p_->async_end();
         }
     }
     F_render_graph::~F_render_graph()
