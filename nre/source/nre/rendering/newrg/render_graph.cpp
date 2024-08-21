@@ -65,7 +65,7 @@ namespace nre::newrg
                     .type = ED_command_list_type::DIRECT
                 }
             );
-            execute_range_command_list_p_ = H_command_list::create(
+            execute_range_command_list_p_ = H_command_list::create_with_command_allocator(
                 NRE_MAIN_DEVICE(),
                 {
                     .type = ED_command_list_type::DIRECT,

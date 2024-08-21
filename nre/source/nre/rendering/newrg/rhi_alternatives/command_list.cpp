@@ -9,6 +9,7 @@ TU<A_command_list> NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::create(
     const F_command_list_desc& desc
 )
 {
+    NCPP_ASSERT(false) << "not supported";
     return {};
 }
 
