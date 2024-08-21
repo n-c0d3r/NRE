@@ -184,11 +184,8 @@ namespace nre::newrg
             using F_functor = std::remove_const_t<std::remove_reference_t<decltype(functor)>>;
             NCPP_ASSERT(T_is_render_pass_functor<F_functor>, "invalid functor type");
 
-            F_functor* functor_p = (F_functor*)H_frame_heap::allocate(
-                sizeof(F_functor),
-                NCPP_ALIGNOF(F_functor),
-                0,
-                NRE_FRAME_PARAM_RENDER
+            F_functor* functor_p = H_frame_heap::T_create<F_functor>(
+                NCPP_FORWARD(functor)
             );
 
             return create_pass_internal(
