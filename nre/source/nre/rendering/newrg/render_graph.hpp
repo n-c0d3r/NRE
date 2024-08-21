@@ -133,7 +133,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE F__* T_allocate()
         {
             return (F__*)(
-                F_single_threaded_reference_frame_allocator().allocate(
+                F_single_threaded_reference_render_frame_allocator().allocate(
                     sizeof(F__),
                     NCPP_ALIGNOF(F__),
                     0
@@ -146,7 +146,7 @@ namespace nre::newrg
         template<typename F__>
         NCPP_FORCE_INLINE F__* T_create(auto&&... args)
         {
-            F__* result_p = F_single_threaded_reference_frame_allocator().template T_new<F__>(
+            F__* result_p = F_single_threaded_reference_render_frame_allocator().template T_new<F__>(
                 NCPP_FORWARD(args)...
             );
 

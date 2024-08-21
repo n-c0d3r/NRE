@@ -5,6 +5,7 @@
 #include <nre/rendering/newrg/external_render_resource.hpp>
 
 
+
 namespace nre::newrg
 {
     namespace internal

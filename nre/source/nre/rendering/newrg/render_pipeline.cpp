@@ -166,6 +166,7 @@ namespace nre::newrg {
 
 		render_graph_p_->flush();
 
+		F_frame_heap::instance().reset_param(NRE_FRAME_PARAM_MAIN);
 		F_frame_heap::instance().reset_param(NRE_FRAME_PARAM_RENDER);
 	}
 
