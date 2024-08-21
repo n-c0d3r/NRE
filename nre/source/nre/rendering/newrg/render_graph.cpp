@@ -285,6 +285,26 @@ namespace nre::newrg
                 allocator.deallocate(resource_p->allocation());
             }
         }
+
+        // allocate resource that is not used by any pass but need to exported
+        auto resource_span = resource_p_owf_stack_.item_span();
+        for(F_render_resource* resource_p : resource_span)
+        {
+            if(!(resource_p->need_to_create()))
+                continue;
+
+            if(!(resource_p->need_to_export()))
+                continue;
+
+            const auto& desc = *(resource_p->desc_to_create_p_);
+
+            auto& allocator = find_allocator(desc.type, desc.flags);
+
+            resource_p->allocation_ = allocator.allocate(
+                desc.size,
+                internal::appropriate_alignment(desc)
+            );
+        }
     }
 
     void F_render_graph::create_rhi_resources_internal()

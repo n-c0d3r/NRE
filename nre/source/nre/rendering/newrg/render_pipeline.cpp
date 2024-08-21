@@ -4,6 +4,7 @@
 #include <nre/rendering/newrg/renderer.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/application/application.hpp>
+#include <nre/ui/imgui.hpp>
 
 
 
@@ -188,9 +189,13 @@ namespace nre::newrg {
 	void F_render_pipeline::begin_render()
 	{
 		begin_minimal_frame_internal();
+
+		F_imgui::instance_p()->begin_frame();
 	}
 	void F_render_pipeline::end_render()
 	{
+		F_imgui::instance_p()->end_frame();
+
 		end_minimal_frame_internal();
 	}
 

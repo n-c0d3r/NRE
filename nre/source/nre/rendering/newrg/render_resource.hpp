@@ -56,9 +56,18 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE TKPA<A_resource> rhi_p() const noexcept { return rhi_p_; }
 
-        NCPP_FORCE_INLINE b8 need_to_create() const noexcept { return (desc_to_create_p_ != 0); }
+        NCPP_FORCE_INLINE b8 need_to_create() const noexcept
+        {
+            return (
+                (desc_to_create_p_ != 0) &&
+                (
+                    (use_states_.size() != 0)
+                    || need_to_export()
+                )
+            );
+        }
 
-        NCPP_FORCE_INLINE b8 can_be_deallocated() const noexcept { return !(is_permanent() || need_to_export()); }
+        NCPP_FORCE_INLINE b8 can_be_deallocated() const noexcept { return owned_rhi_p_ && !(is_permanent() || need_to_export()); }
 
         NCPP_FORCE_INLINE const auto& use_states() const noexcept { return use_states_; }
 

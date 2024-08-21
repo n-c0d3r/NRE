@@ -12,5 +12,10 @@ namespace nre::newrg
     {
         u32 page_index = NCPP_U32_MAX;
         sz heap_offset = 0;
+
+        NCPP_FORCE_INLINE operator b8 () const noexcept
+        {
+            return (page_index != NCPP_U32_MAX);
+        }
     };
 }

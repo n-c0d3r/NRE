@@ -2,8 +2,7 @@
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/asset/asset_system.hpp>
-
-#include "nre/ui/imgui.hpp"
+#include <nre/ui/imgui.hpp>
 
 
 #ifdef EA_PLATFORM_WINDOWS
@@ -90,13 +89,9 @@ namespace nre {
 
 				NRE_RENDER_PIPELINE()->begin_render();
 
-				imgui_p_->begin_frame();
-
 				gameplay_tick_event_.invoke();
 
 				render_tick_event_.invoke();
-
-				imgui_p_->end_frame();
 
 				NRE_RENDER_PIPELINE()->end_render();
 		  	}

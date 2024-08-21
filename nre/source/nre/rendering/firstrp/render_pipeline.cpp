@@ -1,6 +1,7 @@
 #include <nre/rendering/firstrp/render_pipeline.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/application/application.hpp>
+#include <nre/ui/imgui.hpp>
 
 
 
@@ -199,8 +200,12 @@ namespace nre::firstrp {
 		begin_infrequent_compute_command_list();
 		begin_frame_upload_command_list();
 		begin_main_command_list();
+
+		F_imgui::instance_p()->begin_frame();
 	}
 	void F_render_pipeline::end_render() {
+
+		F_imgui::instance_p()->end_frame();
 
 		submit_infrequent_upload_command_list();
 		submit_infrequent_compute_command_list();

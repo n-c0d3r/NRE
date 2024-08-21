@@ -47,7 +47,7 @@ namespace nre::newrg
         // execute enqueued command lists
         {
             F_command_list_batch command_list_batch;
-            if(command_list_batch_ring_buffer_.try_pop(command_list_batch))
+            while(command_list_batch_ring_buffer_.try_pop(command_list_batch))
             {
                 command_queue_p_->async_execute_command_lists(
                     (F_command_list_batch_valid&)command_list_batch
