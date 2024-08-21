@@ -3,6 +3,7 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
+#include <nre/rendering/newrg/render_resource_allocation.hpp>
 
 
 
@@ -22,6 +23,8 @@ namespace nre::newrg
     private:
         TU<A_resource> rhi_p_;
 
+        F_render_resource_allocation allocation_;
+
         pac::F_spin_lock import_lock_;
         F_render_resource* internal_p_ = 0;
 
@@ -31,6 +34,8 @@ namespace nre::newrg
 
     public:
         NCPP_FORCE_INLINE TK_valid<A_resource> rhi_p() const noexcept { return NCPP_FOH_VALID(rhi_p_); }
+
+        NCPP_FORCE_INLINE const auto& allocation() const noexcept { return allocation_; }
 
         NCPP_FORCE_INLINE const auto& import_lock() const noexcept { return import_lock_; }
         NCPP_FORCE_INLINE auto& import_lock() noexcept { return import_lock_; }
@@ -44,7 +49,11 @@ namespace nre::newrg
 
 
     public:
-        F_external_render_resource();
+        F_external_render_resource(
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            const F_render_frame_name& name
+#endif
+        );
         ~F_external_render_resource();
     };
 }

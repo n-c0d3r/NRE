@@ -2,7 +2,7 @@
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
 #include <nre/rendering/newrg/render_resource_state.hpp>
-
+#include <nre/rendering/newrg/external_render_resource.hpp>
 
 
 namespace nre::newrg
@@ -150,6 +150,27 @@ namespace nre::newrg
             }
         }
     }
+    void F_render_graph::setup_resource_export_lists_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        for(F_render_pass* pass_p : pass_span)
+        {
+            auto& resource_to_export_vector = pass_p->resource_to_export_vector_;
+
+            for(auto& resource_state : pass_p->resource_states())
+            {
+                F_render_resource* resource_p = resource_state.render_resource_p;
+
+                if(!(resource_p->need_to_export()))
+                    continue;
+
+                if(resource_p->min_pass_id() == pass_p->id())
+                {
+                    resource_to_export_vector.push_back(resource_p);
+                }
+            }
+        }
+    }
 
     void F_render_graph::calculate_resource_allocations_internal()
     {
@@ -225,6 +246,27 @@ namespace nre::newrg
         }
     }
 
+    void F_render_graph::export_resources_internal()
+    {
+        auto resource_span = resource_p_owf_stack_.item_span();
+        for(F_render_resource* resource_p : resource_span)
+        {
+            if(resource_p->need_to_export())
+            {
+                auto external_p = resource_p->external_p_;
+                external_p->rhi_p_ = std::move(resource_p->rhi_p_);
+                external_p->allocation_ = resource_p->allocation_;
+
+                resource_p->allocation_ = {};
+            }
+        }
+    }
+
+    void F_render_graph::flush_rhi_to_release_internal()
+    {
+        rhi_to_release_stack_.reset();
+    }
+
     void F_render_graph::flush_objects_internal()
     {
         F_temp_object_cache temp_object_cache;
@@ -239,7 +281,11 @@ namespace nre::newrg
     }
     void F_render_graph::flush_resources_internal()
     {
+        export_resources_internal();
+
         flush_rhi_resources_internal();
+
+        flush_rhi_to_release_internal();
 
         resource_p_owf_stack_.reset();
     }
@@ -278,6 +324,7 @@ namespace nre::newrg
         setup_resource_max_pass_ids_internal();
         setup_resource_allocation_lists_internal();
         setup_resource_deallocation_lists_internal();
+        setup_resource_export_lists_internal();
 
         calculate_resource_allocations_internal();
 
@@ -312,6 +359,60 @@ namespace nre::newrg
         render_resource_p->id_ = resource_p_owf_stack_.push_and_return_index(render_resource_p);
 
         return render_resource_p;
+    }
+
+    TS<F_external_render_resource> F_render_graph::export_resource(F_render_resource* resource_p)
+    {
+        NCPP_SCOPED_LOCK(resource_p->export_lock_);
+
+        if(!(resource_p->external_p_))
+        {
+            resource_p->external_p_ = TS<F_external_render_resource>()(
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                resource_p->external_p_->name_
+#endif
+            );
+        }
+
+        return resource_p->external_p_;
+    }
+    F_render_resource* F_render_graph::import_resource(const TS<F_external_render_resource>& external_resource_p)
+    {
+        NCPP_ASSERT(external_resource_p->rhi_p_) << "can export and import a resource both in a frame";
+
+        NCPP_SCOPED_LOCK(external_resource_p->import_lock_);
+
+        if(!(external_resource_p->internal_p_))
+        {
+            F_render_resource* render_resource_p = T_create<F_render_resource>(
+                std::move(external_resource_p->rhi_p_),
+                external_resource_p->allocation_
+    #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , external_resource_p->name_
+    #endif
+            );
+
+            render_resource_p->id_ = resource_p_owf_stack_.push_and_return_index(render_resource_p);
+
+            external_resource_p->internal_p_ = render_resource_p;
+        }
+
+        return external_resource_p->internal_p_;
+    }
+
+    void F_render_graph::external_enqueue_release_rhi(const TS<F_external_render_resource>& external_resource_p)
+    {
+        NCPP_SCOPED_LOCK(external_resource_p->import_lock_);
+
+        if(external_resource_p->rhi_p_)
+        {
+            rhi_to_release_stack_.push({
+                std::move(external_resource_p->rhi_p_),
+                external_resource_p->allocation_
+            });
+
+            external_resource_p->allocation_ = {};
+        }
     }
 
     F_render_resource_allocator& F_render_graph::find_allocator(

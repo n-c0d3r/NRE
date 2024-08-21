@@ -13,6 +13,7 @@
 namespace nre::newrg
 {
     class F_render_resource;
+    class F_export_render_resource;
 
 
 
@@ -35,6 +36,7 @@ namespace nre::newrg
 
         TF_render_frame_vector<F_render_resource*> resource_to_allocate_vector_;
         TF_render_frame_vector<F_render_resource*> resource_to_deallocate_vector_;
+        TF_render_frame_vector<F_render_resource*> resource_to_export_vector_;
 
         ED_pipeline_state_type pipeline_state_type_ = ED_pipeline_state_type::NONE;
 
@@ -48,6 +50,11 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& functor_cache() const noexcept { return functor_cache_; }
 
         NCPP_FORCE_INLINE const auto& resource_states() const noexcept { return resource_states_; }
+
+        NCPP_FORCE_INLINE const auto& resource_to_allocate_vector() const noexcept { return resource_to_allocate_vector_; }
+        NCPP_FORCE_INLINE const auto& resource_to_deallocate_vector() const noexcept { return resource_to_deallocate_vector_; }
+        NCPP_FORCE_INLINE const auto& resource_to_export_vector() const noexcept { return resource_to_export_vector_; }
+
         NCPP_FORCE_INLINE ED_pipeline_state_type pipeline_state_type() const noexcept { return pipeline_state_type_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER

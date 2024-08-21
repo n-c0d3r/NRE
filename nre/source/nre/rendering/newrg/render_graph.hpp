@@ -13,6 +13,7 @@ namespace nre::newrg
 {
     class F_render_pass;
     class F_render_resource;
+    class F_external_render_resource;
 
 
 
@@ -50,6 +51,13 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_render_pass*> pass_p_owf_stack_;
         TG_concurrent_owf_stack<F_render_resource*> resource_p_owf_stack_;
 
+        struct F_rhi_to_release
+        {
+            TU<A_resource> rhi_p;
+            F_render_resource_allocation allocation;
+        };
+        TG_concurrent_owf_stack<F_rhi_to_release> rhi_to_release_stack_;
+
     public:
         NCPP_FORCE_INLINE const auto& temp_object_cache_ring_buffer() const noexcept { return temp_object_cache_ring_buffer_; }
         NCPP_FORCE_INLINE b8 is_rhi_available() const noexcept { return is_rhi_available_; }
@@ -61,6 +69,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto& pass_p_owf_stack() noexcept { return pass_p_owf_stack_; }
         NCPP_FORCE_INLINE auto& resource_p_owf_stack() noexcept { return resource_p_owf_stack_; }
+
+        NCPP_FORCE_INLINE auto& rhi_to_release_stack() noexcept { return rhi_to_release_stack_; }
 
 
 
@@ -79,6 +89,7 @@ namespace nre::newrg
         void setup_resource_max_pass_ids_internal();
         void setup_resource_allocation_lists_internal();
         void setup_resource_deallocation_lists_internal();
+        void setup_resource_export_lists_internal();
 
     private:
         void calculate_resource_allocations_internal();
@@ -86,6 +97,12 @@ namespace nre::newrg
     private:
         void create_rhi_resources_internal();
         void flush_rhi_resources_internal();
+
+    private:
+        void export_resources_internal();
+
+    private:
+        void flush_rhi_to_release_internal();
 
     private:
         void flush_objects_internal();
@@ -156,15 +173,6 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        F_render_resource* create_resource(
-            const F_resource_desc& desc
-#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name
-#endif
-        );
-        /**
-         *  Thread-safe
-         */
         F_render_pass* create_pass(
             auto&& functor,
             ED_pipeline_state_type pipeline_state_type
@@ -208,6 +216,31 @@ namespace nre::newrg
 #endif
             );
         }
+        /**
+         *  Thread-safe
+         */
+        F_render_resource* create_resource(
+            const F_resource_desc& desc
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , F_render_frame_name name
+#endif
+        );
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        TS<F_external_render_resource> export_resource(F_render_resource* resource_p);
+        /**
+         *  Thread-safe
+         */
+        F_render_resource* import_resource(const TS<F_external_render_resource>& external_resource_p);
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        void external_enqueue_release_rhi(const TS<F_external_render_resource>& external_resource_p);
 
     public:
         /**

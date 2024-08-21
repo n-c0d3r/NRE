@@ -80,7 +80,8 @@ namespace nre::newrg
 #endif
         );
         F_render_resource(
-            TU<A_resource>&& rhi_p
+            TU<A_resource>&& rhi_p,
+            F_render_resource_allocation allocation
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
 #endif
