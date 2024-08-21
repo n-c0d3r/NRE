@@ -7,6 +7,7 @@
 #include <nre/rendering/newrg/render_pass_flag.hpp>
 #include <nre/rendering/newrg/render_resource_allocator.hpp>
 #include <nre/rendering/newrg/rhi_placed_resource_pool.hpp>
+#include <nre/rendering/newrg/render_pass_execute_range.hpp>
 
 
 
@@ -59,6 +60,9 @@ namespace nre::newrg
         };
         TG_concurrent_owf_stack<F_rhi_to_release> rhi_to_release_owf_stack_;
 
+        TG_concurrent_owf_stack<F_render_pass_execute_range> execute_range_owf_stack_;
+        F_task_counter execute_passes_counter_ = 0;
+
     public:
         NCPP_FORCE_INLINE const auto& temp_object_cache_stack() const noexcept { return temp_object_cache_stack_; }
         NCPP_FORCE_INLINE b8 is_rhi_available() const noexcept { return is_rhi_available_; }
@@ -72,6 +76,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& resource_p_owf_stack() noexcept { return resource_p_owf_stack_; }
 
         NCPP_FORCE_INLINE auto& rhi_to_release_owf_stack() noexcept { return rhi_to_release_owf_stack_; }
+
+        NCPP_FORCE_INLINE const auto& execute_range_owf_stack() noexcept { return execute_range_owf_stack_; }
 
 
 
@@ -103,6 +109,14 @@ namespace nre::newrg
     private:
         void create_resource_barriers_before_internal();
         void create_resource_barrier_batches_internal();
+
+    private:
+        void build_execute_range_owf_stack_internal();
+
+    private:
+        void execute_range_internal(const F_render_pass_execute_range& execute_range);
+        void execute_passes_internal();
+        void flush_execute_range_owf_stack_internal();
 
     private:
         void export_resources_internal();

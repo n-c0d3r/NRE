@@ -26,7 +26,8 @@ namespace nre::newrg
         temp_object_cache_stack_(NRE_RENDER_GRAPH_TEMP_OBJECT_CACHE_STRACK_CAPACITY),
         pass_p_owf_stack_(NRE_RENDER_GRAPH_PASS_OWF_STACK_CAPACITY),
         resource_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
-        rhi_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_TO_RELEASE_OWF_STACK_CAPACITY)
+        rhi_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_TO_RELEASE_OWF_STACK_CAPACITY),
+        execute_range_owf_stack_(NRE_RENDER_GRAPH_EXECUTE_RANGE_OWF_STACK_CAPACITY)
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
@@ -388,6 +389,49 @@ namespace nre::newrg
         }
     }
 
+    void F_render_graph::build_execute_range_owf_stack_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        execute_range_owf_stack_.push({
+            .pass_p_vector = {
+                pass_span.begin(),
+                pass_span.end()
+            }
+        });
+    }
+
+    void F_render_graph::execute_range_internal(const F_render_pass_execute_range& execute_range)
+    {
+        NCPP_ASSERT(!(execute_range.is_async_compute)) << "async compute is not supported";
+
+        for(F_render_pass* pass_p : execute_range.pass_p_vector)
+        {
+            // pass_p->execute_internal();
+        }
+    }
+    void F_render_graph::execute_passes_internal()
+    {
+        execute_passes_counter_ = 0;
+
+        H_task_system::schedule(
+            [this](u32)
+            {;
+                auto execute_range_span = execute_range_owf_stack_.item_span();
+                for(auto& execute_range : execute_range_span)
+                {
+                    execute_range_internal(execute_range);
+                }
+            },
+            {
+                .counter_p = &execute_passes_counter_
+            }
+        );
+    }
+    void F_render_graph::flush_execute_range_owf_stack_internal()
+    {
+        execute_range_owf_stack_.reset();
+    }
+
     void F_render_graph::export_resources_internal()
     {
         auto resource_span = resource_p_owf_stack_.item_span();
@@ -454,6 +498,7 @@ namespace nre::newrg
         create_rhi_resources_internal();
         create_resource_barriers_before_internal();
         create_resource_barrier_batches_internal();
+        build_execute_range_owf_stack_internal();
     }
 
     F_render_pass* F_render_graph::create_pass_internal(
@@ -484,12 +529,16 @@ namespace nre::newrg
     void F_render_graph::execute()
     {
         setup_internal();
+        execute_passes_internal();
     }
     void F_render_graph::wait()
     {
+        while(execute_passes_counter_.load(eastl::memory_order_acquire));
     }
     void F_render_graph::flush()
     {
+        flush_execute_range_owf_stack_internal();
+
         flush_passes_internal();
         flush_resources_internal();
 
