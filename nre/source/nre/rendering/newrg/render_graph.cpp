@@ -458,7 +458,8 @@ namespace nre::newrg
 
     F_render_pass* F_render_graph::create_pass_internal(
         const F_render_pass_functor_cache& functor_cache,
-        ED_pipeline_state_type pipeline_state_type
+        ED_pipeline_state_type pipeline_state_type,
+        E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , F_render_frame_name name
 #endif
@@ -466,7 +467,8 @@ namespace nre::newrg
     {
         F_render_pass* render_pass_p = T_create<F_render_pass>(
             functor_cache,
-            pipeline_state_type
+            pipeline_state_type,
+            flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , name
 #endif

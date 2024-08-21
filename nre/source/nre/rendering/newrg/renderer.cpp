@@ -55,7 +55,8 @@ namespace nre::newrg
                 [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
                 {
                 },
-                ED_pipeline_state_type::GRAPHICS
+                ED_pipeline_state_type::GRAPHICS,
+                E_render_pass_flag::NONE
                 NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_1")
             );
             render_pass_p->add_resource_state({
@@ -69,7 +70,8 @@ namespace nre::newrg
                 [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
                 {
                 },
-                ED_pipeline_state_type::GRAPHICS
+                ED_pipeline_state_type::GRAPHICS,
+                E_render_pass_flag::NONE
                 NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_2")
             );
             render_pass_p->add_resource_state({
@@ -83,7 +85,8 @@ namespace nre::newrg
                 [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
                 {
                 },
-                ED_pipeline_state_type::GRAPHICS
+                ED_pipeline_state_type::GRAPHICS,
+                E_render_pass_flag::NONE
                 NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_3")
             );
             render_pass_p->add_resource_state({

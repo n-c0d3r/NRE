@@ -4,6 +4,7 @@
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_functor.hpp>
+#include <nre/rendering/newrg/render_pass_flag.hpp>
 #include <nre/rendering/newrg/render_resource_allocator.hpp>
 #include <nre/rendering/newrg/rhi_placed_resource_pool.hpp>
 
@@ -121,7 +122,8 @@ namespace nre::newrg
     private:
         F_render_pass* create_pass_internal(
             const F_render_pass_functor_cache& functor_cache,
-            ED_pipeline_state_type pipeline_state_type
+            ED_pipeline_state_type pipeline_state_type,
+            E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name
 #endif
@@ -184,7 +186,8 @@ namespace nre::newrg
          */
         F_render_pass* create_pass(
             auto&& functor,
-            ED_pipeline_state_type pipeline_state_type
+            ED_pipeline_state_type pipeline_state_type,
+            E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name = ""
 #endif
@@ -216,7 +219,8 @@ namespace nre::newrg
                     },
                     functor_p
                 },
-                pipeline_state_type
+                pipeline_state_type,
+                flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , name
 #endif

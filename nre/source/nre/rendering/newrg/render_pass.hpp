@@ -9,6 +9,7 @@
 #include <nre/rendering/newrg/render_pass_id.hpp>
 #include <nre/rendering/newrg/render_resource_id.hpp>
 #include <nre/rendering/newrg/render_resource_barrier_batch.hpp>
+#include <nre/rendering/newrg/render_pass_flag.hpp>
 
 
 
@@ -45,6 +46,7 @@ namespace nre::newrg
         TF_render_frame_vector<F_render_resource*> resource_to_export_vector_;
 
         ED_pipeline_state_type pipeline_state_type_ = ED_pipeline_state_type::NONE;
+        E_render_pass_flag flags_ = E_render_pass_flag::NONE;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
@@ -66,6 +68,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& resource_to_export_vector() const noexcept { return resource_to_export_vector_; }
 
         NCPP_FORCE_INLINE ED_pipeline_state_type pipeline_state_type() const noexcept { return pipeline_state_type_; }
+        NCPP_FORCE_INLINE E_render_pass_flag flags() const noexcept { return flags_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }
@@ -76,7 +79,8 @@ namespace nre::newrg
     public:
         F_render_pass(
             const F_render_pass_functor_cache& functor_cache,
-            ED_pipeline_state_type pipeline_state_type
+            ED_pipeline_state_type pipeline_state_type,
+            E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name
 #endif
