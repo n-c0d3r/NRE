@@ -422,10 +422,6 @@ namespace nre::newrg
     {
         NCPP_ASSERT(!(execute_range.is_async_compute)) << "async compute is not supported";
 
-        execute_range_command_list_p_->async_begin(
-            NCPP_FOH_VALID(execute_range_command_allocator_p_)
-        );
-
         for(F_render_pass* pass_p : execute_range.pass_p_vector)
         {
             if(pass_p->resource_barrier_batch_.size())
@@ -434,12 +430,6 @@ namespace nre::newrg
                 );
             pass_p->execute_internal(NCPP_FOH_VALID(execute_range_command_list_p_));
         }
-
-        execute_range_command_list_p_->async_end();
-
-        F_main_render_worker::instance_p()->enqueue_command_list(
-            NCPP_FOH_VALID(execute_range_command_list_p_)
-        );
     }
     void F_render_graph::execute_passes_internal()
     {
@@ -561,6 +551,9 @@ namespace nre::newrg
     void F_render_graph::execute()
     {
         execute_range_command_allocator_p_->flush();
+        execute_range_command_list_p_->async_begin(
+            NCPP_FOH_VALID(execute_range_command_allocator_p_)
+        );
 
         setup_internal();
         execute_passes_internal();
@@ -568,6 +561,11 @@ namespace nre::newrg
     void F_render_graph::wait()
     {
         while(execute_passes_counter_.load(eastl::memory_order_acquire));
+
+        execute_range_command_list_p_->async_end();
+        F_main_render_worker::instance_p()->enqueue_command_list(
+            NCPP_FOH_VALID(execute_range_command_list_p_)
+        );
     }
     void F_render_graph::flush()
     {

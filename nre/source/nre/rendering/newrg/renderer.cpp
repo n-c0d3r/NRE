@@ -43,6 +43,7 @@ namespace nre::newrg
                 H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
                     128,
                     ED_resource_flag::INPUT_BUFFER
+                    | ED_resource_flag::UNORDERED_ACCESS
                 )
                 NRE_OPTIONAL_DEBUG_PARAM("demo_render_resource")
             );
