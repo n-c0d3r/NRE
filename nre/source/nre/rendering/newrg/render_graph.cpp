@@ -146,7 +146,7 @@ namespace nre::newrg
             {
                 F_render_resource* resource_p = resource_state.resource_p;
 
-                if(resource_p->need_to_export())
+                if(!(resource_p->can_be_deallocated()))
                     continue;
 
                 if(resource_p->max_pass_id() == pass_p->id())
@@ -299,7 +299,7 @@ namespace nre::newrg
         auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
         {
-            if(!(resource_p->need_to_export()))
+            if(resource_p->can_be_deallocated())
             {
                 auto& desc = *(resource_p->desc_to_create_p_);
                 auto& rhi_placed_resource_pool = find_rhi_placed_resource_pool(desc.type);
@@ -508,6 +508,27 @@ namespace nre::newrg
         }
 
         return external_resource_p->internal_p_;
+    }
+
+    F_render_resource* F_render_graph::create_permanent_resource(
+        TKPA_valid<A_resource> rhi_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , F_render_frame_name name
+#endif
+    )
+    {
+        F_render_resource* render_resource_p = T_create<F_render_resource>(
+            rhi_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , name
+#endif
+        );
+
+        render_resource_p->is_permanent_ = true;
+
+        render_resource_p->id_ = resource_p_owf_stack_.push_and_return_index(render_resource_p);
+
+        return render_resource_p;
     }
 
     void F_render_graph::enqueue_rhi_to_release(F_rhi_to_release&& rhi_to_release)

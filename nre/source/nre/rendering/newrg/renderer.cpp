@@ -2,6 +2,7 @@
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
+#include <nre/rendering/render_pipeline.hpp>
 
 
 namespace nre::newrg
@@ -23,6 +24,12 @@ namespace nre::newrg
     void F_renderer::begin_render_frame()
     {
         auto render_graph_p = F_render_graph::instance_p();
+
+        {
+            F_render_resource* swapchain_back_buffer_as_render_resource_p = render_graph_p->create_permanent_resource(
+                NCPP_AOH_VALID(NRE_MAIN_SWAPCHAIN()->back_buffer_p())
+            );
+        }
 
         F_render_resource* render_resource_p = 0;
 

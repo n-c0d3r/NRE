@@ -31,6 +31,18 @@ namespace nre::newrg
 #endif
     {
     }
+    F_render_resource::F_render_resource(
+        TKPA_valid<A_resource> permanent_rhi_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , const F_render_frame_name& name
+#endif
+    ) :
+        rhi_p_(permanent_rhi_p.no_requirements())
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , name_(name)
+#endif
+    {
+    }
     F_render_resource::~F_render_resource()
     {
     }

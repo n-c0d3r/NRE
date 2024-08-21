@@ -185,7 +185,7 @@ namespace nre::newrg
             auto&& functor,
             ED_pipeline_state_type pipeline_state_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name
+            , F_render_frame_name name = ""
 #endif
         )
         {
@@ -227,7 +227,7 @@ namespace nre::newrg
         F_render_resource* create_resource(
             const F_resource_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name
+            , F_render_frame_name name = ""
 #endif
         );
 
@@ -240,6 +240,17 @@ namespace nre::newrg
          *  Thread-safe
          */
         F_render_resource* import_resource(TKPA_valid<F_external_render_resource> external_resource_p);
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        F_render_resource* create_permanent_resource(
+            TKPA_valid<A_resource> rhi_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , F_render_frame_name name = ""
+#endif
+        );
 
     public:
         /**
