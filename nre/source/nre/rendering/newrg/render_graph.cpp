@@ -62,15 +62,18 @@ namespace nre::newrg
 
 
 
-    void F_render_graph::setup_resource_passes_internal()
+    void F_render_graph::setup_resource_use_states_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
             for(auto& resource_state : pass_p->resource_states())
             {
-                F_render_resource* resource_p = resource_state.render_resource_p;
-                resource_p->pass_p_vector_.push_back(pass_p);
+                F_render_resource* resource_p = resource_state.resource_p;
+                resource_p->use_states_.push_back({
+                    pass_p,
+                    resource_state.flags
+                });
             }
         }
     }
@@ -79,15 +82,15 @@ namespace nre::newrg
         auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
         {
-            auto& pass_p_vector = resource_p->pass_p_vector_;
-            for(F_render_pass* pass_p : pass_p_vector)
+            auto& use_states = resource_p->use_states_;
+            for(const auto& use_state : use_states)
             {
                 if(resource_p->min_pass_id_ == NCPP_U32_MAX)
-                    resource_p->min_pass_id_ = pass_p->id();
+                    resource_p->min_pass_id_ = use_state.pass_p->id();
                 else
                     resource_p->min_pass_id_ = eastl::min(
                         resource_p->min_pass_id_,
-                        pass_p->id()
+                        use_state.pass_p->id()
                     );
             }
         }
@@ -97,15 +100,15 @@ namespace nre::newrg
         auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
         {
-            auto& pass_p_vector = resource_p->pass_p_vector_;
-            for(F_render_pass* pass_p : pass_p_vector)
+            auto& use_states = resource_p->use_states_;
+            for(const auto& use_state : use_states)
             {
                 if(resource_p->max_pass_id_ == NCPP_U32_MAX)
-                    resource_p->max_pass_id_ = pass_p->id();
+                    resource_p->max_pass_id_ = use_state.pass_p->id();
                 else
                     resource_p->max_pass_id_ = eastl::max(
                         resource_p->max_pass_id_,
-                        pass_p->id()
+                        use_state.pass_p->id()
                     );
             }
         }
@@ -119,7 +122,7 @@ namespace nre::newrg
 
             for(auto& resource_state : pass_p->resource_states())
             {
-                F_render_resource* resource_p = resource_state.render_resource_p;
+                F_render_resource* resource_p = resource_state.resource_p;
 
                 if(!(resource_p->need_to_create()))
                     continue;
@@ -140,7 +143,7 @@ namespace nre::newrg
 
             for(auto& resource_state : pass_p->resource_states())
             {
-                F_render_resource* resource_p = resource_state.render_resource_p;
+                F_render_resource* resource_p = resource_state.resource_p;
 
                 if(resource_p->need_to_export())
                     continue;
@@ -161,7 +164,7 @@ namespace nre::newrg
 
             for(auto& resource_state : pass_p->resource_states())
             {
-                F_render_resource* resource_p = resource_state.render_resource_p;
+                F_render_resource* resource_p = resource_state.resource_p;
 
                 if(!(resource_p->need_to_export()))
                     continue;
@@ -170,6 +173,61 @@ namespace nre::newrg
                 {
                     resource_to_export_vector.push_back(resource_p);
                 }
+            }
+        }
+    }
+    void F_render_graph::setup_resource_producer_states_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        for(F_render_pass* pass_p : pass_span)
+        {
+            auto& resource_producer_states = pass_p->resource_producer_states_;
+
+            F_render_pass_id pass_id = pass_p->id();
+
+            for(auto& resource_state : pass_p->resource_states())
+            {
+                F_render_resource* resource_p = resource_state.resource_p;
+
+                auto& use_states = resource_p->use_states_;
+
+                // find out producer_state pass id
+                F_render_pass* producer_pass_p = 0;
+                ED_resource_flag producer_resource_flag = ED_resource_flag::NONE;
+                F_render_pass_id producer_state_pass_id = NCPP_U32_MAX;
+                for(const auto& use_state : use_states)
+                {
+                    F_render_pass* use_pass_p = use_state.pass_p;
+                    F_render_pass_id use_pass_id = use_pass_p->id();
+
+                    if(!(use_state.is_writable()))
+                        continue;
+
+                    if(use_pass_p->id() >= pass_id)
+                        continue;
+
+                    if(producer_state_pass_id == NCPP_U32_MAX)
+                    {
+                        producer_pass_p = use_pass_p;
+                        producer_resource_flag = use_state.flags;
+                        producer_state_pass_id = use_pass_id;
+                    }
+                    else
+                    {
+                        if(use_pass_id > producer_state_pass_id)
+                        {
+                            producer_pass_p = use_pass_p;
+                            producer_resource_flag = use_state.flags;
+                            producer_state_pass_id = use_pass_id;
+                        }
+                    }
+                }
+
+                resource_producer_states.push_back({
+                    resource_p,
+                    producer_pass_p,
+                    producer_resource_flag
+                });
             }
         }
     }
@@ -302,12 +360,13 @@ namespace nre::newrg
 
     void F_render_graph::setup_internal()
     {
-        setup_resource_passes_internal();
+        setup_resource_use_states_internal();
         setup_resource_min_pass_ids_internal();
         setup_resource_max_pass_ids_internal();
         setup_resource_allocation_lists_internal();
         setup_resource_deallocation_lists_internal();
         setup_resource_export_lists_internal();
+        setup_resource_producer_states_internal();
 
         calculate_resource_allocations_internal();
 

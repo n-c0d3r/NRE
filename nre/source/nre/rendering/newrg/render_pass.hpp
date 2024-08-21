@@ -3,6 +3,7 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/newrg/render_resource_state.hpp>
+#include <nre/rendering/newrg/render_resource_producer_state.hpp>
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_functor.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
@@ -38,6 +39,8 @@ namespace nre::newrg
         TF_render_frame_vector<F_render_resource*> resource_to_deallocate_vector_;
         TF_render_frame_vector<F_render_resource*> resource_to_export_vector_;
 
+        TF_render_frame_vector<F_render_resource_producer_state> resource_producer_states_;
+
         ED_pipeline_state_type pipeline_state_type_ = ED_pipeline_state_type::NONE;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -54,6 +57,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& resource_to_allocate_vector() const noexcept { return resource_to_allocate_vector_; }
         NCPP_FORCE_INLINE const auto& resource_to_deallocate_vector() const noexcept { return resource_to_deallocate_vector_; }
         NCPP_FORCE_INLINE const auto& resource_to_export_vector() const noexcept { return resource_to_export_vector_; }
+
+        NCPP_FORCE_INLINE const auto& resource_producer_states() const noexcept { return resource_producer_states_; }
 
         NCPP_FORCE_INLINE ED_pipeline_state_type pipeline_state_type() const noexcept { return pipeline_state_type_; }
 

@@ -84,12 +84,13 @@ namespace nre::newrg
 
 
     private:
-        void setup_resource_passes_internal();
+        void setup_resource_use_states_internal();
         void setup_resource_min_pass_ids_internal();
         void setup_resource_max_pass_ids_internal();
         void setup_resource_allocation_lists_internal();
         void setup_resource_deallocation_lists_internal();
         void setup_resource_export_lists_internal();
+        void setup_resource_producer_states_internal();
 
     private:
         void calculate_resource_allocations_internal();

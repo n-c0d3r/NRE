@@ -6,6 +6,7 @@
 #include <nre/rendering/newrg/render_pass_id.hpp>
 #include <nre/rendering/newrg/render_resource_id.hpp>
 #include <nre/rendering/newrg/render_resource_allocation.hpp>
+#include <nre/rendering/newrg/render_resource_use_state.hpp>
 
 
 
@@ -34,7 +35,7 @@ namespace nre::newrg
 
         F_resource_desc* desc_to_create_p_ = 0;
 
-        TF_render_frame_vector<F_render_pass*> pass_p_vector_;
+        TF_render_frame_vector<F_render_resource_use_state> use_states_;
 
         F_render_pass_id min_pass_id_ = NCPP_U32_MAX;
         F_render_pass_id max_pass_id_ = NCPP_U32_MAX;
@@ -55,7 +56,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE b8 need_to_create() const noexcept { return (desc_to_create_p_ != 0); }
 
-        NCPP_FORCE_INLINE const auto& pass_p_vector() const noexcept { return pass_p_vector_; }
+        NCPP_FORCE_INLINE const auto& use_states() const noexcept { return use_states_; }
 
         NCPP_FORCE_INLINE F_render_pass_id min_pass_id() const noexcept { return min_pass_id_; }
         NCPP_FORCE_INLINE F_render_pass_id max_pass_id() const noexcept { return max_pass_id_; }
