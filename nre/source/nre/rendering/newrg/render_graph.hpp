@@ -100,7 +100,8 @@ namespace nre::newrg
         void flush_rhi_resources_internal();
 
     private:
-        void create_resource_barriers_internal();
+        void create_resource_barriers_before_internal();
+        void create_resource_barrier_batches_internal();
 
     private:
         void export_resources_internal();

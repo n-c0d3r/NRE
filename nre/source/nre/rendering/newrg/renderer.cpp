@@ -60,8 +60,7 @@ namespace nre::newrg
             );
             render_pass_p->add_resource_state({
                 render_resource_p,
-                ED_resource_state::INPUT_AND_CONSTANT_BUFFER
-                | ED_resource_state::UNORDERED_ACCESS
+                ED_resource_state::UNORDERED_ACCESS
             });
         }
 

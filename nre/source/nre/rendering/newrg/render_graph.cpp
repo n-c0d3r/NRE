@@ -311,21 +311,31 @@ namespace nre::newrg
         }
     }
 
-    void F_render_graph::create_resource_barriers_internal()
+    void F_render_graph::create_resource_barriers_before_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
             auto& resource_states = pass_p->resource_states_;
             auto& resource_producer_states = pass_p->resource_producer_states_;
+            auto& resource_barriers_before = pass_p->resource_barriers_before_;
 
             u32 resource_state_count = resource_states.size();
+
+            resource_barriers_before.resize(resource_state_count);
+
             for(u32 i = 0; i < resource_state_count; ++i)
             {
                 auto& resource_state = resource_states[i];
                 auto& resource_producer_state = resource_producer_states[i];
 
+                F_render_resource* resource_p = resource_state.resource_p;
+                auto rhi_p = resource_p->rhi_p();
+
                 F_render_pass* producer_pass_p = resource_producer_state.pass_p;
+
+                if(!producer_pass_p)
+                    continue;
 
                 // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
                 if(
@@ -339,6 +349,41 @@ namespace nre::newrg
                     )
                 )
                     continue;
+
+                if(
+                    flag_is_has(resource_producer_state.states, ED_resource_flag::UNORDERED_ACCESS)
+                    && flag_is_has(resource_state.states, ED_resource_flag::UNORDERED_ACCESS)
+                )
+                {
+                    resource_barriers_before[i] = H_resource_barrier::uav({
+                        .resource_p = rhi_p
+                    });
+                    continue;
+                }
+
+                resource_barriers_before[i] = H_resource_barrier::transition({
+                    .resource_p = rhi_p,
+                    .subresource_index = resource_state.subresource_index,
+                    .state_before = resource_producer_state.states,
+                    .state_after = resource_state.states
+                });
+            }
+        }
+    }
+    void F_render_graph::create_resource_barrier_batches_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        for(F_render_pass* pass_p : pass_span)
+        {
+            auto& resource_barriers_before = pass_p->resource_barriers_before_;
+            auto& resource_barrier_batch = pass_p->resource_barrier_batch_;
+
+            for(auto& resource_barrier_before : resource_barriers_before)
+            {
+                if(resource_barrier_before)
+                {
+                    resource_barrier_batch.push_back(resource_barrier_before.value());
+                }
             }
         }
     }
@@ -407,7 +452,8 @@ namespace nre::newrg
         calculate_resource_allocations_internal();
 
         create_rhi_resources_internal();
-        create_resource_barriers_internal();
+        create_resource_barriers_before_internal();
+        create_resource_barrier_batches_internal();
     }
 
     F_render_pass* F_render_graph::create_pass_internal(

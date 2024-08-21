@@ -8,6 +8,7 @@
 #include <nre/rendering/newrg/render_pass_functor.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
 #include <nre/rendering/newrg/render_resource_id.hpp>
+#include <nre/rendering/newrg/render_resource_barrier_batch.hpp>
 
 
 
@@ -35,7 +36,9 @@ namespace nre::newrg
 
         TF_render_frame_vector<F_render_resource_state> resource_states_;
         TF_render_frame_vector<F_render_resource_producer_state> resource_producer_states_;
-        TF_render_frame_vector<eastl::optional<F_resource_barrier>> resource_barriers_;
+        TF_render_frame_vector<eastl::optional<F_resource_barrier>> resource_barriers_before_;
+
+        F_render_resource_barrier_batch resource_barrier_batch_;
 
         TF_render_frame_vector<F_render_resource*> resource_to_allocate_vector_;
         TF_render_frame_vector<F_render_resource*> resource_to_deallocate_vector_;
@@ -54,7 +57,9 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& resource_states() const noexcept { return resource_states_; }
         NCPP_FORCE_INLINE const auto& resource_producer_states() const noexcept { return resource_producer_states_; }
-        NCPP_FORCE_INLINE const auto& resource_barriers() const noexcept { return resource_barriers_; }
+        NCPP_FORCE_INLINE const auto& resource_barriers_before() const noexcept { return resource_barriers_before_; }
+
+        NCPP_FORCE_INLINE const auto& resource_barrier_batch() const noexcept { return resource_barrier_batch_; }
 
         NCPP_FORCE_INLINE const auto& resource_to_allocate_vector() const noexcept { return resource_to_allocate_vector_; }
         NCPP_FORCE_INLINE const auto& resource_to_deallocate_vector() const noexcept { return resource_to_deallocate_vector_; }
