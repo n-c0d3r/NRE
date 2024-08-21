@@ -234,13 +234,13 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        F_render_resource* import_resource(const TS<F_external_render_resource>& external_resource_p);
+        F_render_resource* import_resource(TKPA_valid<F_external_render_resource> external_resource_p);
 
     public:
         /**
          *  Thread-safe
          */
-        void external_enqueue_release_rhi(const TS<F_external_render_resource>& external_resource_p);
+        void enqueue_rhi_to_release(F_rhi_to_release&& rhi_to_release);
 
     public:
         /**

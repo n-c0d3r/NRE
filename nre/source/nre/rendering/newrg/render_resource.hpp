@@ -29,7 +29,8 @@ namespace nre::newrg
     private:
         F_render_resource_id id_ = NCPP_U32_MAX;
 
-        TU<A_resource> rhi_p_;
+        TU<A_resource> owned_rhi_p_;
+        TK<A_resource> rhi_p_;
 
         F_resource_desc* desc_to_create_p_ = 0;
 
@@ -50,7 +51,7 @@ namespace nre::newrg
     public:
         NCPP_FORCE_INLINE F_render_resource_id id() const noexcept { return id_; }
 
-        NCPP_FORCE_INLINE TK_valid<A_resource> rhi_p() const noexcept { return NCPP_FOH_VALID(rhi_p_); }
+        NCPP_FORCE_INLINE TKPA<A_resource> rhi_p() const noexcept { return rhi_p_; }
 
         NCPP_FORCE_INLINE b8 need_to_create() const noexcept { return (desc_to_create_p_ != 0); }
 
@@ -80,7 +81,7 @@ namespace nre::newrg
 #endif
         );
         F_render_resource(
-            TU<A_resource>&& rhi_p,
+            TU<A_resource>&& owned_rhi_p,
             F_render_resource_allocation allocation
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
