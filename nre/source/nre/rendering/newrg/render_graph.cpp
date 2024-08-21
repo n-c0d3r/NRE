@@ -25,7 +25,8 @@ namespace nre::newrg
     F_render_graph::F_render_graph() :
         temp_object_cache_stack_(NRE_RENDER_GRAPH_TEMP_OBJECT_CACHE_STRACK_CAPACITY),
         pass_p_owf_stack_(NRE_RENDER_GRAPH_PASS_OWF_STACK_CAPACITY),
-        resource_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY)
+        resource_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
+        rhi_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_TO_RELEASE_OWF_STACK_CAPACITY)
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
@@ -266,7 +267,7 @@ namespace nre::newrg
 
     void F_render_graph::flush_rhi_to_release_internal()
     {
-        rhi_to_release_stack_.reset();
+        rhi_to_release_owf_stack_.reset();
     }
 
     void F_render_graph::flush_objects_internal()
@@ -415,7 +416,7 @@ namespace nre::newrg
 
     void F_render_graph::enqueue_rhi_to_release(F_rhi_to_release&& rhi_to_release)
     {
-        rhi_to_release_stack_.push(
+        rhi_to_release_owf_stack_.push(
             std::move(rhi_to_release)
         );
     }

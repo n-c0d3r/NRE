@@ -125,14 +125,13 @@ namespace nre::newrg {
 
 		//
 		resource_uploader_p_ = TU<F_resource_uploader>()();
-
-		//
 		render_graph_p_ = TU<F_render_graph>()();
-
-		//
 		renderer_p_ = TU<F_renderer>()();
 	}
 	F_render_pipeline::~F_render_pipeline() {
+
+		renderer_p_.reset();
+		render_graph_p_.reset();
 	}
 
 

@@ -56,7 +56,7 @@ namespace nre::newrg
             TU<A_resource> rhi_p;
             F_render_resource_allocation allocation;
         };
-        TG_concurrent_owf_stack<F_rhi_to_release> rhi_to_release_stack_;
+        TG_concurrent_owf_stack<F_rhi_to_release> rhi_to_release_owf_stack_;
 
     public:
         NCPP_FORCE_INLINE const auto& temp_object_cache_stack() const noexcept { return temp_object_cache_stack_; }
@@ -70,7 +70,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& pass_p_owf_stack() noexcept { return pass_p_owf_stack_; }
         NCPP_FORCE_INLINE auto& resource_p_owf_stack() noexcept { return resource_p_owf_stack_; }
 
-        NCPP_FORCE_INLINE auto& rhi_to_release_stack() noexcept { return rhi_to_release_stack_; }
+        NCPP_FORCE_INLINE auto& rhi_to_release_owf_stack() noexcept { return rhi_to_release_owf_stack_; }
 
 
 
