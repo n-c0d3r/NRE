@@ -58,14 +58,15 @@ namespace nre::newrg
     void A_render_worker::begin_frame()
     {
         begin_sync_point_.consumer_wait();
-        begin_sync_point_.consumer_signal();
-
-        if(F_task_system::instance_p()->is_stopped())
-            return;
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(
             is_in_frame_ = true;
         );
+
+        begin_sync_point_.consumer_signal();
+
+        if(F_task_system::instance_p()->is_stopped())
+            return;
     }
     void A_render_worker::end_frame()
     {

@@ -140,6 +140,9 @@ namespace nre::newrg
             {
                 F_render_resource* resource_p = resource_state.render_resource_p;
 
+                if(resource_p->need_to_export())
+                    continue;
+
                 if(resource_p->max_pass_id() == pass_p->id())
                 {
                     resource_to_deallocate_vector.push_back(resource_p);
@@ -210,7 +213,7 @@ namespace nre::newrg
         auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
         {
-            if(!(resource_p->is_exported()))
+            if(!(resource_p->need_to_export()))
             {
                 auto& desc = *(resource_p->desc_to_create_p_);
                 auto& rhi_placed_resource_pool = find_rhi_placed_resource_pool(desc.type);

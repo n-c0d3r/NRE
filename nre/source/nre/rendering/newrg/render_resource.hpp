@@ -12,6 +12,7 @@
 namespace nre::newrg
 {
     class F_render_pass;
+    class F_external_render_resource;
 
 
 
@@ -39,7 +40,8 @@ namespace nre::newrg
 
         F_render_resource_allocation allocation_;
 
-        b8 is_exported_ = false;
+        pac::F_spin_lock export_lock_;
+        TS<F_external_render_resource> external_p_;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
@@ -59,7 +61,10 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& allocation() const noexcept { return allocation_; }
 
-        NCPP_FORCE_INLINE b8 is_exported() const noexcept { return is_exported_; }
+        NCPP_FORCE_INLINE const auto& export_lock() const noexcept { return export_lock_; }
+        NCPP_FORCE_INLINE auto& export_lock() noexcept { return export_lock_; }
+        NCPP_FORCE_INLINE auto& external_p() const noexcept { return external_p_; }
+        NCPP_FORCE_INLINE b8 need_to_export() const noexcept { return external_p_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }

@@ -6,6 +6,10 @@
 
 namespace nre::newrg
 {
+    class F_external_render_resource;
+
+
+
     class NRE_API F_renderer
     {
     private:
@@ -17,6 +21,7 @@ namespace nre::newrg
 
 
     private:
+        TS<F_external_render_resource> res_p_;
 
     public:
 
