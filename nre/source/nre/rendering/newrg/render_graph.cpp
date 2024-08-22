@@ -301,7 +301,7 @@ namespace nre::newrg
                     )
                         continue;
 
-                    if(!(use_state.is_writable()))
+                    if(use_state.states != resource_state.states)
                         continue;
 
                     if(use_pass_p->id() >= pass_id)
