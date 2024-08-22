@@ -59,13 +59,13 @@ int main() {
 				NRE_OPTIONAL_DEBUG_PARAM("resource_1")
 			);
 
-			// F_render_resource* rg_resource_2_p = render_graph_p->create_resource(
-			// 	H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
-			// 		128,
-			// 		ED_resource_flag::INPUT_BUFFER
-			// 	)
-			// 	NRE_OPTIONAL_DEBUG_PARAM("resource_2")
-			// );
+			F_render_resource* rg_resource_2_p = render_graph_p->create_resource(
+				H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
+					128,
+					ED_resource_flag::INPUT_BUFFER
+				)
+				NRE_OPTIONAL_DEBUG_PARAM("resource_2")
+			);
 
 			F_render_pass* rg_pass_1_p = render_graph_p->create_pass(
 				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
@@ -80,18 +80,18 @@ int main() {
 				.states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
 			});
 
-			// F_render_pass* rg_pass_2_p = render_graph_p->create_pass(
-			// 	[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
-			// 	{
-			// 	},
-			// 	ED_pipeline_state_type::GRAPHICS,
-			// 	E_render_pass_flag::NONE
-			// 	NRE_OPTIONAL_DEBUG_PARAM("pass_2")
-			// );
-			// rg_pass_2_p->add_resource_state({
-			// 	.resource_p = rg_resource_2_p,
-			// 	.states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
-			// });
+			F_render_pass* rg_pass_2_p = render_graph_p->create_pass(
+				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				{
+				},
+				ED_pipeline_state_type::GRAPHICS,
+				E_render_pass_flag::NONE
+				NRE_OPTIONAL_DEBUG_PARAM("pass_2")
+			);
+			rg_pass_2_p->add_resource_state({
+				.resource_p = rg_resource_2_p,
+				.states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+			});
 
 			F_render_pass* rg_pass_p = render_graph_p->create_pass(
 				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)

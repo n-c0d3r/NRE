@@ -62,7 +62,8 @@ namespace nre::newrg
                 sz heap_offset = allocated_range_opt.value();
                 return {
                     .page_index = i,
-                    .heap_offset = heap_offset
+                    .heap_offset = heap_offset,
+                    .allocator_p = this
                 };
             }
         }
@@ -72,7 +73,8 @@ namespace nre::newrg
         sz heap_offset = page.try_allocate(size, alignment).value();
         return {
             .page_index = u32(pages_.size() - 1),
-            .heap_offset = heap_offset
+            .heap_offset = heap_offset,
+            .allocator_p = this
         };
     }
     void F_render_resource_allocator::deallocate(const F_render_resource_allocation& allocation)

@@ -122,7 +122,7 @@ namespace nre::newrg
             {
             },
             ED_pipeline_state_type::GRAPHICS,
-            E_render_pass_flag::NONE
+            E_render_pass_flag::SENTINEL
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.prologue_pass")
         );
     }
@@ -133,7 +133,7 @@ namespace nre::newrg
             {
             },
             ED_pipeline_state_type::GRAPHICS,
-            E_render_pass_flag::NONE
+            E_render_pass_flag::SENTINEL
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.epilogue_pass")
         );
 
@@ -168,6 +168,9 @@ namespace nre::newrg
             auto& use_states = resource_p->use_states_;
             for(const auto& use_state : use_states)
             {
+                if(use_state.pass_p->is_sentinel())
+                    continue;
+
                 if(resource_p->min_pass_id_ == NCPP_U32_MAX)
                     resource_p->min_pass_id_ = use_state.pass_p->id();
                 else
@@ -186,6 +189,9 @@ namespace nre::newrg
             auto& use_states = resource_p->use_states_;
             for(const auto& use_state : use_states)
             {
+                if(use_state.pass_p->is_sentinel())
+                    continue;
+
                 if(resource_p->max_pass_id_ == NCPP_U32_MAX)
                     resource_p->max_pass_id_ = use_state.pass_p->id();
                 else
@@ -467,8 +473,25 @@ namespace nre::newrg
     }
     void F_render_graph::calculate_resource_aliases_internal()
     {
-        auto resource_span = resource_p_owf_stack_.item_span();
+        //
+        // auto is_overlap = [](F_render_resource* a, F_render_resource* b)->b8
+        // {
+        //     auto* a_desc_p = a->desc_to_create_p_;
+        //     auto* b_desc_p = b->desc_to_create_p_;
+        //
+        //     auto& a_allocation = a->allocation_;
+        //     auto& b_allocation = b->allocation_;
+        //
+        //     if(
+        //         (a_allocation.page_index == b_allocation.page_index)
+        //         && ()
+        //     )
+        // };
 
+        auto resource_span = resource_p_owf_stack_.item_span();
+        u32 resource_count = resource_span.size();
+
+        // sort resources based on allocation order to reduce cost
         TF_render_frame_vector<F_render_resource*> sorted_resource_p_vector(
             resource_span.begin(),
             resource_span.end()
@@ -483,6 +506,22 @@ namespace nre::newrg
             };
             eastl::sort(sorted_resource_p_vector.begin(), sorted_resource_p_vector.end(), compare);
         }
+
+        // search for aliased resources
+        // for(u32 i = 0; i < resource_count; ++i)
+        // {
+        //     F_render_resource* resource_p = sorted_resource_p_vector[i];
+        //
+        //     for(u32 j = 0; j < i; ++j)
+        //     {
+        //         F_render_resource* before_resource_p = sorted_resource_p_vector[j];
+        //
+        //         if(is_overlap(resource_p, before_resource_p))
+        //         {
+        //             resource_p->aliased_resource_p_vector_.push_back(before_resource_p);
+        //         }
+        //     }
+        // }
         int a = 5;
     }
 
