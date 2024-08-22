@@ -87,7 +87,6 @@ namespace nre::newrg
         TG_vector<F_render_fence_state> fence_states_;
         TG_vector<TU<A_fence>> fence_p_vector_;
 
-        TG_concurrent_owf_stack<F_render_resource_state> prologue_resource_state_stack_;
         TG_concurrent_owf_stack<F_render_resource_state> epilogue_resource_state_stack_;
 
         F_render_pass* prologue_pass_p_ = 0;
@@ -118,9 +117,9 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& fence_states() noexcept { return fence_states_; }
         NCPP_FORCE_INLINE const auto& fence_p_vector() noexcept { return fence_p_vector_; }
 
-        NCPP_FORCE_INLINE const auto& prologue_resource_state_stack() noexcept { return prologue_resource_state_stack_; }
         NCPP_FORCE_INLINE const auto& epilogue_resource_state_stack() noexcept { return epilogue_resource_state_stack_; }
 
+        NCPP_FORCE_INLINE F_render_pass* prologue_pass_p() noexcept { return prologue_pass_p_; }
         NCPP_FORCE_INLINE F_render_pass* epilogue_pass_p() noexcept { return epilogue_pass_p_; }
 
         NCPP_FORCE_INLINE b8 is_began() const noexcept { return is_began_.load(eastl::memory_order_acquire); }

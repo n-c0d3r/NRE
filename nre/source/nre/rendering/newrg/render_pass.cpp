@@ -64,6 +64,13 @@ namespace nre::newrg
         const F_render_resource_state& resource_state
     )
     {
+        NCPP_ASSERT(
+            find_resource_state_index(
+                resource_state.resource_p,
+                resource_state.subresource_index
+            ) == NCPP_U32_MAX
+        ) << "already added";
+
         resource_states_.push_back(resource_state);
     }
 

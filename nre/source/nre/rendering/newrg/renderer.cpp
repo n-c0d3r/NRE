@@ -27,7 +27,8 @@ namespace nre::newrg
         auto render_graph_p = F_render_graph::instance_p();
         render_graph_p->begin_register();
 
-        tick_event_.invoke();
+        if(F_application::instance_p()->is_started())
+            tick_event_.invoke();
 
         render_graph_p->execute();
     }
