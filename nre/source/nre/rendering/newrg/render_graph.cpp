@@ -574,7 +574,7 @@ namespace nre::newrg
                     if(!resource_barrier)
                         continue;
 
-                    for(F_render_pass_id before_pass_id = pass_id - 1; before_pass_id >= first_pass_id; --before_pass_id)
+                    for(F_render_pass_id before_pass_id = pass_id - 1; ; )
                     {
                         F_render_pass* before_pass_p = pass_span[before_pass_id];
 
@@ -591,7 +591,7 @@ namespace nre::newrg
                             ];
 
                             if(!before_resource_barrier)
-                                continue;
+                                goto next_step;
 
                             if(before_resource_barrier.value() == resource_barrier.value())
                             {
@@ -600,6 +600,14 @@ namespace nre::newrg
 
                             break;
                         }
+
+                        // check for the next step
+                        next_step:
+                        if(before_pass_id > first_pass_id)
+                        {
+                            --before_pass_id;
+                        }
+                        else break;
                     }
                 }
             }

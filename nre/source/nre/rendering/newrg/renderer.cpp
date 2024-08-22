@@ -58,7 +58,7 @@ namespace nre::newrg
                     int a = 5;
                 },
                 ED_pipeline_state_type::GRAPHICS,
-                E_render_pass_flag::ASYNC_COMPUTE
+                E_render_pass_flag::NONE
                 NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_1")
             );
             render_pass_p->add_resource_state({
