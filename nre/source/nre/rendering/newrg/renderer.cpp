@@ -27,8 +27,7 @@ namespace nre::newrg
         auto render_graph_p = F_render_graph::instance_p();
         render_graph_p->begin_register();
 
-        if(render_graph_register_functor_)
-            render_graph_register_functor_();
+        tick_event_.invoke();
 
         render_graph_p->execute();
     }
@@ -41,18 +40,5 @@ namespace nre::newrg
     {
         auto render_graph_p = F_render_graph::instance_p();
         return render_graph_p->is_end();
-    }
-
-    void F_renderer::install_render_graph_register(const eastl::function<void()>& functor)
-    {
-        NCPP_ASSERT(!(F_application::instance_p()->is_started()));
-
-        render_graph_register_functor_ = functor;
-    }
-    void F_renderer::install_render_graph_register(eastl::function<void()>&& functor)
-    {
-        NCPP_ASSERT(!(F_application::instance_p()->is_started()));
-
-        render_graph_register_functor_ = std::move(functor);
     }
 }

@@ -28,6 +28,8 @@
 #include <nre/rendering/newrg/managed_command_list_batch.hpp>
 #include <nre/rendering/newrg/managed_fence_batch.hpp>
 #include <nre/rendering/newrg/managed_render_work.hpp>
+#include <nre/rendering/newrg/renderer_tick_event.hpp>
+#include <nre/rendering/newrg/renderer.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

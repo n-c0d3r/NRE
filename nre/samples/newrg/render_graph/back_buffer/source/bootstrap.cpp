@@ -10,7 +10,7 @@ int main() {
 	auto application_p = TU<F_application>()(
 		F_application_desc {
 			.main_surface_desc = {
-				.title = L"Command Queue Thread (NewRG)",
+				.title = L"Back Buffer (NewRG)",
 				.size = { 1024, 700 }
 			}
 		}
@@ -32,6 +32,13 @@ int main() {
 			};
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p)
+		{
+		};
+	}
+
+	// renderer event
+	{
+		NRE_NEWRG_RENDERER_TICK()
 		{
 		};
 	}
