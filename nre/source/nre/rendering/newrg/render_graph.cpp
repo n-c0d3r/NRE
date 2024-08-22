@@ -452,6 +452,7 @@ namespace nre::newrg
             if(
                 flag_is_has(states_before, ED_resource_state::UNORDERED_ACCESS)
                 && flag_is_has(states_after, ED_resource_state::UNORDERED_ACCESS)
+                && (subresource_index == resource_barrier_all_subresources)
             )
             {
                 return H_resource_barrier::uav({
