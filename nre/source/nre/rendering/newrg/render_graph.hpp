@@ -9,6 +9,7 @@
 #include <nre/rendering/newrg/rhi_placed_resource_pool.hpp>
 #include <nre/rendering/newrg/render_pass_execute_range.hpp>
 #include <nre/rendering/newrg/render_fence_state.hpp>
+#include <nre/rendering/newrg/render_resource_state.hpp>
 
 
 namespace nre::newrg
@@ -86,18 +87,8 @@ namespace nre::newrg
         TG_vector<F_render_fence_state> fence_states_;
         TG_vector<TU<A_fence>> fence_p_vector_;
 
-        struct F_resource_to_export
-        {
-            F_render_resource* resource_p = 0;
-            ED_resource_state new_states = ED_resource_state::COMMON;
-        };
-        TG_concurrent_owf_stack<F_resource_to_export> resource_to_export_stack_;
-        struct F_permanent_resource_cache
-        {
-            F_render_resource* resource_p = 0;
-            ED_resource_state new_states = ED_resource_state::COMMON;
-        };
-        TG_concurrent_owf_stack<F_permanent_resource_cache> permanent_resource_cache_stack_;
+        TG_concurrent_owf_stack<F_render_resource_state> prologue_resource_state_stack_;
+        TG_concurrent_owf_stack<F_render_resource_state> epilogue_resource_state_stack_;
 
         F_render_pass* prologue_pass_p_ = 0;
         F_render_pass* epilogue_pass_p_ = 0;
@@ -127,8 +118,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& fence_states() noexcept { return fence_states_; }
         NCPP_FORCE_INLINE const auto& fence_p_vector() noexcept { return fence_p_vector_; }
 
-        NCPP_FORCE_INLINE const auto& resource_to_export_stack() noexcept { return resource_to_export_stack_; }
-        NCPP_FORCE_INLINE const auto& permanent_resource_cache_stack() noexcept { return permanent_resource_cache_stack_; }
+        NCPP_FORCE_INLINE const auto& prologue_resource_state_stack() noexcept { return prologue_resource_state_stack_; }
+        NCPP_FORCE_INLINE const auto& epilogue_resource_state_stack() noexcept { return epilogue_resource_state_stack_; }
 
         NCPP_FORCE_INLINE F_render_pass* epilogue_pass_p() noexcept { return epilogue_pass_p_; }
 

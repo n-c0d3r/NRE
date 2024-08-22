@@ -38,8 +38,8 @@ namespace nre::newrg
         resource_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
         rhi_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_TO_RELEASE_OWF_STACK_CAPACITY),
         execute_range_owf_stack_(NRE_RENDER_GRAPH_EXECUTE_RANGE_OWF_STACK_CAPACITY),
-        resource_to_export_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
-        permanent_resource_cache_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY)
+        epilogue_resource_state_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
+        prologue_resource_state_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY)
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
@@ -129,16 +129,10 @@ namespace nre::newrg
     }
     void F_render_graph::setup_prologue_pass_internal()
     {
-        // add need_to_export resources to prologue resource states
+        auto prologue_resource_state_span = prologue_resource_state_stack_.item_span();
+        for(const auto& prologue_resource_state : prologue_resource_state_span)
         {
-            auto permanent_resource_cache_span = permanent_resource_cache_stack_.item_span();
-            for(const auto& permanent_resource_cache : permanent_resource_cache_span)
-            {
-                prologue_pass_p_->add_resource_state({
-                    .resource_p = permanent_resource_cache.resource_p,
-                    .states = permanent_resource_cache.new_states
-                });
-            }
+            prologue_pass_p_->add_resource_state(prologue_resource_state);
         }
     }
     void F_render_graph::create_epilogue_pass_internal()
@@ -154,16 +148,10 @@ namespace nre::newrg
     }
     void F_render_graph::setup_epilogue_pass_internal()
     {
-        // add need_to_export resources to epilogue resource states
+        auto epilogue_resource_state_span = prologue_resource_state_stack_.item_span();
+        for(const auto& epilogue_resource_state : epilogue_resource_state_span)
         {
-            auto resource_to_export_span = resource_to_export_stack_.item_span();
-            for(const auto& resource_to_export : resource_to_export_span)
-            {
-                epilogue_pass_p_->add_resource_state({
-                    .resource_p = resource_to_export.resource_p,
-                    .states = resource_to_export.new_states
-                });
-            }
+            epilogue_pass_p_->add_resource_state(epilogue_resource_state);
         }
     }
 
@@ -1055,8 +1043,8 @@ namespace nre::newrg
 
         flush_rhi_to_release_internal();
 
-        resource_to_export_stack_.reset();
-        permanent_resource_cache_stack_.reset();
+        prologue_resource_state_stack_.reset();
+        epilogue_resource_state_stack_.reset();
         resource_p_owf_stack_.reset();
     }
     void F_render_graph::flush_states_internal()
@@ -1248,9 +1236,9 @@ namespace nre::newrg
 #endif
             );
 
-            resource_to_export_stack_.push({
+            epilogue_resource_state_stack_.push({
                 .resource_p = resource_p,
-                .new_states = new_states
+                .states = new_states
             });
         }
 
@@ -1276,6 +1264,11 @@ namespace nre::newrg
             render_resource_p->id_ = resource_p_owf_stack_.push_and_return_index(render_resource_p);
 
             external_resource_p->internal_p_ = render_resource_p;
+
+            epilogue_resource_state_stack_.push({
+                .resource_p = render_resource_p,
+                .states = external_resource_p->initial_states()
+            });
         }
 
         return external_resource_p->internal_p_;
@@ -1301,9 +1294,9 @@ namespace nre::newrg
 
         render_resource_p->id_ = resource_p_owf_stack_.push_and_return_index(render_resource_p);
 
-        permanent_resource_cache_stack_.push({
+        prologue_resource_state_stack_.push({
             .resource_p = render_resource_p,
-            .new_states = initial_states
+            .states = initial_states
         });
 
         return render_resource_p;
