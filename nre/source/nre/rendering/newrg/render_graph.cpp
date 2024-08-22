@@ -558,6 +558,9 @@ namespace nre::newrg
             {
                 F_render_pass_id pass_id = pass_p->id();
 
+                if(pass_id == 0)
+                    continue;
+
                 auto& resource_states = pass_p->resource_states_;
                 auto& resource_barriers_before = pass_p->resource_barriers_before_;
 
@@ -566,7 +569,10 @@ namespace nre::newrg
                 for(u32 i = 0; i < resource_state_count; ++i)
                 {
                     auto resource_state = resource_states[i];
-                    auto resource_barrier = resource_barriers_before[i];
+                    auto& resource_barrier = resource_barriers_before[i];
+
+                    if(!resource_barrier)
+                        continue;
 
                     for(F_render_pass_id before_pass_id = pass_id - 1; before_pass_id >= first_pass_id; --before_pass_id)
                     {
@@ -587,10 +593,12 @@ namespace nre::newrg
                             if(!before_resource_barrier)
                                 continue;
 
-                            if(before_resource_barrier == resource_barrier)
+                            if(before_resource_barrier.value() == resource_barrier.value())
+                            {
                                 resource_barrier = eastl::nullopt;
-                            else
-                                break;
+                            }
+
+                            break;
                         }
                     }
                 }
