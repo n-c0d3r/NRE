@@ -379,19 +379,19 @@ namespace nre::newrg
                 // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
                 if(
                     (
-                        flag_is_has(resource_producer_state.states, ED_resource_flag::RENDER_TARGET)
-                        && flag_is_has(resource_state.states, ED_resource_flag::RENDER_TARGET)
+                        flag_is_has(resource_producer_state.states, ED_resource_state::RENDER_TARGET)
+                        && flag_is_has(resource_state.states, ED_resource_state::RENDER_TARGET)
                     )
                     || (
-                        flag_is_has(resource_producer_state.states, ED_resource_flag::DEPTH_STENCIL)
-                        && flag_is_has(resource_state.states, ED_resource_flag::DEPTH_STENCIL)
+                        flag_is_has(resource_producer_state.states, ED_resource_state::DEPTH_WRITE)
+                        && flag_is_has(resource_state.states, ED_resource_state::DEPTH_WRITE)
                     )
                 )
                     continue;
 
                 if(
-                    flag_is_has(resource_producer_state.states, ED_resource_flag::UNORDERED_ACCESS)
-                    && flag_is_has(resource_state.states, ED_resource_flag::UNORDERED_ACCESS)
+                    flag_is_has(resource_producer_state.states, ED_resource_state::UNORDERED_ACCESS)
+                    && flag_is_has(resource_state.states, ED_resource_state::UNORDERED_ACCESS)
                 )
                 {
                     resource_barriers_before[i] = H_resource_barrier::uav({
@@ -415,7 +415,7 @@ namespace nre::newrg
         for(F_render_pass* pass_p : pass_span)
         {
             auto& resource_barriers_before = pass_p->resource_barriers_before_;
-            auto& resource_barrier_batch = pass_p->resource_barrier_batch_;
+            auto& resource_barrier_batch = pass_p->resource_barrier_batch_before_;
 
             for(auto& resource_barrier_before : resource_barriers_before)
             {
@@ -444,9 +444,9 @@ namespace nre::newrg
 
         for(F_render_pass* pass_p : execute_range.pass_p_vector)
         {
-            if(pass_p->resource_barrier_batch_.size())
+            if(pass_p->resource_barrier_batch_before_.size())
                 execute_range_command_list_p_->async_resource_barriers(
-                    pass_p->resource_barrier_batch_
+                    pass_p->resource_barrier_batch_before_
                 );
             pass_p->execute_internal(NCPP_FOH_VALID(execute_range_command_list_p_));
         }
