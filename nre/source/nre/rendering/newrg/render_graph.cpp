@@ -290,7 +290,10 @@ namespace nre::newrg
                     )
                         continue;
 
-                    if(use_state.states == resource_state.states)
+                    if(
+                        (use_state.states == resource_state.states)
+                        && !flag_is_has(use_state.states, ED_resource_state::UNORDERED_ACCESS)
+                    )
                         continue;
 
                     if(use_pass_p->id() >= pass_id)
@@ -574,8 +577,22 @@ namespace nre::newrg
             }
         }
     }
-    void F_render_graph::skip_resource_barriers_before_internal()
+    void F_render_graph::merge_resource_barriers_before_internal()
     {
+        auto merge_readable_resource_barriers = [](const F_resource_barrier& a, const F_resource_barrier& b)
+        -> F_resource_barrier
+        {
+            NCPP_ASSERT(a.type == b.type);
+            NCPP_ASSERT(a.flags == b.flags);
+            NCPP_ASSERT(a.type == ED_resource_barrier_type::TRANSITION);
+
+            F_resource_barrier result = a;
+            result.transition.state_before = a.transition.state_before | b.transition.state_before;
+            result.transition.state_after = a.transition.state_after | b.transition.state_after;
+
+            return result;
+        };
+
         auto pass_span = pass_p_owf_stack_.item_span();
         auto execute_range_span = execute_range_owf_stack_.item_span();
 
@@ -616,6 +633,9 @@ namespace nre::newrg
 
                         if(before_resource_state_index != NCPP_U32_MAX)
                         {
+                            auto& before_resource_state = before_pass_p->resource_states_[
+                                before_resource_state_index
+                            ];
                             auto& before_resource_barrier = before_pass_p->resource_barriers_before_[
                                 before_resource_state_index
                             ];
@@ -623,8 +643,29 @@ namespace nre::newrg
                             if(!before_resource_barrier)
                                 goto next_step;
 
-                            if(before_resource_barrier.value() == resource_barrier.value())
+                            auto& resource_barrier_value = resource_barrier.value();
+                            auto& before_resource_barrier_value = before_resource_barrier.value();
+
+                            // skip if they both are the same and not unordered access barriers
+                            if(
+                                (before_resource_barrier_value == resource_barrier_value)
+                                && (resource_barrier_value.type != ED_resource_barrier_type::UNORDERED_ACCESS)
+                            )
                             {
+                                resource_barrier = eastl::nullopt;
+                            }
+                            // merge readable states
+                            else if(
+                                (before_resource_barrier_value.type == resource_barrier_value.type)
+                                && (before_resource_barrier_value.flags == resource_barrier_value.flags)
+                                && !before_resource_state.is_writable()
+                                && !resource_state.is_writable()
+                            )
+                            {
+                                before_resource_barrier = merge_readable_resource_barriers(
+                                    before_resource_barrier_value,
+                                    resource_barrier_value
+                                );
                                 resource_barrier = eastl::nullopt;
                             }
 
@@ -643,64 +684,6 @@ namespace nre::newrg
             }
         }
     }
-    // void F_render_graph::skip_resource_barriers_after_internal()
-    // {
-    //     auto pass_span = pass_p_owf_stack_.item_span();
-    //     auto execute_range_span = execute_range_owf_stack_.item_span();
-    //
-    //     for(auto& execute_range : execute_range_span)
-    //     {
-    //         F_render_pass* last_pass_p = execute_range.pass_p_vector.back();
-    //         F_render_pass_id last_pass_id = last_pass_p->id();
-    //
-    //         for(F_render_pass* pass_p : execute_range.pass_p_vector)
-    //         {
-    //             F_render_pass_id pass_id = pass_p->id();
-    //
-    //             auto& resource_states = pass_p->resource_states_;
-    //             auto& resource_barriers_after = pass_p->resource_barriers_after_;
-    //
-    //             u32 resource_state_count = resource_states.size();
-    //
-    //             for(u32 i = 0; i < resource_state_count; ++i)
-    //             {
-    //                 auto resource_state = resource_states[i];
-    //                 auto& resource_barrier = resource_barriers_after[i];
-    //
-    //                 if(!resource_barrier)
-    //                     continue;
-    //
-    //                 for(F_render_pass_id after_pass_id = pass_id + 1; after_pass_id < last_pass_id; ++after_pass_id)
-    //                 {
-    //                     F_render_pass* after_pass_p = pass_span[after_pass_id];
-    //
-    //                     u32 after_resource_state_index = after_pass_p->find_resource_state_index(
-    //                         resource_state.resource_p,
-    //                         resource_state.subresource_index,
-    //                         false
-    //                     );
-    //
-    //                     if(after_resource_state_index != NCPP_U32_MAX)
-    //                     {
-    //                         auto& after_resource_barrier = after_pass_p->resource_barriers_after_[
-    //                             after_resource_state_index
-    //                         ];
-    //
-    //                         if(!after_resource_barrier)
-    //                             continue;
-    //
-    //                         if(after_resource_barrier.value() == resource_barrier.value())
-    //                         {
-    //                             resource_barrier = eastl::nullopt;
-    //                         }
-    //
-    //                         break;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
     void F_render_graph::create_resource_barrier_batches_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
@@ -1063,8 +1046,7 @@ namespace nre::newrg
         build_execute_range_owf_stack_internal();
 
         create_resource_barriers_internal();
-        skip_resource_barriers_before_internal();
-        // skip_resource_barriers_after_internal();
+        merge_resource_barriers_before_internal();
         create_resource_barrier_batches_internal();
     }
 
