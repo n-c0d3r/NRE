@@ -253,7 +253,11 @@ namespace nre::newrg
                     F_render_pass* use_pass_p = use_state.pass_p;
                     F_render_pass_id use_pass_id = use_pass_p->id();
 
-                    if(use_state.subresource_index != resource_state.subresource_index)
+                    if(
+                        (use_state.subresource_index != resource_state.subresource_index)
+                        && (use_state.subresource_index != resource_barrier_all_subresources)
+                        && (resource_state.subresource_index != resource_barrier_all_subresources)
+                    )
                         continue;
 
                     if(!(use_state.is_writable()))
@@ -421,12 +425,17 @@ namespace nre::newrg
         auto calculate_resource_barrier = [](
             F_render_resource* resource_p,
             TKPA_valid<A_resource> rhi_p,
-            u32 subresource_index,
+            u32 subresource_index_before,
+            u32 subresource_index_after,
             ED_resource_state states_before,
             ED_resource_state states_after,
             ED_resource_barrier_flag barrier_flags = ED_resource_barrier_flag::NONE
         )->eastl::optional<F_resource_barrier>
         {
+            u32 subresource_index = subresource_index_after;
+            if(subresource_index == resource_barrier_all_subresources)
+                subresource_index = subresource_index_before;
+
             // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
             if(
                 (
@@ -518,6 +527,7 @@ namespace nre::newrg
                     producer_resource_barrier_after = calculate_resource_barrier(
                         resource_p,
                         (TKPA_valid<A_resource>)rhi_p,
+                        resource_producer_state.subresource_index,
                         resource_state.subresource_index,
                         resource_producer_state.states,
                         ED_resource_state::COMMON,
@@ -527,9 +537,10 @@ namespace nre::newrg
                     resource_barriers_before[i] = calculate_resource_barrier(
                         resource_p,
                         (TKPA_valid<A_resource>)rhi_p,
+                        resource_producer_state.subresource_index,
                         resource_state.subresource_index,
                         ED_resource_state::COMMON,
-                        resource_producer_state.states,
+                        resource_state.states,
                         ED_resource_barrier_flag::BEGIN_ONLY
                     );
                     continue;
@@ -538,9 +549,10 @@ namespace nre::newrg
                 resource_barriers_before[i] = calculate_resource_barrier(
                     resource_p,
                     (TKPA_valid<A_resource>)rhi_p,
+                    resource_producer_state.subresource_index,
                     resource_state.subresource_index,
-                    resource_state.states,
-                    resource_producer_state.states
+                    resource_producer_state.states,
+                    resource_state.states
                 );
             }
         }
