@@ -44,8 +44,12 @@ namespace nre::newrg {
 				<< min_worker_thread_count
 				<< " hardware threads";
 
+			u8 potential_worker_thread_count = eastl::min<f32>(
+				f32(std::thread::hardware_concurrency()) * 0.75f,
+				255.0f
+			);
 			task_system_desc_.worker_thread_count = eastl::max<u8>(
-				task_system_desc_.worker_thread_count,
+				potential_worker_thread_count,
 				min_worker_thread_count
 			);
 
