@@ -61,6 +61,8 @@ namespace nre::newrg
         F_render_fence_batch signal_fence_batch_;
         F_render_fence_batch wait_fence_batch_;
 
+        u32 execute_range_index_ = NCPP_U32_MAX;
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
 #endif
@@ -92,6 +94,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& signal_fence_batch() const noexcept { return signal_fence_batch_; }
         NCPP_FORCE_INLINE const auto& wait_fence_batch() const noexcept { return wait_fence_batch_; }
+
+        NCPP_FORCE_INLINE u32 execute_range_index() const noexcept { return execute_range_index_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }

@@ -449,6 +449,13 @@ namespace nre::newrg
                 )
                     continue;
 
+                // check for barrier skiping from different execute ranges
+                if(
+                    producer_pass_p->execute_range_index()
+                    != pass_p->execute_range_index()
+                )
+                    continue;
+
                 // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
                 if(
                     (
@@ -597,6 +604,8 @@ namespace nre::newrg
 
         F_render_pass_execute_range execute_range;
 
+        u32 execute_range_index = 0;
+
         for(F_render_pass* pass_p : pass_span)
         {
             u8 render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
@@ -610,6 +619,7 @@ namespace nre::newrg
                 if(execute_range)
                 {
                     execute_range_owf_stack_.push(execute_range);
+                    ++execute_range_index;
                     execute_range = {
                         .render_worker_index = render_worker_index
                     };
@@ -625,9 +635,12 @@ namespace nre::newrg
                 if(execute_range)
                 {
                     execute_range_owf_stack_.push(execute_range);
+                    ++execute_range_index;
                     execute_range = {};
                 }
             }
+
+            pass_p->execute_range_index_ = execute_range_index;
 
             execute_range.render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
             execute_range.pass_p_vector.push_back(pass_p);
@@ -638,6 +651,7 @@ namespace nre::newrg
                 if(execute_range)
                 {
                     execute_range_owf_stack_.push(execute_range);
+                    ++execute_range_index;
                     execute_range = {};
                 }
             }
@@ -646,6 +660,7 @@ namespace nre::newrg
         if(execute_range)
         {
             execute_range_owf_stack_.push(execute_range);
+            ++execute_range_index;
             execute_range = {};
         }
     }
@@ -816,12 +831,14 @@ namespace nre::newrg
         calculate_resource_allocations_internal();
 
         create_rhi_resources_internal();
-        create_resource_barriers_before_internal();
-        create_resource_barrier_batches_internal();
 
         create_fences_internal();
         create_fence_batches_internal();
+
         build_execute_range_owf_stack_internal();
+
+        create_resource_barriers_before_internal();
+        create_resource_barrier_batches_internal();
     }
 
     F_render_pass* F_render_graph::create_pass_internal(
