@@ -21,9 +21,10 @@ namespace nre::newrg
 
 
     private:
-        TS<F_external_render_resource> res_p_;
+        eastl::function<void()> render_graph_register_functor_;
 
     public:
+        NCPP_FORCE_INLINE const auto& render_graph_register_functor() const noexcept { return render_graph_register_functor_; }
 
 
 
@@ -40,5 +41,9 @@ namespace nre::newrg
         void begin_render_frame();
         b8 is_began_render_frame();
         b8 is_end_render_frame();
+
+    public:
+        void install_render_graph_register(const eastl::function<void()>& functor);
+        void install_render_graph_register(eastl::function<void()>&& functor);
     };
 }

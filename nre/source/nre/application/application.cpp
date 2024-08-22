@@ -64,6 +64,8 @@ namespace nre {
 
 	void F_application::start() {
 
+		is_started_ = true;
+
 		start_ = eastl::chrono::high_resolution_clock::now();
 		frame_start_ = start_;
 		frame_end_ = start_;

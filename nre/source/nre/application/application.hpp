@@ -61,6 +61,8 @@ namespace nre {
 
 		b8 is_focused_ = false;
 
+		b8 is_started_ = false;
+
 	public:
 		NCPP_FORCE_INLINE const F_application_desc& desc() const noexcept { return desc_; }
 		NCPP_DECLARE_STATIC_EVENTS(
@@ -92,6 +94,8 @@ namespace nre {
 
 			return 1.0f / delta_seconds();
 		}
+
+		NCPP_FORCE_INLINE b8 is_started() const noexcept { return is_started_; }
 
 
 

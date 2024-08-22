@@ -3,6 +3,7 @@
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
 #include <nre/rendering/render_pipeline.hpp>
+#include <nre/application/application.hpp>
 
 
 namespace nre::newrg
@@ -26,79 +27,8 @@ namespace nre::newrg
         auto render_graph_p = F_render_graph::instance_p();
         render_graph_p->begin_register();
 
-        {
-            F_render_resource* swapchain_back_buffer_as_render_resource_p = render_graph_p->create_permanent_resource(
-                NCPP_AOH_VALID(NRE_MAIN_SWAPCHAIN()->back_buffer_p())
-            );
-        }
-
-        F_render_resource* render_resource_p = 0;
-
-        if(res_p_)
-        {
-            render_resource_p = render_graph_p->import_resource(NCPP_FOH_VALID(res_p_));
-        }
-        else
-        {
-            render_resource_p = render_graph_p->create_resource(
-                H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
-                    128,
-                    ED_resource_flag::INPUT_BUFFER
-                    | ED_resource_flag::UNORDERED_ACCESS
-                )
-                NRE_OPTIONAL_DEBUG_PARAM("demo_render_resource")
-            );
-        }
-
-        res_p_ = render_graph_p->export_resource(render_resource_p);
-
-        {
-            auto render_pass_p = render_graph_p->create_pass(
-                [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
-                {
-                    int a = 5;
-                },
-                ED_pipeline_state_type::GRAPHICS,
-                E_render_pass_flag::NONE
-                NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_1")
-            );
-            render_pass_p->add_resource_state({
-                render_resource_p,
-                ED_resource_state::UNORDERED_ACCESS
-            });
-        }
-
-        {
-            auto render_pass_p = render_graph_p->create_pass(
-                [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
-                {
-                    int a = 5;
-                },
-                ED_pipeline_state_type::GRAPHICS,
-                E_render_pass_flag::NONE
-                NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_2")
-            );
-            render_pass_p->add_resource_state({
-                render_resource_p,
-                ED_resource_state::INPUT_AND_CONSTANT_BUFFER
-            });
-        }
-
-        {
-            auto render_pass_p = render_graph_p->create_pass(
-                [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
-                {
-                    int a = 5;
-                },
-                ED_pipeline_state_type::GRAPHICS,
-                E_render_pass_flag::NONE
-                NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_3")
-            );
-            render_pass_p->add_resource_state({
-                render_resource_p,
-                ED_resource_state::INPUT_AND_CONSTANT_BUFFER
-            });
-        }
+        if(render_graph_register_functor_)
+            render_graph_register_functor_();
 
         render_graph_p->execute();
     }
@@ -113,4 +43,16 @@ namespace nre::newrg
         return render_graph_p->is_end();
     }
 
+    void F_renderer::install_render_graph_register(const eastl::function<void()>& functor)
+    {
+        NCPP_ASSERT(!(F_application::instance_p()->is_started()));
+
+        render_graph_register_functor_ = functor;
+    }
+    void F_renderer::install_render_graph_register(eastl::function<void()>&& functor)
+    {
+        NCPP_ASSERT(!(F_application::instance_p()->is_started()));
+
+        render_graph_register_functor_ = std::move(functor);
+    }
 }
