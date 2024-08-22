@@ -420,7 +420,7 @@ namespace nre::newrg
         }
     }
 
-    void F_render_graph::create_resource_barriers_before_internal()
+    void F_render_graph::create_resource_barriers_internal()
     {
         auto calculate_resource_barrier = [](
             F_render_resource* resource_p,
@@ -502,24 +502,10 @@ namespace nre::newrg
                     != pass_p->execute_range_index()
                 )
                 {
-                    u32 producer_pass_resource_index = NCPP_U32_MAX;
-
-                    // find resource index in producer pass
-                    {
-                        auto& producer_resource_states = producer_pass_p->resource_states_;
-                        u32 producer_resource_state_count = producer_resource_states.size();
-                        for(u32 j = 0; j < producer_resource_state_count; ++j)
-                        {
-                            auto& producer_resource_state = producer_resource_states[j];
-                            if(
-                                (producer_resource_state.resource_p == resource_state.resource_p)
-                                && (producer_resource_state.subresource_index == resource_state.subresource_index)
-                            )
-                            {
-                                producer_pass_resource_index = j;
-                            }
-                        }
-                    }
+                    u32 producer_pass_resource_index = producer_pass_p->find_resource_state_index(
+                        resource_state.resource_p,
+                        resource_state.subresource_index
+                    );
 
                     auto& producer_resource_barriers_after = producer_pass_p->resource_barriers_after_;
                     auto& producer_resource_barrier_after = producer_resource_barriers_after[producer_pass_resource_index];
@@ -556,6 +542,13 @@ namespace nre::newrg
                 );
             }
         }
+    }
+    void skip_resource_barriers_before_internal()
+    {
+
+    }
+    void skip_resource_barriers_after_internal()
+    {
     }
     void F_render_graph::create_resource_barrier_batches_internal()
     {
@@ -914,7 +907,7 @@ namespace nre::newrg
 
         build_execute_range_owf_stack_internal();
 
-        create_resource_barriers_before_internal();
+        create_resource_barriers_internal();
         create_resource_barrier_batches_internal();
 
         int a = 5;

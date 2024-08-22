@@ -13,6 +13,7 @@
 #include <nre/rendering/newrg/render_fence_state.hpp>
 #include <nre/rendering/newrg/render_fence_batch.hpp>
 
+#include "render_resource.hpp"
 
 
 namespace nre::newrg
@@ -120,6 +121,11 @@ namespace nre::newrg
 
 
 
+    private:
+        void execute_internal(TKPA_valid<A_command_list> command_list_p);
+
+
+
     public:
         /**
          *  Thread-safe
@@ -128,7 +134,56 @@ namespace nre::newrg
             const F_render_resource_state& resource_state
         );
 
-    private:
-        void execute_internal(TKPA_valid<A_command_list> command_list_p);
+    public:
+        u32 find_resource_state_index(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        );
+        F_render_resource_state& find_resource_state(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        );
+        F_render_resource_producer_state& find_resource_producer_state(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        );
+        eastl::optional<F_resource_barrier>& find_resource_barrier_before(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        );
+        eastl::optional<F_resource_barrier>& find_resource_barrier_after(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        );
+        u32 find_resource_state_index(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        ) const;
+        const F_render_resource_state& find_resource_state(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        ) const;
+        const F_render_resource_producer_state& find_resource_producer_state(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        ) const;
+        const eastl::optional<F_resource_barrier>& find_resource_barrier_before(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        ) const;
+        const eastl::optional<F_resource_barrier>& find_resource_barrier_after(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        ) const;
     };
 }
