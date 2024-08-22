@@ -21,6 +21,7 @@
 #include <nre/rendering/newrg/render_pass_functor.hpp>
 #include <nre/rendering/newrg/render_pass_flag.hpp>
 #include <nre/rendering/newrg/render_pass_execute_range.hpp>
+#include <nre/rendering/newrg/command_list_pool.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

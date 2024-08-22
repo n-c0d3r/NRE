@@ -6,6 +6,7 @@
 #include <nre/threading/threads_sync_point.hpp>
 #include <nre/frame_params.hpp>
 #include <nre/rendering/newrg/render_frame_allocator.hpp>
+#include <nre/rendering/newrg/command_list_pool.hpp>
 
 
 
@@ -13,6 +14,8 @@ namespace nre::newrg
 {
     using F_command_list_batch = TF_fixed_vector<TK<A_command_list>, 1, true, F_reference_render_frame_allocator>;
     using F_command_list_batch_valid = TF_fixed_vector<TK_valid<A_command_list>, 1, true, F_reference_render_frame_allocator>;
+
+    using F_managed_command_list_batch = TF_fixed_vector<TU<A_command_list>, 1, true, F_reference_render_frame_allocator>;
 
 
 
@@ -31,10 +34,14 @@ namespace nre::newrg
         F_cpu_gpu_sync_point cpu_gpu_sync_point_;
 
         TG_concurrent_ring_buffer<F_command_list_batch> command_list_batch_ring_buffer_;
+        TG_concurrent_ring_buffer<F_managed_command_list_batch> managed_command_list_batch_ring_buffer_;
+        F_command_list_pool command_list_pool_;
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(
             ab8 is_in_frame_ = false;
         );
+
+        TG_vector<TK<A_command_list>> managed_command_list_p_vector_;
 
     public:
         NCPP_FORCE_INLINE u8 index() const noexcept { return index_; }
@@ -49,6 +56,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const F_cpu_gpu_sync_point& cpu_gpu_sync_point() const noexcept { return cpu_gpu_sync_point_; }
 
         NCPP_FORCE_INLINE const auto& command_list_batch_ring_buffer() const noexcept { return command_list_batch_ring_buffer_; }
+        NCPP_FORCE_INLINE const auto& managed_command_list_batch_ring_buffer() const noexcept { return managed_command_list_batch_ring_buffer_; }
+        NCPP_FORCE_INLINE const auto& command_list_pool() const noexcept { return command_list_pool_; }
 
 
 
@@ -70,6 +79,15 @@ namespace nre::newrg
 
 
 
+    private:
+        void push_managed_command_list_into_pool(TU<A_command_list>&& command_list_p);
+
+    private:
+        b8 try_to_pop_command_list_internal();
+        b8 try_to_pop_mananaged_command_list_internal();
+
+
+
     protected:
         virtual void tick();
         virtual void subtick();
@@ -88,6 +106,11 @@ namespace nre::newrg
         void enqueue_command_list(TKPA_valid<A_command_list> command_list_p);
         void enqueue_command_list_batch(const F_command_list_batch& command_list_batch);
         void enqueue_command_list_batch(F_command_list_batch&& command_list_batch);
+
+    public:
+        TU<A_command_list> pop_managed_command_list(TKPA_valid<A_command_allocator> command_allocator_p);
+        void enqueue_command_list(TU<A_command_list>&& command_list_p);
+        void enqueue_command_list_batch(F_managed_command_list_batch&& command_list_batch);
     };
 
 

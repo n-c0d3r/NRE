@@ -17,6 +17,9 @@ namespace nre::newrg
     {
         extern thread_local A_command_allocator* direct_command_allocator_raw_p;
         extern thread_local F_object_key direct_command_allocator_p_key;
+
+        extern thread_local A_command_allocator* compute_command_allocator_raw_p;
+        extern thread_local F_object_key compute_command_allocator_p_key;
     }
 
 
@@ -24,6 +27,7 @@ namespace nre::newrg
     class F_render_pass;
     class F_render_resource;
     class F_external_render_resource;
+    class A_render_worker;
 
 
 
@@ -76,10 +80,8 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_render_pass_execute_range> execute_range_owf_stack_;
         F_task_counter execute_passes_counter_ = 0;
 
-        TU<A_command_list> execute_range_command_list_p_;
-        TU<A_command_allocator> execute_range_command_allocator_p_;
-
         TG_vector<TU<A_command_allocator>> direct_command_allocator_p_vector_;
+        TG_vector<TU<A_command_allocator>> compute_command_allocator_p_vector_;
 
         ab8 is_in_execution_ = false;
 
@@ -99,10 +101,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& execute_range_owf_stack() noexcept { return execute_range_owf_stack_; }
 
-        NCPP_FORCE_INLINE auto execute_range_command_list_p() noexcept { return NCPP_FOH_VALID(execute_range_command_list_p_); }
-        NCPP_FORCE_INLINE auto execute_range_command_allocator_p() noexcept { return NCPP_FOH_VALID(execute_range_command_allocator_p_); }
-
         NCPP_FORCE_INLINE const auto& direct_command_allocator_p_vector() noexcept { return direct_command_allocator_p_vector_; }
+        NCPP_FORCE_INLINE const auto& compute_command_allocator_p_vector() noexcept { return compute_command_allocator_p_vector_; }
 
         NCPP_FORCE_INLINE b8 is_in_execution() const noexcept { return is_in_execution_.load(eastl::memory_order_acquire); }
 
@@ -112,10 +112,15 @@ namespace nre::newrg
         F_render_graph();
         ~F_render_graph();
 
+
     public:
         NCPP_OBJECT(F_render_graph);
 
 
+
+    private:
+        TK_valid<A_render_worker> find_render_worker(b8 is_async_compute);
+        TK_valid<A_command_allocator> find_command_allocator(b8 is_async_compute);
 
     private:
         void setup_resource_use_states_internal();
@@ -333,6 +338,15 @@ namespace nre::newrg
             return TK_valid<A_command_allocator>::unsafe(
                 internal::direct_command_allocator_raw_p,
                 internal::direct_command_allocator_p_key
+            );
+        }
+        static NCPP_FORCE_INLINE TK_valid<A_command_allocator> compute_command_allocator_p()
+        {
+            NCPP_ASSERT(F_render_graph::instance_p()->is_in_execution());
+
+            return TK_valid<A_command_allocator>::unsafe(
+                internal::compute_command_allocator_raw_p,
+                internal::compute_command_allocator_p_key
             );
         }
     };

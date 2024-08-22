@@ -4,6 +4,7 @@
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/external_render_resource.hpp>
 #include <nre/rendering/newrg/main_render_worker.hpp>
+#include <nre/rendering/newrg/async_compute_render_worker.hpp>
 
 
 namespace nre::newrg
@@ -12,6 +13,9 @@ namespace nre::newrg
     {
         thread_local A_command_allocator* direct_command_allocator_raw_p;
         thread_local F_object_key direct_command_allocator_p_key;
+
+        thread_local A_command_allocator* compute_command_allocator_raw_p;
+        thread_local F_object_key compute_command_allocator_p_key;
 
 
 
@@ -67,6 +71,21 @@ namespace nre::newrg
     }
 
 
+
+    TK_valid<A_render_worker> F_render_graph::find_render_worker(b8 is_async_compute)
+    {
+        if(is_async_compute)
+            return F_async_compute_render_worker::instance_p();
+
+        return F_main_render_worker::instance_p();
+    }
+    TK_valid<A_command_allocator> F_render_graph::find_command_allocator(b8 is_async_compute)
+    {
+        if(is_async_compute)
+            return H_render_graph::compute_command_allocator_p();
+
+        return H_render_graph::direct_command_allocator_p();
+    }
 
     void F_render_graph::setup_resource_use_states_internal()
     {
@@ -429,14 +448,23 @@ namespace nre::newrg
     {
         NCPP_ASSERT(!(execute_range.is_async_compute)) << "async compute is not supported";
 
+        auto render_worker_p = find_render_worker(execute_range.is_async_compute);
+        auto command_allocator_p = find_command_allocator(execute_range.is_async_compute);
+
+        auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
+
         for(F_render_pass* pass_p : execute_range.pass_p_vector)
         {
             if(pass_p->resource_barrier_batch_before_.size())
-                execute_range_command_list_p_->async_resource_barriers(
+                command_list_p->async_resource_barriers(
                     pass_p->resource_barrier_batch_before_
                 );
-            pass_p->execute_internal(NCPP_FOH_VALID(execute_range_command_list_p_));
+            pass_p->execute_internal(NCPP_FOH_VALID(command_list_p));
         }
+
+        render_worker_p->enqueue_command_list(
+            std::move(command_list_p)
+        );
     }
     void F_render_graph::execute_passes_internal()
     {
@@ -583,6 +611,25 @@ namespace nre::newrg
                     internal::direct_command_allocator_raw_p = keyed_direct_command_allocator_p.object_p();
                     internal::direct_command_allocator_p_key = keyed_direct_command_allocator_p.object_key();
                 }
+                );
+
+            // setup compute command allocator
+            auto compute_command_allocator_p = H_command_allocator::create(
+                NRE_MAIN_DEVICE(),
+                {
+                    .type = ED_command_list_type::COMPUTE
+                }
+            );
+            auto keyed_compute_command_allocator_p = compute_command_allocator_p.keyed();
+            compute_command_allocator_p_vector_.push_back(
+                std::move(compute_command_allocator_p)
+            );
+            worker_thread_p->install_setup(
+                [keyed_compute_command_allocator_p](TKPA_valid<F_worker_thread>)
+                {
+                    internal::compute_command_allocator_raw_p = keyed_compute_command_allocator_p.object_p();
+                    internal::compute_command_allocator_p_key = keyed_compute_command_allocator_p.object_key();
+                }
             );
         }
     }
@@ -594,23 +641,13 @@ namespace nre::newrg
         {
             direct_command_allocator_p->flush();
         }
+        // flush compute command allocators
+        for(const auto& compute_command_allocator_p : compute_command_allocator_p_vector_)
+        {
+            compute_command_allocator_p->flush();
+        }
 
         is_in_execution_.store(true, eastl::memory_order_release);
-
-        if(!execute_range_command_list_p_)
-        {
-            execute_range_command_list_p_ = H_command_list::create_with_command_allocator(
-                NRE_MAIN_DEVICE(),
-                {
-                    .type = ED_command_list_type::DIRECT,
-                    .command_allocator_p = H_render_graph::direct_command_allocator_p().no_requirements()
-                }
-            );
-            execute_range_command_list_p_->async_end();
-        }
-        execute_range_command_list_p_->async_begin(
-            H_render_graph::direct_command_allocator_p()
-        );
 
         setup_internal();
         execute_passes_internal();
@@ -618,11 +655,6 @@ namespace nre::newrg
     void F_render_graph::wait()
     {
         while(execute_passes_counter_.load(eastl::memory_order_acquire));
-
-        execute_range_command_list_p_->async_end();
-        F_main_render_worker::instance_p()->enqueue_command_list(
-            NCPP_FOH_VALID(execute_range_command_list_p_)
-        );
     }
     void F_render_graph::flush()
     {
