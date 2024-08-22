@@ -48,6 +48,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto imgui_descriptor_heap_p() const noexcept { return NCPP_FOH_VALID(imgui_descriptor_heap_p_); }
 
+        NCPP_FORCE_INLINE const auto& render_worker_list() const noexcept { return render_worker_list_; }
+
 
 
     public:

@@ -11,4 +11,10 @@ namespace nre::newrg
         NONE,
         ASYNC_COMPUTE
     };
+
+    class NRE_API H_render_pass_flag
+    {
+    public:
+        static u8 render_worker_index(E_render_pass_flag flags);
+    };
 }

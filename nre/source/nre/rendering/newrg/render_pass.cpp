@@ -1,4 +1,7 @@
 #include <nre/rendering/newrg/render_pass.hpp>
+#include <nre/rendering/newrg/render_pipeline.hpp>
+#include <nre/rendering/newrg/main_render_worker.hpp>
+#include <nre/rendering/newrg/async_compute_render_worker.hpp>
 
 
 
@@ -19,6 +22,26 @@ namespace nre::newrg
         , name_(name)
 #endif
     {
+        auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
+        const auto& render_worker_list = render_pipeline_p->render_worker_list();
+
+        max_producer_ids_.resize(render_worker_list.size());
+        for(auto& max_producer_id : max_producer_ids_)
+        {
+            max_producer_id = NCPP_U32_MAX;
+        }
+
+        signal_fence_states_.resize(render_worker_list.size());
+        for(auto& fence_state : signal_fence_states_)
+        {
+            fence_state = { NCPP_U64_MAX };
+        }
+
+        wait_fence_states_.resize(render_worker_list.size());
+        for(auto& fence_state : wait_fence_states_)
+        {
+            fence_state = { NCPP_U64_MAX };
+        }
     }
     F_render_pass::~F_render_pass()
     {

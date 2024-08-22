@@ -1,6 +1,7 @@
 #include <nre/rendering/newrg/render_worker.hpp>
 #include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/render_frame_containers.hpp>
+#include <nre/rendering/newrg/renderer.hpp>
 #include <nre/rendering/render_system.hpp>
 
 
@@ -30,7 +31,7 @@ namespace nre::newrg
         ),
         cpu_gpu_sync_point_(NRE_MAIN_DEVICE()),
         command_list_batch_ring_buffer_(NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY),
-        managed_command_list_batch_ring_buffer_(NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY),
+        managed_render_work_ring_buffer_(NRE_RENDER_WORK_RING_BUFFER_CAPACITY),
         command_list_pool_(command_list_type, NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY)
     {
     }
@@ -46,34 +47,65 @@ namespace nre::newrg
         command_list_pool_.push(std::move(command_list_p));
     }
 
-    b8 A_render_worker::try_to_pop_command_list_internal()
+    b8 A_render_worker::try_to_pop_mananaged_command_list_internal()
     {
-        F_managed_command_list_batch managed_command_list_batch;
-        if(managed_command_list_batch_ring_buffer_.try_pop(managed_command_list_batch))
+        F_managed_render_work managed_render_work;
+        if(managed_render_work_ring_buffer_.try_pop(managed_render_work))
         {
-            u32 command_list_count = managed_command_list_batch.size();
-            managed_command_list_p_vector_.resize(command_list_count);
-            for(u32 i = 0; i < command_list_count; ++i)
+            switch (managed_render_work.type)
             {
-                auto& command_list_p = managed_command_list_batch[i];
-                command_list_p->async_end();
-                managed_command_list_p_vector_[i] = command_list_p;
+                case E_managed_render_work_type::FENCE_WAIT:
+                {
+                    auto& managed_fence_batch = managed_render_work.fence_batch;
+                    for(auto& managed_fence_state : managed_fence_batch)
+                        command_queue_p_->async_wait(
+                            NCPP_FOH_VALID(managed_fence_state.fence_p),
+                            managed_fence_state.value
+                        );
+                    break;
+                }
+                case E_managed_render_work_type::COMMAND_LIST_BATCH:
+                {
+                    auto& managed_command_list_batch = managed_render_work.command_list_batch;
 
-                push_managed_command_list_into_pool(
-                    std::move(command_list_p)
-                );
+                    NCPP_ASSERT(managed_command_list_batch.size()) << "empty command list batch is not allowed";
+
+                    u32 command_list_count = managed_command_list_batch.size();
+                    managed_command_list_p_vector_.resize(command_list_count);
+                    for(u32 i = 0; i < command_list_count; ++i)
+                    {
+                        auto& command_list_p = managed_command_list_batch[i];
+                        command_list_p->async_end();
+                        managed_command_list_p_vector_[i] = command_list_p;
+
+                        push_managed_command_list_into_pool(
+                            std::move(command_list_p)
+                        );
+                    }
+
+                    command_queue_p_->async_execute_command_lists(
+                        (TG_vector<TK_valid<A_command_list>>&)managed_command_list_p_vector_
+                    );
+                    break;
+                }
+                case E_managed_render_work_type::FENCE_SIGNAL:
+                {
+                    auto& managed_fence_batch = managed_render_work.fence_batch;
+                    for(auto& managed_fence_state : managed_fence_batch)
+                        command_queue_p_->async_signal(
+                            NCPP_FOH_VALID(managed_fence_state.fence_p),
+                            managed_fence_state.value
+                        );
+                    break;
+                }
             }
-
-            command_queue_p_->async_execute_command_lists(
-                (TG_vector<TK_valid<A_command_list>>&)managed_command_list_p_vector_
-            );
 
             return true;
         }
 
         return false;
     }
-    b8 A_render_worker::try_to_pop_mananaged_command_list_internal()
+    b8 A_render_worker::try_to_pop_command_list_internal()
     {
         F_command_list_batch command_list_batch;
         if(command_list_batch_ring_buffer_.try_pop(command_list_batch))
@@ -103,16 +135,18 @@ namespace nre::newrg
     }
     void A_render_worker::begin_frame()
     {
-        begin_sync_point_.consumer_wait();
-
         NCPP_ENABLE_IF_ASSERTION_ENABLED(
             is_in_frame_ = true;
         );
 
+        begin_sync_point_.consumer_wait();
         begin_sync_point_.consumer_signal();
 
         if(F_task_system::instance_p()->is_stopped())
             return;
+
+        auto renderer_p = F_renderer::instance_p();
+        while(!(renderer_p->is_began_render_frame()));
     }
     void A_render_worker::end_frame()
     {
@@ -230,16 +264,92 @@ namespace nre::newrg
 
         F_managed_command_list_batch batch;
         batch.push_back(std::move(command_list_p));
-        managed_command_list_batch_ring_buffer_.push(
-            std::move(batch)
-        );
+        managed_render_work_ring_buffer_.push({
+            .command_list_batch = std::move(batch),
+            .type = E_managed_render_work_type::COMMAND_LIST_BATCH
+        });
     }
     void A_render_worker::enqueue_command_list_batch(F_managed_command_list_batch&& command_list_batch)
     {
         NCPP_ASSERT(is_in_frame_);
 
-        managed_command_list_batch_ring_buffer_.push(
-            std::move(command_list_batch)
+        managed_render_work_ring_buffer_.push({
+            .command_list_batch = std::move(command_list_batch),
+            .type = E_managed_render_work_type::COMMAND_LIST_BATCH
+        });
+    }
+
+    void A_render_worker::enqueue_fence_wait(TKPA_valid<A_fence> fence_p, u64 value)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        managed_render_work_ring_buffer_.push({
+            .fence_batch = F_managed_fence_batch({
+                F_managed_fence_state{
+                    .fence_p = fence_p.no_requirements(),
+                    .value = value
+                }
+            }),
+            .type = E_managed_render_work_type::FENCE_WAIT
+        });
+    }
+    void A_render_worker::enqueue_fence_signal(TKPA_valid<A_fence> fence_p, u64 value)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        managed_render_work_ring_buffer_.push({
+            .fence_batch = F_managed_fence_batch({
+                F_managed_fence_state{
+                    .fence_p = fence_p.no_requirements(),
+                    .value = value
+                }
+            }),
+            .type = E_managed_render_work_type::FENCE_SIGNAL
+        });
+    }
+    void A_render_worker::enqueue_fence_wait_batch(const F_managed_fence_batch& fence_batch)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        managed_render_work_ring_buffer_.push({
+            .fence_batch = fence_batch,
+            .type = E_managed_render_work_type::FENCE_WAIT
+        });
+    }
+    void A_render_worker::enqueue_fence_wait_batch(F_managed_fence_batch&& fence_batch)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        managed_render_work_ring_buffer_.push({
+            .fence_batch = std::move(fence_batch),
+            .type = E_managed_render_work_type::FENCE_WAIT
+        });
+    }
+    void A_render_worker::enqueue_fence_signal_batch(const F_managed_fence_batch& fence_batch)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        managed_render_work_ring_buffer_.push({
+            .fence_batch = fence_batch,
+            .type = E_managed_render_work_type::FENCE_SIGNAL
+        });
+    }
+    void A_render_worker::enqueue_fence_signal_batch(F_managed_fence_batch&& fence_batch)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        managed_render_work_ring_buffer_.push({
+            .fence_batch = std::move(fence_batch),
+            .type = E_managed_render_work_type::FENCE_SIGNAL
+        });
+    }
+
+    void A_render_worker::enqueue_managed_render_work(F_managed_render_work&& render_work)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        managed_render_work_ring_buffer_.push(
+            std::move(render_work)
         );
     }
 }

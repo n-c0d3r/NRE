@@ -51,61 +51,65 @@ namespace nre::newrg
 
         res_p_ = render_graph_p->export_resource(render_resource_p);
 
-        // {
-        //     auto render_pass_p = render_graph_p->create_pass(
-        //         [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
-        //         {
-        //             int a = 5;
-        //         },
-        //         ED_pipeline_state_type::GRAPHICS,
-        //         E_render_pass_flag::NONE
-        //         NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_1")
-        //     );
-        //     render_pass_p->add_resource_state({
-        //         render_resource_p,
-        //         ED_resource_state::UNORDERED_ACCESS
-        //     });
-        // }
-        //
-        // {
-        //     auto render_pass_p = render_graph_p->create_pass(
-        //         [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
-        //         {
-        //             int a = 5;
-        //         },
-        //         ED_pipeline_state_type::GRAPHICS,
-        //         E_render_pass_flag::NONE
-        //         NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_2")
-        //     );
-        //     render_pass_p->add_resource_state({
-        //         render_resource_p,
-        //         ED_resource_state::INPUT_AND_CONSTANT_BUFFER
-        //     });
-        // }
-        //
-        // {
-        //     auto render_pass_p = render_graph_p->create_pass(
-        //         [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
-        //         {
-        //             int a = 5;
-        //         },
-        //         ED_pipeline_state_type::GRAPHICS,
-        //         E_render_pass_flag::NONE
-        //         NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_3")
-        //     );
-        //     render_pass_p->add_resource_state({
-        //         render_resource_p,
-        //         ED_resource_state::INPUT_AND_CONSTANT_BUFFER
-        //     });
-        // }
+        {
+            auto render_pass_p = render_graph_p->create_pass(
+                [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
+                {
+                    int a = 5;
+                },
+                ED_pipeline_state_type::GRAPHICS,
+                E_render_pass_flag::ASYNC_COMPUTE
+                NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_1")
+            );
+            render_pass_p->add_resource_state({
+                render_resource_p,
+                ED_resource_state::UNORDERED_ACCESS
+            });
+        }
+
+        {
+            auto render_pass_p = render_graph_p->create_pass(
+                [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
+                {
+                    int a = 5;
+                },
+                ED_pipeline_state_type::GRAPHICS,
+                E_render_pass_flag::NONE
+                NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_2")
+            );
+            render_pass_p->add_resource_state({
+                render_resource_p,
+                ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+            });
+        }
+
+        {
+            auto render_pass_p = render_graph_p->create_pass(
+                [](F_render_pass* render_pass_p, TKPA_valid<A_command_list> command_list_p)
+                {
+                    int a = 5;
+                },
+                ED_pipeline_state_type::GRAPHICS,
+                E_render_pass_flag::NONE
+                NRE_OPTIONAL_DEBUG_PARAM("demo_render_pass_3")
+            );
+            render_pass_p->add_resource_state({
+                render_resource_p,
+                ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+            });
+        }
 
         render_graph_p->execute();
     }
-    void F_renderer::end_render_frame()
+    b8 F_renderer::is_began_render_frame()
     {
         auto render_graph_p = F_render_graph::instance_p();
-
-        render_graph_p->wait();
+        return render_graph_p->is_began();
+    }
+    b8 F_renderer::is_end_render_frame()
+    {
+        auto render_graph_p = F_render_graph::instance_p();
+        return render_graph_p->is_end();
     }
 
 }

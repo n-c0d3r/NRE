@@ -8,7 +8,7 @@
 #include <nre/rendering/newrg/render_resource_allocator.hpp>
 #include <nre/rendering/newrg/rhi_placed_resource_pool.hpp>
 #include <nre/rendering/newrg/render_pass_execute_range.hpp>
-
+#include <nre/rendering/newrg/render_fence_state.hpp>
 
 
 namespace nre::newrg
@@ -83,7 +83,11 @@ namespace nre::newrg
         TG_vector<TU<A_command_allocator>> direct_command_allocator_p_vector_;
         TG_vector<TU<A_command_allocator>> compute_command_allocator_p_vector_;
 
+        TG_vector<F_render_fence_state> fence_states_;
+        TG_vector<TU<A_fence>> fence_p_vector_;
+
         ab8 is_in_execution_ = false;
+        ab8 is_began_ = false;
 
     public:
         NCPP_FORCE_INLINE const auto& temp_object_cache_stack() const noexcept { return temp_object_cache_stack_; }
@@ -104,6 +108,10 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& direct_command_allocator_p_vector() noexcept { return direct_command_allocator_p_vector_; }
         NCPP_FORCE_INLINE const auto& compute_command_allocator_p_vector() noexcept { return compute_command_allocator_p_vector_; }
 
+        NCPP_FORCE_INLINE const auto& fence_states() noexcept { return fence_states_; }
+        NCPP_FORCE_INLINE const auto& fence_p_vector() noexcept { return fence_p_vector_; }
+
+        NCPP_FORCE_INLINE b8 is_began() const noexcept { return is_began_.load(eastl::memory_order_acquire); }
         NCPP_FORCE_INLINE b8 is_in_execution() const noexcept { return is_in_execution_.load(eastl::memory_order_acquire); }
 
 
@@ -119,8 +127,8 @@ namespace nre::newrg
 
 
     private:
-        TK_valid<A_render_worker> find_render_worker(b8 is_async_compute);
-        TK_valid<A_command_allocator> find_command_allocator(b8 is_async_compute);
+        TK_valid<A_render_worker> find_render_worker(u8 render_worker_index);
+        TK_valid<A_command_allocator> find_command_allocator(u8 render_worker_index);
 
     private:
         void setup_resource_use_states_internal();
@@ -130,6 +138,9 @@ namespace nre::newrg
         void setup_resource_deallocation_lists_internal();
         void setup_resource_export_lists_internal();
         void setup_resource_producer_states_internal();
+
+    private:
+        void setup_pass_max_producer_ids_internal();
 
     private:
         void calculate_resource_allocations_internal();
@@ -143,6 +154,8 @@ namespace nre::newrg
         void create_resource_barrier_batches_internal();
 
     private:
+        void create_fences_internal();
+        void create_fence_batches_internal();
         void build_execute_range_owf_stack_internal();
 
     private:
@@ -182,7 +195,7 @@ namespace nre::newrg
 
     public:
         void execute();
-        void wait();
+        b8 is_end();
         void flush();
 
     public:

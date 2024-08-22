@@ -24,5 +24,9 @@ namespace nre::newrg
         {
             return H_resource_state::is_writable(states);
         }
+        NCPP_FORCE_INLINE operator b8 () const noexcept
+        {
+            return (pass_p != 0);
+        }
     };
 }

@@ -4,6 +4,7 @@
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/external_render_resource.hpp>
 #include <nre/rendering/newrg/main_render_worker.hpp>
+#include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 
 
@@ -65,6 +66,30 @@ namespace nre::newrg
             rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_2D_ARRAY)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_2D_ARRAY);
             rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_3D)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_3D);
         }
+
+        {
+            auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
+            auto& render_worker_list = render_pipeline_p->render_worker_list();
+            u32 render_worker_count = render_worker_list.size();
+
+            fence_states_.resize(render_worker_count);
+
+            for(u32 i = 0; i < render_worker_count; ++i)
+            {
+                auto render_worker_p = render_worker_list[i];
+
+                fence_states_[i] = { 1 };
+                fence_p_vector_.push_back(
+                    H_fence::create(
+                        NRE_MAIN_DEVICE(),
+                        {
+                            .initial_value = 0,
+                            .flags = ED_fence_flag::SHARED
+                        }
+                    )
+                );
+            }
+        }
     }
     F_render_graph::~F_render_graph()
     {
@@ -72,19 +97,21 @@ namespace nre::newrg
 
 
 
-    TK_valid<A_render_worker> F_render_graph::find_render_worker(b8 is_async_compute)
+    TK_valid<A_render_worker> F_render_graph::find_render_worker(u8 render_worker_index)
     {
-        if(is_async_compute)
-            return F_async_compute_render_worker::instance_p();
-
-        return F_main_render_worker::instance_p();
+        return F_render_pipeline::instance_p().T_cast<F_render_pipeline>()->render_worker_list()[render_worker_index];
     }
-    TK_valid<A_command_allocator> F_render_graph::find_command_allocator(b8 is_async_compute)
+    TK_valid<A_command_allocator> F_render_graph::find_command_allocator(u8 render_worker_index)
     {
-        if(is_async_compute)
+        auto render_worker_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>()->render_worker_list()[render_worker_index];
+
+        if(render_worker_p->command_list_type() == ED_command_list_type::COMPUTE)
             return H_render_graph::compute_command_allocator_p();
 
-        return H_render_graph::direct_command_allocator_p();
+        if(render_worker_p->command_list_type() == ED_command_list_type::DIRECT)
+            return H_render_graph::direct_command_allocator_p();
+
+        NCPP_ASSERT(false) << "not supported commadn list type";
     }
 
     void F_render_graph::setup_resource_use_states_internal()
@@ -261,6 +288,39 @@ namespace nre::newrg
         }
     }
 
+    void F_render_graph::setup_pass_max_producer_ids_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        for(F_render_pass* pass_p : pass_span)
+        {
+            F_render_pass_id pass_id = pass_p->id();
+
+            auto& resource_producer_states = pass_p->resource_producer_states_;
+            auto& max_producer_ids = pass_p->max_producer_ids_;
+
+            for(auto& resource_producer_state : resource_producer_states)
+            {
+                if(!resource_producer_state)
+                    continue;
+
+                F_render_pass* producer_pass_p = resource_producer_state.pass_p;
+                F_render_pass_id producer_id = producer_pass_p->id();
+                u8 producer_render_worker_index = H_render_pass_flag::render_worker_index(producer_pass_p->flags());
+
+                auto& max_producer_id = max_producer_ids[producer_render_worker_index];
+
+                if(max_producer_id == NCPP_U32_MAX)
+                {
+                    max_producer_id = producer_id;
+                }
+                else
+                {
+                    max_producer_id = eastl::max(max_producer_id, producer_id);
+                }
+            }
+        }
+    }
+
     void F_render_graph::calculate_resource_allocations_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
@@ -382,6 +442,13 @@ namespace nre::newrg
                 if(!producer_pass_p)
                     continue;
 
+                // skip this barrier, use fence instead
+                if(
+                    H_render_pass_flag::render_worker_index(producer_pass_p->flags())
+                    != H_render_pass_flag::render_worker_index(pass_p->flags())
+                )
+                    continue;
+
                 // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
                 if(
                     (
@@ -433,38 +500,230 @@ namespace nre::newrg
         }
     }
 
+    void F_render_graph::create_fences_internal()
+    {
+        auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
+        auto& render_worker_list = render_pipeline_p->render_worker_list();
+
+        u32 render_worker_count = render_worker_list.size();
+
+        TF_render_frame_vector<F_render_pass_id> max_producer_ids(render_worker_count);
+        for(auto& max_producer_id : max_producer_ids)
+            max_producer_id = NCPP_U32_MAX;
+
+        auto pass_span = pass_p_owf_stack_.item_span();
+        for(F_render_pass* pass_p : pass_span)
+        {
+            auto& wait_fence_states = pass_p->wait_fence_states_;
+
+            // update max producer ids
+            const auto& local_max_producer_ids = pass_p->max_producer_ids();
+            for(u32 i = 0; i < render_worker_count; ++i)
+            {
+                F_render_pass_id local_max_producer_id = local_max_producer_ids[i];
+                if(local_max_producer_id == NCPP_U32_MAX)
+                    continue;
+
+                F_render_pass_id& max_producer_id = max_producer_ids[i];
+
+                F_render_pass* producer_pass_p = pass_span[local_max_producer_id];
+
+                if(
+                    H_render_pass_flag::render_worker_index(producer_pass_p->flags())
+                    != H_render_pass_flag::render_worker_index(pass_p->flags())
+                )
+                {
+                    if(
+                        (local_max_producer_id > max_producer_id)
+                        || (max_producer_id == NCPP_U32_MAX)
+                    )
+                    {
+                        max_producer_id = local_max_producer_id;
+
+                        // try to update producer signal fence state
+                        {
+                            F_render_fence_state& producer_signal_fence_state = producer_pass_p->signal_fence_states_[i];
+
+                            if(!producer_signal_fence_state)
+                            {
+                                ++(fence_states_[i].value);
+                                producer_signal_fence_state = fence_states_[i];
+                            }
+                        }
+
+                        wait_fence_states[i] = fence_states_[i];
+                    }
+                }
+            }
+        }
+    }
+    void F_render_graph::create_fence_batches_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        for(F_render_pass* pass_p : pass_span)
+        {
+            u8 render_worker_index;
+
+            render_worker_index = 0;
+            auto& signal_fence_states = pass_p->signal_fence_states_;
+            for(auto& fence_state : signal_fence_states)
+            {
+                if(fence_state)
+                    pass_p->signal_fence_batch_.push_back({
+                        .render_worker_index = render_worker_index,
+                        .value = fence_state.value
+                    });
+
+                ++render_worker_index;
+            }
+
+            render_worker_index = 0;
+            auto& wait_fence_states = pass_p->wait_fence_states_;
+            for(auto& fence_state : wait_fence_states)
+            {
+                if(fence_state)
+                    pass_p->wait_fence_batch_.push_back({
+                        .render_worker_index = render_worker_index,
+                        .value = fence_state.value
+                    });
+
+                ++render_worker_index;
+            }
+        }
+    }
     void F_render_graph::build_execute_range_owf_stack_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
-        execute_range_owf_stack_.push({
-            .pass_p_vector = {
-                pass_span.begin(),
-                pass_span.end()
+
+        F_render_pass_execute_range execute_range;
+
+        for(F_render_pass* pass_p : pass_span)
+        {
+            u8 render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
+
+            auto& signal_fence_batch = pass_p->signal_fence_batch_;
+            auto& wait_fence_batch = pass_p->wait_fence_batch_;
+
+            // we can't add fence wait inside a command list, so need to split command list even they run on the same render worker
+            if(wait_fence_batch.size())
+            {
+                if(execute_range)
+                {
+                    execute_range_owf_stack_.push(execute_range);
+                    execute_range = {
+                        .render_worker_index = render_worker_index
+                    };
+                }
             }
-        });
+
+            // different render workers, so use new command list -> new execute range
+            if(
+                execute_range
+                && (execute_range.render_worker_index != render_worker_index)
+            )
+            {
+                if(execute_range)
+                {
+                    execute_range_owf_stack_.push(execute_range);
+                    execute_range = {};
+                }
+            }
+
+            execute_range.render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
+            execute_range.pass_p_vector.push_back(pass_p);
+
+            // we can't add fence signal inside a command list, so need to split command list even they run on the same render worker
+            if(signal_fence_batch.size())
+            {
+                if(execute_range)
+                {
+                    execute_range_owf_stack_.push(execute_range);
+                    execute_range = {};
+                }
+            }
+        }
+
+        if(execute_range)
+        {
+            execute_range_owf_stack_.push(execute_range);
+            execute_range = {};
+        }
     }
 
     void F_render_graph::execute_range_internal(const F_render_pass_execute_range& execute_range)
     {
-        NCPP_ASSERT(!(execute_range.is_async_compute)) << "async compute is not supported";
-
-        auto render_worker_p = find_render_worker(execute_range.is_async_compute);
-        auto command_allocator_p = find_command_allocator(execute_range.is_async_compute);
-
+        auto& pass_p_vector = execute_range.pass_p_vector;
+        auto render_worker_p = find_render_worker(execute_range.render_worker_index);
+        auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
         auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
 
-        for(F_render_pass* pass_p : execute_range.pass_p_vector)
+        auto& wait_fence_batch = pass_p_vector.front()->wait_fence_batch();
+        u32 wait_fence_count = wait_fence_batch.size();
+
+        auto& signal_fence_batch = pass_p_vector.front()->signal_fence_batch();
+        u32 signal_fence_count = signal_fence_batch.size();
+
+        // fence wait
+        if(wait_fence_count)
         {
-            if(pass_p->resource_barrier_batch_before_.size())
-                command_list_p->async_resource_barriers(
-                    pass_p->resource_barrier_batch_before_
-                );
-            pass_p->execute_internal(NCPP_FOH_VALID(command_list_p));
+            F_managed_fence_batch managed_fence_batch;
+
+            managed_fence_batch.resize(wait_fence_count);
+            for(u32 i = 0; i < wait_fence_count; ++i)
+            {
+                auto& fence_value_and_index = wait_fence_batch[i];
+                auto& managed_fence_state = managed_fence_batch[i];
+
+                managed_fence_state.fence_p = fence_p_vector_[fence_value_and_index.render_worker_index];
+                managed_fence_state.value = fence_value_and_index.value;
+            }
+
+            render_worker_p->enqueue_fence_wait_batch(
+                std::move(managed_fence_batch)
+            );
         }
 
-        render_worker_p->enqueue_command_list(
-            std::move(command_list_p)
-        );
+        // command list
+        {
+            F_managed_command_list_batch command_list_batch;
+
+            for(F_render_pass* pass_p : pass_p_vector)
+            {
+                if(pass_p->resource_barrier_batch_before_.size())
+                    command_list_p->async_resource_barriers(
+                        pass_p->resource_barrier_batch_before_
+                    );
+                pass_p->execute_internal(NCPP_FOH_VALID(command_list_p));
+            }
+
+            command_list_batch.push_back(
+                std::move(command_list_p)
+            );
+
+            render_worker_p->enqueue_command_list_batch(
+                std::move(command_list_batch)
+            );
+        }
+
+        // fence signal
+        if(signal_fence_count)
+        {
+            F_managed_fence_batch managed_fence_batch;
+
+            managed_fence_batch.resize(signal_fence_count);
+            for(u32 i = 0; i < signal_fence_count; ++i)
+            {
+                auto& fence_value_and_index = signal_fence_batch[i];
+                auto& managed_fence_state = managed_fence_batch[i];
+
+                managed_fence_state.fence_p = fence_p_vector_[fence_value_and_index.render_worker_index];
+                managed_fence_state.value = fence_value_and_index.value;
+            }
+
+            render_worker_p->enqueue_fence_signal_batch(
+                std::move(managed_fence_batch)
+            );
+        }
     }
     void F_render_graph::execute_passes_internal()
     {
@@ -478,6 +737,8 @@ namespace nre::newrg
                 {
                     execute_range_internal(execute_range);
                 }
+
+                is_began_.store(true, eastl::memory_order_release);
             },
             {
                 .counter_p = &execute_passes_counter_
@@ -550,11 +811,16 @@ namespace nre::newrg
         setup_resource_export_lists_internal();
         setup_resource_producer_states_internal();
 
+        setup_pass_max_producer_ids_internal();
+
         calculate_resource_allocations_internal();
 
         create_rhi_resources_internal();
         create_resource_barriers_before_internal();
         create_resource_barrier_batches_internal();
+
+        create_fences_internal();
+        create_fence_batches_internal();
         build_execute_range_owf_stack_internal();
     }
 
@@ -652,9 +918,9 @@ namespace nre::newrg
         setup_internal();
         execute_passes_internal();
     }
-    void F_render_graph::wait()
+    b8 F_render_graph::is_end()
     {
-        while(execute_passes_counter_.load(eastl::memory_order_acquire));
+        return (0 == execute_passes_counter_.load(eastl::memory_order_acquire));
     }
     void F_render_graph::flush()
     {

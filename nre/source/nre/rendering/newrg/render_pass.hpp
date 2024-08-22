@@ -10,6 +10,8 @@
 #include <nre/rendering/newrg/render_resource_id.hpp>
 #include <nre/rendering/newrg/render_resource_barrier_batch.hpp>
 #include <nre/rendering/newrg/render_pass_flag.hpp>
+#include <nre/rendering/newrg/render_fence_state.hpp>
+#include <nre/rendering/newrg/render_fence_batch.hpp>
 
 
 
@@ -48,6 +50,17 @@ namespace nre::newrg
         ED_pipeline_state_type pipeline_state_type_ = ED_pipeline_state_type::NONE;
         E_render_pass_flag flags_ = E_render_pass_flag::NONE;
 
+        // Each element corresponds to a producer pass running on a render worker at the specified index.
+        TF_render_frame_vector<F_render_pass_id> max_producer_ids_;
+
+        // Each element corresponds to a fence state on a render worker at the specified index.
+        TF_render_frame_vector<F_render_fence_state> signal_fence_states_;
+        // Each element corresponds to a fence state on a render worker at the specified index.
+        TF_render_frame_vector<F_render_fence_state> wait_fence_states_;
+
+        F_render_fence_batch signal_fence_batch_;
+        F_render_fence_batch wait_fence_batch_;
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
 #endif
@@ -69,6 +82,16 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE ED_pipeline_state_type pipeline_state_type() const noexcept { return pipeline_state_type_; }
         NCPP_FORCE_INLINE E_render_pass_flag flags() const noexcept { return flags_; }
+
+        NCPP_FORCE_INLINE b8 is_async_compute() const noexcept { return flag_is_has(flags_, E_render_pass_flag::ASYNC_COMPUTE); }
+
+        NCPP_FORCE_INLINE const auto& max_producer_ids() const noexcept { return max_producer_ids_; }
+
+        NCPP_FORCE_INLINE const auto& signal_fence_states() const noexcept { return signal_fence_states_; }
+        NCPP_FORCE_INLINE const auto& wait_fence_states() const noexcept { return wait_fence_states_; }
+
+        NCPP_FORCE_INLINE const auto& signal_fence_batch() const noexcept { return signal_fence_batch_; }
+        NCPP_FORCE_INLINE const auto& wait_fence_batch() const noexcept { return wait_fence_batch_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }

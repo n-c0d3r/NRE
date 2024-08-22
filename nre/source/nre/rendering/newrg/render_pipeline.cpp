@@ -160,11 +160,16 @@ namespace nre::newrg {
 	{
 		render_worker_list_.begin_frame();
 
+		auto renderer_p = F_renderer::instance_p();
+		renderer_p->begin_render_frame();
+
 		async_begin_command_lists_internal();
 	}
 	void F_render_pipeline::end_minimal_frame_internal()
 	{
 		async_end_command_lists_internal();
+
+		while(!(renderer_p_->is_end_render_frame()));
 
 		render_worker_list_.end_frame();
 
