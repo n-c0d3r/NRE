@@ -333,7 +333,7 @@ namespace nre::newrg
 
                 auto& use_states = resource_p->use_states_;
 
-                // find out producer_state pass id
+                // find out writable producer state using the same resource
                 F_render_pass* writable_producer_pass_p = 0;
                 ED_resource_state writable_producer_resource_states = ED_resource_state::COMMON;
                 F_render_pass_id writable_producer_state_pass_id = NCPP_U32_MAX;
@@ -464,6 +464,26 @@ namespace nre::newrg
                 internal::appropriate_alignment(desc)
             );
         }
+    }
+    void F_render_graph::calculate_resource_aliases_internal()
+    {
+        auto resource_span = resource_p_owf_stack_.item_span();
+
+        TF_render_frame_vector<F_render_resource*> sorted_resource_p_vector(
+            resource_span.begin(),
+            resource_span.end()
+        );
+        {
+            auto compare = [](F_render_resource* a, F_render_resource* b)->b8
+            {
+                return (
+                    a->min_pass_id()
+                    > b->min_pass_id()
+                );
+            };
+            eastl::sort(sorted_resource_p_vector.begin(), sorted_resource_p_vector.end(), compare);
+        }
+        int a = 5;
     }
 
     void F_render_graph::create_rhi_resources_internal()
@@ -1094,12 +1114,14 @@ namespace nre::newrg
         setup_resource_allocation_lists_internal();
         setup_resource_deallocation_lists_internal();
         setup_resource_export_lists_internal();
+
+        calculate_resource_allocations_internal();
+        calculate_resource_aliases_internal();
+
         setup_resource_producer_states_internal();
         setup_resource_writable_producer_states_internal();
 
         setup_pass_max_writable_producer_ids_internal();
-
-        calculate_resource_allocations_internal();
 
         create_rhi_resources_internal();
 
@@ -1248,6 +1270,11 @@ namespace nre::newrg
         );
 
         render_resource_p->id_ = resource_p_owf_stack_.push_and_return_index(render_resource_p);
+
+        prologue_pass_p_->add_resource_state({
+            .resource_p = render_resource_p,
+            .states = desc.initial_state
+        });
 
         return render_resource_p;
     }

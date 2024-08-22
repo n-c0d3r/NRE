@@ -85,6 +85,9 @@ namespace nre::newrg
         {
             auto& resource_state = resource_states_[i];
 
+            if(resource_state.resource_p != resource_p)
+                return NCPP_U32_MAX;
+
             if(
                 (resource_state.subresource_index == subresource_index)
                 || (
@@ -179,6 +182,36 @@ namespace nre::newrg
             << "invalid resource index";
 
         return resource_barriers_after_[resource_state_index];
+    }
+    eastl::optional<F_resource_aliasing_barrier>& F_render_pass::find_resource_aliasing_barrier_before(
+        F_render_resource* resource_p,
+        b8 just_need_overlap
+    )
+    {
+        u32 resource_state_index = find_resource_state_index(
+            resource_p,
+            resource_barrier_all_subresources,
+            just_need_overlap
+        );
+        NCPP_ASSERT(resource_state_index != NCPP_U32_MAX)
+            << "invalid resource index";
+
+        return resource_aliasing_barriers_before_[resource_state_index];
+    }
+    eastl::optional<F_resource_aliasing_barrier>& F_render_pass::find_resource_aliasing_barrier_after(
+        F_render_resource* resource_p,
+        b8 just_need_overlap
+    )
+    {
+        u32 resource_state_index = find_resource_state_index(
+            resource_p,
+            resource_barrier_all_subresources,
+            just_need_overlap
+        );
+        NCPP_ASSERT(resource_state_index != NCPP_U32_MAX)
+            << "invalid resource index";
+
+        return resource_aliasing_barriers_after_[resource_state_index];
     }
     u32 F_render_pass::find_resource_state_index(
        F_render_resource* resource_p,
@@ -285,5 +318,35 @@ namespace nre::newrg
             << "invalid resource index";
 
         return resource_barriers_after_.at(resource_state_index);
+    }
+    const eastl::optional<F_resource_aliasing_barrier>& F_render_pass::find_resource_aliasing_barrier_before(
+        F_render_resource* resource_p,
+        b8 just_need_overlap
+    ) const
+    {
+        u32 resource_state_index = find_resource_state_index(
+            resource_p,
+            resource_barrier_all_subresources,
+            just_need_overlap
+        );
+        NCPP_ASSERT(resource_state_index != NCPP_U32_MAX)
+            << "invalid resource index";
+
+        return resource_aliasing_barriers_before_[resource_state_index];
+    }
+    const eastl::optional<F_resource_aliasing_barrier>& F_render_pass::find_resource_aliasing_barrier_after(
+        F_render_resource* resource_p,
+        b8 just_need_overlap
+    ) const
+    {
+        u32 resource_state_index = find_resource_state_index(
+            resource_p,
+            resource_barrier_all_subresources,
+            just_need_overlap
+        );
+        NCPP_ASSERT(resource_state_index != NCPP_U32_MAX)
+            << "invalid resource index";
+
+        return resource_aliasing_barriers_after_[resource_state_index];
     }
 }

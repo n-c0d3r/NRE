@@ -143,9 +143,7 @@ namespace nre::newrg
 
     private:
         void create_prologue_pass_internal();
-        void setup_prologue_pass_internal();
         void create_epilogue_pass_internal();
-        void setup_epilogue_pass_internal();
 
     private:
         void setup_resource_use_states_internal();
@@ -162,6 +160,7 @@ namespace nre::newrg
 
     private:
         void calculate_resource_allocations_internal();
+        void calculate_resource_aliases_internal();
 
     private:
         void create_rhi_resources_internal();

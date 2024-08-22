@@ -44,6 +44,9 @@ namespace nre::newrg
         TF_render_frame_vector<eastl::optional<F_resource_barrier>> resource_barriers_before_;
         TF_render_frame_vector<eastl::optional<F_resource_barrier>> resource_barriers_after_;
 
+        TF_render_frame_vector<eastl::optional<F_resource_aliasing_barrier>> resource_aliasing_barriers_before_;
+        TF_render_frame_vector<eastl::optional<F_resource_aliasing_barrier>> resource_aliasing_barriers_after_;
+
         F_render_resource_barrier_batch resource_barrier_batch_before_;
         F_render_resource_barrier_batch resource_barrier_batch_after_;
 
@@ -81,6 +84,9 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& resource_writable_producer_states() const noexcept { return resource_writable_producer_states_; }
         NCPP_FORCE_INLINE const auto& resource_barriers_before() const noexcept { return resource_barriers_before_; }
         NCPP_FORCE_INLINE const auto& resource_barriers_after() const noexcept { return resource_barriers_after_; }
+
+        NCPP_FORCE_INLINE const auto& resource_aliasing_barriers_before() const noexcept { return resource_aliasing_barriers_before_; }
+        NCPP_FORCE_INLINE const auto& resource_aliasing_barriers_after() const noexcept { return resource_aliasing_barriers_after_; }
 
         NCPP_FORCE_INLINE const auto& resource_barrier_batch_before() const noexcept { return resource_barrier_batch_before_; }
         NCPP_FORCE_INLINE const auto& resource_barrier_batch_after() const noexcept { return resource_barrier_batch_after_; }
@@ -166,6 +172,14 @@ namespace nre::newrg
             F_render_resource* resource_p,
             u32 subresource_index = resource_barrier_all_subresources,
             b8 just_need_overlap = true
+            );
+        eastl::optional<F_resource_aliasing_barrier>& find_resource_aliasing_barrier_before(
+            F_render_resource* resource_p,
+            b8 just_need_overlap = true
+        );
+        eastl::optional<F_resource_aliasing_barrier>& find_resource_aliasing_barrier_after(
+            F_render_resource* resource_p,
+            b8 just_need_overlap = true
         );
         u32 find_resource_state_index(
             F_render_resource* resource_p,
@@ -195,6 +209,14 @@ namespace nre::newrg
         const eastl::optional<F_resource_barrier>& find_resource_barrier_after(
             F_render_resource* resource_p,
             u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+            ) const;
+        const eastl::optional<F_resource_aliasing_barrier>& find_resource_aliasing_barrier_before(
+            F_render_resource* resource_p,
+            b8 just_need_overlap = true
+        ) const;
+        const eastl::optional<F_resource_aliasing_barrier>& find_resource_aliasing_barrier_after(
+            F_render_resource* resource_p,
             b8 just_need_overlap = true
         ) const;
     };

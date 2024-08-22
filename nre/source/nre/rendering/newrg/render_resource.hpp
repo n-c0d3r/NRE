@@ -49,6 +49,8 @@ namespace nre::newrg
 
         ED_resource_state initial_states_ = ED_resource_state::COMMON;
 
+        TF_render_frame_vector<F_render_resource*> aliased_resource_p_vector_;
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
 #endif
@@ -86,6 +88,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE b8 is_permanent() const noexcept { return is_permanent_; }
 
         NCPP_FORCE_INLINE ED_resource_state initial_states() const noexcept { return initial_states_; }
+
+        NCPP_FORCE_INLINE const auto& aliased_resource_p_vector() const noexcept { return aliased_resource_p_vector_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }
