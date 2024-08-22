@@ -40,6 +40,7 @@ namespace nre::newrg
 
         TF_render_frame_vector<F_render_resource_state> resource_states_;
         TF_render_frame_vector<F_render_resource_producer_state> resource_producer_states_;
+        TF_render_frame_vector<F_render_resource_producer_state> resource_writable_producer_states_;
         TF_render_frame_vector<eastl::optional<F_resource_barrier>> resource_barriers_before_;
         TF_render_frame_vector<eastl::optional<F_resource_barrier>> resource_barriers_after_;
 
@@ -53,8 +54,8 @@ namespace nre::newrg
         ED_pipeline_state_type pipeline_state_type_ = ED_pipeline_state_type::NONE;
         E_render_pass_flag flags_ = E_render_pass_flag::NONE;
 
-        // Each element corresponds to a producer pass running on a render worker at the specified index.
-        TF_render_frame_vector<F_render_pass_id> max_producer_ids_;
+        // Each element corresponds to a writable producer pass running on a render worker at the specified index.
+        TF_render_frame_vector<F_render_pass_id> max_writable_producer_ids_;
 
         // Each element corresponds to a fence state on a render worker at the specified index.
         TF_render_frame_vector<F_render_fence_state> signal_fence_states_;
@@ -77,6 +78,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& resource_states() const noexcept { return resource_states_; }
         NCPP_FORCE_INLINE const auto& resource_producer_states() const noexcept { return resource_producer_states_; }
+        NCPP_FORCE_INLINE const auto& resource_writable_producer_states() const noexcept { return resource_writable_producer_states_; }
         NCPP_FORCE_INLINE const auto& resource_barriers_before() const noexcept { return resource_barriers_before_; }
         NCPP_FORCE_INLINE const auto& resource_barriers_after() const noexcept { return resource_barriers_after_; }
 
@@ -92,7 +94,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE b8 is_async_compute() const noexcept { return flag_is_has(flags_, E_render_pass_flag::ASYNC_COMPUTE); }
 
-        NCPP_FORCE_INLINE const auto& max_producer_ids() const noexcept { return max_producer_ids_; }
+        NCPP_FORCE_INLINE const auto& max_writable_producer_ids() const noexcept { return max_writable_producer_ids_; }
 
         NCPP_FORCE_INLINE const auto& signal_fence_states() const noexcept { return signal_fence_states_; }
         NCPP_FORCE_INLINE const auto& wait_fence_states() const noexcept { return wait_fence_states_; }
@@ -150,6 +152,11 @@ namespace nre::newrg
             u32 subresource_index = resource_barrier_all_subresources,
             b8 just_need_overlap = true
         );
+        F_render_resource_producer_state& find_resource_writable_producer_state(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        );
         eastl::optional<F_resource_barrier>& find_resource_barrier_before(
             F_render_resource* resource_p,
             u32 subresource_index = resource_barrier_all_subresources,
@@ -171,6 +178,11 @@ namespace nre::newrg
             b8 just_need_overlap = true
         ) const;
         const F_render_resource_producer_state& find_resource_producer_state(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        ) const;
+        const F_render_resource_producer_state& find_resource_writable_producer_state(
             F_render_resource* resource_p,
             u32 subresource_index = resource_barrier_all_subresources,
             b8 just_need_overlap = true
