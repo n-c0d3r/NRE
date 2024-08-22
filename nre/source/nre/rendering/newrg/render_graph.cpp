@@ -543,11 +543,60 @@ namespace nre::newrg
             }
         }
     }
-    void skip_resource_barriers_before_internal()
+    void F_render_graph::skip_resource_barriers_before_internal()
     {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        auto execute_range_span = execute_range_owf_stack_.item_span();
 
+        for(auto& execute_range : execute_range_span)
+        {
+            F_render_pass* first_pass_p = execute_range.pass_p_vector.front();
+            F_render_pass_id first_pass_id = first_pass_p->id();
+
+            for(F_render_pass* pass_p : execute_range.pass_p_vector)
+            {
+                F_render_pass_id pass_id = pass_p->id();
+
+                auto& resource_states = pass_p->resource_states_;
+                auto& resource_barriers_before = pass_p->resource_barriers_before_;
+
+                u32 resource_state_count = resource_states.size();
+
+                for(u32 i = 0; i < resource_state_count; ++i)
+                {
+                    auto resource_state = resource_states[i];
+                    auto resource_barrier = resource_barriers_before[i];
+
+                    for(F_render_pass_id before_pass_id = pass_id - 1; before_pass_id >= first_pass_id; --before_pass_id)
+                    {
+                        F_render_pass* before_pass_p = pass_span[before_pass_id];
+
+                        u32 before_resource_state_index = before_pass_p->find_resource_state_index(
+                            resource_state.resource_p,
+                            resource_state.subresource_index,
+                            false
+                        );
+
+                        if(before_resource_state_index != NCPP_U32_MAX)
+                        {
+                            auto& before_resource_barrier = before_pass_p->resource_barriers_before_[
+                                before_resource_state_index
+                            ];
+
+                            if(!before_resource_barrier)
+                                continue;
+
+                            if(before_resource_barrier == resource_barrier)
+                                resource_barrier = eastl::nullopt;
+                            else
+                                break;
+                        }
+                    }
+                }
+            }
+        }
     }
-    void skip_resource_barriers_after_internal()
+    void F_render_graph::skip_resource_barriers_after_internal()
     {
     }
     void F_render_graph::create_resource_barrier_batches_internal()
@@ -908,9 +957,9 @@ namespace nre::newrg
         build_execute_range_owf_stack_internal();
 
         create_resource_barriers_internal();
+        skip_resource_barriers_before_internal();
+        skip_resource_barriers_after_internal();
         create_resource_barrier_batches_internal();
-
-        int a = 5;
     }
 
     F_render_pass* F_render_graph::create_pass_internal(
