@@ -10,6 +10,11 @@ namespace nre::newrg
 {
     namespace internal
     {
+        thread_local A_command_allocator* command_allocator_raw_p;
+        thread_local F_object_key command_allocator_p_key;
+
+
+
         u64 appropriate_alignment(const F_resource_desc& desc)
         {
             return u64(ED_resource_placement_alignment::DEFAULT);
@@ -567,6 +572,21 @@ namespace nre::newrg
     }
 
 
+
+    void F_render_graph::install()
+    {
+        auto task_system_p = F_task_system::instance_p();
+
+        // setup worker threads
+        const auto& worker_thread_p_vector = task_system_p->worker_thread_p_vector();
+        u32 worker_thread_count = worker_thread_p_vector.size();
+        for(u32 i = 0; i < worker_thread_count; ++i)
+        {
+            const auto& worker_thread_p = worker_thread_p_vector[i];
+
+            // worker_thread_p->install_setup()
+        }
+    }
 
     void F_render_graph::execute()
     {

@@ -175,6 +175,7 @@ namespace nre::newrg {
 	void F_render_pipeline::install()
 	{
 		render_worker_list_.install();
+		render_graph_p_->install();
 	}
 
 	void F_render_pipeline::begin_setup()

@@ -13,13 +13,21 @@
 
 namespace nre::newrg
 {
+    namespace internal
+    {
+        extern thread_local A_command_allocator* command_allocator_raw_p;
+        extern thread_local F_object_key command_allocator_p_key;
+    }
+
+
+
     class F_render_pass;
     class F_render_resource;
     class F_external_render_resource;
 
 
 
-    class NRE_API F_render_graph
+    class NRE_API F_render_graph final
     {
     private:
         static TK<F_render_graph> instance_p_;
@@ -66,6 +74,8 @@ namespace nre::newrg
         TU<A_command_list> execute_range_command_list_p_;
         TU<A_command_allocator> execute_range_command_allocator_p_;
 
+        TG_vector<TU<A_command_allocator>> command_allocator_p_vector_;
+
     public:
         NCPP_FORCE_INLINE const auto& temp_object_cache_stack() const noexcept { return temp_object_cache_stack_; }
         NCPP_FORCE_INLINE b8 is_rhi_available() const noexcept { return is_rhi_available_; }
@@ -84,6 +94,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto execute_range_command_list_p() noexcept { return NCPP_FOH_VALID(execute_range_command_list_p_); }
         NCPP_FORCE_INLINE auto execute_range_command_allocator_p() noexcept { return NCPP_FOH_VALID(execute_range_command_allocator_p_); }
+
+        NCPP_FORCE_INLINE const auto& command_allocator_p_vector() noexcept { return command_allocator_p_vector_; }
 
 
 
@@ -150,6 +162,9 @@ namespace nre::newrg
         );
 
 
+
+    public:
+        void install();
 
     public:
         void execute();
@@ -295,5 +310,19 @@ namespace nre::newrg
          *  Thread-safe
          */
         F_rhi_placed_resource_pool& find_rhi_placed_resource_pool(ED_resource_type resource_type);
+    };
+
+
+
+    class NRE_API H_render_graph
+    {
+    public:
+        static NCPP_FORCE_INLINE TK_valid<A_command_allocator> command_allocator_p()
+        {
+            return TK_valid<A_command_allocator>::unsafe(
+                internal::command_allocator_raw_p,
+                internal::command_allocator_p_key
+            );
+        }
     };
 }

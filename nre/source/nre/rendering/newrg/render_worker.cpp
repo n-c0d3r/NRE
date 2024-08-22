@@ -130,7 +130,7 @@ namespace nre::newrg
             ]
         );
 
-        worker_thread_p->install(
+        worker_thread_p->install_tick(
             [this](TKPA_valid<F_worker_thread> worker_thread_p)
             {
                 begin_frame();
@@ -141,9 +141,9 @@ namespace nre::newrg
                 tick();
 
                 end_frame();
-            },
-            frame_param_
+            }
         );
+        worker_thread_p->install_frame_param(frame_param_);
     }
 
     void A_render_worker::enqueue_command_list(TKPA_valid<A_command_list> command_list_p)
