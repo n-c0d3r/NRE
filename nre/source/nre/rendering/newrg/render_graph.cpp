@@ -418,16 +418,61 @@ namespace nre::newrg
 
     void F_render_graph::create_resource_barriers_before_internal()
     {
+        auto calculate_resource_barrier = [](
+            F_render_resource* resource_p,
+            TKPA_valid<A_resource> rhi_p,
+            u32 subresource_index,
+            ED_resource_state states_before,
+            ED_resource_state states_after,
+            ED_resource_barrier_flag barrier_flags = ED_resource_barrier_flag::NONE
+        )->eastl::optional<F_resource_barrier>
+        {
+            // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
+            if(
+                (
+                    flag_is_has(states_before, ED_resource_state::RENDER_TARGET)
+                    && flag_is_has(states_after, ED_resource_state::RENDER_TARGET)
+                )
+                || (
+                    flag_is_has(states_before, ED_resource_state::DEPTH_WRITE)
+                    && flag_is_has(states_after, ED_resource_state::DEPTH_WRITE)
+                )
+            )
+                return eastl::nullopt;
+
+            if(
+                flag_is_has(states_before, ED_resource_state::UNORDERED_ACCESS)
+                && flag_is_has(states_after, ED_resource_state::UNORDERED_ACCESS)
+            )
+            {
+                return H_resource_barrier::uav({
+                    .resource_p = (TKPA<A_resource>)rhi_p
+                });
+            }
+
+            return H_resource_barrier::transition(
+                {
+                    .resource_p = (TKPA<A_resource>)rhi_p,
+                    .subresource_index = subresource_index,
+                    .state_before = states_before,
+                    .state_after = states_after
+                },
+                barrier_flags
+            );
+        };
+
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
             auto& resource_states = pass_p->resource_states_;
             auto& resource_producer_states = pass_p->resource_producer_states_;
             auto& resource_barriers_before = pass_p->resource_barriers_before_;
+            auto& resource_barriers_after = pass_p->resource_barriers_after_;
 
             u32 resource_state_count = resource_states.size();
 
             resource_barriers_before.resize(resource_state_count);
+            resource_barriers_after.resize(resource_state_count);
 
             for(u32 i = 0; i < resource_state_count; ++i)
             {
@@ -442,50 +487,61 @@ namespace nre::newrg
                 if(!producer_pass_p)
                     continue;
 
-                // skip this barrier, use fence instead
-                if(
-                    H_render_pass_flag::render_worker_index(producer_pass_p->flags())
-                    != H_render_pass_flag::render_worker_index(pass_p->flags())
-                )
-                    continue;
-
-                // check for barrier skiping from different execute ranges
+                // use split barrier because they are in different command lists
                 if(
                     producer_pass_p->execute_range_index()
                     != pass_p->execute_range_index()
                 )
-                    continue;
-
-                // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
-                if(
-                    (
-                        flag_is_has(resource_producer_state.states, ED_resource_state::RENDER_TARGET)
-                        && flag_is_has(resource_state.states, ED_resource_state::RENDER_TARGET)
-                    )
-                    || (
-                        flag_is_has(resource_producer_state.states, ED_resource_state::DEPTH_WRITE)
-                        && flag_is_has(resource_state.states, ED_resource_state::DEPTH_WRITE)
-                    )
-                )
-                    continue;
-
-                if(
-                    flag_is_has(resource_producer_state.states, ED_resource_state::UNORDERED_ACCESS)
-                    && flag_is_has(resource_state.states, ED_resource_state::UNORDERED_ACCESS)
-                )
                 {
-                    resource_barriers_before[i] = H_resource_barrier::uav({
-                        .resource_p = rhi_p
-                    });
+                    u32 producer_pass_resource_index = NCPP_U32_MAX;
+
+                    // find resource index in producer pass
+                    {
+                        auto& producer_resource_states = producer_pass_p->resource_states_;
+                        u32 producer_resource_state_count = producer_resource_states.size();
+                        for(u32 j = 0; j < producer_resource_state_count; ++j)
+                        {
+                            auto& producer_resource_state = producer_resource_states[j];
+                            if(
+                                (producer_resource_state.resource_p == resource_state.resource_p)
+                                && (producer_resource_state.subresource_index == resource_state.subresource_index)
+                            )
+                            {
+                                producer_pass_resource_index = j;
+                            }
+                        }
+                    }
+
+                    auto& producer_resource_barriers_after = producer_pass_p->resource_barriers_after_;
+                    auto& producer_resource_barrier_after = producer_resource_barriers_after[producer_pass_resource_index];
+
+                    producer_resource_barrier_after = calculate_resource_barrier(
+                        resource_p,
+                        (TKPA_valid<A_resource>)rhi_p,
+                        resource_state.subresource_index,
+                        resource_producer_state.states,
+                        ED_resource_state::COMMON,
+                        ED_resource_barrier_flag::END_ONLY
+                    );
+
+                    resource_barriers_before[i] = calculate_resource_barrier(
+                        resource_p,
+                        (TKPA_valid<A_resource>)rhi_p,
+                        resource_state.subresource_index,
+                        ED_resource_state::COMMON,
+                        resource_producer_state.states,
+                        ED_resource_barrier_flag::BEGIN_ONLY
+                    );
                     continue;
                 }
 
-                resource_barriers_before[i] = H_resource_barrier::transition({
-                    .resource_p = rhi_p,
-                    .subresource_index = resource_state.subresource_index,
-                    .state_before = resource_producer_state.states,
-                    .state_after = resource_state.states
-                });
+                resource_barriers_before[i] = calculate_resource_barrier(
+                    resource_p,
+                    (TKPA_valid<A_resource>)rhi_p,
+                    resource_state.subresource_index,
+                    resource_state.states,
+                    resource_producer_state.states
+                );
             }
         }
     }
@@ -495,13 +551,22 @@ namespace nre::newrg
         for(F_render_pass* pass_p : pass_span)
         {
             auto& resource_barriers_before = pass_p->resource_barriers_before_;
-            auto& resource_barrier_batch = pass_p->resource_barrier_batch_before_;
-
+            auto& resource_barrier_batch_before = pass_p->resource_barrier_batch_before_;
             for(auto& resource_barrier_before : resource_barriers_before)
             {
                 if(resource_barrier_before)
                 {
-                    resource_barrier_batch.push_back(resource_barrier_before.value());
+                    resource_barrier_batch_before.push_back(resource_barrier_before.value());
+                }
+            }
+
+            auto& resource_barriers_after = pass_p->resource_barriers_after_;
+            auto& resource_barrier_batch_after = pass_p->resource_barrier_batch_after_;
+            for(auto& resource_barrier_after : resource_barriers_after)
+            {
+                if(resource_barrier_after)
+                {
+                    resource_barrier_batch_after.push_back(resource_barrier_after.value());
                 }
             }
         }
@@ -839,6 +904,8 @@ namespace nre::newrg
 
         create_resource_barriers_before_internal();
         create_resource_barrier_batches_internal();
+
+        int a = 5;
     }
 
     F_render_pass* F_render_graph::create_pass_internal(
