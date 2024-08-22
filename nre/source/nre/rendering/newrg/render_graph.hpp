@@ -86,6 +86,22 @@ namespace nre::newrg
         TG_vector<F_render_fence_state> fence_states_;
         TG_vector<TU<A_fence>> fence_p_vector_;
 
+        struct F_resource_to_export
+        {
+            F_render_resource* resource_p = 0;
+            ED_resource_state new_states = ED_resource_state::COMMON;
+        };
+        TG_concurrent_owf_stack<F_resource_to_export> resource_to_export_stack_;
+        struct F_permanent_resource_cache
+        {
+            F_render_resource* resource_p = 0;
+            ED_resource_state new_states = ED_resource_state::COMMON;
+        };
+        TG_concurrent_owf_stack<F_permanent_resource_cache> permanent_resource_cache_stack_;
+
+        F_render_pass* prologue_pass_p_ = 0;
+        F_render_pass* epilogue_pass_p_ = 0;
+
         ab8 is_in_execution_ = false;
         ab8 is_began_ = false;
 
@@ -111,6 +127,11 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& fence_states() noexcept { return fence_states_; }
         NCPP_FORCE_INLINE const auto& fence_p_vector() noexcept { return fence_p_vector_; }
 
+        NCPP_FORCE_INLINE const auto& resource_to_export_stack() noexcept { return resource_to_export_stack_; }
+        NCPP_FORCE_INLINE const auto& permanent_resource_cache_stack() noexcept { return permanent_resource_cache_stack_; }
+
+        NCPP_FORCE_INLINE F_render_pass* epilogue_pass_p() noexcept { return epilogue_pass_p_; }
+
         NCPP_FORCE_INLINE b8 is_began() const noexcept { return is_began_.load(eastl::memory_order_acquire); }
         NCPP_FORCE_INLINE b8 is_in_execution() const noexcept { return is_in_execution_.load(eastl::memory_order_acquire); }
 
@@ -129,6 +150,12 @@ namespace nre::newrg
     private:
         TK_valid<A_render_worker> find_render_worker(u8 render_worker_index);
         TK_valid<A_command_allocator> find_command_allocator(u8 render_worker_index);
+
+    private:
+        void create_prologue_pass_internal();
+        void setup_prologue_pass_internal();
+        void create_epilogue_pass_internal();
+        void setup_epilogue_pass_internal();
 
     private:
         void setup_resource_use_states_internal();
@@ -196,6 +223,7 @@ namespace nre::newrg
         void install();
 
     public:
+        void begin_register();
         void execute();
         b8 is_end();
         void flush();
@@ -304,7 +332,10 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        TS<F_external_render_resource> export_resource(F_render_resource* resource_p);
+        TS<F_external_render_resource> export_resource(
+            F_render_resource* resource_p,
+            ED_resource_state new_states = ED_resource_state::COMMON
+        );
         /**
          *  Thread-safe
          */
@@ -315,7 +346,8 @@ namespace nre::newrg
          *  Thread-safe
          */
         F_render_resource* create_permanent_resource(
-            TKPA_valid<A_resource> rhi_p
+            TKPA_valid<A_resource> rhi_p,
+            ED_resource_state initial_states = ED_resource_state::COMMON
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name = ""
 #endif

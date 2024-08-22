@@ -24,6 +24,7 @@ namespace nre::newrg
     void F_renderer::begin_render_frame()
     {
         auto render_graph_p = F_render_graph::instance_p();
+        render_graph_p->begin_register();
 
         {
             F_render_resource* swapchain_back_buffer_as_render_resource_p = render_graph_p->create_permanent_resource(

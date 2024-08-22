@@ -28,6 +28,8 @@ namespace nre::newrg
         pac::F_spin_lock import_lock_;
         F_render_resource* internal_p_ = 0;
 
+        ED_resource_state initial_states_ = ED_resource_state::COMMON;
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_debug_name name_;
 #endif
@@ -42,6 +44,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto internal_p() const noexcept { return internal_p_; }
         NCPP_FORCE_INLINE b8 need_to_import() const noexcept { return (internal_p_ != 0); }
 
+        NCPP_FORCE_INLINE ED_resource_state initial_states() const noexcept { return initial_states_; }
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_debug_name& name() const noexcept { return name_; }
 #endif
@@ -50,8 +54,9 @@ namespace nre::newrg
 
     public:
         F_external_render_resource(
+            ED_resource_state initial_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            const F_debug_name& name
+            , const F_debug_name& name
 #endif
         );
         ~F_external_render_resource();

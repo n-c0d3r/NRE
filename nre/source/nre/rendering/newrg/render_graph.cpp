@@ -37,7 +37,9 @@ namespace nre::newrg
         pass_p_owf_stack_(NRE_RENDER_GRAPH_PASS_OWF_STACK_CAPACITY),
         resource_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
         rhi_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_TO_RELEASE_OWF_STACK_CAPACITY),
-        execute_range_owf_stack_(NRE_RENDER_GRAPH_EXECUTE_RANGE_OWF_STACK_CAPACITY)
+        execute_range_owf_stack_(NRE_RENDER_GRAPH_EXECUTE_RANGE_OWF_STACK_CAPACITY),
+        resource_to_export_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
+        permanent_resource_cache_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY)
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
@@ -112,6 +114,57 @@ namespace nre::newrg
             return H_render_graph::direct_command_allocator_p();
 
         NCPP_ASSERT(false) << "not supported commadn list type";
+    }
+
+    void F_render_graph::create_prologue_pass_internal()
+    {
+        prologue_pass_p_ = create_pass(
+            [](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+            {
+            },
+            ED_pipeline_state_type::GRAPHICS,
+            E_render_pass_flag::NONE
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.prologue_pass")
+        );
+    }
+    void F_render_graph::setup_prologue_pass_internal()
+    {
+        // add need_to_export resources to prologue resource states
+        {
+            auto permanent_resource_cache_span = permanent_resource_cache_stack_.item_span();
+            for(const auto& permanent_resource_cache : permanent_resource_cache_span)
+            {
+                prologue_pass_p_->add_resource_state({
+                    .resource_p = permanent_resource_cache.resource_p,
+                    .states = permanent_resource_cache.new_states
+                });
+            }
+        }
+    }
+    void F_render_graph::create_epilogue_pass_internal()
+    {
+        epilogue_pass_p_ = create_pass(
+            [](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+            {
+            },
+            ED_pipeline_state_type::GRAPHICS,
+            E_render_pass_flag::NONE
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.epilogue_pass")
+        );
+    }
+    void F_render_graph::setup_epilogue_pass_internal()
+    {
+        // add need_to_export resources to epilogue resource states
+        {
+            auto resource_to_export_span = resource_to_export_stack_.item_span();
+            for(const auto& resource_to_export : resource_to_export_span)
+            {
+                epilogue_pass_p_->add_resource_state({
+                    .resource_p = resource_to_export.resource_p,
+                    .states = resource_to_export.new_states
+                });
+            }
+        }
     }
 
     void F_render_graph::setup_resource_use_states_internal()
@@ -991,6 +1044,8 @@ namespace nre::newrg
     void F_render_graph::flush_passes_internal()
     {
         pass_p_owf_stack_.reset();
+
+        epilogue_pass_p_ = 0;
     }
     void F_render_graph::flush_resources_internal()
     {
@@ -1000,6 +1055,8 @@ namespace nre::newrg
 
         flush_rhi_to_release_internal();
 
+        resource_to_export_stack_.reset();
+        permanent_resource_cache_stack_.reset();
         resource_p_owf_stack_.reset();
     }
     void F_render_graph::flush_states_internal()
@@ -1110,8 +1167,16 @@ namespace nre::newrg
         }
     }
 
+    void F_render_graph::begin_register()
+    {
+        create_prologue_pass_internal();
+    }
     void F_render_graph::execute()
     {
+        setup_prologue_pass_internal();
+        create_epilogue_pass_internal();
+        setup_epilogue_pass_internal();
+
         // flush direct command allocators
         for(const auto& direct_command_allocator_p : direct_command_allocator_p_vector_)
         {
@@ -1167,17 +1232,26 @@ namespace nre::newrg
         return render_resource_p;
     }
 
-    TS<F_external_render_resource> F_render_graph::export_resource(F_render_resource* resource_p)
+    TS<F_external_render_resource> F_render_graph::export_resource(
+        F_render_resource* resource_p,
+        ED_resource_state new_states
+    )
     {
         NCPP_SCOPED_LOCK(resource_p->export_lock_);
 
         if(!(resource_p->external_p_))
         {
             resource_p->external_p_ = TS<F_external_render_resource>()(
+                new_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-                resource_p->name_.c_str()
+                , resource_p->name_.c_str()
 #endif
             );
+
+            resource_to_export_stack_.push({
+                .resource_p = resource_p,
+                .new_states = new_states
+            });
         }
 
         return resource_p->external_p_;
@@ -1192,7 +1266,8 @@ namespace nre::newrg
         {
             F_render_resource* render_resource_p = T_create<F_render_resource>(
                 std::move(external_resource_p->rhi_p_),
-                external_resource_p->allocation_
+                external_resource_p->allocation_,
+                external_resource_p->initial_states_
     #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , external_resource_p->name_.c_str()
     #endif
@@ -1207,14 +1282,16 @@ namespace nre::newrg
     }
 
     F_render_resource* F_render_graph::create_permanent_resource(
-        TKPA_valid<A_resource> rhi_p
+        TKPA_valid<A_resource> rhi_p,
+        ED_resource_state initial_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , F_render_frame_name name
 #endif
     )
     {
         F_render_resource* render_resource_p = T_create<F_render_resource>(
-            rhi_p
+            rhi_p,
+            initial_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , name
 #endif
@@ -1223,6 +1300,11 @@ namespace nre::newrg
         render_resource_p->is_permanent_ = true;
 
         render_resource_p->id_ = resource_p_owf_stack_.push_and_return_index(render_resource_p);
+
+        permanent_resource_cache_stack_.push({
+            .resource_p = render_resource_p,
+            .new_states = initial_states
+        });
 
         return render_resource_p;
     }

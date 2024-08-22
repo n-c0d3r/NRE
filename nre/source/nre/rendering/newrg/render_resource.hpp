@@ -47,6 +47,8 @@ namespace nre::newrg
 
         b8 is_permanent_ = false;
 
+        ED_resource_state initial_states_ = ED_resource_state::COMMON;
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
 #endif
@@ -83,6 +85,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE b8 is_permanent() const noexcept { return is_permanent_; }
 
+        NCPP_FORCE_INLINE ED_resource_state initial_states() const noexcept { return initial_states_; }
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }
 #endif
@@ -98,13 +102,15 @@ namespace nre::newrg
         );
         F_render_resource(
             TU<A_resource>&& owned_rhi_p,
-            F_render_resource_allocation allocation
+            F_render_resource_allocation allocation,
+            ED_resource_state initial_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
 #endif
         );
         F_render_resource(
-            TKPA_valid<A_resource> permanent_rhi_p
+            TKPA_valid<A_resource> permanent_rhi_p,
+            ED_resource_state initial_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
 #endif
