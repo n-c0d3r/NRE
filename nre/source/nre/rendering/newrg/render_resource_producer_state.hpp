@@ -12,7 +12,17 @@ namespace nre::newrg
     class F_render_pass;
 
 
-
+    /**
+     *  There are two kinds of producer states:
+     *      + Normal:
+     *          + Named without "writable" prefix.
+     *          + Used for transitions among resource uses.
+     *          + The "resource_p" member is always the same as "resource_p" member of the corresponding resource state
+     *      + Writable:
+     *          + Named with "writable" prefix.
+     *          + Used for writable pass dependencies and resource aliasing dependencies.
+     *          + The "resource_p" member is the same as "resource_p" member of the corresponding resource state only in the case of writable pass dependencies.
+     */
     struct F_render_resource_producer_state
     {
         F_render_resource* resource_p = 0;

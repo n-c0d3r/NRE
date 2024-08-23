@@ -337,12 +337,13 @@ namespace nre::newrg
             {
                 F_render_resource* resource_p = resource_state.resource_p;
 
-                auto& use_states = resource_p->use_states_;
-
-                // find out writable producer state using the same resource
+                F_render_resource* writable_producer_resource_p = resource_p;
                 F_render_pass* writable_producer_pass_p = 0;
                 ED_resource_state writable_producer_resource_states = ED_resource_state::COMMON;
                 F_render_pass_id writable_producer_state_pass_id = NCPP_U32_MAX;
+
+                // find out writable producer state writing to the same resource
+                auto& use_states = resource_p->use_states_;
                 for(const auto& use_state : use_states)
                 {
                     F_render_pass* use_pass_p = use_state.pass_p;
@@ -378,8 +379,43 @@ namespace nre::newrg
                     }
                 }
 
+                // find out writable producer state using resources aliased by this resource
+                // this is always the first pass using this resource, so this kind of writable producer states
+                // will never be skipped by any other writable producer states => totally safe
+                if(resource_p->min_pass_id() == pass_id)
+                {
+                    const auto& aliased_resource_p_vector = resource_p->aliased_resource_p_vector_;
+                    for(F_render_resource* aliased_resource_p : aliased_resource_p_vector)
+                    {
+                        F_render_pass_id aliased_pass_id = aliased_resource_p->max_pass_id();
+
+                        if(aliased_pass_id == NCPP_U32_MAX)
+                            continue;
+
+                        F_render_pass* aliased_pass_p = pass_span[aliased_pass_id];
+
+                        if(writable_producer_state_pass_id == NCPP_U32_MAX)
+                        {
+                            writable_producer_resource_p = aliased_resource_p;
+                            writable_producer_pass_p = aliased_pass_p;
+                            writable_producer_resource_states = ED_resource_state::COMMON;
+                            writable_producer_state_pass_id = aliased_pass_id;
+                        }
+                        else
+                        {
+                            if(aliased_pass_id > writable_producer_state_pass_id)
+                            {
+                                writable_producer_resource_p = aliased_resource_p;
+                                writable_producer_pass_p = aliased_pass_p;
+                                writable_producer_resource_states = ED_resource_state::COMMON;
+                                writable_producer_state_pass_id = aliased_pass_id;
+                            }
+                        }
+                    }
+                }
+
                 resource_writable_producer_states.push_back({
-                    resource_p,
+                    writable_producer_resource_p,
                     writable_producer_pass_p,
                     writable_producer_resource_states
                 });
@@ -389,6 +425,9 @@ namespace nre::newrg
 
     void F_render_graph::setup_pass_max_writable_producer_ids_internal()
     {
+        // writable producers just need to be synchronized by fences in the case they are on different render workers
+        // if they are on the same render worker, the implicit barriers among execute_command_lists guarantee that they are always be synchronized
+        // Therefore, the only probability of a writable producer becomes the one signing a fence on a render worker is the latest writable producers on that render worker that affect a specified pass.
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
@@ -514,7 +553,7 @@ namespace nre::newrg
             {
                 return (
                     a->min_pass_id()
-                    > b->min_pass_id()
+                    < b->min_pass_id()
                 );
             };
             eastl::sort(sorted_resource_p_vector.begin(), sorted_resource_p_vector.end(), compare);
@@ -526,7 +565,7 @@ namespace nre::newrg
             F_render_resource* resource_p = sorted_resource_p_vector[i];
             F_render_resource_allocation resource_allocation_for_checking = resource_p->allocation_;
 
-            for(u32 j = 0; j < i; ++j)
+            for(u32 j = i - 1; j != u32(-1); --j)
             {
                 F_render_resource* before_resource_p = sorted_resource_p_vector[j];
                 F_render_resource_allocation before_resource_allocation_for_checking = before_resource_p->allocation_;
