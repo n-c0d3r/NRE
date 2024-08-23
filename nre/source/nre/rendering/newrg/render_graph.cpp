@@ -716,7 +716,6 @@ namespace nre::newrg
     void F_render_graph::create_resource_barriers_internal()
     {
         auto calculate_resource_barrier = [](
-            F_render_resource* resource_p,
             TKPA_valid<A_resource> rhi_p,
             u32 subresource_index_before,
             u32 subresource_index_after,
@@ -773,10 +772,14 @@ namespace nre::newrg
         {
             auto& pass_p_vector = execute_range.pass_p_vector;
 
+            F_render_pass_id first_pass_id = pass_p_vector.front()->id();
+            F_render_pass_id last_pass_id = pass_p_vector.back()->id();
+
             for(F_render_pass* pass_p : pass_p_vector)
             {
                 auto& resource_states = pass_p->resource_states_;
                 auto& resource_producer_dependencies = pass_p->resource_producer_dependencies_;
+                auto& resource_consumer_dependencies = pass_p->resource_consumer_dependencies_;
                 auto& resource_barriers_before = pass_p->resource_barriers_before_;
                 auto& resource_barriers_after = pass_p->resource_barriers_after_;
 
@@ -788,25 +791,51 @@ namespace nre::newrg
                 for(u32 i = 0; i < resource_state_count; ++i)
                 {
                     auto& resource_state = resource_states[i];
-                    auto& resource_producer_dependency = resource_producer_dependencies[i];
-
-                    if(!resource_producer_dependency)
-                        continue;
 
                     F_render_resource* resource_p = resource_state.resource_p;
                     auto rhi_p = resource_p->rhi_p();
 
-                    F_render_pass* producer_pass_p = pass_span[resource_producer_dependency.pass_id];
-                    auto& producer_resource_state = producer_pass_p->resource_states_[resource_producer_dependency.resource_state_index];
+                    // for end-only barriers
+                    auto& resource_consumer_dependency = resource_consumer_dependencies[i];
+                    if(resource_consumer_dependency)
+                    {
+                        if(resource_consumer_dependency.pass_id > last_pass_id)
+                            resource_barriers_after[i] = H_resource_barrier::transition(
+                                F_resource_transition_barrier {
+                                    .resource_p = (TKPA<A_resource>)rhi_p,
+                                    .subresource_index = resource_state.subresource_index,
+                                    .state_before = resource_state.states,
+                                    .state_after = ED_resource_state::COMMON
+                                },
+                                ED_resource_barrier_flag::END_ONLY
+                            );
+                    }
 
-                    resource_barriers_before[i] = calculate_resource_barrier(
-                        resource_p,
-                        (TKPA_valid<A_resource>)rhi_p,
-                        producer_resource_state.subresource_index,
-                        resource_state.subresource_index,
-                        producer_resource_state.states,
-                        resource_state.states
-                    );
+                    auto& resource_producer_dependency = resource_producer_dependencies[i];
+                    if(resource_producer_dependency)
+                    {
+                        F_render_pass* producer_pass_p = pass_span[resource_producer_dependency.pass_id];
+                        auto& producer_resource_state = producer_pass_p->resource_states_[resource_producer_dependency.resource_state_index];
+
+                        if(first_pass_id > resource_producer_dependency.pass_id)
+                            resource_barriers_before[i] = H_resource_barrier::transition(
+                                F_resource_transition_barrier {
+                                    .resource_p = (TKPA<A_resource>)rhi_p,
+                                    .subresource_index = resource_state.subresource_index,
+                                    .state_before = ED_resource_state::COMMON,
+                                    .state_after = resource_state.states
+                                },
+                                ED_resource_barrier_flag::BEGIN_ONLY
+                            );
+                        else
+                            resource_barriers_before[i] = calculate_resource_barrier(
+                                (TKPA_valid<A_resource>)rhi_p,
+                                producer_resource_state.subresource_index,
+                                resource_state.subresource_index,
+                                producer_resource_state.states,
+                                resource_state.states
+                            );
+                    }
                 }
             }
         }
