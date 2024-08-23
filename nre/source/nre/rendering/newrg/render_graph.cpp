@@ -144,83 +144,93 @@ namespace nre::newrg
         }
     }
 
-    void F_render_graph::setup_resource_use_states_internal()
+    void F_render_graph::setup_resource_access_dependencies_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
-            for(auto& resource_state : pass_p->resource_states())
+            auto& resource_states = pass_p->resource_states_;
+            u32 resource_state_count = resource_states.size();
+
+            for(u32 i = 0; i < resource_state_count; ++i)
             {
+                auto& resource_state = resource_states[i];
+
                 F_render_resource* resource_p = resource_state.resource_p;
-                resource_p->use_states_.push_back({
-                    pass_p,
-                    resource_state.states,
-                    resource_state.subresource_index
+                resource_p->access_dependencies_.push_back({
+                    .pass_id = pass_p->id(),
+                    .resource_state_index = i
                 });
             }
         }
     }
     void F_render_graph::setup_resource_min_pass_ids_internal()
     {
+        auto pass_span = pass_p_owf_stack_.item_span();
         auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
         {
-            auto& use_states = resource_p->use_states_;
-            for(const auto& use_state : use_states)
+            auto& access_dependencies = resource_p->access_dependencies_;
+            for(const auto& access_dependency : access_dependencies)
             {
+                F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
+
                 // sentinel passes must not affect resource allocation
-                if(use_state.pass_p->is_sentinel())
+                if(access_dependency_pass_p->is_sentinel())
                     continue;
 
                 if(resource_p->min_pass_id_ == NCPP_U32_MAX)
-                    resource_p->min_pass_id_ = use_state.pass_p->id();
+                    resource_p->min_pass_id_ = access_dependency.pass_id;
                 else
                     resource_p->min_pass_id_ = eastl::min(
                         resource_p->min_pass_id_,
-                        use_state.pass_p->id()
+                        access_dependency.pass_id
                     );
             }
         }
     }
     void F_render_graph::setup_resource_max_pass_ids_internal()
     {
+        auto pass_span = pass_p_owf_stack_.item_span();
         auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
         {
-            auto& use_states = resource_p->use_states_;
-            for(const auto& use_state : use_states)
+            auto& access_dependencies = resource_p->access_dependencies_;
+            for(const auto& access_dependency : access_dependencies)
             {
+                F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
+
                 // sentinel passes must not affect resource allocation
-                if(use_state.pass_p->is_sentinel())
+                if(access_dependency_pass_p->is_sentinel())
                     continue;
 
                 if(resource_p->max_pass_id_ == NCPP_U32_MAX)
-                    resource_p->max_pass_id_ = use_state.pass_p->id();
+                    resource_p->max_pass_id_ = access_dependency.pass_id;
                 else
                     resource_p->max_pass_id_ = eastl::max(
                         resource_p->max_pass_id_,
-                        use_state.pass_p->id()
+                        access_dependency.pass_id
                     );
             }
         }
     }
     void F_render_graph::setup_resource_max_sync_pass_ids_internal()
     {
+        auto pass_span = pass_p_owf_stack_.item_span();
         auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
         {
             auto& max_sync_pass_id_p_vector = resource_p->max_sync_pass_id_p_vector_;
 
-            auto& use_states = resource_p->use_states_;
-            for(const auto& use_state : use_states)
+            auto& access_dependencies = resource_p->access_dependencies_;
+            for(const auto& access_dependency : access_dependencies)
             {
-                F_render_pass* pass_p = use_state.pass_p;
+                F_render_pass_id pass_id = access_dependency.pass_id;
+                F_render_pass* pass_p = pass_span[pass_id];
 
                 // sentinel passes must not affect fence placement
                 if(pass_p->is_sentinel())
                     continue;
-
-                F_render_pass_id pass_id = pass_p->id();
 
                 F_render_pass_id& max_sync_pass_id = max_sync_pass_id_p_vector[
                     H_render_pass_flag::render_worker_index(pass_p->flags())
@@ -300,12 +310,12 @@ namespace nre::newrg
             }
         }
     }
-    void F_render_graph::setup_resource_producer_states_internal()
+    void F_render_graph::setup_resource_producer_dependencies_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
-            auto& resource_producer_states = pass_p->resource_producer_states_;
+            auto& resource_producer_dependencies = pass_p->resource_producer_dependencies_;
 
             F_render_pass_id pass_id = pass_p->id();
 
@@ -313,20 +323,19 @@ namespace nre::newrg
             {
                 F_render_resource* resource_p = resource_state.resource_p;
 
-                F_render_pass* producer_pass_p = 0;
-                ED_resource_state producer_resource_states = ED_resource_state::COMMON;
-                F_render_pass_id producer_state_pass_id = NCPP_U32_MAX;
+                F_render_resource_producer_dependency producer_dependency;
 
-                // find out producer_state pass id
-                auto& use_states = resource_p->use_states_;
-                for(const auto& use_state : use_states)
+                // find out producer_dependency pass id
+                auto& access_dependencies = resource_p->access_dependencies_;
+                for(const auto& access_dependency : access_dependencies)
                 {
-                    F_render_pass* use_pass_p = use_state.pass_p;
-                    F_render_pass_id use_pass_id = use_pass_p->id();
+                    F_render_pass* use_pass_p = pass_span[access_dependency.pass_id];
+                    F_render_resource_state& use_resource_state = use_pass_p->resource_states_[access_dependency.resource_state_index];
 
+                    // check if do they access the same subresource. If not, go to next access_dependency
                     if(
-                        (use_state.subresource_index != resource_state.subresource_index)
-                        && (use_state.subresource_index != resource_barrier_all_subresources)
+                        (use_resource_state.subresource_index != resource_state.subresource_index)
+                        && (use_resource_state.subresource_index != resource_barrier_all_subresources)
                         && (resource_state.subresource_index != resource_barrier_all_subresources)
                     )
                         continue;
@@ -334,39 +343,29 @@ namespace nre::newrg
                     if(use_pass_p->id() >= pass_id)
                         continue;
 
-                    if(producer_state_pass_id == NCPP_U32_MAX)
+                    if(!producer_dependency)
                     {
-                        producer_pass_p = use_pass_p;
-                        producer_resource_states = use_state.states;
-                        producer_state_pass_id = use_pass_id;
+                        producer_dependency = access_dependency;
                     }
                     else
                     {
-                        if(use_pass_id > producer_state_pass_id)
+                        if(access_dependency > producer_dependency)
                         {
-                            producer_pass_p = use_pass_p;
-                            producer_resource_states = use_state.states;
-                            producer_state_pass_id = use_pass_id;
+                            producer_dependency = access_dependency;
                         }
                     }
                 }
 
-                resource_producer_states.push_back({
-                    {
-                        resource_p,
-                        producer_resource_states
-                    },
-                    producer_pass_p
-                });
+                resource_producer_dependencies.push_back(producer_dependency);
             }
         }
     }
-    void F_render_graph::setup_resource_sync_producer_states_internal()
+    void F_render_graph::setup_resource_sync_producer_dependencies_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
-            auto& resource_sync_producer_states = pass_p->resource_sync_producer_states_;
+            auto& resource_sync_producer_dependencies = pass_p->resource_sync_producer_dependencies_;
 
             F_render_pass_id pass_id = pass_p->id();
 
@@ -374,55 +373,43 @@ namespace nre::newrg
             {
                 F_render_resource* resource_p = resource_state.resource_p;
 
-                F_render_resource* sync_producer_resource_p = resource_p;
-                F_render_pass* sync_producer_pass_p = 0;
-                ED_resource_state sync_producer_resource_states = ED_resource_state::COMMON;
-                F_render_pass_id sync_producer_state_pass_id = NCPP_U32_MAX;
+                F_render_resource_producer_dependency sync_producer_dependency;
 
                 // find out writable producer state writing to the same resource
-                auto& use_states = resource_p->use_states_;
-                for(const auto& use_state : use_states)
+                auto& access_dependencies = resource_p->access_dependencies_;
+                for(const auto& access_dependency : access_dependencies)
                 {
-                    F_render_pass* use_pass_p = use_state.pass_p;
-                    F_render_pass_id use_pass_id = use_pass_p->id();
+                    F_render_pass* use_pass_p = pass_span[access_dependency.pass_id];
+                    F_render_resource_state& use_resource_state = use_pass_p->resource_states_[access_dependency.resource_state_index];
 
+                    // check if do they access the same subresource. If not, go to next access_dependency
                     if(
-                        (use_state.subresource_index != resource_state.subresource_index)
-                        && (use_state.subresource_index != resource_barrier_all_subresources)
+                        (use_resource_state.subresource_index != resource_state.subresource_index)
+                        && (use_resource_state.subresource_index != resource_barrier_all_subresources)
                         && (resource_state.subresource_index != resource_barrier_all_subresources)
                     )
                         continue;
 
-                    if(!(use_state.is_writable()))
+                    if(!(use_resource_state.is_writable()))
                         continue;
 
                     if(use_pass_p->id() >= pass_id)
                         continue;
 
-                    if(sync_producer_state_pass_id == NCPP_U32_MAX)
+                    if(!sync_producer_dependency)
                     {
-                        sync_producer_pass_p = use_pass_p;
-                        sync_producer_resource_states = use_state.states;
-                        sync_producer_state_pass_id = use_pass_id;
+                        sync_producer_dependency = access_dependency;
                     }
                     else
                     {
-                        if(use_pass_id > sync_producer_state_pass_id)
+                        if(access_dependency > sync_producer_dependency)
                         {
-                            sync_producer_pass_p = use_pass_p;
-                            sync_producer_resource_states = use_state.states;
-                            sync_producer_state_pass_id = use_pass_id;
+                            sync_producer_dependency = access_dependency;
                         }
                     }
                 }
 
-                resource_sync_producer_states.push_back({
-                    {
-                        sync_producer_resource_p,
-                        sync_producer_resource_states
-                    },
-                    sync_producer_pass_p
-                });
+                resource_sync_producer_dependencies.push_back(sync_producer_dependency);
             }
         }
     }
@@ -448,25 +435,24 @@ namespace nre::newrg
             auto& max_sync_pass_ids = pass_p->max_sync_pass_ids_;
 
             // find potential sync passes from writable producer states
-            auto& resource_sync_producer_states = pass_p->resource_sync_producer_states_;
-            for(auto& resource_sync_producer_state : resource_sync_producer_states)
+            auto& resource_sync_producer_dependencies = pass_p->resource_sync_producer_dependencies_;
+            for(auto& resource_sync_producer_dependency : resource_sync_producer_dependencies)
             {
-                if(!resource_sync_producer_state)
+                if(!resource_sync_producer_dependency)
                     continue;
 
-                F_render_pass* sync_producer_pass_p = resource_sync_producer_state.pass_p;
-                F_render_pass_id sync_producer_id = sync_producer_pass_p->id();
+                F_render_pass* sync_producer_pass_p = pass_span[resource_sync_producer_dependency.pass_id];
                 u8 sync_producer_render_worker_index = H_render_pass_flag::render_worker_index(sync_producer_pass_p->flags());
 
                 auto& max_sync_pass_id = max_sync_pass_ids[sync_producer_render_worker_index];
 
                 if(max_sync_pass_id == NCPP_U32_MAX)
                 {
-                    max_sync_pass_id = sync_producer_id;
+                    max_sync_pass_id = resource_sync_producer_dependency.pass_id;
                 }
                 else
                 {
-                    max_sync_pass_id = eastl::max(max_sync_pass_id, sync_producer_id);
+                    max_sync_pass_id = eastl::max(max_sync_pass_id, resource_sync_producer_dependency.pass_id);
                 }
             }
 
@@ -704,7 +690,9 @@ namespace nre::newrg
                     && flag_is_has(states_after, ED_resource_state::DEPTH_WRITE)
                 )
             )
+            {
                 return eastl::nullopt;
+            }
 
             if(
                 flag_is_has(states_before, ED_resource_state::UNORDERED_ACCESS)
@@ -738,7 +726,7 @@ namespace nre::newrg
             for(F_render_pass* pass_p : pass_p_vector)
             {
                 auto& resource_states = pass_p->resource_states_;
-                auto& resource_producer_states = pass_p->resource_producer_states_;
+                auto& resource_producer_dependencies = pass_p->resource_producer_dependencies_;
                 auto& resource_barriers_before = pass_p->resource_barriers_before_;
                 auto& resource_barriers_after = pass_p->resource_barriers_after_;
 
@@ -750,61 +738,23 @@ namespace nre::newrg
                 for(u32 i = 0; i < resource_state_count; ++i)
                 {
                     auto& resource_state = resource_states[i];
-                    auto& resource_producer_state = resource_producer_states[i];
+                    auto& resource_producer_dependency = resource_producer_dependencies[i];
+
+                    if(!resource_producer_dependency)
+                        continue;
 
                     F_render_resource* resource_p = resource_state.resource_p;
                     auto rhi_p = resource_p->rhi_p();
 
-                    F_render_pass* producer_pass_p = resource_producer_state.pass_p;
-
-                    if(!producer_pass_p)
-                        continue;
-
-                    // // use split barrier because they are in different command lists
-                    // if(
-                    //     producer_pass_p->execute_range_index()
-                    //     != pass_p->execute_range_index()
-                    // )
-                    // {
-                    //     u32 producer_pass_resource_index = producer_pass_p->find_resource_state_index(
-                    //         resource_state.resource_p,
-                    //         resource_state.subresource_index
-                    //     );
-                    //
-                    //     auto& producer_resource_barriers_after = producer_pass_p->resource_barriers_after_;
-                    //     auto& producer_resource_barrier_after = producer_resource_barriers_after[producer_pass_resource_index];
-                    //
-                    //     // if(resource_producer_state.states != ED_resource_state::COMMON)
-                    //     producer_resource_barrier_after = calculate_resource_barrier(
-                    //         resource_p,
-                    //         (TKPA_valid<A_resource>)rhi_p,
-                    //         resource_producer_state.subresource_index,
-                    //         resource_state.subresource_index,
-                    //         resource_producer_state.states,
-                    //         ED_resource_state::COMMON,
-                    //         ED_resource_barrier_flag::END_ONLY
-                    //     );
-                    //
-                    //     // if(resource_state.states != ED_resource_state::COMMON)
-                    //     resource_barriers_before[i] = calculate_resource_barrier(
-                    //         resource_p,
-                    //         (TKPA_valid<A_resource>)rhi_p,
-                    //         resource_producer_state.subresource_index,
-                    //         resource_state.subresource_index,
-                    //         ED_resource_state::COMMON,
-                    //         resource_state.states,
-                    //         ED_resource_barrier_flag::BEGIN_ONLY
-                    //     );
-                    //
-                    //     continue;
-                    // }
+                    F_render_pass* producer_pass_p = pass_span[resource_producer_dependency.pass_id];
+                    auto& producer_resource_state = producer_pass_p->resource_states_[resource_producer_dependency.resource_state_index];
 
                     resource_barriers_before[i] = calculate_resource_barrier(
                         resource_p,
                         (TKPA_valid<A_resource>)rhi_p,
-                        resource_producer_state.subresource_index,
+                        producer_resource_state.subresource_index,
                         resource_state.subresource_index,
-                        resource_producer_state.states,
+                        producer_resource_state.states,
                         resource_state.states
                     );
                 }
@@ -1297,7 +1247,7 @@ namespace nre::newrg
 
     void F_render_graph::setup_internal()
     {
-        setup_resource_use_states_internal();
+        setup_resource_access_dependencies_internal();
         setup_resource_min_pass_ids_internal();
         setup_resource_max_pass_ids_internal();
         setup_resource_max_sync_pass_ids_internal();
@@ -1308,8 +1258,8 @@ namespace nre::newrg
         calculate_resource_allocations_internal();
         calculate_resource_aliases_internal();
 
-        setup_resource_producer_states_internal();
-        setup_resource_sync_producer_states_internal();
+        setup_resource_producer_dependencies_internal();
+        setup_resource_sync_producer_dependencies_internal();
 
         setup_pass_max_sync_pass_ids_internal();
 

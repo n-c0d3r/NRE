@@ -185,7 +185,7 @@ namespace nre::newrg
         //
         after_cpu_gpu_synchronization();
 
-        // signal back to producer_state to let it do other stuff
+        // signal back to producer_dependency to let it do other stuff
         end_sync_point_.consumer_signal();
     }
     void A_render_worker::before_last_subtick()

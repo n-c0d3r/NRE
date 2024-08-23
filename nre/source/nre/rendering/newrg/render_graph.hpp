@@ -5,6 +5,7 @@
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_functor.hpp>
 #include <nre/rendering/newrg/render_pass_flag.hpp>
+#include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_resource_allocator.hpp>
 #include <nre/rendering/newrg/rhi_placed_resource_pool.hpp>
 #include <nre/rendering/newrg/render_pass_execute_range.hpp>
@@ -121,6 +122,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE F_render_pass* prologue_pass_p() noexcept { return prologue_pass_p_; }
         NCPP_FORCE_INLINE F_render_pass* epilogue_pass_p() noexcept { return epilogue_pass_p_; }
+        NCPP_FORCE_INLINE F_render_pass_id prologue_pass_id() noexcept { return prologue_pass_p_->id_; }
+        NCPP_FORCE_INLINE F_render_pass_id epilogue_pass_id() noexcept { return epilogue_pass_p_->id_; }
 
         NCPP_FORCE_INLINE b8 is_began() const noexcept { return is_began_.load(eastl::memory_order_acquire); }
         NCPP_FORCE_INLINE b8 is_in_execution() const noexcept { return is_in_execution_.load(eastl::memory_order_acquire); }
@@ -146,15 +149,15 @@ namespace nre::newrg
         void create_epilogue_pass_internal();
 
     private:
-        void setup_resource_use_states_internal();
+        void setup_resource_access_dependencies_internal();
         void setup_resource_min_pass_ids_internal();
         void setup_resource_max_pass_ids_internal();
         void setup_resource_max_sync_pass_ids_internal();
         void setup_resource_allocation_lists_internal();
         void setup_resource_deallocation_lists_internal();
         void setup_resource_export_lists_internal();
-        void setup_resource_producer_states_internal();
-        void setup_resource_sync_producer_states_internal();
+        void setup_resource_producer_dependencies_internal();
+        void setup_resource_sync_producer_dependencies_internal();
 
     private:
         void setup_pass_max_sync_pass_ids_internal();

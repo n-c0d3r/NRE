@@ -119,7 +119,7 @@ namespace nre::newrg
 
         return resource_states_[resource_state_index];
     }
-    F_render_resource_producer_state& F_render_pass::find_resource_producer_state(
+    F_render_resource_producer_dependency& F_render_pass::find_resource_producer_dependency(
         F_render_resource* resource_p,
         u32 subresource_index,
         b8 just_need_overlap
@@ -133,9 +133,9 @@ namespace nre::newrg
         NCPP_ASSERT(resource_state_index != NCPP_U32_MAX)
             << "invalid resource index";
 
-        return resource_producer_states_[resource_state_index];
+        return resource_producer_dependencies_[resource_state_index];
     }
-    F_render_resource_consumer_state& F_render_pass::find_resource_consumer_state(
+    F_render_resource_consumer_dependency& F_render_pass::find_resource_consumer_dependency(
         F_render_resource* resource_p,
         u32 subresource_index,
         b8 just_need_overlap
@@ -149,9 +149,9 @@ namespace nre::newrg
         NCPP_ASSERT(resource_state_index != NCPP_U32_MAX)
             << "invalid resource index";
 
-        return resource_consumer_states_[resource_state_index];
+        return resource_consumer_dependencies_[resource_state_index];
     }
-    F_render_resource_producer_state& F_render_pass::find_resource_sync_producer_state(
+    F_render_resource_producer_dependency& F_render_pass::find_resource_sync_producer_dependency(
         F_render_resource* resource_p,
         u32 subresource_index,
         b8 just_need_overlap
@@ -165,7 +165,7 @@ namespace nre::newrg
         NCPP_ASSERT(resource_state_index != NCPP_U32_MAX)
             << "invalid resource index";
 
-        return resource_sync_producer_states_[resource_state_index];
+        return resource_sync_producer_dependencies_[resource_state_index];
     }
     eastl::optional<F_resource_barrier>& F_render_pass::find_resource_barrier_before(
         F_render_resource* resource_p,
@@ -256,7 +256,7 @@ namespace nre::newrg
 
         return resource_states_.at(resource_state_index);
     }
-    const F_render_resource_producer_state& F_render_pass::find_resource_producer_state(
+    const F_render_resource_producer_dependency& F_render_pass::find_resource_producer_dependency(
         F_render_resource* resource_p,
         u32 subresource_index,
         b8 just_need_overlap
@@ -270,9 +270,9 @@ namespace nre::newrg
         NCPP_ASSERT(resource_state_index != NCPP_U32_MAX)
             << "invalid resource index";
 
-        return resource_producer_states_.at(resource_state_index);
+        return resource_producer_dependencies_.at(resource_state_index);
     }
-    const F_render_resource_consumer_state& F_render_pass::find_resource_consumer_state(
+    const F_render_resource_consumer_dependency& F_render_pass::find_resource_consumer_dependency(
         F_render_resource* resource_p,
         u32 subresource_index,
         b8 just_need_overlap
@@ -286,9 +286,9 @@ namespace nre::newrg
         NCPP_ASSERT(resource_state_index != NCPP_U32_MAX)
             << "invalid resource index";
 
-        return resource_consumer_states_.at(resource_state_index);
+        return resource_consumer_dependencies_.at(resource_state_index);
     }
-    const F_render_resource_producer_state& F_render_pass::find_resource_sync_producer_state(
+    const F_render_resource_producer_dependency& F_render_pass::find_resource_sync_producer_dependency(
         F_render_resource* resource_p,
         u32 subresource_index,
         b8 just_need_overlap
@@ -302,7 +302,7 @@ namespace nre::newrg
         NCPP_ASSERT(resource_state_index != NCPP_U32_MAX)
             << "invalid resource index";
 
-        return resource_sync_producer_states_.at(resource_state_index);
+        return resource_sync_producer_dependencies_.at(resource_state_index);
     }
     const eastl::optional<F_resource_barrier>& F_render_pass::find_resource_barrier_before(
         F_render_resource* resource_p,
