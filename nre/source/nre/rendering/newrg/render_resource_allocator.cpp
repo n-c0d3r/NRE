@@ -45,8 +45,10 @@ namespace nre::newrg
 
     F_render_resource_allocation F_render_resource_allocator::allocate(sz size, u64 alignment)
     {
-        NCPP_ASSERT(size <= NRE_RENDER_GRAPH_RESOURCE_PAGE_CAPACITY);
-        NCPP_ASSERT(size != 0);
+        sz actual_size = align_size(alignment);
+
+        NCPP_ASSERT(actual_size <= NRE_RENDER_GRAPH_RESOURCE_PAGE_CAPACITY);
+        NCPP_ASSERT(actual_size != 0);
 
         // try allocate from allocated pages
         u32 page_count = pages_.size();
@@ -57,12 +59,13 @@ namespace nre::newrg
                 continue;
 
             // try to allocate resource
-            if(auto allocated_range_opt = page.try_allocate(size, alignment))
+            if(auto allocated_range_opt = page.try_allocate(actual_size, alignment))
             {
                 sz heap_offset = allocated_range_opt.value();
                 return {
                     .page_index = i,
                     .heap_offset = heap_offset,
+                    .heap_end = heap_offset + actual_size,
                     .allocator_p = this
                 };
             }
@@ -70,10 +73,11 @@ namespace nre::newrg
 
         // if all pages are full, create a new page
         auto& page = create_page_internal(alignment);
-        sz heap_offset = page.try_allocate(size, alignment).value();
+        sz heap_offset = page.try_allocate(actual_size, alignment).value();
         return {
             .page_index = u32(pages_.size() - 1),
             .heap_offset = heap_offset,
+            .heap_end = heap_offset + actual_size,
             .allocator_p = this
         };
     }

@@ -54,7 +54,7 @@ int main() {
 			F_render_resource* rg_resource_1_p = render_graph_p->create_resource(
 				H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
 					128,
-					ED_resource_flag::INPUT_BUFFER
+					ED_resource_flag::SHADER_RESOURCE
 				)
 				NRE_OPTIONAL_DEBUG_PARAM("resource_1")
 			);
@@ -62,7 +62,7 @@ int main() {
 			F_render_resource* rg_resource_2_p = render_graph_p->create_resource(
 				H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
 					128,
-					ED_resource_flag::INPUT_BUFFER
+					ED_resource_flag::SHADER_RESOURCE
 				)
 				NRE_OPTIONAL_DEBUG_PARAM("resource_2")
 			);
@@ -77,7 +77,7 @@ int main() {
 			);
 			rg_pass_1_p->add_resource_state({
 				.resource_p = rg_resource_1_p,
-				.states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+				.states = ED_resource_state::ALL_SHADER_RESOURCE
 			});
 
 			F_render_pass* rg_pass_2_p = render_graph_p->create_pass(
@@ -90,7 +90,7 @@ int main() {
 			);
 			rg_pass_2_p->add_resource_state({
 				.resource_p = rg_resource_2_p,
-				.states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+				.states = ED_resource_state::ALL_SHADER_RESOURCE
 			});
 
 			F_render_pass* rg_pass_p = render_graph_p->create_pass(

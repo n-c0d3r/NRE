@@ -473,20 +473,26 @@ namespace nre::newrg
     }
     void F_render_graph::calculate_resource_aliases_internal()
     {
-        //
-        // auto is_overlap = [](F_render_resource* a, F_render_resource* b)->b8
-        // {
-        //     auto* a_desc_p = a->desc_to_create_p_;
-        //     auto* b_desc_p = b->desc_to_create_p_;
-        //
-        //     auto& a_allocation = a->allocation_;
-        //     auto& b_allocation = b->allocation_;
-        //
-        //     if(
-        //         (a_allocation.page_index == b_allocation.page_index)
-        //         && ()
-        //     )
-        // };
+        auto is_overlap = [](F_render_resource* a, F_render_resource* b)->b8
+        {
+            auto& a_allocation = a->allocation_;
+            auto& b_allocation = b->allocation_;
+
+            return (
+                (a_allocation.page_index == b_allocation.page_index)
+                && (
+                    (
+                        (a_allocation.heap_offset >= b_allocation.heap_offset)
+                        && (a_allocation.heap_offset < b_allocation.heap_end)
+                    )
+                    || (
+                        (a_allocation.heap_end <= b_allocation.heap_end)
+                        && (a_allocation.heap_end > b_allocation.heap_offset)
+                    )
+                )
+                && (a_allocation.allocator_p == b_allocation.allocator_p)
+            );
+        };
 
         auto resource_span = resource_p_owf_stack_.item_span();
         u32 resource_count = resource_span.size();
@@ -508,20 +514,20 @@ namespace nre::newrg
         }
 
         // search for aliased resources
-        // for(u32 i = 0; i < resource_count; ++i)
-        // {
-        //     F_render_resource* resource_p = sorted_resource_p_vector[i];
-        //
-        //     for(u32 j = 0; j < i; ++j)
-        //     {
-        //         F_render_resource* before_resource_p = sorted_resource_p_vector[j];
-        //
-        //         if(is_overlap(resource_p, before_resource_p))
-        //         {
-        //             resource_p->aliased_resource_p_vector_.push_back(before_resource_p);
-        //         }
-        //     }
-        // }
+        for(u32 i = 0; i < resource_count; ++i)
+        {
+            F_render_resource* resource_p = sorted_resource_p_vector[i];
+
+            for(u32 j = 0; j < i; ++j)
+            {
+                F_render_resource* before_resource_p = sorted_resource_p_vector[j];
+
+                if(is_overlap(resource_p, before_resource_p))
+                {
+                    resource_p->aliased_resource_p_vector_.push_back(before_resource_p);
+                }
+            }
+        }
         int a = 5;
     }
 
