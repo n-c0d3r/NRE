@@ -45,7 +45,7 @@ namespace nre::newrg
 
     F_render_resource_allocation F_render_resource_allocator::allocate(sz size, u64 alignment)
     {
-        sz actual_size = align_size(alignment);
+        sz actual_size = align_size(size, alignment);
 
         NCPP_ASSERT(actual_size <= NRE_RENDER_GRAPH_RESOURCE_PAGE_CAPACITY);
         NCPP_ASSERT(actual_size != 0);

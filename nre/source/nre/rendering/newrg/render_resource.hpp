@@ -71,7 +71,20 @@ namespace nre::newrg
             );
         }
 
-        NCPP_FORCE_INLINE b8 can_be_deallocated() const noexcept { return (owned_rhi_p_ || desc_to_create_p_) && !(is_permanent() || need_to_export()); }
+        NCPP_FORCE_INLINE b8 will_be_deallocated() const noexcept
+        {
+            return (
+                (owned_rhi_p_ || desc_to_create_p_)
+                && !(is_permanent() || need_to_export())
+            );
+        }
+        NCPP_FORCE_INLINE b8 can_be_deallocated() const noexcept
+        {
+            return (
+                owned_rhi_p_
+                && !(is_permanent() || need_to_export())
+            );
+        }
 
         NCPP_FORCE_INLINE const auto& use_states() const noexcept { return use_states_; }
 

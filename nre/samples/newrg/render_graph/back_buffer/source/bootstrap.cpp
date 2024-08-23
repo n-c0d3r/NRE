@@ -52,16 +52,27 @@ int main() {
 			);
 
 			F_render_resource* rg_resource_1_p = render_graph_p->create_resource(
-				H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
-					128 * 1024,
+				H_resource_desc::create_buffer_desc(
+					320 * 1024 * 1024,
+					1,
 					ED_resource_flag::SHADER_RESOURCE
 				)
 				NRE_OPTIONAL_DEBUG_PARAM("resource_1")
 			);
 
 			F_render_resource* rg_resource_2_p = render_graph_p->create_resource(
-				H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
-					128 * 1024,
+				H_resource_desc::create_buffer_desc(
+					320 * 1024 * 1024,
+					1,
+					ED_resource_flag::SHADER_RESOURCE
+				)
+				NRE_OPTIONAL_DEBUG_PARAM("resource_2")
+			);
+
+			F_render_resource* rg_resource_3_p = render_graph_p->create_resource(
+				H_resource_desc::create_buffer_desc(
+					320 * 1024 * 1024,
+					1,
 					ED_resource_flag::SHADER_RESOURCE
 				)
 				NRE_OPTIONAL_DEBUG_PARAM("resource_2")
@@ -90,6 +101,19 @@ int main() {
 			);
 			rg_pass_2_p->add_resource_state({
 				.resource_p = rg_resource_2_p,
+				.states = ED_resource_state::ALL_SHADER_RESOURCE
+			});
+
+			F_render_pass* rg_pass_3_p = render_graph_p->create_pass(
+				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				{
+				},
+				ED_pipeline_state_type::GRAPHICS,
+				E_render_pass_flag::NONE
+				NRE_OPTIONAL_DEBUG_PARAM("pass_3")
+			);
+			rg_pass_3_p->add_resource_state({
+				.resource_p = rg_resource_3_p,
 				.states = ED_resource_state::ALL_SHADER_RESOURCE
 			});
 

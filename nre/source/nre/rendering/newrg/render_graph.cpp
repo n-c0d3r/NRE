@@ -234,7 +234,7 @@ namespace nre::newrg
             {
                 F_render_resource* resource_p = resource_state.resource_p;
 
-                if(!(resource_p->can_be_deallocated()))
+                if(!(resource_p->will_be_deallocated()))
                     continue;
 
                 if(resource_p->max_pass_id() == pass_p->id())
@@ -470,25 +470,35 @@ namespace nre::newrg
     }
     void F_render_graph::calculate_resource_aliases_internal()
     {
-        auto is_overlap = [](F_render_resource* a, F_render_resource* b)->b8
+        auto is_overlap = [](
+            const F_render_resource_allocation& a,
+            const F_render_resource_allocation& b,
+            F_render_resource_allocation& new_a
+        )->b8
         {
-            auto& a_allocation = a->allocation_;
-            auto& b_allocation = b->allocation_;
+            if(
+                (a.allocator_p != b.allocator_p)
+                || (a.page_index != b.page_index)
+            )
+                return false;
 
-            return (
-                (a_allocation.page_index == b_allocation.page_index)
-                && (
-                    (
-                        (a_allocation.heap_offset >= b_allocation.heap_offset)
-                        && (a_allocation.heap_offset < b_allocation.heap_end)
-                    )
-                    || (
-                        (a_allocation.heap_end <= b_allocation.heap_end)
-                        && (a_allocation.heap_end > b_allocation.heap_offset)
-                    )
-                )
-                && (a_allocation.allocator_p == b_allocation.allocator_p)
-            );
+            if(
+                (b.heap_offset >= a.heap_offset)
+                && (b.heap_offset < a.heap_end)
+            )
+            {
+                new_a.heap_end = b.heap_offset;
+                return true;
+            }
+
+            if(
+                (b.heap_end <= a.heap_end)
+                && (b.heap_end > a.heap_offset)
+            )
+            {
+                new_a.heap_offset = b.heap_end;
+                return true;
+            }
         };
 
         auto resource_span = resource_p_owf_stack_.item_span();
@@ -514,18 +524,33 @@ namespace nre::newrg
         for(u32 i = 0; i < resource_count; ++i)
         {
             F_render_resource* resource_p = sorted_resource_p_vector[i];
+            F_render_resource_allocation resource_allocation_for_checking = resource_p->allocation_;
 
             for(u32 j = 0; j < i; ++j)
             {
                 F_render_resource* before_resource_p = sorted_resource_p_vector[j];
+                F_render_resource_allocation before_resource_allocation_for_checking = before_resource_p->allocation_;
 
-                if(is_overlap(resource_p, before_resource_p))
+                if(!before_resource_allocation_for_checking)
+                    continue;
+
+                if(
+                    is_overlap(
+                        resource_allocation_for_checking,
+                        before_resource_allocation_for_checking,
+                        resource_allocation_for_checking
+                    )
+                )
                 {
                     resource_p->aliased_resource_p_vector_.push_back(before_resource_p);
                 }
+
+                if(
+                    (resource_allocation_for_checking.heap_end - resource_allocation_for_checking.heap_offset)
+                    == 0
+                ) break;
             }
         }
-        int a = 5;
     }
 
     void F_render_graph::create_rhi_resources_internal()
