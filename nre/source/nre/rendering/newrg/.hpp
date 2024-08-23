@@ -13,6 +13,7 @@
 #include <nre/rendering/newrg/external_render_resource.hpp>
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/render_resource_producer_state.hpp>
+#include <nre/rendering/newrg/render_resource_consumer_state.hpp>
 #include <nre/rendering/newrg/render_resource_use_state.hpp>
 #include <nre/rendering/newrg/render_resource_allocator.hpp>
 #include <nre/rendering/newrg/render_resource_barrier_batch.hpp>

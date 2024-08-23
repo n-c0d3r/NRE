@@ -4,6 +4,7 @@
 
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/render_resource_producer_state.hpp>
+#include <nre/rendering/newrg/render_resource_consumer_state.hpp>
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_functor.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
@@ -40,6 +41,7 @@ namespace nre::newrg
 
         TF_render_frame_vector<F_render_resource_state> resource_states_;
         TF_render_frame_vector<F_render_resource_producer_state> resource_producer_states_;
+        TF_render_frame_vector<F_render_resource_consumer_state> resource_consumer_states_;
         TF_render_frame_vector<F_render_resource_producer_state> resource_sync_producer_states_;
         TF_render_frame_vector<eastl::optional<F_resource_barrier>> resource_barriers_before_;
         TF_render_frame_vector<eastl::optional<F_resource_barrier>> resource_barriers_after_;
@@ -80,6 +82,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& resource_states() const noexcept { return resource_states_; }
         NCPP_FORCE_INLINE const auto& resource_producer_states() const noexcept { return resource_producer_states_; }
+        NCPP_FORCE_INLINE const auto& resource_consumer_states() const noexcept { return resource_consumer_states_; }
         NCPP_FORCE_INLINE const auto& resource_sync_producer_states() const noexcept { return resource_sync_producer_states_; }
         NCPP_FORCE_INLINE const auto& resource_barriers_before() const noexcept { return resource_barriers_before_; }
         NCPP_FORCE_INLINE const auto& resource_barriers_after() const noexcept { return resource_barriers_after_; }
@@ -157,6 +160,11 @@ namespace nre::newrg
             u32 subresource_index = resource_barrier_all_subresources,
             b8 just_need_overlap = true
         );
+        F_render_resource_consumer_state& find_resource_consumer_state(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        );
         F_render_resource_producer_state& find_resource_sync_producer_state(
             F_render_resource* resource_p,
             u32 subresource_index = resource_barrier_all_subresources,
@@ -187,6 +195,11 @@ namespace nre::newrg
             b8 just_need_overlap = true
         ) const;
         const F_render_resource_producer_state& find_resource_producer_state(
+            F_render_resource* resource_p,
+            u32 subresource_index = resource_barrier_all_subresources,
+            b8 just_need_overlap = true
+        ) const;
+        const F_render_resource_consumer_state& find_resource_consumer_state(
             F_render_resource* resource_p,
             u32 subresource_index = resource_barrier_all_subresources,
             b8 just_need_overlap = true

@@ -352,9 +352,11 @@ namespace nre::newrg
                 }
 
                 resource_producer_states.push_back({
-                    resource_p,
-                    producer_pass_p,
-                    producer_resource_states
+                    {
+                        resource_p,
+                        producer_resource_states
+                    },
+                    producer_pass_p
                 });
             }
         }
@@ -415,9 +417,11 @@ namespace nre::newrg
                 }
 
                 resource_sync_producer_states.push_back({
-                    sync_producer_resource_p,
-                    sync_producer_pass_p,
-                    sync_producer_resource_states
+                    {
+                        sync_producer_resource_p,
+                        sync_producer_resource_states
+                    },
+                    sync_producer_pass_p
                 });
             }
         }
@@ -725,78 +729,85 @@ namespace nre::newrg
         };
 
         auto pass_span = pass_p_owf_stack_.item_span();
-        for(F_render_pass* pass_p : pass_span)
+        auto execute_range_span = execute_range_owf_stack_.item_span();
+
+        for(auto& execute_range : execute_range_span)
         {
-            auto& resource_states = pass_p->resource_states_;
-            auto& resource_producer_states = pass_p->resource_producer_states_;
-            auto& resource_barriers_before = pass_p->resource_barriers_before_;
-            auto& resource_barriers_after = pass_p->resource_barriers_after_;
+            auto& pass_p_vector = execute_range.pass_p_vector;
 
-            u32 resource_state_count = resource_states.size();
-
-            resource_barriers_before.resize(resource_state_count);
-            resource_barriers_after.resize(resource_state_count);
-
-            for(u32 i = 0; i < resource_state_count; ++i)
+            for(F_render_pass* pass_p : pass_p_vector)
             {
-                auto& resource_state = resource_states[i];
-                auto& resource_producer_state = resource_producer_states[i];
+                auto& resource_states = pass_p->resource_states_;
+                auto& resource_producer_states = pass_p->resource_producer_states_;
+                auto& resource_barriers_before = pass_p->resource_barriers_before_;
+                auto& resource_barriers_after = pass_p->resource_barriers_after_;
 
-                F_render_resource* resource_p = resource_state.resource_p;
-                auto rhi_p = resource_p->rhi_p();
+                u32 resource_state_count = resource_states.size();
 
-                F_render_pass* producer_pass_p = resource_producer_state.pass_p;
+                resource_barriers_before.resize(resource_state_count);
+                resource_barriers_after.resize(resource_state_count);
 
-                if(!producer_pass_p)
-                    continue;
-
-                // use split barrier because they are in different command lists
-                if(
-                    producer_pass_p->execute_range_index()
-                    != pass_p->execute_range_index()
-                )
+                for(u32 i = 0; i < resource_state_count; ++i)
                 {
-                    u32 producer_pass_resource_index = producer_pass_p->find_resource_state_index(
-                        resource_state.resource_p,
-                        resource_state.subresource_index
-                    );
+                    auto& resource_state = resource_states[i];
+                    auto& resource_producer_state = resource_producer_states[i];
 
-                    auto& producer_resource_barriers_after = producer_pass_p->resource_barriers_after_;
-                    auto& producer_resource_barrier_after = producer_resource_barriers_after[producer_pass_resource_index];
+                    F_render_resource* resource_p = resource_state.resource_p;
+                    auto rhi_p = resource_p->rhi_p();
 
-                    // if(resource_producer_state.states != ED_resource_state::COMMON)
-                    producer_resource_barrier_after = calculate_resource_barrier(
-                        resource_p,
-                        (TKPA_valid<A_resource>)rhi_p,
-                        resource_producer_state.subresource_index,
-                        resource_state.subresource_index,
-                        resource_producer_state.states,
-                        ED_resource_state::COMMON,
-                        ED_resource_barrier_flag::END_ONLY
-                    );
+                    F_render_pass* producer_pass_p = resource_producer_state.pass_p;
 
-                    // if(resource_state.states != ED_resource_state::COMMON)
+                    if(!producer_pass_p)
+                        continue;
+
+                    // // use split barrier because they are in different command lists
+                    // if(
+                    //     producer_pass_p->execute_range_index()
+                    //     != pass_p->execute_range_index()
+                    // )
+                    // {
+                    //     u32 producer_pass_resource_index = producer_pass_p->find_resource_state_index(
+                    //         resource_state.resource_p,
+                    //         resource_state.subresource_index
+                    //     );
+                    //
+                    //     auto& producer_resource_barriers_after = producer_pass_p->resource_barriers_after_;
+                    //     auto& producer_resource_barrier_after = producer_resource_barriers_after[producer_pass_resource_index];
+                    //
+                    //     // if(resource_producer_state.states != ED_resource_state::COMMON)
+                    //     producer_resource_barrier_after = calculate_resource_barrier(
+                    //         resource_p,
+                    //         (TKPA_valid<A_resource>)rhi_p,
+                    //         resource_producer_state.subresource_index,
+                    //         resource_state.subresource_index,
+                    //         resource_producer_state.states,
+                    //         ED_resource_state::COMMON,
+                    //         ED_resource_barrier_flag::END_ONLY
+                    //     );
+                    //
+                    //     // if(resource_state.states != ED_resource_state::COMMON)
+                    //     resource_barriers_before[i] = calculate_resource_barrier(
+                    //         resource_p,
+                    //         (TKPA_valid<A_resource>)rhi_p,
+                    //         resource_producer_state.subresource_index,
+                    //         resource_state.subresource_index,
+                    //         ED_resource_state::COMMON,
+                    //         resource_state.states,
+                    //         ED_resource_barrier_flag::BEGIN_ONLY
+                    //     );
+                    //
+                    //     continue;
+                    // }
+
                     resource_barriers_before[i] = calculate_resource_barrier(
                         resource_p,
                         (TKPA_valid<A_resource>)rhi_p,
                         resource_producer_state.subresource_index,
                         resource_state.subresource_index,
-                        ED_resource_state::COMMON,
-                        resource_state.states,
-                        ED_resource_barrier_flag::BEGIN_ONLY
+                        resource_producer_state.states,
+                        resource_state.states
                     );
-
-                    continue;
                 }
-
-                resource_barriers_before[i] = calculate_resource_barrier(
-                    resource_p,
-                    (TKPA_valid<A_resource>)rhi_p,
-                    resource_producer_state.subresource_index,
-                    resource_state.subresource_index,
-                    resource_producer_state.states,
-                    resource_state.states
-                );
             }
         }
     }
