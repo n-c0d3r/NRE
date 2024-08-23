@@ -17,7 +17,8 @@ namespace nre::newrg
         , name_(name)
 #endif
     {
-        initialize_max_sync_pass_id_p_vector();
+        initialize_min_sync_pass_id_vector();
+        initialize_max_sync_pass_id_vector();
     }
     F_render_resource::F_render_resource(
         TU<A_resource>&& owned_rhi_p,
@@ -35,7 +36,8 @@ namespace nre::newrg
         , name_(name)
 #endif
     {
-        initialize_max_sync_pass_id_p_vector();
+        initialize_min_sync_pass_id_vector();
+        initialize_max_sync_pass_id_vector();
     }
     F_render_resource::F_render_resource(
         TKPA_valid<A_resource> permanent_rhi_p,
@@ -50,7 +52,8 @@ namespace nre::newrg
         , name_(name)
 #endif
     {
-        initialize_max_sync_pass_id_p_vector();
+        initialize_min_sync_pass_id_vector();
+        initialize_max_sync_pass_id_vector();
     }
     F_render_resource::~F_render_resource()
     {
@@ -58,15 +61,24 @@ namespace nre::newrg
 
 
 
-    void F_render_resource::initialize_max_sync_pass_id_p_vector()
+    void F_render_resource::initialize_max_sync_pass_id_vector()
     {
-        max_sync_pass_id_p_vector_.resize(
+        max_sync_pass_id_vector_.resize(
             F_render_pipeline::instance_p().T_cast<F_render_pipeline>()->render_worker_list().size()
         );
-        for(auto& max_sync_pass_id : max_sync_pass_id_p_vector_)
+        for(auto& max_sync_pass_id : max_sync_pass_id_vector_)
         {
             max_sync_pass_id = NCPP_U32_MAX;
         }
     }
-
+    void F_render_resource::initialize_min_sync_pass_id_vector()
+    {
+        min_sync_pass_id_vector_.resize(
+            F_render_pipeline::instance_p().T_cast<F_render_pipeline>()->render_worker_list().size()
+        );
+        for(auto& min_sync_pass_id : min_sync_pass_id_vector_)
+        {
+            min_sync_pass_id = NCPP_U32_MAX;
+        }
+    }
 }

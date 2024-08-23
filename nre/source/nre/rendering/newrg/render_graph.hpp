@@ -152,6 +152,7 @@ namespace nre::newrg
         void setup_resource_access_dependencies_internal();
         void setup_resource_min_pass_ids_internal();
         void setup_resource_max_pass_ids_internal();
+        void setup_resource_min_sync_pass_ids_internal();
         void setup_resource_max_sync_pass_ids_internal();
         void setup_resource_allocation_lists_internal();
         void setup_resource_deallocation_lists_internal();

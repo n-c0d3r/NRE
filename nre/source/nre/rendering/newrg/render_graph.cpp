@@ -214,13 +214,13 @@ namespace nre::newrg
             }
         }
     }
-    void F_render_graph::setup_resource_max_sync_pass_ids_internal()
+    void F_render_graph::setup_resource_min_sync_pass_ids_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
         auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
         {
-            auto& max_sync_pass_id_p_vector = resource_p->max_sync_pass_id_p_vector_;
+            auto& min_sync_pass_id_vector = resource_p->min_sync_pass_id_vector_;
 
             auto& access_dependencies = resource_p->access_dependencies_;
             for(const auto& access_dependency : access_dependencies)
@@ -232,7 +232,40 @@ namespace nre::newrg
                 if(pass_p->is_sentinel())
                     continue;
 
-                F_render_pass_id& max_sync_pass_id = max_sync_pass_id_p_vector[
+                F_render_pass_id& min_sync_pass_id = min_sync_pass_id_vector[
+                    H_render_pass_flag::render_worker_index(pass_p->flags())
+                ];
+
+                if(min_sync_pass_id == NCPP_U32_MAX)
+                {
+                    min_sync_pass_id = pass_id;
+                }
+                else
+                {
+                    min_sync_pass_id = eastl::min(pass_id, min_sync_pass_id);
+                }
+            }
+        }
+    }
+    void F_render_graph::setup_resource_max_sync_pass_ids_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        auto resource_span = resource_p_owf_stack_.item_span();
+        for(F_render_resource* resource_p : resource_span)
+        {
+            auto& max_sync_pass_id_vector = resource_p->max_sync_pass_id_vector_;
+
+            auto& access_dependencies = resource_p->access_dependencies_;
+            for(const auto& access_dependency : access_dependencies)
+            {
+                F_render_pass_id pass_id = access_dependency.pass_id;
+                F_render_pass* pass_p = pass_span[pass_id];
+
+                // sentinel passes must not affect fence placement
+                if(pass_p->is_sentinel())
+                    continue;
+
+                F_render_pass_id& max_sync_pass_id = max_sync_pass_id_vector[
                     H_render_pass_flag::render_worker_index(pass_p->flags())
                 ];
 
@@ -532,11 +565,11 @@ namespace nre::newrg
 
                 for(F_render_resource* aliased_resource_p : aliased_resource_vector)
                 {
-                    auto& aliased_resource_max_sync_pass_id_p_vector = aliased_resource_p->max_sync_pass_id_p_vector_;
+                    auto& aliased_resource_max_sync_pass_id_vector = aliased_resource_p->max_sync_pass_id_vector_;
 
                     for(u32 i = 0; i < render_worker_count; ++i)
                     {
-                        F_render_pass_id aliased_resource_max_sync_pass_id = aliased_resource_max_sync_pass_id_p_vector[i];
+                        F_render_pass_id aliased_resource_max_sync_pass_id = aliased_resource_max_sync_pass_id_vector[i];
                         F_render_pass_id& max_sync_pass_id = max_sync_pass_ids[i];
 
                         if(max_sync_pass_id == NCPP_U32_MAX)
@@ -811,20 +844,37 @@ namespace nre::newrg
                     F_render_resource* resource_p = resource_state.resource_p;
                     auto rhi_p = resource_p->rhi_p();
 
-                    // for end-only barriers
                     auto& resource_consumer_dependency = resource_consumer_dependencies[i];
                     if(resource_consumer_dependency)
                     {
                         if(resource_consumer_dependency.pass_id > last_pass_id)
+                        {
+                            if(resource_state.states != ED_resource_state::COMMON)
+                            {
+                                resource_barriers_after[i] = H_resource_barrier::transition(
+                                    F_resource_transition_barrier {
+                                        .resource_p = (TKPA<A_resource>)rhi_p,
+                                        .subresource_index = resource_state.subresource_index,
+                                        .state_before = resource_state.states,
+                                        .state_after = ED_resource_state::COMMON
+                                    }
+                                );
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(resource_state.states != ED_resource_state::COMMON)
+                        {
                             resource_barriers_after[i] = H_resource_barrier::transition(
                                 F_resource_transition_barrier {
                                     .resource_p = (TKPA<A_resource>)rhi_p,
                                     .subresource_index = resource_state.subresource_index,
                                     .state_before = resource_state.states,
                                     .state_after = ED_resource_state::COMMON
-                                },
-                                ED_resource_barrier_flag::BEGIN_ONLY
+                                }
                             );
+                        }
                     }
 
                     auto& resource_producer_dependency = resource_producer_dependencies[i];
@@ -833,19 +883,22 @@ namespace nre::newrg
                         F_render_pass* producer_pass_p = pass_span[resource_producer_dependency.pass_id];
                         auto& producer_resource_state = producer_pass_p->resource_states_[resource_producer_dependency.resource_state_index];
 
-                        // for begin-only barriers
                         if(first_pass_id > resource_producer_dependency.pass_id)
-                            resource_barriers_before[i] = H_resource_barrier::transition(
-                                F_resource_transition_barrier {
-                                    .resource_p = (TKPA<A_resource>)rhi_p,
-                                    .subresource_index = resource_state.subresource_index,
-                                    .state_before = ED_resource_state::COMMON,
-                                    .state_after = resource_state.states
-                                },
-                                ED_resource_barrier_flag::END_ONLY
-                            );
-                        // for full barriers
+                        {
+                            if(resource_state.states != ED_resource_state::COMMON)
+                            {
+                                resource_barriers_before[i] = H_resource_barrier::transition(
+                                    F_resource_transition_barrier {
+                                        .resource_p = (TKPA<A_resource>)rhi_p,
+                                        .subresource_index = resource_state.subresource_index,
+                                        .state_before = ED_resource_state::COMMON,
+                                        .state_after = resource_state.states
+                                    }
+                                );
+                            }
+                        }
                         else
+                        {
                             resource_barriers_before[i] = calculate_resource_barrier(
                                 (TKPA_valid<A_resource>)rhi_p,
                                 producer_resource_state.subresource_index,
@@ -853,10 +906,27 @@ namespace nre::newrg
                                 producer_resource_state.states,
                                 resource_state.states
                             );
+                        }
+                    }
+                    else
+                    {
+                        if(resource_state.states != resource_p->initial_states())
+                        {
+                            resource_barriers_before[i] = H_resource_barrier::transition(
+                                F_resource_transition_barrier {
+                                    .resource_p = (TKPA<A_resource>)rhi_p,
+                                    .subresource_index = resource_state.subresource_index,
+                                    .state_before = resource_p->initial_states(),
+                                    .state_after = resource_state.states
+                                }
+                            );
+                        }
                     }
                 }
             }
         }
+
+        int a = 5;
     }
     void F_render_graph::merge_resource_barriers_before_internal()
     {
@@ -1349,6 +1419,7 @@ namespace nre::newrg
         setup_resource_access_dependencies_internal();
         setup_resource_min_pass_ids_internal();
         setup_resource_max_pass_ids_internal();
+        setup_resource_min_sync_pass_ids_internal();
         setup_resource_max_sync_pass_ids_internal();
         setup_resource_allocation_lists_internal();
         setup_resource_deallocation_lists_internal();

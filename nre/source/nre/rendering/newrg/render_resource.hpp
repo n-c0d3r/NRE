@@ -51,7 +51,8 @@ namespace nre::newrg
 
         TF_render_frame_vector<F_render_resource*> aliased_resource_p_vector_;
 
-        TF_render_frame_vector<F_render_pass_id> max_sync_pass_id_p_vector_;
+        TF_render_frame_vector<F_render_pass_id> min_sync_pass_id_vector_;
+        TF_render_frame_vector<F_render_pass_id> max_sync_pass_id_vector_;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
@@ -106,7 +107,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& aliased_resource_p_vector() const noexcept { return aliased_resource_p_vector_; }
 
-        NCPP_FORCE_INLINE const auto& max_sync_pass_id_p_vector() const noexcept { return max_sync_pass_id_p_vector_; }
+        NCPP_FORCE_INLINE const auto& min_sync_pass_id_vector() const noexcept { return min_sync_pass_id_vector_; }
+        NCPP_FORCE_INLINE const auto& max_sync_pass_id_vector() const noexcept { return max_sync_pass_id_vector_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }
@@ -141,6 +143,7 @@ namespace nre::newrg
 
 
     private:
-        void initialize_max_sync_pass_id_p_vector();
+        void initialize_max_sync_pass_id_vector();
+        void initialize_min_sync_pass_id_vector();
     };
 }
