@@ -168,6 +168,7 @@ namespace nre::newrg
             auto& use_states = resource_p->use_states_;
             for(const auto& use_state : use_states)
             {
+                // sentinel passes must not affect resource allocation
                 if(use_state.pass_p->is_sentinel())
                     continue;
 
@@ -189,6 +190,7 @@ namespace nre::newrg
             auto& use_states = resource_p->use_states_;
             for(const auto& use_state : use_states)
             {
+                // sentinel passes must not affect resource allocation
                 if(use_state.pass_p->is_sentinel())
                     continue;
 
@@ -199,6 +201,39 @@ namespace nre::newrg
                         resource_p->max_pass_id_,
                         use_state.pass_p->id()
                     );
+            }
+        }
+    }
+    void F_render_graph::setup_resource_max_sync_pass_ids_internal()
+    {
+        auto resource_span = resource_p_owf_stack_.item_span();
+        for(F_render_resource* resource_p : resource_span)
+        {
+            auto& max_sync_pass_id_p_vector = resource_p->max_sync_pass_id_p_vector_;
+
+            auto& use_states = resource_p->use_states_;
+            for(const auto& use_state : use_states)
+            {
+                F_render_pass* pass_p = use_state.pass_p;
+
+                // sentinel passes must not affect fence placement
+                if(pass_p->is_sentinel())
+                    continue;
+
+                F_render_pass_id pass_id = pass_p->id();
+
+                F_render_pass_id& max_sync_pass_id = max_sync_pass_id_p_vector[
+                    H_render_pass_flag::render_worker_index(pass_p->flags())
+                ];
+
+                if(max_sync_pass_id == NCPP_U32_MAX)
+                {
+                    max_sync_pass_id = pass_id;
+                }
+                else
+                {
+                    max_sync_pass_id = eastl::max(pass_id, max_sync_pass_id);
+                }
             }
         }
     }
@@ -278,12 +313,12 @@ namespace nre::newrg
             {
                 F_render_resource* resource_p = resource_state.resource_p;
 
-                auto& use_states = resource_p->use_states_;
-
-                // find out producer_state pass id
                 F_render_pass* producer_pass_p = 0;
                 ED_resource_state producer_resource_states = ED_resource_state::COMMON;
                 F_render_pass_id producer_state_pass_id = NCPP_U32_MAX;
+
+                // find out producer_state pass id
+                auto& use_states = resource_p->use_states_;
                 for(const auto& use_state : use_states)
                 {
                     F_render_pass* use_pass_p = use_state.pass_p;
@@ -379,41 +414,6 @@ namespace nre::newrg
                     }
                 }
 
-                // // find out writable producer state using resources aliased by this resource
-                // // this is always the first pass using this resource, so this kind of writable producer states
-                // // will never be skipped by any other writable producer states => totally safe
-                // if(resource_p->min_pass_id() == pass_id)
-                // {
-                //     const auto& aliased_resource_p_vector = resource_p->aliased_resource_p_vector_;
-                //     for(F_render_resource* aliased_resource_p : aliased_resource_p_vector)
-                //     {
-                //         F_render_pass_id aliased_pass_id = aliased_resource_p->max_pass_id();
-                //
-                //         if(aliased_pass_id == NCPP_U32_MAX)
-                //             continue;
-                //
-                //         F_render_pass* aliased_pass_p = pass_span[aliased_pass_id];
-                //
-                //         if(writable_producer_state_pass_id == NCPP_U32_MAX)
-                //         {
-                //             writable_producer_resource_p = aliased_resource_p;
-                //             writable_producer_pass_p = aliased_pass_p;
-                //             writable_producer_resource_states = ED_resource_state::COMMON;
-                //             writable_producer_state_pass_id = aliased_pass_id;
-                //         }
-                //         else
-                //         {
-                //             if(aliased_pass_id > writable_producer_state_pass_id)
-                //             {
-                //                 writable_producer_resource_p = aliased_resource_p;
-                //                 writable_producer_pass_p = aliased_pass_p;
-                //                 writable_producer_resource_states = ED_resource_state::COMMON;
-                //                 writable_producer_state_pass_id = aliased_pass_id;
-                //             }
-                //         }
-                //     }
-                // }
-
                 resource_writable_producer_states.push_back({
                     writable_producer_resource_p,
                     writable_producer_pass_p,
@@ -423,8 +423,12 @@ namespace nre::newrg
         }
     }
 
-    void F_render_graph::setup_pass_max_writable_producer_ids_internal()
+    void F_render_graph::setup_pass_max_sync_pass_ids_internal()
     {
+        auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
+        auto& render_worker_list = render_pipeline_p->render_worker_list();
+        u32 render_worker_count = render_worker_list.size();
+
         // writable producers just need to be synchronized by fences in the case they are on different render workers
         // if they are on the same render worker, the implicit barriers among execute_command_lists guarantee that they are always be synchronized
         // Therefore, the only probability of a writable producer becomes the one signing a fence on a render worker is the latest writable producers on that render worker that affect a specified pass.
@@ -433,9 +437,14 @@ namespace nre::newrg
         {
             F_render_pass_id pass_id = pass_p->id();
 
-            auto& resource_writable_producer_states = pass_p->resource_writable_producer_states_;
-            auto& max_writable_producer_ids = pass_p->max_writable_producer_ids_;
+            // sentinel passes must not affect fence placement
+            if(pass_p->is_sentinel())
+                continue;
 
+            auto& max_sync_pass_ids = pass_p->max_sync_pass_ids_;
+
+            // find potential sync passes from writable producer states
+            auto& resource_writable_producer_states = pass_p->resource_writable_producer_states_;
             for(auto& resource_writable_producer_state : resource_writable_producer_states)
             {
                 if(!resource_writable_producer_state)
@@ -445,15 +454,44 @@ namespace nre::newrg
                 F_render_pass_id writable_producer_id = writable_producer_pass_p->id();
                 u8 writable_producer_render_worker_index = H_render_pass_flag::render_worker_index(writable_producer_pass_p->flags());
 
-                auto& max_writable_producer_id = max_writable_producer_ids[writable_producer_render_worker_index];
+                auto& max_sync_pass_id = max_sync_pass_ids[writable_producer_render_worker_index];
 
-                if(max_writable_producer_id == NCPP_U32_MAX)
+                if(max_sync_pass_id == NCPP_U32_MAX)
                 {
-                    max_writable_producer_id = writable_producer_id;
+                    max_sync_pass_id = writable_producer_id;
                 }
                 else
                 {
-                    max_writable_producer_id = eastl::max(max_writable_producer_id, writable_producer_id);
+                    max_sync_pass_id = eastl::max(max_sync_pass_id, writable_producer_id);
+                }
+            }
+
+            // find potential sync passes from fences synchronizing aliased resources
+            auto& resource_states = pass_p->resource_states_;
+            for(auto& resource_state : resource_states)
+            {
+                F_render_resource* resource_p = resource_state.resource_p;
+
+                auto& aliased_resource_vector = resource_p->aliased_resource_p_vector_;
+
+                for(F_render_resource* aliased_resource_p : aliased_resource_vector)
+                {
+                    auto& aliased_resource_max_sync_pass_id_p_vector = aliased_resource_p->max_sync_pass_id_p_vector_;
+
+                    for(u32 i = 0; i < render_worker_count; ++i)
+                    {
+                        F_render_pass_id aliased_resource_max_sync_pass_id = aliased_resource_max_sync_pass_id_p_vector[i];
+                        F_render_pass_id& max_sync_pass_id = max_sync_pass_ids[i];
+
+                        if(max_sync_pass_id == NCPP_U32_MAX)
+                        {
+                            max_sync_pass_id = aliased_resource_max_sync_pass_id;
+                        }
+                        else
+                        {
+                            max_sync_pass_id = eastl::max(max_sync_pass_id, aliased_resource_max_sync_pass_id);
+                        }
+                    }
                 }
             }
         }
@@ -726,25 +764,28 @@ namespace nre::newrg
                     auto& producer_resource_barriers_after = producer_pass_p->resource_barriers_after_;
                     auto& producer_resource_barrier_after = producer_resource_barriers_after[producer_pass_resource_index];
 
-                    producer_resource_barrier_after = calculate_resource_barrier(
-                        resource_p,
-                        (TKPA_valid<A_resource>)rhi_p,
-                        resource_producer_state.subresource_index,
-                        resource_state.subresource_index,
-                        resource_producer_state.states,
-                        ED_resource_state::COMMON,
-                        ED_resource_barrier_flag::END_ONLY
-                    );
+                    if(resource_producer_state.states != ED_resource_state::COMMON)
+                        producer_resource_barrier_after = calculate_resource_barrier(
+                            resource_p,
+                            (TKPA_valid<A_resource>)rhi_p,
+                            resource_producer_state.subresource_index,
+                            resource_state.subresource_index,
+                            resource_producer_state.states,
+                            ED_resource_state::COMMON,
+                            ED_resource_barrier_flag::END_ONLY
+                        );
 
-                    resource_barriers_before[i] = calculate_resource_barrier(
-                        resource_p,
-                        (TKPA_valid<A_resource>)rhi_p,
-                        resource_producer_state.subresource_index,
-                        resource_state.subresource_index,
-                        ED_resource_state::COMMON,
-                        resource_state.states,
-                        ED_resource_barrier_flag::BEGIN_ONLY
-                    );
+                    if(resource_state.states != ED_resource_state::COMMON)
+                        resource_barriers_before[i] = calculate_resource_barrier(
+                            resource_p,
+                            (TKPA_valid<A_resource>)rhi_p,
+                            resource_producer_state.subresource_index,
+                            resource_state.subresource_index,
+                            ED_resource_state::COMMON,
+                            resource_state.states,
+                            ED_resource_barrier_flag::BEGIN_ONLY
+                        );
+
                     continue;
                 }
 
@@ -937,47 +978,47 @@ namespace nre::newrg
 
         u32 render_worker_count = render_worker_list.size();
 
-        TF_render_frame_vector<F_render_pass_id> max_writable_producer_ids(render_worker_count);
-        for(auto& max_writable_producer_id : max_writable_producer_ids)
-            max_writable_producer_id = NCPP_U32_MAX;
+        TF_render_frame_vector<F_render_pass_id> max_sync_pass_ids(render_worker_count);
+        for(auto& max_sync_pass_id : max_sync_pass_ids)
+            max_sync_pass_id = NCPP_U32_MAX;
 
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
             auto& wait_fence_states = pass_p->wait_fence_states_;
 
-            // update max writable producer ids
-            const auto& local_max_writable_producer_ids = pass_p->max_writable_producer_ids();
+            // update max sync pass ids
+            const auto& local_max_sync_pass_ids = pass_p->max_sync_pass_ids();
             for(u32 i = 0; i < render_worker_count; ++i)
             {
-                F_render_pass_id local_max_writable_producer_id = local_max_writable_producer_ids[i];
-                if(local_max_writable_producer_id == NCPP_U32_MAX)
+                F_render_pass_id local_max_sync_pass_id = local_max_sync_pass_ids[i];
+                if(local_max_sync_pass_id == NCPP_U32_MAX)
                     continue;
 
-                F_render_pass_id& max_writable_producer_id = max_writable_producer_ids[i];
+                F_render_pass_id& max_sync_pass_id = max_sync_pass_ids[i];
 
-                F_render_pass* writable_producer_pass_p = pass_span[local_max_writable_producer_id];
+                F_render_pass* local_max_sync_pass_p = pass_span[local_max_sync_pass_id];
 
                 if(
-                    H_render_pass_flag::render_worker_index(writable_producer_pass_p->flags())
+                    H_render_pass_flag::render_worker_index(local_max_sync_pass_p->flags())
                     != H_render_pass_flag::render_worker_index(pass_p->flags())
                 )
                 {
                     if(
-                        (local_max_writable_producer_id > max_writable_producer_id)
-                        || (max_writable_producer_id == NCPP_U32_MAX)
+                        (local_max_sync_pass_id > max_sync_pass_id)
+                        || (max_sync_pass_id == NCPP_U32_MAX)
                     )
                     {
-                        max_writable_producer_id = local_max_writable_producer_id;
+                        max_sync_pass_id = local_max_sync_pass_id;
 
                         // try to update writable producer signal fence state
                         {
-                            F_render_fence_state& writable_producer_signal_fence_state = writable_producer_pass_p->signal_fence_states_[i];
+                            F_render_fence_state& signal_fence_state = local_max_sync_pass_p->signal_fence_states_[i];
 
-                            if(!writable_producer_signal_fence_state)
+                            if(!signal_fence_state)
                             {
                                 ++(fence_states_[i].value);
-                                writable_producer_signal_fence_state = fence_states_[i];
+                                signal_fence_state = fence_states_[i];
                             }
                         }
 
@@ -1248,6 +1289,7 @@ namespace nre::newrg
         setup_resource_use_states_internal();
         setup_resource_min_pass_ids_internal();
         setup_resource_max_pass_ids_internal();
+        setup_resource_max_sync_pass_ids_internal();
         setup_resource_allocation_lists_internal();
         setup_resource_deallocation_lists_internal();
         setup_resource_export_lists_internal();
@@ -1258,7 +1300,7 @@ namespace nre::newrg
         setup_resource_producer_states_internal();
         setup_resource_writable_producer_states_internal();
 
-        setup_pass_max_writable_producer_ids_internal();
+        setup_pass_max_sync_pass_ids_internal();
 
         create_rhi_resources_internal();
 

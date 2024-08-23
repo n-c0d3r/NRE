@@ -25,10 +25,10 @@ namespace nre::newrg
         auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
         const auto& render_worker_list = render_pipeline_p->render_worker_list();
 
-        max_writable_producer_ids_.resize(render_worker_list.size());
-        for(auto& max_writable_producer_id : max_writable_producer_ids_)
+        max_sync_pass_ids_.resize(render_worker_list.size());
+        for(auto& max_sync_pass_id : max_sync_pass_ids_)
         {
-            max_writable_producer_id = NCPP_U32_MAX;
+            max_sync_pass_id = NCPP_U32_MAX;
         }
 
         signal_fence_states_.resize(render_worker_list.size());
@@ -75,8 +75,8 @@ namespace nre::newrg
     }
 
     u32 F_render_pass::find_resource_state_index(
-       F_render_resource* resource_p,
-       u32 subresource_index,
+        F_render_resource* resource_p,
+        u32 subresource_index,
         b8 just_need_overlap
     )
     {
@@ -86,7 +86,7 @@ namespace nre::newrg
             auto& resource_state = resource_states_[i];
 
             if(resource_state.resource_p != resource_p)
-                return NCPP_U32_MAX;
+                continue;
 
             if(
                 (resource_state.subresource_index == subresource_index)

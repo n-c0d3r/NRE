@@ -149,6 +149,7 @@ namespace nre::newrg
         void setup_resource_use_states_internal();
         void setup_resource_min_pass_ids_internal();
         void setup_resource_max_pass_ids_internal();
+        void setup_resource_max_sync_pass_ids_internal();
         void setup_resource_allocation_lists_internal();
         void setup_resource_deallocation_lists_internal();
         void setup_resource_export_lists_internal();
@@ -156,7 +157,7 @@ namespace nre::newrg
         void setup_resource_writable_producer_states_internal();
 
     private:
-        void setup_pass_max_writable_producer_ids_internal();
+        void setup_pass_max_sync_pass_ids_internal();
 
     private:
         void calculate_resource_allocations_internal();

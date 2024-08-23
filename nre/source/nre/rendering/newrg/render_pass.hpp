@@ -57,7 +57,7 @@ namespace nre::newrg
         E_render_pass_flag flags_ = E_render_pass_flag::NONE;
 
         // Each element corresponds to a writable producer pass running on a render worker at the specified index.
-        TF_render_frame_vector<F_render_pass_id> max_writable_producer_ids_;
+        TF_render_frame_vector<F_render_pass_id> max_sync_pass_ids_;
 
         // Each element corresponds to a fence state on a render worker at the specified index.
         TF_render_frame_vector<F_render_fence_state> signal_fence_states_;
@@ -99,7 +99,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE b8 is_async_compute() const noexcept { return flag_is_has(flags_, E_render_pass_flag::ASYNC_COMPUTE); }
         NCPP_FORCE_INLINE b8 is_sentinel() const noexcept { return flag_is_has(flags_, E_render_pass_flag::SENTINEL); }
 
-        NCPP_FORCE_INLINE const auto& max_writable_producer_ids() const noexcept { return max_writable_producer_ids_; }
+        NCPP_FORCE_INLINE const auto& max_sync_pass_ids() const noexcept { return max_sync_pass_ids_; }
 
         NCPP_FORCE_INLINE const auto& signal_fence_states() const noexcept { return signal_fence_states_; }
         NCPP_FORCE_INLINE const auto& wait_fence_states() const noexcept { return wait_fence_states_; }

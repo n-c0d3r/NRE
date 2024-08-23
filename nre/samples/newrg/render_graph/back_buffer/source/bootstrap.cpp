@@ -96,7 +96,7 @@ int main() {
 				{
 				},
 				ED_pipeline_state_type::GRAPHICS,
-				E_render_pass_flag::NONE
+				E_render_pass_flag::ASYNC_COMPUTE
 				NRE_OPTIONAL_DEBUG_PARAM("pass_2")
 			);
 			rg_pass_2_p->add_resource_state({

@@ -1,4 +1,5 @@
 #include <nre/rendering/newrg/render_resource.hpp>
+#include <nre/rendering/newrg/render_pipeline.hpp>
 
 
 
@@ -16,6 +17,7 @@ namespace nre::newrg
         , name_(name)
 #endif
     {
+        initialize_max_sync_pass_id_p_vector();
     }
     F_render_resource::F_render_resource(
         TU<A_resource>&& owned_rhi_p,
@@ -33,6 +35,7 @@ namespace nre::newrg
         , name_(name)
 #endif
     {
+        initialize_max_sync_pass_id_p_vector();
     }
     F_render_resource::F_render_resource(
         TKPA_valid<A_resource> permanent_rhi_p,
@@ -47,8 +50,23 @@ namespace nre::newrg
         , name_(name)
 #endif
     {
+        initialize_max_sync_pass_id_p_vector();
     }
     F_render_resource::~F_render_resource()
     {
     }
+
+
+
+    void F_render_resource::initialize_max_sync_pass_id_p_vector()
+    {
+        max_sync_pass_id_p_vector_.resize(
+            F_render_pipeline::instance_p().T_cast<F_render_pipeline>()->render_worker_list().size()
+        );
+        for(auto& max_sync_pass_id : max_sync_pass_id_p_vector_)
+        {
+            max_sync_pass_id = NCPP_U32_MAX;
+        }
+    }
+
 }
