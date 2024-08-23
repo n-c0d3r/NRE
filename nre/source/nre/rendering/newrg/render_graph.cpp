@@ -340,6 +340,14 @@ namespace nre::newrg
                     )
                         continue;
 
+                    // make sure they run on the same render worker
+                    // if not, they will be synchronized using fences
+                    if(
+                        H_render_pass_flag::render_worker_index(pass_p->flags())
+                        != H_render_pass_flag::render_worker_index(use_pass_p->flags())
+                    )
+                        continue;
+
                     if(use_pass_p->id() >= pass_id)
                         continue;
 
@@ -387,6 +395,14 @@ namespace nre::newrg
                         (use_resource_state.subresource_index != resource_state.subresource_index)
                         && (use_resource_state.subresource_index != resource_barrier_all_subresources)
                         && (resource_state.subresource_index != resource_barrier_all_subresources)
+                    )
+                        continue;
+
+                    // make sure they run on the same render worker
+                    // if not, they will be synchronized using fences
+                    if(
+                        H_render_pass_flag::render_worker_index(pass_p->flags())
+                        != H_render_pass_flag::render_worker_index(use_pass_p->flags())
                     )
                         continue;
 
@@ -807,7 +823,7 @@ namespace nre::newrg
                                     .state_before = resource_state.states,
                                     .state_after = ED_resource_state::COMMON
                                 },
-                                ED_resource_barrier_flag::END_ONLY
+                                ED_resource_barrier_flag::BEGIN_ONLY
                             );
                     }
 
@@ -817,6 +833,7 @@ namespace nre::newrg
                         F_render_pass* producer_pass_p = pass_span[resource_producer_dependency.pass_id];
                         auto& producer_resource_state = producer_pass_p->resource_states_[resource_producer_dependency.resource_state_index];
 
+                        // for begin-only barriers
                         if(first_pass_id > resource_producer_dependency.pass_id)
                             resource_barriers_before[i] = H_resource_barrier::transition(
                                 F_resource_transition_barrier {
@@ -825,8 +842,9 @@ namespace nre::newrg
                                     .state_before = ED_resource_state::COMMON,
                                     .state_after = resource_state.states
                                 },
-                                ED_resource_barrier_flag::BEGIN_ONLY
+                                ED_resource_barrier_flag::END_ONLY
                             );
+                        // for full barriers
                         else
                             resource_barriers_before[i] = calculate_resource_barrier(
                                 (TKPA_valid<A_resource>)rhi_p,
