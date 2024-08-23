@@ -558,7 +558,7 @@ namespace nre::newrg
         {
             if(resource_p->can_be_deallocated())
             {
-                auto& desc = *(resource_p->desc_to_create_p_);
+                auto& desc = resource_p->owned_rhi_p_->desc();
                 auto& rhi_placed_resource_pool = find_rhi_placed_resource_pool(desc.type);
 
                 rhi_placed_resource_pool.push(
