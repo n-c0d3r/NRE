@@ -154,7 +154,7 @@ namespace nre::newrg
         void setup_resource_deallocation_lists_internal();
         void setup_resource_export_lists_internal();
         void setup_resource_producer_states_internal();
-        void setup_resource_writable_producer_states_internal();
+        void setup_resource_sync_producer_states_internal();
 
     private:
         void setup_pass_max_sync_pass_ids_internal();
