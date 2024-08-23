@@ -53,7 +53,7 @@ int main() {
 
 			F_render_resource* rg_resource_1_p = render_graph_p->create_resource(
 				H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
-					128,
+					128 * 1024,
 					ED_resource_flag::SHADER_RESOURCE
 				)
 				NRE_OPTIONAL_DEBUG_PARAM("resource_1")
@@ -61,7 +61,7 @@ int main() {
 
 			F_render_resource* rg_resource_2_p = render_graph_p->create_resource(
 				H_resource_desc::T_create_buffer_desc<F_vector4_f32>(
-					128,
+					128 * 1024,
 					ED_resource_flag::SHADER_RESOURCE
 				)
 				NRE_OPTIONAL_DEBUG_PARAM("resource_2")

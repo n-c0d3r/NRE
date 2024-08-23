@@ -443,11 +443,8 @@ namespace nre::newrg
             auto& resource_to_deallocate_vector = pass_p->resource_to_deallocate_vector_;
             for(auto& resource_p : resource_to_deallocate_vector)
             {
-                const auto& desc = *(resource_p->desc_to_create_p_);
-
-                auto& allocator = find_allocator(desc.type, desc.flags);
-
-                allocator.deallocate(resource_p->allocation());
+                auto& allocation = resource_p->allocation();
+                allocation.allocator_p->deallocate(allocation);
             }
         }
 
