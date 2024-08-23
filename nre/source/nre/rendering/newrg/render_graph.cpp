@@ -214,39 +214,6 @@ namespace nre::newrg
             }
         }
     }
-    void F_render_graph::setup_resource_min_sync_pass_ids_internal()
-    {
-        auto pass_span = pass_p_owf_stack_.item_span();
-        auto resource_span = resource_p_owf_stack_.item_span();
-        for(F_render_resource* resource_p : resource_span)
-        {
-            auto& min_sync_pass_id_vector = resource_p->min_sync_pass_id_vector_;
-
-            auto& access_dependencies = resource_p->access_dependencies_;
-            for(const auto& access_dependency : access_dependencies)
-            {
-                F_render_pass_id pass_id = access_dependency.pass_id;
-                F_render_pass* pass_p = pass_span[pass_id];
-
-                // sentinel passes must not affect fence placement
-                if(pass_p->is_sentinel())
-                    continue;
-
-                F_render_pass_id& min_sync_pass_id = min_sync_pass_id_vector[
-                    H_render_pass_flag::render_worker_index(pass_p->flags())
-                ];
-
-                if(min_sync_pass_id == NCPP_U32_MAX)
-                {
-                    min_sync_pass_id = pass_id;
-                }
-                else
-                {
-                    min_sync_pass_id = eastl::min(pass_id, min_sync_pass_id);
-                }
-            }
-        }
-    }
     void F_render_graph::setup_resource_max_sync_pass_ids_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
@@ -1419,7 +1386,6 @@ namespace nre::newrg
         setup_resource_access_dependencies_internal();
         setup_resource_min_pass_ids_internal();
         setup_resource_max_pass_ids_internal();
-        setup_resource_min_sync_pass_ids_internal();
         setup_resource_max_sync_pass_ids_internal();
         setup_resource_allocation_lists_internal();
         setup_resource_deallocation_lists_internal();

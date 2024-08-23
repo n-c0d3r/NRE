@@ -107,7 +107,6 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& aliased_resource_p_vector() const noexcept { return aliased_resource_p_vector_; }
 
-        NCPP_FORCE_INLINE const auto& min_sync_pass_id_vector() const noexcept { return min_sync_pass_id_vector_; }
         NCPP_FORCE_INLINE const auto& max_sync_pass_id_vector() const noexcept { return max_sync_pass_id_vector_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -144,6 +143,5 @@ namespace nre::newrg
 
     private:
         void initialize_max_sync_pass_id_vector();
-        void initialize_min_sync_pass_id_vector();
     };
 }
