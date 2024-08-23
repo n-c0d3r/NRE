@@ -925,8 +925,6 @@ namespace nre::newrg
                 }
             }
         }
-
-        int a = 5;
     }
     void F_render_graph::merge_resource_barriers_before_internal()
     {
@@ -1304,6 +1302,8 @@ namespace nre::newrg
                     );
                 pass_p->execute_internal(NCPP_FOH_VALID(command_list_p));
             }
+
+            command_list_p->async_end();
 
             command_list_batch.push_back(
                 std::move(command_list_p)

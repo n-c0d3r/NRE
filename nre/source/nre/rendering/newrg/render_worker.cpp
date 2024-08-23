@@ -75,7 +75,6 @@ namespace nre::newrg
                     for(u32 i = 0; i < command_list_count; ++i)
                     {
                         auto& command_list_p = managed_command_list_batch[i];
-                        command_list_p->async_end();
                         managed_command_list_p_vector_[i] = command_list_p;
 
                         push_managed_command_list_into_pool(
