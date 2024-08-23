@@ -157,6 +157,7 @@ namespace nre::newrg
         void setup_resource_deallocation_lists_internal();
         void setup_resource_export_lists_internal();
         void setup_resource_producer_dependencies_internal();
+        void setup_resource_consumer_dependencies_internal();
         void setup_resource_sync_producer_dependencies_internal();
 
     private:

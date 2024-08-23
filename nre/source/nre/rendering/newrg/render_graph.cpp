@@ -360,6 +360,56 @@ namespace nre::newrg
             }
         }
     }
+    void F_render_graph::setup_resource_consumer_dependencies_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        for(F_render_pass* pass_p : pass_span)
+        {
+            auto& resource_consumer_dependencies = pass_p->resource_consumer_dependencies_;
+
+            F_render_pass_id pass_id = pass_p->id();
+
+            for(auto& resource_state : pass_p->resource_states())
+            {
+                F_render_resource* resource_p = resource_state.resource_p;
+
+                F_render_resource_consumer_dependency consumer_dependency;
+
+                // find out consumer_dependency pass id
+                auto& access_dependencies = resource_p->access_dependencies_;
+                for(const auto& access_dependency : access_dependencies)
+                {
+                    F_render_pass* use_pass_p = pass_span[access_dependency.pass_id];
+                    F_render_resource_state& use_resource_state = use_pass_p->resource_states_[access_dependency.resource_state_index];
+
+                    // check if do they access the same subresource. If not, go to next access_dependency
+                    if(
+                        (use_resource_state.subresource_index != resource_state.subresource_index)
+                        && (use_resource_state.subresource_index != resource_barrier_all_subresources)
+                        && (resource_state.subresource_index != resource_barrier_all_subresources)
+                    )
+                        continue;
+
+                    if(use_pass_p->id() <= pass_id)
+                        continue;
+
+                    if(!consumer_dependency)
+                    {
+                        consumer_dependency = access_dependency;
+                    }
+                    else
+                    {
+                        if(access_dependency < consumer_dependency)
+                        {
+                            consumer_dependency = access_dependency;
+                        }
+                    }
+                }
+
+                resource_consumer_dependencies.push_back(consumer_dependency);
+            }
+        }
+    }
     void F_render_graph::setup_resource_sync_producer_dependencies_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
@@ -1259,6 +1309,7 @@ namespace nre::newrg
         calculate_resource_aliases_internal();
 
         setup_resource_producer_dependencies_internal();
+        setup_resource_consumer_dependencies_internal();
         setup_resource_sync_producer_dependencies_internal();
 
         setup_pass_max_sync_pass_ids_internal();
