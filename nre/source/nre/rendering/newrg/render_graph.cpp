@@ -1029,7 +1029,7 @@ namespace nre::newrg
         }
     }
 
-    void F_render_graph::create_fences_internal()
+    void F_render_graph::create_pass_fences_internal()
     {
         auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
         auto& render_worker_list = render_pipeline_p->render_worker_list();
@@ -1086,7 +1086,7 @@ namespace nre::newrg
             }
         }
     }
-    void F_render_graph::create_fence_batches_internal()
+    void F_render_graph::create_pass_fence_batches_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
@@ -1194,10 +1194,12 @@ namespace nre::newrg
         auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
         auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
 
+        // there can't be any pass having fences in the mid of an execute range
         auto& wait_fence_batch = pass_p_vector.front()->wait_fence_batch();
         u32 wait_fence_count = wait_fence_batch.size();
 
-        auto& signal_fence_batch = pass_p_vector.front()->signal_fence_batch();
+        // there can't be any pass having fences in the mid of an execute range
+        auto& signal_fence_batch = pass_p_vector.back()->signal_fence_batch();
         u32 signal_fence_count = signal_fence_batch.size();
 
         // fence wait
@@ -1363,8 +1365,8 @@ namespace nre::newrg
 
         create_rhi_resources_internal();
 
-        create_fences_internal();
-        create_fence_batches_internal();
+        create_pass_fences_internal();
+        create_pass_fence_batches_internal();
 
         build_execute_range_owf_stack_internal();
 

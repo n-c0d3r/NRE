@@ -178,8 +178,8 @@ namespace nre::newrg
         void create_resource_barrier_batches_internal();
 
     private:
-        void create_fences_internal();
-        void create_fence_batches_internal();
+        void create_pass_fences_internal();
+        void create_pass_fence_batches_internal();
         void build_execute_range_owf_stack_internal();
 
     private:

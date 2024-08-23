@@ -128,10 +128,8 @@ namespace nre::newrg
     void A_render_worker::subtick()
     {
         // execute enqueued command lists
-        {
-            while(try_to_pop_mananaged_command_list_internal());
-            while(try_to_pop_command_list_internal());
-        }
+        while(try_to_pop_mananaged_command_list_internal());
+        while(try_to_pop_command_list_internal());
     }
     void A_render_worker::begin_frame()
     {

@@ -4,6 +4,7 @@
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_flag.hpp>
+#include <nre/rendering/newrg/render_fence_batch.hpp>
 
 
 
