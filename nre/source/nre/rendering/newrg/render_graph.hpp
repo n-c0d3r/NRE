@@ -169,6 +169,7 @@ namespace nre::newrg
     private:
         void create_resource_barriers_internal();
         void merge_resource_barriers_before_internal();
+        void create_resource_aliasing_barriers_internal();
         void create_resource_barrier_batches_internal();
 
     private:

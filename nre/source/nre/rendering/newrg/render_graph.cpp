@@ -379,40 +379,40 @@ namespace nre::newrg
                     }
                 }
 
-                // find out writable producer state using resources aliased by this resource
-                // this is always the first pass using this resource, so this kind of writable producer states
-                // will never be skipped by any other writable producer states => totally safe
-                if(resource_p->min_pass_id() == pass_id)
-                {
-                    const auto& aliased_resource_p_vector = resource_p->aliased_resource_p_vector_;
-                    for(F_render_resource* aliased_resource_p : aliased_resource_p_vector)
-                    {
-                        F_render_pass_id aliased_pass_id = aliased_resource_p->max_pass_id();
-
-                        if(aliased_pass_id == NCPP_U32_MAX)
-                            continue;
-
-                        F_render_pass* aliased_pass_p = pass_span[aliased_pass_id];
-
-                        if(writable_producer_state_pass_id == NCPP_U32_MAX)
-                        {
-                            writable_producer_resource_p = aliased_resource_p;
-                            writable_producer_pass_p = aliased_pass_p;
-                            writable_producer_resource_states = ED_resource_state::COMMON;
-                            writable_producer_state_pass_id = aliased_pass_id;
-                        }
-                        else
-                        {
-                            if(aliased_pass_id > writable_producer_state_pass_id)
-                            {
-                                writable_producer_resource_p = aliased_resource_p;
-                                writable_producer_pass_p = aliased_pass_p;
-                                writable_producer_resource_states = ED_resource_state::COMMON;
-                                writable_producer_state_pass_id = aliased_pass_id;
-                            }
-                        }
-                    }
-                }
+                // // find out writable producer state using resources aliased by this resource
+                // // this is always the first pass using this resource, so this kind of writable producer states
+                // // will never be skipped by any other writable producer states => totally safe
+                // if(resource_p->min_pass_id() == pass_id)
+                // {
+                //     const auto& aliased_resource_p_vector = resource_p->aliased_resource_p_vector_;
+                //     for(F_render_resource* aliased_resource_p : aliased_resource_p_vector)
+                //     {
+                //         F_render_pass_id aliased_pass_id = aliased_resource_p->max_pass_id();
+                //
+                //         if(aliased_pass_id == NCPP_U32_MAX)
+                //             continue;
+                //
+                //         F_render_pass* aliased_pass_p = pass_span[aliased_pass_id];
+                //
+                //         if(writable_producer_state_pass_id == NCPP_U32_MAX)
+                //         {
+                //             writable_producer_resource_p = aliased_resource_p;
+                //             writable_producer_pass_p = aliased_pass_p;
+                //             writable_producer_resource_states = ED_resource_state::COMMON;
+                //             writable_producer_state_pass_id = aliased_pass_id;
+                //         }
+                //         else
+                //         {
+                //             if(aliased_pass_id > writable_producer_state_pass_id)
+                //             {
+                //                 writable_producer_resource_p = aliased_resource_p;
+                //                 writable_producer_pass_p = aliased_pass_p;
+                //                 writable_producer_resource_states = ED_resource_state::COMMON;
+                //                 writable_producer_state_pass_id = aliased_pass_id;
+                //             }
+                //         }
+                //     }
+                // }
 
                 resource_writable_producer_states.push_back({
                     writable_producer_resource_p,
@@ -871,6 +871,37 @@ namespace nre::newrg
                 }
             }
         }
+    }
+    void F_render_graph::create_resource_aliasing_barriers_internal()
+    {
+        // auto pass_span = pass_p_owf_stack_.item_span();
+        // auto execute_range_span = execute_range_owf_stack_.item_span();
+        //
+        // for(auto& execute_range : execute_range_span)
+        // {
+        //     auto& pass_p_vector = execute_range.pass_p_vector;
+        //
+        //     F_render_pass* first_pass_p = pass_p_vector.front();
+        //     F_render_pass_id first_pass_id = first_pass_p->id();
+        //
+        //     for(F_render_pass* pass_p : pass_p_vector)
+        //     {
+        //         F_render_pass_id pass_id = pass_p->id();
+        //
+        //         auto& resource_states = pass_p->resource_states_;
+        //         for(auto& resource_state : resource_states)
+        //         {
+        //             F_render_resource* resource_p = resource_state.resource_p;
+        //
+        //             if(pass_id == resource_p->min_pass_id())
+        //             {
+        //                 auto& aliased_resource_p_vector = resource_p->aliased_resource_p_vector_;
+        //
+        //                 for(F_render_resource* resource_p )
+        //             }
+        //         }
+        //     }
+        // }
     }
     void F_render_graph::create_resource_barrier_batches_internal()
     {
