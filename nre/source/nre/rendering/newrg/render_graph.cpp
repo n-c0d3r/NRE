@@ -1008,57 +1008,105 @@ namespace nre::newrg
     }
     void F_render_graph::create_resource_aliasing_barriers_internal()
     {
-        // auto pass_span = pass_p_owf_stack_.item_span();
-        // auto execute_range_span = execute_range_owf_stack_.item_span();
-        //
-        // for(auto& execute_range : execute_range_span)
-        // {
-        //     auto& pass_p_vector = execute_range.pass_p_vector;
-        //
-        //     F_render_pass* first_pass_p = pass_p_vector.front();
-        //     F_render_pass_id first_pass_id = first_pass_p->id();
-        //
-        //     for(F_render_pass* pass_p : pass_p_vector)
-        //     {
-        //         F_render_pass_id pass_id = pass_p->id();
-        //
-        //         auto& resource_states = pass_p->resource_states_;
-        //         for(auto& resource_state : resource_states)
-        //         {
-        //             F_render_resource* resource_p = resource_state.resource_p;
-        //
-        //             if(pass_id == resource_p->min_pass_id())
-        //             {
-        //                 auto& aliased_resource_p_vector = resource_p->aliased_resource_p_vector_;
-        //
-        //                 for(F_render_resource* resource_p )
-        //             }
-        //         }
-        //     }
-        // }
+        auto pass_span = pass_p_owf_stack_.item_span();
+        auto execute_range_span = execute_range_owf_stack_.item_span();
+
+        for(auto& execute_range : execute_range_span)
+        {
+            auto& pass_p_vector = execute_range.pass_p_vector;
+
+            F_render_pass* first_pass_p = pass_p_vector.front();
+            F_render_pass_id first_pass_id = first_pass_p->id();
+
+            for(F_render_pass* pass_p : pass_p_vector)
+            {
+                F_render_pass_id pass_id = pass_p->id();
+
+                auto& resource_aliasing_barriers_before = pass_p->resource_aliasing_barriers_before_;
+
+                auto& resource_states = pass_p->resource_states_;
+                u32 resource_state_count = resource_states.size();
+
+                for(u32 i = 0; i < resource_state_count; ++i)
+                {
+                    auto& resource_state = resource_states[i];
+                    F_render_resource* resource_p = resource_state.resource_p;
+
+                    if(pass_id == resource_p->min_pass_id())
+                    {
+                        auto& aliased_resource_p_vector = resource_p->aliased_resource_p_vector_;
+                        for(F_render_resource* aliased_resource_p : aliased_resource_p_vector)
+                        {
+                            if(aliased_resource_p->max_pass_id() < first_pass_id)
+                                continue;
+
+                            // find out max aliased pass id
+                            F_render_pass_id max_aliased_pass_id = NCPP_U32_MAX;
+                            auto& access_dependencies = aliased_resource_p->access_dependencies_;
+                            for(auto& access_dependency : access_dependencies)
+                            {
+                                F_render_pass_id aliased_pass_id = access_dependency.pass_id;
+                                if(aliased_pass_id >= first_pass_id)
+                                {
+                                    max_aliased_pass_id = eastl::max(max_aliased_pass_id, aliased_pass_id);
+                                }
+                            }
+
+                            // place resource aliasing barrier if max_aliased_pass_id is valid
+                            if(max_aliased_pass_id != NCPP_U32_MAX)
+                            {
+                                resource_aliasing_barriers_before[i] = F_resource_aliasing_barrier {
+                                    .resource_before_p = aliased_resource_p->rhi_p().no_requirements(),
+                                    .resource_after_p = resource_p->rhi_p().no_requirements()
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     void F_render_graph::create_resource_barrier_batches_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
-            auto& resource_barriers_before = pass_p->resource_barriers_before_;
             auto& resource_barrier_batch_before = pass_p->resource_barrier_batch_before_;
-            for(auto& resource_barrier_before : resource_barriers_before)
+            // transition and uav barriers
             {
-                if(resource_barrier_before)
+                auto& resource_barriers_before = pass_p->resource_barriers_before_;
+                for(auto& resource_barrier_before : resource_barriers_before)
                 {
-                    resource_barrier_batch_before.push_back(resource_barrier_before.value());
+                    if(resource_barrier_before)
+                    {
+                        resource_barrier_batch_before.push_back(resource_barrier_before.value());
+                    }
+                }
+            }
+            // aliasing barriers
+            {
+                auto& resource_aliasing_barriers_before = pass_p->resource_aliasing_barriers_before_;
+                for(auto& resource_aliasing_barrier_before : resource_aliasing_barriers_before)
+                {
+                    if(resource_aliasing_barrier_before)
+                    {
+                        resource_barrier_batch_before.push_back(
+                            H_resource_barrier::aliasing(resource_aliasing_barrier_before.value())
+                        );
+                    }
                 }
             }
 
-            auto& resource_barriers_after = pass_p->resource_barriers_after_;
+            // transition and uav barriers
             auto& resource_barrier_batch_after = pass_p->resource_barrier_batch_after_;
-            for(auto& resource_barrier_after : resource_barriers_after)
             {
-                if(resource_barrier_after)
+                auto& resource_barriers_after = pass_p->resource_barriers_after_;
+                for(auto& resource_barrier_after : resource_barriers_after)
                 {
-                    resource_barrier_batch_after.push_back(resource_barrier_after.value());
+                    if(resource_barrier_after)
+                    {
+                        resource_barrier_batch_after.push_back(resource_barrier_after.value());
+                    }
                 }
             }
         }
@@ -1409,6 +1457,7 @@ namespace nre::newrg
 
         create_resource_barriers_internal();
         merge_resource_barriers_before_internal();
+        create_resource_aliasing_barriers_internal();
         create_resource_barrier_batches_internal();
     }
 
