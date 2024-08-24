@@ -878,6 +878,31 @@ namespace nre::newrg
             }
         }
     }
+    void F_render_graph::copy_src_descriptors_internal()
+    {
+        auto device_p = NRE_MAIN_DEVICE();
+
+        auto descriptor_span = descriptor_p_owf_stack_.item_span();
+        for(F_render_descriptor* descriptor_p : descriptor_span)
+        {
+            if(descriptor_p->need_to_copy())
+            {
+                auto& descriptor_handle_range = descriptor_p->handle_range_;
+                auto& descriptor_src_handle_range = descriptor_p->src_handle_range_;
+                auto descriptor_heap_type = descriptor_p->heap_type_;
+
+                H_descriptor::copy_descriptors(
+                    device_p,
+                    descriptor_handle_range.begin_handle.cpu_address,
+                    descriptor_src_handle_range.begin_handle.cpu_address,
+                    descriptor_handle_range.count,
+                    descriptor_heap_type
+                );
+
+                descriptor_p->src_handle_range_ = {};
+            }
+        }
+    }
 
     void F_render_graph::create_resource_barriers_internal()
     {
@@ -1635,6 +1660,7 @@ namespace nre::newrg
         create_rhi_resources_internal();
         allocate_descriptors_internal();
         initialize_resource_views_internal();
+        copy_src_descriptors_internal();
 
         create_pass_fences_internal();
         create_pass_fence_batches_internal();

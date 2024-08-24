@@ -82,6 +82,10 @@ namespace nre::newrg
                 && !need_to_export()
             );
         }
+        NCPP_FORCE_INLINE b8 need_to_copy() const noexcept
+        {
+            return src_handle_range_;
+        }
 
         NCPP_FORCE_INLINE const auto& export_lock() const noexcept { return export_lock_; }
         NCPP_FORCE_INLINE auto& export_lock() noexcept { return export_lock_; }

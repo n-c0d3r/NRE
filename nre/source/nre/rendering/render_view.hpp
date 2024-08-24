@@ -136,11 +136,9 @@ namespace nre
 		NCPP_OBJECT(A_render_view);
 
 	private:
-		void setup_resources();
+		virtual void setup_resources();
 
 	public:
 		virtual b8 update();
-
 	};
-
 }

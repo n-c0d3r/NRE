@@ -192,6 +192,7 @@ namespace nre::newrg
 
     private:
         void initialize_resource_views_internal();
+        void copy_src_descriptors_internal();
 
     private:
         void create_resource_barriers_internal();

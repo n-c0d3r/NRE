@@ -7,7 +7,6 @@
 
 namespace nre
 {
-
 	class NRE_API F_simple_render_view : public A_render_view
 	{
 
@@ -30,7 +29,5 @@ namespace nre
 
 	public:
 		virtual b8 update() override;
-
 	};
-
 }
