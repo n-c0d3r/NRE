@@ -1,15 +1,14 @@
-#include <nre/rendering/newrg/render_resource_page.hpp>
-#include <nre/rendering/newrg/descriptor_allocator.hpp>
+#include <nre/rendering/newrg/descriptor_page.hpp>
 
 
 
 namespace nre::newrg
 {
-    void F_render_resource_page::apply_allocation_on_free_range_internal(
-        sz free_range_begin,
-        sz free_range_end,
-        sz allocated_range_begin,
-        sz allocated_range_end
+    void F_descriptor_page::apply_allocation_on_free_range_internal(
+        u32 free_range_begin,
+        u32 free_range_end,
+        u32 allocated_range_begin,
+        u32 allocated_range_end
     )
     {
         if(free_range_begin != allocated_range_begin)
@@ -36,21 +35,18 @@ namespace nre::newrg
 
 
 
-    eastl::optional<sz> F_render_resource_page::try_allocate(sz size, u64 alignment)
+    eastl::optional<u32> F_descriptor_page::try_allocate(u32 count)
     {
         u32 free_range_count = free_ranges.size();
         for(u32 i = 0; i < free_range_count; ++i)
         {
             auto& free_range = free_ranges[i];
-            sz free_range_begin = free_range.begin;
-            sz free_range_end = free_range.end;
+            u32 free_range_begin = free_range.begin;
+            u32 free_range_end = free_range.end;
 
             // calculate potential allocated range, this 2 pointer will be used to check if the free range fits our need
-            sz potential_allocated_range_begin = align_address(
-                free_range_begin,
-                alignment
-            );
-            sz potential_allocated_range_end = potential_allocated_range_begin + size;
+            u32 potential_allocated_range_begin = free_range_begin;
+            u32 potential_allocated_range_end = potential_allocated_range_begin + count;
 
             // check if this free range fits our need
             if(potential_allocated_range_end <= free_range_end)
@@ -70,7 +66,7 @@ namespace nre::newrg
 
         return eastl::nullopt;
     }
-    void F_render_resource_page::deallocate(sz heap_offset)
+    void F_descriptor_page::deallocate(u32 heap_offset)
     {
         // search for allocated range
         u32 allocated_range_index = NCPP_U32_MAX;
@@ -92,8 +88,8 @@ namespace nre::newrg
 
         // get begin and end
         auto& allocated_range = allocated_ranges[allocated_range_index];
-        sz allocated_range_begin = allocated_range.begin;
-        sz allocated_range_end = allocated_range.end;
+        u32 allocated_range_begin = allocated_range.begin;
+        u32 allocated_range_end = allocated_range.end;
 
         // remove allocated range
         eastl::swap(allocated_range, allocated_ranges.back());
@@ -130,11 +126,20 @@ namespace nre::newrg
             }
 
             //
-            F_render_resource_placed_range new_free_range = {
+            F_descriptor_placed_range new_free_range = {
                 allocated_range_begin,
                 allocated_range_end
             };
             free_ranges.push_back(new_free_range);
         }
+    }
+
+    F_descriptor_cpu_address F_descriptor_page::base_cpu_address() const noexcept
+    {
+        return heap_p->base_cpu_address();
+    }
+    F_descriptor_gpu_address F_descriptor_page::base_gpu_address() const noexcept
+    {
+        return heap_p->base_gpu_address();
     }
 }

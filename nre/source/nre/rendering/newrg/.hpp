@@ -32,6 +32,10 @@
 #include <nre/rendering/newrg/renderer_tick_event.hpp>
 #include <nre/rendering/newrg/renderer.hpp>
 #include <nre/rendering/newrg/render_resource_aliasing_state.hpp>
+#include <nre/rendering/newrg/descriptor_allocator.hpp>
+#include <nre/rendering/newrg/descriptor_allocation.hpp>
+#include <nre/rendering/newrg/descriptor_page.hpp>
+#include <nre/rendering/newrg/descriptor_placed_range.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

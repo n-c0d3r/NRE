@@ -64,8 +64,10 @@ namespace nre::newrg
                 sz heap_offset = allocated_range_opt.value();
                 return {
                     .page_index = i,
-                    .heap_offset = heap_offset,
-                    .heap_end = heap_offset + actual_size,
+                    .placed_range = {
+                        .begin = heap_offset,
+                        .end = heap_offset + actual_size
+                    },
                     .allocator_p = this
                 };
             }
@@ -76,8 +78,10 @@ namespace nre::newrg
         sz heap_offset = page.try_allocate(actual_size, alignment).value();
         return {
             .page_index = u32(pages_.size() - 1),
-            .heap_offset = heap_offset,
-            .heap_end = heap_offset + actual_size,
+            .placed_range = {
+                .begin = heap_offset,
+                .end = heap_offset + actual_size
+            },
             .allocator_p = this
         };
     }
@@ -85,7 +89,7 @@ namespace nre::newrg
     {
         auto& page = pages_[allocation.page_index];
 
-        page.deallocate(allocation.heap_offset);
+        page.deallocate(allocation.placed_range.begin);
     }
 
     TU<A_resource> F_render_resource_allocator::create_resource(
@@ -99,7 +103,7 @@ namespace nre::newrg
             NRE_MAIN_DEVICE(),
             desc,
             NCPP_FOH_VALID(page.heap_p),
-            allocation.heap_offset
+            allocation.placed_range.begin
         );
     }
     void F_render_resource_allocator::rebuild_resource(
@@ -113,7 +117,7 @@ namespace nre::newrg
         resource_p->rebuild_placed(
             desc,
             NCPP_FOH_VALID(page.heap_p),
-            allocation.heap_offset
+            allocation.placed_range.begin
         );
     }
 }

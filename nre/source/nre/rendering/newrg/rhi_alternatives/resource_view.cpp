@@ -65,3 +65,8 @@ U_dsv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_default_dsv(
 {
     return {};
 }
+void NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::release_driver_specific_implementation(
+    TKPA_valid<A_resource_view> resource_view_p
+)
+{
+}

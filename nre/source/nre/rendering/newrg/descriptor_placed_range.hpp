@@ -6,10 +6,10 @@
 
 namespace nre::newrg
 {
-    struct F_render_resource_placed_range
+    struct F_descriptor_placed_range
     {
-        sz begin = 0;
-        sz end = 0;
+        u32 begin = 0;
+        u32 end = 0;
 
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {

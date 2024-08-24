@@ -616,20 +616,20 @@ namespace nre::newrg
                 return false;
 
             if(
-                (b.heap_offset >= a.heap_offset)
-                && (b.heap_offset < a.heap_end)
+                (b.placed_range.begin >= a.placed_range.begin)
+                && (b.placed_range.begin < a.placed_range.end)
             )
             {
-                new_a.heap_end = b.heap_offset;
+                new_a.placed_range.end = b.placed_range.begin;
                 return true;
             }
 
             if(
-                (b.heap_end <= a.heap_end)
-                && (b.heap_end > a.heap_offset)
+                (b.placed_range.end <= a.placed_range.end)
+                && (b.placed_range.end > a.placed_range.begin)
             )
             {
-                new_a.heap_offset = b.heap_end;
+                new_a.placed_range.begin = b.placed_range.end;
                 return true;
             }
         };
@@ -679,7 +679,7 @@ namespace nre::newrg
                 }
 
                 if(
-                    (resource_allocation_for_checking.heap_end - resource_allocation_for_checking.heap_offset)
+                    (resource_allocation_for_checking.placed_range.end - resource_allocation_for_checking.placed_range.begin)
                     == 0
                 ) break;
             }
@@ -706,7 +706,7 @@ namespace nre::newrg
                 resource_p->owned_rhi_p_ = rhi_placed_resource_pool.pop(
                     desc,
                     heap_p,
-                    allocation.heap_offset
+                    allocation.placed_range.begin
                 );
                 resource_p->rhi_p_ = resource_p->owned_rhi_p_;
             }
