@@ -67,8 +67,23 @@ namespace nre {
 	}
 	F_render_system::~F_render_system() {
 
+		// destroy libraries
+		pso_library_p_.reset();
+		shader_library_p_.reset();
+
+		// destroy subsystems
+		default_textures_p_.reset();
+		render_view_system_p_.reset();
+		drawable_system_p_.reset();
+		material_system_p_.reset();
+		light_system_p_.reset();
+		shadow_system_p_.reset();
+		debug_drawer_p_.reset();
+
+		//
 		F_imgui::instance_p()->deinit_renderer();
 
+		//
 		pipeline_p_.reset();
 	}
 
