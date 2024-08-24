@@ -14,6 +14,12 @@ namespace nre::newrg
      */
     struct NRE_API F_descriptor_page
     {
+    public:
+        friend class F_descriptor_allocator;
+
+
+
+    public:
         TG_vector<F_descriptor_placed_range> allocated_ranges;
         TG_vector<F_descriptor_placed_range> free_ranges;
 
@@ -29,10 +35,14 @@ namespace nre::newrg
             u32 allocated_range_end
         );
 
+    private:
+        void update_capacity_unsafe_internal(u32 old_capacity, u32 new_capacity);
+
 
 
     public:
-        eastl::optional<u32> try_allocate(u32 count);
+        eastl::optional<u32> try_allocate(u32 count, u32 capacity);
+        eastl::optional<u32> try_allocate(u32 count, u32 capacity, u32& overflow);
         void deallocate(u32 heap_offset);
 
     public:

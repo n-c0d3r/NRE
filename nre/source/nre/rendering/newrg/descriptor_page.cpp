@@ -33,10 +33,50 @@ namespace nre::newrg
         });
     }
 
-
-
-    eastl::optional<u32> F_descriptor_page::try_allocate(u32 count)
+    void F_descriptor_page::update_capacity_unsafe_internal(u32 old_capacity, u32 new_capacity)
     {
+        u32 free_range_count = free_ranges.size();
+        for(u32 i = 0; i < free_range_count; ++i)
+        {
+            auto& free_range = free_ranges[i];
+            u32 free_range_end = free_range.end;
+
+            if(free_range_end == old_capacity)
+            {
+                free_range.end = new_capacity;
+                return;
+            }
+        }
+
+        u32 allocated_range_count = allocated_ranges.size();
+        for(u32 i = 0; i < allocated_range_count; ++i)
+        {
+            auto& allocated_range = allocated_ranges[i];
+            u32 allocated_range_end = allocated_range.end;
+
+            if(allocated_range_end == old_capacity)
+            {
+                free_ranges.push_back({
+                    .begin = old_capacity,
+                    .end = new_capacity
+                });
+                return;
+            }
+        }
+    }
+
+
+
+    eastl::optional<u32> F_descriptor_page::try_allocate(u32 count, u32 capacity)
+    {
+        u32 overflow;
+        return try_allocate(count, capacity, overflow);
+    }
+
+    eastl::optional<u32> F_descriptor_page::try_allocate(u32 count, u32 capacity, u32& overflow)
+    {
+        overflow = count;
+
         u32 free_range_count = free_ranges.size();
         for(u32 i = 0; i < free_range_count; ++i)
         {
@@ -51,6 +91,8 @@ namespace nre::newrg
             // check if this free range fits our need
             if(potential_allocated_range_end <= free_range_end)
             {
+                overflow = 0;
+
                 eastl::swap(free_range, free_ranges.back());
                 free_ranges.resize(free_ranges.size() - 1);
 
@@ -61,6 +103,11 @@ namespace nre::newrg
                     potential_allocated_range_end
                 );
                 return potential_allocated_range_begin;
+            }
+            else
+            {
+                if(capacity == free_range_end)
+                    overflow = potential_allocated_range_end - capacity;
             }
         }
 

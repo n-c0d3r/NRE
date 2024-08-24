@@ -51,6 +51,11 @@ int main() {
 				NRE_OPTIONAL_DEBUG_PARAM("back_buffer")
 			);
 
+			F_render_resource_view* rg_back_rtv_p = render_graph_p->create_resource_view(
+				rg_back_buffer_p
+				NRE_OPTIONAL_DEBUG_PARAM("back_rtv")
+			);
+
 			F_render_pass* rg_pass_p = render_graph_p->create_pass(
 				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
 				{

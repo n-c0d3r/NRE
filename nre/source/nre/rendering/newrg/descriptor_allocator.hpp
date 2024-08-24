@@ -54,19 +54,19 @@ namespace nre::newrg
 
 
 
-    private:
-        F_descriptor_page& create_page_internal();
-
-
+    public:
+        F_descriptor_page& create_page(b8 create_heap = true);
 
     public:
-        F_descriptor_allocation allocate(u32 count);
+        F_descriptor_allocation allocate(u32 count, b8 create_page = true);
+        eastl::optional<F_descriptor_allocation> try_allocate(u32 count, b8 create_page = true);
+        eastl::optional<F_descriptor_allocation> try_allocate(u32 count, u32& overflow, b8 create_page = true);
         void deallocate(const F_descriptor_allocation& allocation);
         void deallocate_with_cpu_address(F_descriptor_cpu_address cpu_address);
         void deallocate_with_gpu_address(F_descriptor_gpu_address gpu_address);
 
     public:
-        void update_page_capacity_unsafe(u32 new_capacity);
+        void update_page_capacity_unsafe(u32 new_capacity, b8 rebuild_heap = true);
 
     public:
         NCPP_FORCE_INLINE u32 max_page_count() const noexcept
