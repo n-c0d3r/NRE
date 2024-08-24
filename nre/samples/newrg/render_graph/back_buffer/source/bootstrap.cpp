@@ -51,16 +51,10 @@ int main() {
 				NRE_OPTIONAL_DEBUG_PARAM("back_buffer")
 			);
 
-			F_render_descriptor* rg_back_rtv_p = render_graph_p->create_resource_view(
-				rg_back_buffer_p,
-				ED_resource_view_type::RENDER_TARGET
-				NRE_OPTIONAL_DEBUG_PARAM("back_rtv")
-			);
-
 			F_render_pass* rg_pass_p = render_graph_p->create_pass(
 				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
 				{
-					command_list_p->clear_rtv(
+					command_list_p->async_clear_rtv(
 						back_rtv_p,
 						F_vector4_f32::forward()
 					);
