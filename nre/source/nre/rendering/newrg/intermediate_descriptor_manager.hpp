@@ -49,11 +49,47 @@ namespace nre::newrg
     public:
         NCPP_FORCE_INLINE F_descriptor_allocator& find_allocator(ED_descriptor_heap_type descriptor_heap_type)
         {
-            return allocators_[u32(descriptor_heap_type)];
+            NRHI_ENUM_SWITCH(
+                descriptor_heap_type,
+                NRHI_ENUM_CASE(
+                    ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
+                    return allocators_[0];
+                )
+                NRHI_ENUM_CASE(
+                    ED_descriptor_heap_type::SAMPLER,
+                    return allocators_[1];
+                )
+                NRHI_ENUM_CASE(
+                    ED_descriptor_heap_type::RENDER_TARGET,
+                    return allocators_[2];
+                )
+                NRHI_ENUM_CASE(
+                    ED_descriptor_heap_type::DEPTH_STENCIL,
+                    return allocators_[3];
+                )
+            );
         }
         NCPP_FORCE_INLINE pac::F_spin_lock& find_lock(ED_descriptor_heap_type descriptor_heap_type)
         {
-            return locks_[u32(descriptor_heap_type)];
+            NRHI_ENUM_SWITCH(
+                descriptor_heap_type,
+                NRHI_ENUM_CASE(
+                    ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
+                    return locks_[0];
+                )
+                NRHI_ENUM_CASE(
+                    ED_descriptor_heap_type::SAMPLER,
+                    return locks_[1];
+                )
+                NRHI_ENUM_CASE(
+                    ED_descriptor_heap_type::RENDER_TARGET,
+                    return locks_[2];
+                )
+                NRHI_ENUM_CASE(
+                    ED_descriptor_heap_type::DEPTH_STENCIL,
+                    return locks_[3];
+                )
+            );
         }
     };
 }

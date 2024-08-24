@@ -62,6 +62,11 @@ namespace nre::newrg
     public:
         F_descriptor_allocation allocate(u32 count);
         void deallocate(const F_descriptor_allocation& allocation);
+        void deallocate_with_cpu_address(F_descriptor_cpu_address cpu_address);
+        void deallocate_with_gpu_address(F_descriptor_gpu_address gpu_address);
+
+    public:
+        void update_page_capacity_unsafe(u32 new_capacity);
 
     public:
         NCPP_FORCE_INLINE u32 max_page_count() const noexcept

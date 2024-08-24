@@ -20,6 +20,8 @@ namespace nre::newrg
 
     F_descriptor_page& F_descriptor_allocator::create_page_internal()
     {
+        NCPP_ASSERT(pages_.size() < max_page_count());
+
         TU<A_descriptor_heap> heap_p = H_descriptor_heap::create(
             NRE_MAIN_DEVICE(),
             {
@@ -85,5 +87,59 @@ namespace nre::newrg
 
         page.deallocate(allocation.placed_range.begin);
     }
+    void F_descriptor_allocator::deallocate_with_cpu_address(F_descriptor_cpu_address cpu_address)
+    {
+        auto descriptor_increment_size = NRE_MAIN_DEVICE()->descriptor_increment_size(heap_type_);
 
+        for(auto& page : pages_)
+        {
+            F_descriptor_cpu_address base_cpu_address = page.base_cpu_address();
+
+            if(cpu_address < base_cpu_address)
+                continue;
+
+            u32 descriptor_index = (cpu_address - base_cpu_address) / descriptor_increment_size;
+            if(descriptor_index < page_capacity_)
+            {
+                page.deallocate(descriptor_index);
+                break;
+            }
+        }
+    }
+    void F_descriptor_allocator::deallocate_with_gpu_address(F_descriptor_gpu_address gpu_address)
+    {
+        auto descriptor_increment_size = NRE_MAIN_DEVICE()->descriptor_increment_size(heap_type_);
+
+        for(auto& page : pages_)
+        {
+            F_descriptor_cpu_address base_gpu_address = page.base_gpu_address();
+
+            if(gpu_address < base_gpu_address)
+                continue;
+
+            u32 descriptor_index = (gpu_address - base_gpu_address) / descriptor_increment_size;
+            if(descriptor_index < page_capacity_)
+            {
+                page.deallocate(descriptor_index);
+                break;
+            }
+        }
+    }
+
+    void F_descriptor_allocator::update_page_capacity_unsafe(u32 new_page_capacity)
+    {
+        page_capacity_ = new_page_capacity;
+
+        for(auto& page : pages_)
+        {
+            page.heap_p = H_descriptor_heap::create(
+                NRE_MAIN_DEVICE(),
+                {
+                    .type = heap_type_,
+                    .flags = heap_flags_,
+                    .descriptor_count = page_capacity_,
+                }
+            );
+        }
+    }
 }

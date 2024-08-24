@@ -62,8 +62,14 @@ namespace nre::newrg
     }
     void F_intermediate_descriptor_manager::deallocate_with_cpu_address(F_descriptor_cpu_address cpu_address, ED_descriptor_heap_type descriptor_heap_type)
     {
+        F_descriptor_allocator& allocator = find_allocator(descriptor_heap_type);
+
+        allocator.deallocate_with_cpu_address(cpu_address);
     }
     void F_intermediate_descriptor_manager::deallocate_with_gpu_address(F_descriptor_gpu_address gpu_address, ED_descriptor_heap_type descriptor_heap_type)
     {
+        F_descriptor_allocator& allocator = find_allocator(descriptor_heap_type);
+
+        allocator.deallocate_with_gpu_address(gpu_address);
     }
 }

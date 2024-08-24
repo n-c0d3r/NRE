@@ -68,6 +68,7 @@ namespace nre::newrg
             rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_3D)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_3D);
         }
 
+        // create fences and fence states
         {
             auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
             auto& render_worker_list = render_pipeline_p->render_worker_list();
@@ -90,6 +91,14 @@ namespace nre::newrg
                     )
                 );
             }
+        }
+
+        // create descriptor allocators
+        {
+            constexpr u32 descriptor_allocator_count = 4;
+            descriptor_allocators_.resize(descriptor_allocator_count);
+
+            // descriptor_allocators_[0] =
         }
     }
     F_render_graph::~F_render_graph()

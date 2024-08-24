@@ -11,6 +11,8 @@
 #include <nre/rendering/newrg/render_pass_execute_range.hpp>
 #include <nre/rendering/newrg/render_fence_state.hpp>
 #include <nre/rendering/newrg/render_resource_state.hpp>
+#include <nre/rendering/newrg/descriptor_allocator.hpp>
+
 
 
 namespace nre::newrg
@@ -88,6 +90,8 @@ namespace nre::newrg
         TG_vector<F_render_fence_state> fence_states_;
         TG_vector<TU<A_fence>> fence_p_vector_;
 
+        TG_vector<F_descriptor_allocator> descriptor_allocators_;
+
         TG_concurrent_owf_stack<F_render_resource_state> epilogue_resource_state_stack_;
 
         F_render_pass* prologue_pass_p_ = 0;
@@ -117,6 +121,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& fence_states() noexcept { return fence_states_; }
         NCPP_FORCE_INLINE const auto& fence_p_vector() noexcept { return fence_p_vector_; }
+
+        NCPP_FORCE_INLINE const auto& descriptor_allocators() noexcept { return descriptor_allocators_; }
 
         NCPP_FORCE_INLINE const auto& epilogue_resource_state_stack() noexcept { return epilogue_resource_state_stack_; }
 

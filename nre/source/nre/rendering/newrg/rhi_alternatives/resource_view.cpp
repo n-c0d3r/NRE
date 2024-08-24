@@ -1,6 +1,8 @@
 #include <nre/prerequisites.hpp>
 #include <nre/rendering/newrg/intermediate_descriptor_manager.hpp>
 
+#include "nre/rendering/render_system.hpp"
+
 using namespace nre;
 
 
@@ -35,15 +37,19 @@ namespace
         const F_resource_view_desc& desc
     )
     {
+        ED_descriptor_heap_type heap_type = resource_view_type_to_descriptor_heap_type(desc.type);
+
+        u32 descriptor_increment_size = NRE_MAIN_DEVICE()->descriptor_increment_size(heap_type);
+
         newrg::F_descriptor_allocation descriptor_allocation = newrg::F_intermediate_descriptor_manager::instance_p()->allocate(
             1,
-            resource_view_type_to_descriptor_heap_type(desc.type)
+            heap_type
         );
 
         auto& page = descriptor_allocation.allocator_p->pages()[descriptor_allocation.page_index];
 
-        F_descriptor_cpu_address cpu_address = page.base_cpu_address() + descriptor_allocation.placed_range.begin;
-        F_descriptor_gpu_address gpu_address = page.base_gpu_address() + descriptor_allocation.placed_range.begin;
+        F_descriptor_cpu_address cpu_address = page.base_cpu_address() + descriptor_allocation.placed_range.begin * descriptor_increment_size;
+        F_descriptor_gpu_address gpu_address = page.base_gpu_address() + descriptor_allocation.placed_range.begin * descriptor_increment_size;
 
         H_descriptor::initialize_resource_view(
             NCPP_FOH_VALID(page.heap_p),

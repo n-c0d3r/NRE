@@ -37,7 +37,6 @@
 #include <nre/rendering/newrg/descriptor_page.hpp>
 #include <nre/rendering/newrg/descriptor_placed_range.hpp>
 #include <nre/rendering/newrg/intermediate_descriptor_manager.hpp>
-#include <nre/rendering/newrg/immediate_descriptor_manager.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif
