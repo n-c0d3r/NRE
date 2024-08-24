@@ -12,6 +12,7 @@
 #include <nre/rendering/newrg/render_fence_state.hpp>
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/descriptor_allocator.hpp>
+#include <nre/rendering/newrg/descriptor_handle_range.hpp>
 
 
 
@@ -30,9 +31,9 @@ namespace nre::newrg
 
     class F_render_pass;
     class F_render_resource;
-    class F_render_resource_view;
+    class F_render_descriptor;
     class F_external_render_resource;
-    class F_external_render_resource_view;
+    class F_external_render_descriptor;
     class A_render_worker;
 
 
@@ -75,7 +76,7 @@ namespace nre::newrg
 
         TG_concurrent_owf_stack<F_render_pass*> pass_p_owf_stack_;
         TG_concurrent_owf_stack<F_render_resource*> resource_p_owf_stack_;
-        TG_concurrent_owf_stack<F_render_resource_view*> resource_view_p_owf_stack_;
+        TG_concurrent_owf_stack<F_render_descriptor*> descriptor_p_owf_stack_;
 
         struct F_rhi_to_release
         {
@@ -116,7 +117,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto& pass_p_owf_stack() noexcept { return pass_p_owf_stack_; }
         NCPP_FORCE_INLINE auto& resource_p_owf_stack() noexcept { return resource_p_owf_stack_; }
-        NCPP_FORCE_INLINE auto& resource_view_p_owf_stack() noexcept { return resource_view_p_owf_stack_; }
+        NCPP_FORCE_INLINE auto& descriptor_p_owf_stack() noexcept { return descriptor_p_owf_stack_; }
 
         NCPP_FORCE_INLINE auto& rhi_to_release_owf_stack() noexcept { return rhi_to_release_owf_stack_; }
 
@@ -207,7 +208,7 @@ namespace nre::newrg
 
     private:
         void export_resources_internal();
-        void export_resource_views_internal();
+        void export_descriptors_internal();
 
     private:
         void flush_rhi_to_release_internal();
@@ -217,7 +218,7 @@ namespace nre::newrg
         void flush_objects_internal();
         void flush_passes_internal();
         void flush_resources_internal();
-        void flush_resource_views_internal();
+        void flush_descriptors_internal();
         void flush_states_internal();
 
     private:
@@ -346,7 +347,7 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        F_render_resource_view* create_resource_view(
+        F_render_descriptor* create_resource_view(
             F_render_resource* resource_p,
             const F_resource_view_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -356,8 +357,9 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        F_render_resource_view* create_resource_view(
-            F_render_resource* resource_p
+        F_render_descriptor* create_resource_view(
+            F_render_resource* resource_p,
+            ED_resource_view_type view_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name = ""
 #endif
@@ -380,13 +382,13 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        TS<F_external_render_resource_view> export_resource_view(
-            F_render_resource_view* resource_view_p
+        TS<F_external_render_descriptor> export_descriptor(
+            F_render_descriptor* descriptor_p
         );
         /**
          *  Thread-safe
          */
-        F_render_resource_view* import_resource_view(TKPA_valid<F_external_render_resource_view> external_resource_view_p);
+        F_render_descriptor* import_descriptor(TKPA_valid<F_external_render_descriptor> external_descriptor_p);
 
     public:
         /**
@@ -404,8 +406,9 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        F_render_resource_view* create_permanent_resource_view(
-            F_descriptor_handle handle
+        F_render_descriptor* create_descriptor_from_src(
+            const F_descriptor_handle_range& src_handle_range,
+            ED_descriptor_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name = ""
 #endif

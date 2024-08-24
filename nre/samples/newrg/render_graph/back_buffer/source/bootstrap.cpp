@@ -51,8 +51,9 @@ int main() {
 				NRE_OPTIONAL_DEBUG_PARAM("back_buffer")
 			);
 
-			F_render_resource_view* rg_back_rtv_p = render_graph_p->create_resource_view(
-				rg_back_buffer_p
+			F_render_descriptor* rg_back_rtv_p = render_graph_p->create_resource_view(
+				rg_back_buffer_p,
+				ED_resource_view_type::RENDER_TARGET
 				NRE_OPTIONAL_DEBUG_PARAM("back_rtv")
 			);
 

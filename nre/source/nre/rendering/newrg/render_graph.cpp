@@ -1,14 +1,14 @@
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
-#include <nre/rendering/newrg/render_resource_view.hpp>
+#include <nre/rendering/newrg/render_descriptor.hpp>
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/external_render_resource.hpp>
 #include <nre/rendering/newrg/main_render_worker.hpp>
 #include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 
-#include "external_render_resource_view.hpp"
+#include "external_render_descriptor.hpp"
 
 
 namespace nre::newrg
@@ -39,7 +39,7 @@ namespace nre::newrg
         temp_object_cache_stack_(NRE_RENDER_GRAPH_TEMP_OBJECT_CACHE_STRACK_CAPACITY),
         pass_p_owf_stack_(NRE_RENDER_GRAPH_PASS_OWF_STACK_CAPACITY),
         resource_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
-        resource_view_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_VIEW_OWF_STACK_CAPACITY),
+        descriptor_p_owf_stack_(NRE_RENDER_GRAPH_DESCRIPTOR_OWF_STACK_CAPACITY),
         rhi_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_TO_RELEASE_OWF_STACK_CAPACITY),
         execute_range_owf_stack_(NRE_RENDER_GRAPH_EXECUTE_RANGE_OWF_STACK_CAPACITY),
         epilogue_resource_state_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY)
@@ -766,51 +766,28 @@ namespace nre::newrg
 
     void F_render_graph::allocate_descriptors_internal()
     {
-        auto resource_view_type_to_descriptor_heap_type = [](ED_resource_view_type resource_view_type)
-        -> ED_descriptor_heap_type
-        {
-            NRHI_ENUM_SWITCH(
-                resource_view_type,
-                NRHI_ENUM_CASE(
-                    ED_resource_view_type::SHADER_RESOURCE,
-                    return ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS;
-                )
-                NRHI_ENUM_CASE(
-                    ED_resource_view_type::UNORDERED_ACCESS,
-                    return ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS;
-                )
-                NRHI_ENUM_CASE(
-                    ED_resource_view_type::RENDER_TARGET,
-                    return ED_descriptor_heap_type::RENDER_TARGET;
-                )
-                NRHI_ENUM_CASE(
-                    ED_resource_view_type::DEPTH_STENCIL,
-                    return ED_descriptor_heap_type::DEPTH_STENCIL;
-                )
-            );
-        };
-
-        auto resource_view_span = resource_view_p_owf_stack_.item_span();
+        auto descriptor_span = descriptor_p_owf_stack_.item_span();
 
         // allocate
         {
-            for(F_render_resource_view* resource_view_p : resource_view_span)
+            for(F_render_descriptor* descriptor_p : descriptor_span)
             {
-                if(resource_view_p->need_to_create())
+                if(descriptor_p->need_to_create())
                 {
-                    F_render_resource* resource_p = resource_view_p->resource_to_create_p_;
-                    auto& desc = *(resource_view_p->desc_to_create_p_);
+                    F_render_resource* resource_p = descriptor_p->resource_to_create_p_;
+                    auto& desc = *(descriptor_p->desc_to_create_p_);
                     desc.resource_p = resource_p->rhi_p();
 
-                    ED_descriptor_heap_type descriptor_heap_type = resource_view_type_to_descriptor_heap_type(desc.type);
+                    F_descriptor_handle_range& descriptor_handle_range = descriptor_p->handle_range_;
+                    ED_descriptor_heap_type descriptor_heap_type = descriptor_p->heap_type_;
 
                     auto& allocator = find_descriptor_allocator(descriptor_heap_type);
 
                     u32 overflow;
-                    auto allocation_opt = allocator.try_allocate(1, overflow);
+                    auto allocation_opt = allocator.try_allocate(descriptor_handle_range.count, overflow);
                     if(allocation_opt)
                     {
-                        resource_view_p->descriptor_allocation_ = allocation_opt.value();
+                        descriptor_p->allocation_ = allocation_opt.value();
                     }
                     else
                     {
@@ -820,7 +797,7 @@ namespace nre::newrg
                             + eastl::max(overflow, old_page_capacity),
                             false
                         );
-                        resource_view_p->descriptor_allocation_ = allocator.allocate(1, false);
+                        descriptor_p->allocation_ = allocator.allocate(descriptor_handle_range.count, false);
                     }
                 }
             }
@@ -833,24 +810,28 @@ namespace nre::newrg
         }
 
         // calculate descriptor handles
-        for(F_render_resource_view* resource_view_p : resource_view_span)
+        for(F_render_descriptor* descriptor_p : descriptor_span)
         {
-            if(resource_view_p->need_to_create())
+            if(descriptor_p->need_to_create())
             {
-                auto& desc = *(resource_view_p->desc_to_create_p_);
-
-                ED_descriptor_heap_type heap_type = resource_view_type_to_descriptor_heap_type(desc.type);
+                ED_descriptor_heap_type heap_type = descriptor_p->heap_type_;
 
                 u32 descriptor_increment_size = NRE_MAIN_DEVICE()->descriptor_increment_size(heap_type);
 
-                F_descriptor_allocation& descriptor_allocation = resource_view_p->descriptor_allocation_;
+                F_descriptor_allocation& descriptor_allocation = descriptor_p->allocation_;
 
                 auto& page = descriptor_allocation.allocator_p->pages()[descriptor_allocation.page_index];
 
-                F_descriptor_cpu_address cpu_address = page.base_cpu_address() + descriptor_allocation.placed_range.begin * descriptor_increment_size;
-                F_descriptor_gpu_address gpu_address = page.base_gpu_address() + descriptor_allocation.placed_range.begin * descriptor_increment_size;
+                F_descriptor_cpu_address cpu_address = (
+                    page.base_cpu_address()
+                    + descriptor_allocation.placed_range.begin * descriptor_increment_size
+                );
+                F_descriptor_gpu_address gpu_address = (
+                    page.base_gpu_address()
+                    + descriptor_allocation.placed_range.begin * descriptor_increment_size
+                );
 
-                resource_view_p->descriptor_handle_ = {
+                descriptor_p->handle_range_.begin_handle = {
                     .cpu_address = cpu_address,
                     .gpu_address = gpu_address
                 };
@@ -859,12 +840,12 @@ namespace nre::newrg
     }
     void F_render_graph::deallocate_descriptors_internal()
     {
-        auto resource_view_span = resource_view_p_owf_stack_.item_span();
-        for(F_render_resource_view* resource_view_p : resource_view_span)
+        auto descriptor_span = descriptor_p_owf_stack_.item_span();
+        for(F_render_descriptor* descriptor_p : descriptor_span)
         {
-            if(resource_view_p->can_be_deallocated())
+            if(descriptor_p->can_be_deallocated())
             {
-                auto& descriptor_allocation = resource_view_p->descriptor_allocation_;
+                auto& descriptor_allocation = descriptor_p->allocation_;
 
                 descriptor_allocation.allocator_p->deallocate(descriptor_allocation);
             }
@@ -1531,16 +1512,17 @@ namespace nre::newrg
             }
         }
     }
-    void F_render_graph::export_resource_views_internal()
+    void F_render_graph::export_descriptors_internal()
     {
-        auto resource_view_span = resource_view_p_owf_stack_.item_span();
-        for(F_render_resource_view* resource_view_p : resource_view_span)
+        auto descriptor_span = descriptor_p_owf_stack_.item_span();
+        for(F_render_descriptor* descriptor_p : descriptor_span)
         {
-            if(resource_view_p->need_to_export())
+            if(descriptor_p->need_to_export())
             {
-                auto external_p = resource_view_p->external_p_;
-                external_p->descriptor_allocation_ = std::move(resource_view_p->descriptor_allocation_);
-                external_p->descriptor_handle_ = resource_view_p->descriptor_handle_;
+                auto external_p = descriptor_p->external_p_;
+                external_p->allocation_ = descriptor_p->allocation_;
+                external_p->handle_range_ = descriptor_p->handle_range_;
+                external_p->heap_type_ = descriptor_p->heap_type_;
             }
         }
     }
@@ -1589,15 +1571,15 @@ namespace nre::newrg
         epilogue_resource_state_stack_.reset();
         resource_p_owf_stack_.reset();
     }
-    void F_render_graph::flush_resource_views_internal()
+    void F_render_graph::flush_descriptors_internal()
     {
-        export_resource_views_internal();
+        export_descriptors_internal();
 
         deallocate_descriptors_internal();
 
         flush_descriptor_allocation_to_release_internal();
 
-        resource_view_p_owf_stack_.reset();
+        descriptor_p_owf_stack_.reset();
     }
     void F_render_graph::flush_states_internal()
     {
@@ -1745,7 +1727,7 @@ namespace nre::newrg
     {
         flush_execute_range_owf_stack_internal();
 
-        flush_resource_views_internal();
+        flush_descriptors_internal();
         flush_resources_internal();
         flush_passes_internal();
 
@@ -1782,7 +1764,7 @@ namespace nre::newrg
         return render_resource_p;
     }
 
-    F_render_resource_view* F_render_graph::create_resource_view(
+    F_render_descriptor* F_render_graph::create_resource_view(
         F_render_resource* resource_p,
         const F_resource_view_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -1792,7 +1774,7 @@ namespace nre::newrg
     {
         F_resource_view_desc* desc_to_create_p = T_create<F_resource_view_desc>(desc);
 
-        F_render_resource_view* render_resource_view_p = T_create<F_render_resource_view>(
+        F_render_descriptor* render_descriptor_p = T_create<F_render_descriptor>(
             resource_p,
             desc_to_create_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -1800,20 +1782,22 @@ namespace nre::newrg
 #endif
         );
 
-        render_resource_view_p->id_ = resource_view_p_owf_stack_.push_and_return_index(render_resource_view_p);
+        render_descriptor_p->id_ = descriptor_p_owf_stack_.push_and_return_index(render_descriptor_p);
 
-        return render_resource_view_p;
+        return render_descriptor_p;
     }
-    F_render_resource_view* F_render_graph::create_resource_view(
-        F_render_resource* resource_p
+    F_render_descriptor* F_render_graph::create_resource_view(
+        F_render_resource* resource_p,
+        ED_resource_view_type view_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , F_render_frame_name name
 #endif
     )
     {
         F_resource_view_desc* desc_to_create_p = T_create<F_resource_view_desc>();
+        desc_to_create_p->type = view_type;
 
-        F_render_resource_view* render_resource_view_p = T_create<F_render_resource_view>(
+        F_render_descriptor* render_descriptor_p = T_create<F_render_descriptor>(
             resource_p,
             desc_to_create_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -1821,9 +1805,9 @@ namespace nre::newrg
 #endif
         );
 
-        render_resource_view_p->id_ = resource_view_p_owf_stack_.push_and_return_index(render_resource_view_p);
+        render_descriptor_p->id_ = descriptor_p_owf_stack_.push_and_return_index(render_descriptor_p);
 
-        return render_resource_view_p;
+        return render_descriptor_p;
     }
 
     TS<F_external_render_resource> F_render_graph::export_resource(
@@ -1882,48 +1866,47 @@ namespace nre::newrg
         return external_resource_p->internal_p_;
     }
 
-    TS<F_external_render_resource_view> F_render_graph::export_resource_view(
-        F_render_resource_view* resource_view_p
+    TS<F_external_render_descriptor> F_render_graph::export_descriptor(
+        F_render_descriptor* descriptor_p
     )
     {
-        NCPP_ASSERT(resource_view_p->is_permanent()) << "can export permanent resource view";
+        NCPP_SCOPED_LOCK(descriptor_p->export_lock_);
 
-        NCPP_SCOPED_LOCK(resource_view_p->export_lock_);
-
-        if(!(resource_view_p->external_p_))
+        if(!(descriptor_p->external_p_))
         {
-            resource_view_p->external_p_ = TS<F_external_render_resource_view>()(
+            descriptor_p->external_p_ = TS<F_external_render_descriptor>()(
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-                resource_view_p->name_.c_str()
+                descriptor_p->name_.c_str()
 #endif
             );
         }
 
-        return resource_view_p->external_p_;
+        return descriptor_p->external_p_;
     }
 
-    F_render_resource_view* F_render_graph::import_resource_view(TKPA_valid<F_external_render_resource_view> external_resource_view_p)
+    F_render_descriptor* F_render_graph::import_descriptor(TKPA_valid<F_external_render_descriptor> external_descriptor_p)
     {
-        NCPP_ASSERT(external_resource_view_p->descriptor_handle_) << "can export and import a resource view both in a frame";
+        NCPP_ASSERT(external_descriptor_p->handle_range_) << "can export and import a resource view both in a frame";
 
-        NCPP_SCOPED_LOCK(external_resource_view_p->import_lock_);
+        NCPP_SCOPED_LOCK(external_descriptor_p->import_lock_);
 
-        if(!(external_resource_view_p->internal_p_))
+        if(!(external_descriptor_p->internal_p_))
         {
-            F_render_resource_view* render_resource_view_p = T_create<F_render_resource_view>(
-                external_resource_view_p->descriptor_allocation_,
-                external_resource_view_p->descriptor_handle_
+            F_render_descriptor* render_descriptor_p = T_create<F_render_descriptor>(
+                external_descriptor_p->allocation_,
+                external_descriptor_p->handle_range_,
+                external_descriptor_p->heap_type_
     #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-                , external_resource_view_p->name_.c_str()
+                , external_descriptor_p->name_.c_str()
     #endif
             );
 
-            render_resource_view_p->id_ = resource_view_p_owf_stack_.push_and_return_index(render_resource_view_p);
+            render_descriptor_p->id_ = descriptor_p_owf_stack_.push_and_return_index(render_descriptor_p);
 
-            external_resource_view_p->internal_p_ = render_resource_view_p;
+            external_descriptor_p->internal_p_ = render_descriptor_p;
         }
 
-        return external_resource_view_p->internal_p_;
+        return external_descriptor_p->internal_p_;
     }
 
     F_render_resource* F_render_graph::create_permanent_resource(
@@ -1958,23 +1941,25 @@ namespace nre::newrg
         return render_resource_p;
     }
 
-    F_render_resource_view* F_render_graph::create_permanent_resource_view(
-        F_descriptor_handle descriptor_handle
+    F_render_descriptor* F_render_graph::create_descriptor_from_src(
+        const F_descriptor_handle_range& handle_range,
+        ED_descriptor_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , F_render_frame_name name
 #endif
     )
     {
-        F_render_resource_view* render_resource_view_p = T_create<F_render_resource_view>(
-            descriptor_handle
+        F_render_descriptor* render_descriptor_p = T_create<F_render_descriptor>(
+            handle_range,
+            heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , name
 #endif
         );
 
-        render_resource_view_p->id_ = resource_view_p_owf_stack_.push_and_return_index(render_resource_view_p);
+        render_descriptor_p->id_ = descriptor_p_owf_stack_.push_and_return_index(render_descriptor_p);
 
-        return render_resource_view_p;
+        return render_descriptor_p;
     }
 
     void F_render_graph::enqueue_rhi_to_release(F_rhi_to_release&& rhi_to_release)

@@ -6,5 +6,5 @@
 
 namespace nre::newrg
 {
-    using F_render_resource_view_id = u32;
+    using F_render_descriptor_id = u32;
 }

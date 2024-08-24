@@ -1,11 +1,11 @@
-#include <nre/rendering/newrg/external_render_resource_view.hpp>
+#include <nre/rendering/newrg/external_render_descriptor.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
 
 
 
 namespace nre::newrg
 {
-    F_external_render_resource_view::F_external_render_resource_view(
+    F_external_render_descriptor::F_external_render_descriptor(
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         const F_debug_name& name
 #endif
@@ -15,16 +15,16 @@ namespace nre::newrg
 #endif
     {
     }
-    F_external_render_resource_view::~F_external_render_resource_view()
+    F_external_render_descriptor::~F_external_render_descriptor()
     {
         NCPP_SCOPED_LOCK(import_lock_);
 
-        if(descriptor_allocation_)
+        if(allocation_)
         {
             F_render_graph::instance_p()->enqueue_descriptor_allocation_to_release(
-                descriptor_allocation_
+                allocation_
             );
-            descriptor_allocation_ = {};
+            allocation_ = {};
         }
     }
 }
