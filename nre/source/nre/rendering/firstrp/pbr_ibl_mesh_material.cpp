@@ -47,6 +47,7 @@ namespace nre {
 		const F_bind_indices& indices
 	) {
 		auto casted_material_p = material_p().T_cast<A_pbr_mesh_material>();
+		auto casted_render_view_p = render_view_p.T_cast<A_multi_output_render_view>();
 
 		F_bind_cb_indices cb_indices = indices.cb_indices;
 		F_bind_resource_indices resource_indices = indices.resource_indices;
@@ -102,12 +103,12 @@ namespace nre {
 		}
 
 		render_command_list_p->ZVS_bind_constant_buffer(
-			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
+			NCPP_FOH_VALID(casted_render_view_p->main_constant_buffer_p()),
 			cb_indices.per_view_cb_index
 		);
 
 		render_command_list_p->ZPS_bind_constant_buffer(
-			NCPP_FOH_VALID(render_view_p->main_constant_buffer_p()),
+			NCPP_FOH_VALID(casted_render_view_p->main_constant_buffer_p()),
 			cb_indices.per_view_cb_index
 		);
 

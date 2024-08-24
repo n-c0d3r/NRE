@@ -40,7 +40,6 @@
 #include <nre/rendering/convert_normal_map_standard.hpp>
 #include <nre/rendering/shadow.hpp>
 #include <nre/rendering/shadow_system.hpp>
-#include <nre/rendering/debug_drawer.hpp>
 
 #include <nre/rendering/pbr_mesh_material.hpp>
 #include <nre/rendering/sky_light.hpp>

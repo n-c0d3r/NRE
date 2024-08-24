@@ -10,7 +10,7 @@ namespace nre
 {
 
 	F_simple_render_view::F_simple_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
-		A_render_view(actor_p, mask)
+		A_multi_output_render_view(actor_p, mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_simple_render_view);
 	}
@@ -20,7 +20,7 @@ namespace nre
 
 	b8 F_simple_render_view::update() {
 
-		if(!A_render_view::update()) {
+		if(!A_multi_output_render_view::update()) {
 
 			if(main_rtv_p_) {
 

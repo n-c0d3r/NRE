@@ -8,7 +8,6 @@
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/default_textures.hpp>
-#include <nre/rendering/debug_drawer.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/application/application.hpp>
 #include <nre/ui/imgui.hpp>
@@ -59,7 +58,6 @@ namespace nre {
 		material_system_p_ = TU<F_material_system>()();
 		light_system_p_ = TU<F_light_system>()();
 		shadow_system_p_ = TU<F_shadow_system>()();
-		debug_drawer_p_ = TU<F_debug_drawer>()();
 
 		// create libraries
 		pso_library_p_ = TU<F_pso_library>();
@@ -78,7 +76,6 @@ namespace nre {
 		material_system_p_.reset();
 		light_system_p_.reset();
 		shadow_system_p_.reset();
-		debug_drawer_p_.reset();
 
 		//
 		F_imgui::instance_p()->deinit_renderer();

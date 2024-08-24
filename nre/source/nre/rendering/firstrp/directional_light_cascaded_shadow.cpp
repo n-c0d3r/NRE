@@ -4,7 +4,7 @@
 #include <nre/rendering/render_view.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/render_pipeline.hpp>
-#include <nre/rendering/debug_drawer.hpp>
+#include <nre/rendering/firstrp/debug_drawer.hpp>
 #include <nre/rendering/material_system.hpp>
 #include <nre/rendering/drawable.hpp>
 #include <nre/actor/actor.hpp>
@@ -55,7 +55,7 @@ namespace nre {
 			shadow_map_dsv_p_vector_[i] = H_resource_view::create_dsv(
 				NRE_MAIN_DEVICE(),
 				{
-					.resource_p = NCPP_FOH_VALID(shadow_maps_p_),
+					.resource_p = shadow_maps_p_.oref,
 					.index = i,
 					.overrided_array_size = 1,
 					.overrided_format = ED_format::D32_FLOAT
@@ -66,7 +66,7 @@ namespace nre {
 		shadow_map_srv_p_ = H_resource_view::create_srv(
 			NRE_MAIN_DEVICE(),
 			{
-				.resource_p = NCPP_FOH_VALID(shadow_maps_p_),
+				.resource_p = shadow_maps_p_.oref,
 				.index = 0,
 				.overrided_array_size = map_count,
 				.overrided_format = ED_format::R32_FLOAT

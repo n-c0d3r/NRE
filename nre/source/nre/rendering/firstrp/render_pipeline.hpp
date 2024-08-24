@@ -5,6 +5,11 @@
 
 
 
+namespace nre
+{
+	class F_debug_drawer;
+}
+
 namespace nre::firstrp {
 
 	class NRE_API F_render_pipeline : public A_render_pipeline {
@@ -19,6 +24,8 @@ namespace nre::firstrp {
 
 		TU<A_swapchain> main_swapchain_p_;
 		TU<A_frame_buffer> main_frame_buffer_p_;
+
+		TU<F_debug_drawer> debug_drawer_p_;
 
 		b8 is_main_command_list_ended_ = true;
 		b8 is_infrequent_upload_command_list_ended_ = true;

@@ -1,4 +1,5 @@
 #include <nre/rendering/firstrp/render_pipeline.hpp>
+#include <nre/rendering/firstrp/debug_drawer.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/application/application.hpp>
 #include <nre/ui/imgui.hpp>
@@ -99,6 +100,9 @@ namespace nre::firstrp {
 			keyed_main_swapchain_p_ = main_swapchain_p_;
 			keyed_main_frame_buffer_p_ = main_frame_buffer_p_;
 		}
+
+		//
+		debug_drawer_p_ = TU<F_debug_drawer>()();
 	}
 	F_render_pipeline::~F_render_pipeline() {
 	}

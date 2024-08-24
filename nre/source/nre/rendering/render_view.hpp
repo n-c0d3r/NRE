@@ -61,14 +61,8 @@ namespace nre
 
 	class NRE_API A_render_view : public A_actor_component
 	{
-
 	public:
 		friend class F_render_view_system;
-
-
-
-	private:
-		using F_main_constant_buffer_cpu_data = F_view_constant_buffer_cpu_data;
 
 
 
@@ -76,6 +70,41 @@ namespace nre
 		typename TG_list<TK_valid<A_render_view>>::iterator handle_;
 		A_render_view_mask mask_;
 
+	public:
+		F_matrix4x4 projection_matrix = T_identity<F_matrix4x4>();
+		F_matrix4x4 view_matrix = T_identity<F_matrix4x4>();
+
+	public:
+		NCPP_FORCE_INLINE A_render_view_mask mask() const noexcept { return mask_; }
+		virtual F_vector2_u size() const noexcept = 0;
+		virtual f32 aspect_ratio() const noexcept = 0;
+		virtual b8 is_renderable() const noexcept = 0;
+
+
+
+	protected:
+		A_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask = 0);
+
+	public:
+		virtual ~A_render_view();
+
+	public:
+		NCPP_OBJECT(A_render_view);
+
+	public:
+		virtual b8 update() = 0;
+	};
+
+
+
+	class NRE_API A_multi_output_render_view : public A_render_view
+	{
+	private:
+		using F_main_constant_buffer_cpu_data = F_view_constant_buffer_cpu_data;
+
+
+
+	private:
 		U_buffer_handle main_constant_buffer_p_;
 
 	protected:
@@ -83,9 +112,6 @@ namespace nre
 		K_rtv_handle main_rtv_p_;
 
 	public:
-		F_matrix4x4 projection_matrix = T_identity<F_matrix4x4>();
-		F_matrix4x4 view_matrix = T_identity<F_matrix4x4>();
-
 		TK<A_swapchain> swapchain_p;
 		TS<F_general_texture_2d> general_texture_2d_p;
 		E_render_view_output_mode output_mode = E_render_view_output_mode::SWAPCHAIN;
@@ -120,20 +146,22 @@ namespace nre
 
 			return size_.x / size_.y;
 		}
-		NCPP_FORCE_INLINE A_render_view_mask mask() const noexcept { return mask_; }
+		NCPP_FORCE_INLINE b8 is_renderable() const noexcept {
 
+			return main_frame_buffer_p_;
+		}
 		NCPP_FORCE_INLINE K_buffer_handle main_constant_buffer_p() const noexcept { return main_constant_buffer_p_; }
 
 
 
 	protected:
-		A_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask = 0);
+		A_multi_output_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask = 0);
 
 	public:
-		virtual ~A_render_view();
+		virtual ~A_multi_output_render_view();
 
 	public:
-		NCPP_OBJECT(A_render_view);
+		NCPP_OBJECT(A_multi_output_render_view);
 
 	private:
 		virtual void setup_resources();

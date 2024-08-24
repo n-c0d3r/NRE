@@ -39,9 +39,7 @@ namespace nre {
 
 	void F_camera::update_render_target() {
 
-		const auto& main_frame_buffer_p = render_view_p_->main_frame_buffer_p();
-
-		if(!main_frame_buffer_p)
+		if(!(render_view_p_->is_renderable()))
 			return;
 
 		auto render_view_size = render_view_p_->size();

@@ -233,7 +233,7 @@ namespace nre {
 				NRE_MAIN_DEVICE(),
 				{
 					.overrided_resource_type = ED_resource_type::TEXTURE_2D_ARRAY,
-					.resource_p = NCPP_FOH_VALID(prefiltered_env_cube_p_),
+					.resource_p = prefiltered_env_cube_p_.oref,
 					.target_mip_level = mip_level_index,
 					.overrided_array_size = 6
 				}
@@ -320,7 +320,7 @@ namespace nre {
 				NRE_MAIN_DEVICE(),
 				{
 					.overrided_resource_type = ED_resource_type::TEXTURE_2D_ARRAY,
-					.resource_p = NCPP_FOH_VALID(irradiance_cube_p_),
+					.resource_p = irradiance_cube_p_.oref,
 					.target_mip_level = 0,
 					.overrided_array_size = 6
 				}

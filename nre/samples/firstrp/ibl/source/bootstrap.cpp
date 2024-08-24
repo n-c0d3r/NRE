@@ -292,7 +292,9 @@ int main() {
 			NRE_RENDER_VIEW_SYSTEM()->T_for_each(
 				[&](const auto& render_view_p) {
 
-				  	auto main_frame_buffer_p = render_view_p->main_frame_buffer_p();
+					auto casted_render_view_p = render_view_p.T_cast<A_multi_output_render_view>();
+
+				  	auto main_frame_buffer_p = casted_render_view_p->main_frame_buffer_p();
 
 				  	if(!main_frame_buffer_p)
 					  	return;
@@ -307,7 +309,7 @@ int main() {
 
 						  	simple_render_material_proxy_p->simple_render(
 								main_command_list_p,
-								render_view_p,
+								casted_render_view_p,
 								NCPP_FOH_VALID(main_frame_buffer_p)
 							);
 					  	}
@@ -316,7 +318,7 @@ int main() {
 				  	NRE_DEBUG_DRAWER()->render(
 					  	main_command_list_p,
 					  	NCPP_INIL_SPAN(
-						  	render_view_p
+					  		render_view_p
 					  	),
 					  	NCPP_INIL_SPAN(
 							NCPP_FOH_VALID(main_frame_buffer_p)

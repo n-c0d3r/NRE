@@ -22,7 +22,6 @@ namespace nre
 
 	A_render_view::A_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
 		A_actor_component(actor_p),
-		swapchain_p(NRE_MAIN_SWAPCHAIN().no_requirements()),
 		mask_(mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_render_view);
@@ -34,7 +33,19 @@ namespace nre
 		F_render_view_system::instance_p()->deregistry(NCPP_KTHIS());
 	}
 
-	void A_render_view::setup_resources() {
+
+
+	A_multi_output_render_view::A_multi_output_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
+		A_render_view(actor_p, mask),
+		swapchain_p(NRE_MAIN_SWAPCHAIN().no_requirements())
+	{
+		NRE_ACTOR_COMPONENT_REGISTER(A_multi_output_render_view);
+	}
+	A_multi_output_render_view::~A_multi_output_render_view()
+	{
+	}
+
+	void A_multi_output_render_view::setup_resources() {
 
 		if(main_rtv_p_) {
 
@@ -70,7 +81,7 @@ namespace nre
 		}
 	}
 
-	b8 A_render_view::update() {
+	b8 A_multi_output_render_view::update() {
 
 		switch (output_mode)
 		{
@@ -97,5 +108,4 @@ namespace nre
 		setup_resources();
 		return main_frame_buffer_p_->is_valid_generation();
 	}
-
 }
