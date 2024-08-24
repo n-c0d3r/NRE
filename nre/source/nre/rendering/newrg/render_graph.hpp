@@ -191,6 +191,9 @@ namespace nre::newrg
         void deallocate_descriptors_internal();
 
     private:
+        void initialize_resource_views_internal();
+
+    private:
         void create_resource_barriers_internal();
         void merge_resource_barriers_before_internal();
         void create_resource_aliasing_barriers_internal();

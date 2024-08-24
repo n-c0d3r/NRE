@@ -64,6 +64,10 @@ namespace nre::newrg
             );
         }
 
+        NCPP_FORCE_INLINE b8 need_to_allocate() const noexcept
+        {
+            return !handle_range_;
+        }
         NCPP_FORCE_INLINE b8 will_be_deallocated() const noexcept
         {
             return (

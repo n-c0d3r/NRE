@@ -777,7 +777,10 @@ namespace nre::newrg
                     F_render_resource* resource_p = descriptor_p->resource_to_create_p_;
                     auto& desc = *(descriptor_p->desc_to_create_p_);
                     desc.resource_p = resource_p->rhi_p();
+                }
 
+                if(descriptor_p->need_to_allocate())
+                {
                     F_descriptor_handle_range& descriptor_handle_range = descriptor_p->handle_range_;
                     ED_descriptor_heap_type descriptor_heap_type = descriptor_p->heap_type_;
 
@@ -812,7 +815,7 @@ namespace nre::newrg
         // calculate descriptor handles
         for(F_render_descriptor* descriptor_p : descriptor_span)
         {
-            if(descriptor_p->need_to_create())
+            if(descriptor_p->need_to_allocate())
             {
                 ED_descriptor_heap_type heap_type = descriptor_p->heap_type_;
 
@@ -848,6 +851,30 @@ namespace nre::newrg
                 auto& descriptor_allocation = descriptor_p->allocation_;
 
                 descriptor_allocation.allocator_p->deallocate(descriptor_allocation);
+            }
+        }
+    }
+
+    void F_render_graph::initialize_resource_views_internal()
+    {
+        auto descriptor_span = descriptor_p_owf_stack_.item_span();
+        for(F_render_descriptor* descriptor_p : descriptor_span)
+        {
+            if(descriptor_p->need_to_create())
+            {
+                auto& desc = *(descriptor_p->desc_to_create_p_);
+
+                auto& descriptor_allocation = descriptor_p->allocation_;
+                auto& descriptor_handle_range = descriptor_p->handle_range_;
+                auto descriptor_heap_type = descriptor_p->heap_type_;
+
+                auto& page = descriptor_allocation.allocator_p->pages()[descriptor_allocation.page_index];
+
+                H_descriptor::initialize_resource_view(
+                    NCPP_FOH_VALID(page.heap_p),
+                    descriptor_handle_range.begin_handle.cpu_address,
+                    desc
+                );
             }
         }
     }
@@ -1607,6 +1634,7 @@ namespace nre::newrg
 
         create_rhi_resources_internal();
         allocate_descriptors_internal();
+        initialize_resource_views_internal();
 
         create_pass_fences_internal();
         create_pass_fence_batches_internal();
