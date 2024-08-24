@@ -258,7 +258,7 @@ namespace nre {
 						H_resource_view::create_srv(
 							NRE_RENDER_SYSTEM()->device_p(),
 							{
-								.resource_p = NCPP_FOH_VALID(static_mesh_buffer.input_buffer_p_array_[indices]),
+								.resource_p = static_mesh_buffer.input_buffer_p_array_[indices].oref,
 								.overrided_format = vertex_channel_formats[indices]
 							}
 						)
@@ -276,7 +276,7 @@ namespace nre {
 						H_resource_view::create_uav(
 							NRE_RENDER_SYSTEM()->device_p(),
 							{
-								.resource_p = NCPP_FOH_VALID(static_mesh_buffer.input_buffer_p_array_[indices]),
+								.resource_p = static_mesh_buffer.input_buffer_p_array_[indices].oref,
 								.overrided_format = vertex_channel_formats[indices]
 							}
 						)

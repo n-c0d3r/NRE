@@ -114,25 +114,25 @@ U_srv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_default_srv(
     TKPA_valid<A_resource> resource_p
 )
 {
-    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p }) };
+    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p.no_requirements() }) };
 }
 U_uav_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_default_uav(
     TKPA_valid<A_resource> resource_p
 )
 {
-    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p }) };
+    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p.no_requirements() }) };
 }
 U_rtv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_default_rtv(
     TKPA_valid<A_resource> resource_p
 )
 {
-    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p }) };
+    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p.no_requirements() }) };
 }
 U_dsv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_default_dsv(
     TKPA_valid<A_resource> resource_p
 )
 {
-    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p }) };
+    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p.no_requirements() }) };
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::release_driver_specific_implementation(
     TKPA_valid<A_resource_view> resource_view_p

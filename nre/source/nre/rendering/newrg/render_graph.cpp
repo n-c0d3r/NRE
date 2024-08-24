@@ -800,7 +800,7 @@ namespace nre::newrg
                 {
                     F_render_resource* resource_p = resource_view_p->resource_to_create_p_;
                     auto& desc = *(resource_view_p->desc_to_create_p_);
-                    desc.resource_p = NCPP_FOH_VALID(resource_p->rhi_p());
+                    desc.resource_p = resource_p->rhi_p();
 
                     ED_descriptor_heap_type descriptor_heap_type = resource_view_type_to_descriptor_heap_type(desc.type);
 
@@ -814,9 +814,10 @@ namespace nre::newrg
                     }
                     else
                     {
+                        u32 old_page_capacity = allocator.page_capacity();
                         allocator.update_page_capacity_unsafe(
-                            allocator.page_capacity()
-                            + overflow,
+                            old_page_capacity
+                            + eastl::max(overflow, old_page_capacity),
                             false
                         );
                         resource_view_p->descriptor_allocation_ = allocator.allocate(1, false);

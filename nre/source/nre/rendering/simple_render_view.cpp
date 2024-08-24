@@ -52,7 +52,7 @@ namespace nre
 					dsv_p_ = H_resource_view::create_dsv(
 						NRE_MAIN_DEVICE(),
 						{
-							.resource_p = NCPP_AOH_VALID(depth_texture_2d_p_)
+							.resource_p = depth_texture_2d_p_.oref
 						}
 					);
 				else dsv_p_->guarantee_generation();
