@@ -32,8 +32,10 @@ namespace nre::newrg
     class F_render_pass;
     class F_render_resource;
     class F_render_descriptor;
+    class F_render_frame_buffer;
     class F_external_render_resource;
     class F_external_render_descriptor;
+    class F_external_render_frame_buffer;
     class A_render_worker;
 
 
@@ -77,6 +79,7 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_render_pass*> pass_p_owf_stack_;
         TG_concurrent_owf_stack<F_render_resource*> resource_p_owf_stack_;
         TG_concurrent_owf_stack<F_render_descriptor*> descriptor_p_owf_stack_;
+        TG_concurrent_owf_stack<F_render_frame_buffer*> frame_buffer_p_owf_stack_;
 
         struct F_rhi_resource_to_release
         {
@@ -86,6 +89,8 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_rhi_resource_to_release> rhi_resource_to_release_owf_stack_;
 
         TG_concurrent_owf_stack<F_descriptor_allocation> descriptor_allocation_to_release_owf_stack_;
+
+        TG_concurrent_owf_stack<TU<A_frame_buffer>> rhi_frame_buffer_to_release_owf_stack_;
 
         TG_concurrent_owf_stack<F_render_pass_execute_range> execute_range_owf_stack_;
         F_task_counter execute_passes_counter_ = 0;
@@ -118,10 +123,13 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& pass_p_owf_stack() noexcept { return pass_p_owf_stack_; }
         NCPP_FORCE_INLINE auto& resource_p_owf_stack() noexcept { return resource_p_owf_stack_; }
         NCPP_FORCE_INLINE auto& descriptor_p_owf_stack() noexcept { return descriptor_p_owf_stack_; }
+        NCPP_FORCE_INLINE auto& frame_buffer_p_owf_stack() noexcept { return frame_buffer_p_owf_stack_; }
 
         NCPP_FORCE_INLINE auto& rhi_resource_to_release_owf_stack() noexcept { return rhi_resource_to_release_owf_stack_; }
 
         NCPP_FORCE_INLINE auto& descriptor_allocation_to_release_owf_stack() noexcept { return descriptor_allocation_to_release_owf_stack_; }
+
+        NCPP_FORCE_INLINE auto& rhi_frame_buffer_to_release_owf_stack() noexcept { return rhi_frame_buffer_to_release_owf_stack_; }
 
         NCPP_FORCE_INLINE const auto& execute_range_owf_stack() noexcept { return execute_range_owf_stack_; }
 
@@ -191,6 +199,10 @@ namespace nre::newrg
         void deallocate_descriptors_internal();
 
     private:
+        void create_rhi_frame_buffers_internal();
+        void flush_rhi_frame_buffers_internal();
+
+    private:
         void validate_resource_views_to_create_internal();
         void initialize_resource_views_internal();
         void initialize_sampler_states_internal();
@@ -215,16 +227,19 @@ namespace nre::newrg
     private:
         void export_resources_internal();
         void export_descriptors_internal();
+        void export_frame_buffers_internal();
 
     private:
         void flush_rhi_resource_to_release_internal();
         void flush_descriptor_allocation_to_release_internal();
+        void flush_rhi_frame_buffer_to_release_internal();
 
     private:
         void flush_objects_internal();
         void flush_passes_internal();
         void flush_resources_internal();
         void flush_descriptors_internal();
+        void flush_frame_buffers_internal();
         void flush_states_internal();
 
     private:
@@ -379,6 +394,16 @@ namespace nre::newrg
             , F_render_frame_name name = ""
 #endif
         );
+        /**
+         *  Thread-safe
+         */
+        F_render_frame_buffer* create_frame_buffer(
+            const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptor_p_vector,
+            F_render_descriptor* dsv_descriptor_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , F_render_frame_name name = ""
+#endif
+        );
 
     public:
         /**
@@ -409,6 +434,18 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
+        TS<F_external_render_frame_buffer> export_frame_buffer(
+            F_render_frame_buffer* frame_buffer_p
+        );
+        /**
+         *  Thread-safe
+         */
+        F_render_frame_buffer* import_frame_buffer(TKPA_valid<F_external_render_frame_buffer> external_frame_buffer_p);
+
+    public:
+        /**
+         *  Thread-safe
+         */
         F_render_resource* create_permanent_resource(
             TKPA_valid<A_resource> rhi_p,
             ED_resource_state initial_states = ED_resource_state::COMMON
@@ -427,6 +464,17 @@ namespace nre::newrg
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name = ""
 #endif
+            );
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        F_render_frame_buffer* create_permanent_frame_buffer(
+            TKPA_valid<A_frame_buffer> rhi_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , F_render_frame_name name = ""
+#endif
         );
 
     public:
@@ -440,6 +488,12 @@ namespace nre::newrg
          *  Thread-safe
          */
         void enqueue_descriptor_allocation_to_release(const F_descriptor_allocation& descriptor_allocation_to_release);
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        void enqueue_rhi_frame_buffer_to_release(TU<A_frame_buffer>&& rhi_frame_buffer_to_release);
 
     public:
         /**

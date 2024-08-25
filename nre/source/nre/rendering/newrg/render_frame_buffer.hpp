@@ -32,8 +32,8 @@ namespace nre::newrg
         TU<A_frame_buffer> owned_rhi_p_;
         TK<A_frame_buffer> rhi_p_;
 
-        TG_fixed_vector<F_render_descriptor*, 8, false> rtv_descriptors_to_create_p_;
-        F_render_descriptor* dsv_descriptor_to_create_p_;
+        TG_fixed_vector<F_render_descriptor*, 8, false> rtv_descriptor_p_vector_to_create_;
+        F_render_descriptor* dsv_descriptor_p_to_create_;
 
         pac::F_spin_lock export_lock_;
         TS<F_external_render_frame_buffer> external_p_;
@@ -47,22 +47,29 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE TKPA<A_frame_buffer> rhi_p() const noexcept { return rhi_p_; }
 
-        NCPP_FORCE_INLINE const auto& rtv_descriptors_to_create_p() const noexcept { return rtv_descriptors_to_create_p_; }
-        NCPP_FORCE_INLINE F_render_descriptor* dsv_descriptor_to_create_p() const noexcept { return dsv_descriptor_to_create_p_; }
+        NCPP_FORCE_INLINE const auto& rtv_descriptor_p_vector_to_create() const noexcept { return rtv_descriptor_p_vector_to_create_; }
+        NCPP_FORCE_INLINE F_render_descriptor* dsv_descriptor_p_to_create() const noexcept { return dsv_descriptor_p_to_create_; }
 
         NCPP_FORCE_INLINE b8 need_to_create() const noexcept
         {
-            if(dsv_descriptor_to_create_p_)
+            if(dsv_descriptor_p_to_create_)
                 return true;
 
-            for(F_render_descriptor* rtv_descriptor_p : rtv_descriptors_to_create_p_)
+            for(F_render_descriptor* rtv_descriptor_p : rtv_descriptor_p_vector_to_create_)
             {
                 if(!(rtv_descriptor_p->need_to_create_resource_view()))
                 {
                     return false;
                 }
             }
-            return (rtv_descriptors_to_create_p_.size() != 0);
+            return (rtv_descriptor_p_vector_to_create_.size() != 0);
+        }
+        NCPP_FORCE_INLINE b8 can_be_deallocated() const noexcept
+        {
+            return (
+                owned_rhi_p_
+                && !need_to_export()
+            );
         }
 
         NCPP_FORCE_INLINE const auto& export_lock() const noexcept { return export_lock_; }
@@ -78,8 +85,8 @@ namespace nre::newrg
 
     public:
         F_render_frame_buffer(
-            const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptors_to_create_p,
-            F_render_descriptor* dsv_descriptor_to_create_p
+            const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptor_p_vector_to_create,
+            F_render_descriptor* dsv_descriptor_p_to_create
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
 #endif

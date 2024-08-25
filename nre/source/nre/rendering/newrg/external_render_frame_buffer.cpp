@@ -21,9 +21,9 @@ namespace nre::newrg
 
         if(rhi_p_)
         {
-            // F_render_graph::instance_p()->enqueue_rhi_frame_buffer_to_release(
-            //     std::move(rhi_p_)
-            // );
+            F_render_graph::instance_p()->enqueue_rhi_frame_buffer_to_release(
+                std::move(rhi_p_)
+            );
         }
     }
 }

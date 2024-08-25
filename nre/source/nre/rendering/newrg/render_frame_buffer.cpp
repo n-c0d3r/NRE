@@ -6,14 +6,14 @@
 namespace nre::newrg
 {
     F_render_frame_buffer::F_render_frame_buffer(
-        const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptors_to_create_p,
-        F_render_descriptor* dsv_descriptor_to_create_p
+        const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptor_p_vector_to_create,
+        F_render_descriptor* dsv_descriptor_p_to_create
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , const F_render_frame_name& name
 #endif
     ) :
-        rtv_descriptors_to_create_p_(rtv_descriptors_to_create_p),
-        dsv_descriptor_to_create_p_(dsv_descriptor_to_create_p)
+        rtv_descriptor_p_vector_to_create_(rtv_descriptor_p_vector_to_create),
+        dsv_descriptor_p_to_create_(dsv_descriptor_p_to_create)
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , name_(name)
 #endif

@@ -2,8 +2,11 @@
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
 #include <nre/rendering/newrg/render_descriptor.hpp>
+#include <nre/rendering/newrg/render_frame_buffer.hpp>
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/external_render_resource.hpp>
+#include <nre/rendering/newrg/external_render_descriptor.hpp>
+#include <nre/rendering/newrg/external_render_frame_buffer.hpp>
 #include <nre/rendering/newrg/main_render_worker.hpp>
 #include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
@@ -40,7 +43,10 @@ namespace nre::newrg
         pass_p_owf_stack_(NRE_RENDER_GRAPH_PASS_OWF_STACK_CAPACITY),
         resource_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
         descriptor_p_owf_stack_(NRE_RENDER_GRAPH_DESCRIPTOR_OWF_STACK_CAPACITY),
+        frame_buffer_p_owf_stack_(NRE_RENDER_GRAPH_FRAME_BUFFER_OWF_STACK_CAPACITY),
         rhi_resource_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_RESOURCE_TO_RELEASE_OWF_STACK_CAPACITY),
+        descriptor_allocation_to_release_owf_stack_(NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATION_TO_RELEASE_OWF_STACK_CAPACITY),
+        rhi_frame_buffer_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_RESOURCE_TO_RELEASE_OWF_STACK_CAPACITY),
         execute_range_owf_stack_(NRE_RENDER_GRAPH_EXECUTE_RANGE_OWF_STACK_CAPACITY),
         epilogue_resource_state_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY)
     {
@@ -848,6 +854,27 @@ namespace nre::newrg
         }
     }
 
+    void F_render_graph::create_rhi_frame_buffers_internal()
+    {
+        auto frame_buffer_span = frame_buffer_p_owf_stack_.item_span();
+        for(F_render_frame_buffer* frame_buffer_p : frame_buffer_span)
+        {
+            if(frame_buffer_p->need_to_create())
+            {
+            }
+        }
+    }
+    void F_render_graph::flush_rhi_frame_buffers_internal()
+    {
+        auto frame_buffer_span = frame_buffer_p_owf_stack_.item_span();
+        for(F_render_frame_buffer* frame_buffer_p : frame_buffer_span)
+        {
+            if(frame_buffer_p->can_be_deallocated())
+            {
+            }
+        }
+    }
+
     void F_render_graph::validate_resource_views_to_create_internal()
     {
         auto descriptor_span = descriptor_p_owf_stack_.item_span();
@@ -1611,6 +1638,18 @@ namespace nre::newrg
             }
         }
     }
+    void F_render_graph::export_frame_buffers_internal()
+    {
+        auto frame_buffer_span = frame_buffer_p_owf_stack_.item_span();
+        for(F_render_frame_buffer* frame_buffer_p : frame_buffer_span)
+        {
+            if(frame_buffer_p->need_to_export())
+            {
+                auto external_p = frame_buffer_p->external_p_;
+                external_p->rhi_p_ = std::move(frame_buffer_p->owned_rhi_p_);
+            }
+        }
+    }
 
     void F_render_graph::flush_rhi_resource_to_release_internal()
     {
@@ -1625,6 +1664,10 @@ namespace nre::newrg
         }
 
         descriptor_allocation_to_release_owf_stack_.reset();
+    }
+    void F_render_graph::flush_rhi_frame_buffer_to_release_internal()
+    {
+        rhi_frame_buffer_to_release_owf_stack_.reset();
     }
 
     void F_render_graph::flush_objects_internal()
@@ -1666,6 +1709,16 @@ namespace nre::newrg
 
         descriptor_p_owf_stack_.reset();
     }
+    void F_render_graph::flush_frame_buffers_internal()
+    {
+        export_frame_buffers_internal();
+
+        flush_rhi_frame_buffers_internal();
+
+        flush_rhi_frame_buffer_to_release_internal();
+
+        frame_buffer_p_owf_stack_.reset();
+    }
     void F_render_graph::flush_states_internal()
     {
         is_rhi_available_ = false;
@@ -1696,6 +1749,7 @@ namespace nre::newrg
         initialize_resource_views_internal();
         initialize_sampler_states_internal();
         copy_src_descriptors_internal();
+        create_rhi_frame_buffers_internal();
 
         create_pass_fences_internal();
         create_pass_fence_batches_internal();
@@ -1816,6 +1870,7 @@ namespace nre::newrg
     {
         flush_execute_range_owf_stack_internal();
 
+        flush_frame_buffers_internal();
         flush_descriptors_internal();
         flush_resources_internal();
         flush_passes_internal();
@@ -1918,13 +1973,33 @@ namespace nre::newrg
 
         return render_descriptor_p;
     }
+    F_render_frame_buffer* F_render_graph::create_frame_buffer(
+        const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptor_p_vector,
+        F_render_descriptor* dsv_descriptor_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , F_render_frame_name name
+#endif
+    )
+    {
+        F_render_frame_buffer* render_frame_buffer_p = T_create<F_render_frame_buffer>(
+            rtv_descriptor_p_vector,
+            dsv_descriptor_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , name
+#endif
+        );
+
+        render_frame_buffer_p->id_ = frame_buffer_p_owf_stack_.push_and_return_index(render_frame_buffer_p);
+
+        return render_frame_buffer_p;
+    }
 
     TS<F_external_render_resource> F_render_graph::export_resource(
         F_render_resource* resource_p,
         ED_resource_state new_states
     )
     {
-        NCPP_ASSERT(resource_p->is_permanent()) << "can export permanent resource";
+        NCPP_ASSERT((!resource_p->is_permanent())) << "can't export permanent resource";
 
         NCPP_SCOPED_LOCK(resource_p->export_lock_);
 
@@ -2019,6 +2094,46 @@ namespace nre::newrg
 
         return external_descriptor_p->internal_p_;
     }
+    TS<F_external_render_frame_buffer> F_render_graph::export_frame_buffer(
+        F_render_frame_buffer* frame_buffer_p
+    )
+    {
+        NCPP_SCOPED_LOCK(frame_buffer_p->export_lock_);
+
+        if(!(frame_buffer_p->external_p_))
+        {
+            frame_buffer_p->external_p_ = TS<F_external_render_frame_buffer>()(
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                frame_buffer_p->name_.c_str()
+#endif
+            );
+        }
+
+        return frame_buffer_p->external_p_;
+    }
+    F_render_frame_buffer* F_render_graph::import_frame_buffer(TKPA_valid<F_external_render_frame_buffer> external_frame_buffer_p)
+    {
+        NCPP_SCOPED_LOCK(external_frame_buffer_p->import_lock_);
+
+        if(!(external_frame_buffer_p->rhi_p_))
+            return 0;
+
+        if(!(external_frame_buffer_p->internal_p_))
+        {
+            F_render_frame_buffer* render_frame_buffer_p = T_create<F_render_frame_buffer>(
+                std::move(external_frame_buffer_p->rhi_p_)
+    #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , external_frame_buffer_p->name_.c_str()
+    #endif
+            );
+
+            render_frame_buffer_p->id_ = frame_buffer_p_owf_stack_.push_and_return_index(render_frame_buffer_p);
+
+            external_frame_buffer_p->internal_p_ = render_frame_buffer_p;
+        }
+
+        return external_frame_buffer_p->internal_p_;
+    }
 
     F_render_resource* F_render_graph::create_permanent_resource(
         TKPA_valid<A_resource> rhi_p,
@@ -2073,6 +2188,25 @@ namespace nre::newrg
         return render_descriptor_p;
     }
 
+    F_render_frame_buffer* F_render_graph::create_permanent_frame_buffer(
+        TKPA_valid<A_frame_buffer> rhi_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , F_render_frame_name name
+#endif
+    )
+    {
+        F_render_frame_buffer* frame_buffer_p = T_create<F_render_frame_buffer>(
+            rhi_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , name
+#endif
+        );
+
+        frame_buffer_p->id_ = frame_buffer_p_owf_stack_.push_and_return_index(frame_buffer_p);
+
+        return frame_buffer_p;
+    }
+
     void F_render_graph::enqueue_rhi_resource_to_release(F_rhi_resource_to_release&& rhi_resource_to_release)
     {
         rhi_resource_to_release_owf_stack_.push(
@@ -2084,6 +2218,13 @@ namespace nre::newrg
     {
         descriptor_allocation_to_release_owf_stack_.push(
             descriptor_allocation_to_release
+        );
+    }
+
+    void F_render_graph::enqueue_rhi_frame_buffer_to_release(TU<A_frame_buffer>&& rhi_frame_buffer_to_release)
+    {
+        rhi_frame_buffer_to_release_owf_stack_.push(
+            std::move(rhi_frame_buffer_to_release)
         );
     }
 
