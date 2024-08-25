@@ -23,6 +23,9 @@ namespace nre::newrg
             end_sync_point,
             NRE_FRAME_PARAM_RENDER,
             ED_command_list_type::DIRECT
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , "nre.newrg.main_render_worker"
+#endif
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();

@@ -29,6 +29,10 @@ namespace nre::newrg
 
         TG_vector<F_render_resource_page> pages_;
 
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        F_debug_name name_;
+#endif
+
     public:
         NCPP_FORCE_INLINE sz page_capacity() const noexcept { return page_capacity_; }
 
@@ -36,6 +40,10 @@ namespace nre::newrg
         NCPP_FORCE_INLINE ED_resource_heap_flag heap_flags() const noexcept { return heap_flags_; }
 
         NCPP_FORCE_INLINE const auto& pages() const noexcept { return pages_; }
+
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        NCPP_FORCE_INLINE const auto& name() const noexcept { return name_; }
+#endif
 
 
 
@@ -45,9 +53,19 @@ namespace nre::newrg
             sz page_capacity,
             ED_resource_heap_type heap_type,
             ED_resource_heap_flag heap_flags
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_debug_name& name = ""
+#endif
         );
         F_render_resource_allocator(const F_render_resource_allocator& x) :
-            F_render_resource_allocator(x.page_capacity_, x.heap_type_, x.heap_flags_)
+            F_render_resource_allocator(
+                x.page_capacity_,
+                x.heap_type_,
+                x.heap_flags_
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , x.name_
+#endif
+            )
         {
         }
         F_render_resource_allocator& operator = (const F_render_resource_allocator& x)
@@ -56,6 +74,9 @@ namespace nre::newrg
             heap_type_ = x.heap_type_;
             heap_flags_ = x.heap_flags_;
             pages_.clear();
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            name_ = x.name_;
+#endif
 
             return *this;
         }
@@ -71,17 +92,6 @@ namespace nre::newrg
     public:
         F_render_resource_allocation allocate(sz size, u64 alignment = u64(ED_resource_placement_alignment::DEFAULT));
         void deallocate(const F_render_resource_allocation& allocation);
-
-    public:
-        TU<A_resource> create_resource(
-            const F_render_resource_allocation& allocation,
-            const F_resource_desc& desc
-        );
-        void rebuild_resource(
-            TKPA_valid<A_resource>& resource_p,
-            const F_render_resource_allocation& allocation,
-            const F_resource_desc& desc
-        );
     };
 
 

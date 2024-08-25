@@ -5,10 +5,20 @@
 
 namespace nre::newrg
 {
-    F_descriptor_allocator::F_descriptor_allocator(ED_descriptor_heap_type heap_type, ED_descriptor_heap_flag heap_flags, u32 page_capacity) :
+    F_descriptor_allocator::F_descriptor_allocator(
+        ED_descriptor_heap_type heap_type,
+        ED_descriptor_heap_flag heap_flags,
+        u32 page_capacity
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , const F_debug_name& name
+#endif
+    ) :
         heap_type_(heap_type),
         heap_flags_(heap_flags),
         page_capacity_(page_capacity)
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , name_(name)
+#endif
     {
     }
     F_descriptor_allocator::~F_descriptor_allocator()
@@ -24,6 +34,7 @@ namespace nre::newrg
         TU<A_descriptor_heap> heap_p;
 
         if(create_heap)
+        {
             heap_p = H_descriptor_heap::create(
                 NRE_MAIN_DEVICE(),
                 {
@@ -32,6 +43,11 @@ namespace nre::newrg
                     .descriptor_count = page_capacity_,
                 }
             );
+
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            heap_p->set_debug_name(name_ + (".pages[" + G_to_string(pages_.size()) + "]").c_str());
+#endif
+        }
 
         pages_.push_back({
             .free_ranges = {
@@ -178,8 +194,11 @@ namespace nre::newrg
 
     void F_descriptor_allocator::update_page_capacity_unsafe(u32 new_page_capacity, b8 rebuild_heap)
     {
-        for(auto& page : pages_)
+        u32 page_count = pages_.size();
+        for(u32 i = 0; i < page_count; ++i)
         {
+            auto& page = pages_[i];
+
             if(new_page_capacity != page_capacity_)
                 page.update_capacity_unsafe_internal(page_capacity_, new_page_capacity);
             if(rebuild_heap && (page.heap_p->desc().descriptor_count != new_page_capacity))
@@ -190,7 +209,12 @@ namespace nre::newrg
                         .flags = heap_flags_,
                         .descriptor_count = new_page_capacity,
                     }
-                );
+                    );
+
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            if(page.heap_p)
+                page.heap_p->set_debug_name(name_ + (".pages[" + G_to_string(i) + "]").c_str());
+#endif
         }
 
         page_capacity_ = new_page_capacity;

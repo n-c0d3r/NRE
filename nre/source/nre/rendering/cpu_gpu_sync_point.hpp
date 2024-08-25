@@ -13,15 +13,26 @@ namespace nre
         u64 target_fence_value_ = 1;
         TU<A_fence> fence_p_;
 
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+            F_debug_name name_;
+        );
+
     public:
         NCPP_FORCE_INLINE u64 target_fence_value() const noexcept { return target_fence_value_; }
         NCPP_FORCE_INLINE const auto& fence_p() const noexcept { return fence_p_; }
+
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+            NCPP_FORCE_INLINE const auto& name() const noexcept { return name_; }
+        );
 
 
 
     public:
         F_cpu_gpu_sync_point(
             TKPA_valid<A_device> device_p
+            NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+                , const F_debug_name& name = ""
+            )
         );
         ~F_cpu_gpu_sync_point();
 

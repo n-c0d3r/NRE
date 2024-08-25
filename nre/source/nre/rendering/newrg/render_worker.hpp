@@ -39,6 +39,10 @@ namespace nre::newrg
 
         TG_vector<TK<A_command_list>> managed_command_list_p_vector_;
 
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        F_debug_name name_;
+#endif
+
     public:
         NCPP_FORCE_INLINE u8 index() const noexcept { return index_; }
         NCPP_FORCE_INLINE u8 worker_thread_index() const noexcept { return worker_thread_index_; }
@@ -55,6 +59,10 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& managed_render_work_ring_buffer() const noexcept { return managed_render_work_ring_buffer_; }
         NCPP_FORCE_INLINE const auto& command_list_pool() const noexcept { return command_list_pool_; }
 
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        NCPP_FORCE_INLINE const auto& name() const noexcept { return name_; }
+#endif
+
 
 
     protected:
@@ -65,6 +73,9 @@ namespace nre::newrg
             F_threads_sync_point& end_sync_point,
             F_frame_param frame_param = 0,
             ED_command_list_type command_list_type = ED_command_list_type::DIRECT
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_debug_name& name = ""
+#endif
         );
 
     public:

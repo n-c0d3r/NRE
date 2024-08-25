@@ -8,10 +8,16 @@ namespace nre::newrg
         sz page_capacity,
         ED_resource_heap_type heap_type,
         ED_resource_heap_flag heap_flags
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , const F_debug_name& name
+#endif
     ) :
         page_capacity_(page_capacity),
         heap_type_(heap_type),
         heap_flags_(heap_flags)
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , name_(name)
+#endif
     {
     }
     F_render_resource_allocator::~F_render_resource_allocator()
@@ -31,6 +37,9 @@ namespace nre::newrg
                 .alignment = alignment
             }
         );
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        heap_p->set_debug_name(name_ + (".pages[" + G_to_string(pages_.size()) + "]").c_str());
+#endif
 
         pages_.push_back({
             .free_ranges = {
@@ -92,34 +101,5 @@ namespace nre::newrg
         auto& page = pages_[allocation.page_index];
 
         page.deallocate(allocation.placed_range.begin);
-    }
-
-    TU<A_resource> F_render_resource_allocator::create_resource(
-        const F_render_resource_allocation& allocation,
-        const F_resource_desc& desc
-    )
-    {
-        auto& page = pages_[allocation.page_index];
-
-        return H_resource::create_placed(
-            NRE_MAIN_DEVICE(),
-            desc,
-            NCPP_FOH_VALID(page.heap_p),
-            allocation.placed_range.begin
-        );
-    }
-    void F_render_resource_allocator::rebuild_resource(
-        TKPA_valid<A_resource>& resource_p,
-        const F_render_resource_allocation& allocation,
-        const F_resource_desc& desc
-    )
-    {
-        auto& page = pages_[allocation.page_index];
-
-        resource_p->rebuild_placed(
-            desc,
-            NCPP_FOH_VALID(page.heap_p),
-            allocation.placed_range.begin
-        );
     }
 }

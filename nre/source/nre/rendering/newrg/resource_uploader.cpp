@@ -22,6 +22,9 @@ namespace nre::newrg
                 .type = ED_command_list_type::BLIT
             }
         );
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+            command_allocator_p_->set_debug_name("nre.newrg.resource_uploader.command_allocator");
+        );
         command_list_p_ = H_command_list::create_with_command_allocator(
             NRE_MAIN_DEVICE(),
             {
@@ -29,12 +32,18 @@ namespace nre::newrg
                 .command_allocator_p = command_allocator_p_
             }
         );
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+            command_list_p_->set_debug_name("nre.newrg.resource_uploader.command_list");
+        );
 
         fence_p_ = H_fence::create(
             NRE_MAIN_DEVICE(),
             {
                 .initial_value = 0
             }
+        );
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+            fence_p_->set_debug_name("nre.newrg.resource_uploader.fence");
         );
     }
     F_resource_uploader::~F_resource_uploader()

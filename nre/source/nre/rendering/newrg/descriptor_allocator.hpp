@@ -21,12 +21,20 @@ namespace nre::newrg
         u32 page_capacity_ = 0;
         TG_vector<F_descriptor_page> pages_;
 
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        F_debug_name name_;
+#endif
+
     public:
         NCPP_FORCE_INLINE ED_descriptor_heap_type heap_type() const noexcept { return heap_type_; }
         NCPP_FORCE_INLINE ED_descriptor_heap_flag heap_flags() const noexcept { return heap_flags_; }
 
         NCPP_FORCE_INLINE u32 page_capacity() const noexcept { return page_capacity_; }
         NCPP_FORCE_INLINE const auto& pages() const noexcept { return pages_; }
+
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        NCPP_FORCE_INLINE const auto& name() const noexcept { return name_; }
+#endif
 
 
 
@@ -36,9 +44,19 @@ namespace nre::newrg
             ED_descriptor_heap_type heap_type,
             ED_descriptor_heap_flag heap_flags,
             u32 page_capacity
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_debug_name& name = ""
+#endif
         );
         F_descriptor_allocator(const F_descriptor_allocator& x) :
-            F_descriptor_allocator(x.heap_type_, x.heap_flags_, x.page_capacity_)
+            F_descriptor_allocator(
+                x.heap_type_,
+                x.heap_flags_,
+                x.page_capacity_
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , x.name_
+#endif
+            )
         {
         }
         F_descriptor_allocator& operator = (const F_descriptor_allocator& x)
@@ -46,6 +64,9 @@ namespace nre::newrg
             heap_type_ = x.heap_type_;
             heap_flags_ = x.heap_flags_;
             page_capacity_ = x.page_capacity_;
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            name_ = x.name_;
+#endif
             pages_.clear();
 
             return *this;

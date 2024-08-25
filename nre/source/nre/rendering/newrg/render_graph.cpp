@@ -48,7 +48,11 @@ namespace nre::newrg
         descriptor_allocation_to_release_owf_stack_(NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATION_TO_RELEASE_OWF_STACK_CAPACITY),
         rhi_frame_buffer_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_FRAME_BUFFER_TO_RELEASE_OWF_STACK_CAPACITY),
         execute_range_owf_stack_(NRE_RENDER_GRAPH_EXECUTE_RANGE_OWF_STACK_CAPACITY),
-        epilogue_resource_state_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY)
+        epilogue_resource_state_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
+        rhi_frame_buffer_pool_(
+            0
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.rhi_frame_buffer_pool")
+        )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
@@ -62,6 +66,7 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_GREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::DEFAULT,
                     ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_GWRITE, ALLOW_ONLY_BUFFERS]")
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_TEXTURES_RT_DS
@@ -69,6 +74,7 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_GREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::DEFAULT,
                     ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_GWRITE, ALLOW_ONLY_RT_DS_TEXTURES]")
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_TEXTURES_NON_RT_DS
@@ -76,6 +82,7 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_GREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::DEFAULT,
                     ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_GWRITE, ALLOW_ONLY_NON_RT_DS_TEXTURES]")
                 );
             }
 
@@ -87,6 +94,7 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_CREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::CREAD_GWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[CREAD_GWRITE, ALLOW_ONLY_BUFFERS]")
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_CREAD_GWRITE_ONLY_TEXTURES_RT_DS
@@ -94,6 +102,7 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_CREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::CREAD_GWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[CREAD_GWRITE, ALLOW_ONLY_RT_DS_TEXTURES]")
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_CREAD_GWRITE_ONLY_TEXTURES_NON_RT_DS
@@ -101,6 +110,7 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_CREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::CREAD_GWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[CREAD_GWRITE, ALLOW_ONLY_NON_RT_DS_TEXTURES]")
                 );
             }
 
@@ -112,6 +122,7 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_GREAD_CWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::GREAD_CWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_CWRITE, ALLOW_ONLY_BUFFERS]")
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_CWRITE_ONLY_TEXTURES_RT_DS
@@ -119,6 +130,7 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_GREAD_CWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::GREAD_CWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_CWRITE, ALLOW_ONLY_RT_DS_TEXTURES]")
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_CWRITE_ONLY_TEXTURES_NON_RT_DS
@@ -126,18 +138,43 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_GREAD_CWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::GREAD_CWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_CWRITE, ALLOW_ONLY_NON_RT_DS_TEXTURES]")
                 );
             }
         }
 
         // setup rhi placed resource pools
         {
-            rhi_placed_resource_pools_[u32(ED_resource_type::BUFFER)] = F_rhi_placed_resource_pool(ED_resource_type::BUFFER);
-            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_1D)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_1D);
-            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_1D_ARRAY)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_1D_ARRAY);
-            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_2D)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_2D);
-            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_2D_ARRAY)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_2D_ARRAY);
-            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_3D)] = F_rhi_placed_resource_pool(ED_resource_type::TEXTURE_3D);
+            rhi_placed_resource_pools_[u32(ED_resource_type::BUFFER)] = F_rhi_placed_resource_pool(
+                ED_resource_type::BUFFER,
+                0
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.rhi_placed_resource_pools[BUFFER]")
+            );
+            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_1D)] = F_rhi_placed_resource_pool(
+                ED_resource_type::TEXTURE_1D,
+                0
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.rhi_placed_resource_pools[TEXTURE_1D]")
+            );
+            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_1D_ARRAY)] = F_rhi_placed_resource_pool(
+                ED_resource_type::TEXTURE_1D_ARRAY,
+                0
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.rhi_placed_resource_pools[TEXTURE_1D_ARRAY]")
+            );
+            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_2D)] = F_rhi_placed_resource_pool(
+                ED_resource_type::TEXTURE_2D,
+                0
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.rhi_placed_resource_pools[TEXTURE_2D]")
+            );
+            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_2D_ARRAY)] = F_rhi_placed_resource_pool(
+                ED_resource_type::TEXTURE_2D_ARRAY,
+                0
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.rhi_placed_resource_pools[TEXTURE_2D_ARRAY]")
+            );
+            rhi_placed_resource_pools_[u32(ED_resource_type::TEXTURE_3D)] = F_rhi_placed_resource_pool(
+                ED_resource_type::TEXTURE_3D,
+                0
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.rhi_placed_resource_pools[TEXTURE_3D]")
+            );
         }
 
         // create fences and fence states
@@ -162,6 +199,9 @@ namespace nre::newrg
                         }
                     )
                 );
+                NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+                    fence_p_vector_.back()->set_debug_name(("nre.newrg.render_graph.fences[" + G_to_string(i) + "]").c_str());
+                );
             }
         }
 
@@ -174,21 +214,25 @@ namespace nre::newrg
                 ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
                 ED_descriptor_heap_flag::SHADER_VISIBLE,
                 NRE_RENDER_GRAPH_MIN_DESCRIPTOR_PAGE_CAPACITY
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.descriptor_allocators[CBV_SRV_UAV]")
             );
             find_descriptor_allocator(ED_descriptor_heap_type::SAMPLER) = F_descriptor_allocator(
                 ED_descriptor_heap_type::SAMPLER,
                 ED_descriptor_heap_flag::SHADER_VISIBLE,
                 NRE_RENDER_GRAPH_MIN_DESCRIPTOR_PAGE_CAPACITY
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.descriptor_allocators[SAMPLER]")
             );
             find_descriptor_allocator(ED_descriptor_heap_type::RENDER_TARGET) = F_descriptor_allocator(
                 ED_descriptor_heap_type::RENDER_TARGET,
                 ED_descriptor_heap_flag::NONE,
                 NRE_RENDER_GRAPH_MIN_DESCRIPTOR_PAGE_CAPACITY
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.descriptor_allocators[RENDER_TARGET]")
             );
             find_descriptor_allocator(ED_descriptor_heap_type::DEPTH_STENCIL) = F_descriptor_allocator(
                 ED_descriptor_heap_type::DEPTH_STENCIL,
                 ED_descriptor_heap_flag::NONE,
                 NRE_RENDER_GRAPH_MIN_DESCRIPTOR_PAGE_CAPACITY
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.descriptor_allocators[DEPTH_STENCIL]")
             );
 
             for(auto& descriptor_allocator : descriptor_allocators_)
@@ -1813,6 +1857,25 @@ namespace nre::newrg
         is_rhi_available_ = false;
     }
 
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+    void F_render_graph::apply_debug_names_internal()
+    {
+        apply_resource_debug_names_internal();
+    }
+    void F_render_graph::apply_resource_debug_names_internal()
+    {
+        auto resource_span = resource_p_owf_stack_.item_span();
+        for(F_render_resource* resource_p : resource_span)
+        {
+            auto rhi_p = resource_p->rhi_p();
+            if(rhi_p)
+            {
+                rhi_p->set_debug_name(resource_p->name().c_str());
+            }
+        }
+    }
+#endif
+
     void F_render_graph::setup_internal()
     {
         setup_resource_access_dependencies_internal();
@@ -1849,6 +1912,10 @@ namespace nre::newrg
         merge_resource_barriers_before_internal();
         create_resource_aliasing_barriers_internal();
         create_resource_barrier_batches_internal();
+
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        apply_debug_names_internal();
+#endif
     }
 
     F_render_pass* F_render_graph::create_pass_internal(
@@ -1894,6 +1961,9 @@ namespace nre::newrg
                     .type = ED_command_list_type::DIRECT
                 }
             );
+            NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+                direct_command_allocator_p->set_debug_name(("nre.newrg.render_graph.direct_command_allocators[" + G_to_string(i) + "]").c_str());
+            )
             auto keyed_direct_command_allocator_p = direct_command_allocator_p.keyed();
             direct_command_allocator_p_vector_.push_back(
                 std::move(direct_command_allocator_p)
@@ -1904,7 +1974,7 @@ namespace nre::newrg
                     internal::direct_command_allocator_raw_p = keyed_direct_command_allocator_p.object_p();
                     internal::direct_command_allocator_p_key = keyed_direct_command_allocator_p.object_key();
                 }
-                );
+            );
 
             // setup compute command allocator
             auto compute_command_allocator_p = H_command_allocator::create(
@@ -1913,6 +1983,9 @@ namespace nre::newrg
                     .type = ED_command_list_type::COMPUTE
                 }
             );
+            NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+                compute_command_allocator_p->set_debug_name(("nre.newrg.render_graph.compute_command_allocators[" + G_to_string(i) + "]").c_str());
+            )
             auto keyed_compute_command_allocator_p = compute_command_allocator_p.keyed();
             compute_command_allocator_p_vector_.push_back(
                 std::move(compute_command_allocator_p)

@@ -7,6 +7,9 @@ namespace nre
 {
     F_cpu_gpu_sync_point::F_cpu_gpu_sync_point(
         TKPA_valid<A_device> device_p
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+            , const F_debug_name& name
+        )
     ) :
         fence_p_(
             H_fence::create(
@@ -16,7 +19,13 @@ namespace nre
                 }
             )
         )
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+            , name_(name)
+        )
     {
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+            fence_p_->set_debug_name(name);
+        )
     }
     F_cpu_gpu_sync_point::~F_cpu_gpu_sync_point()
     {

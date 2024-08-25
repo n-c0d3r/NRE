@@ -22,21 +22,25 @@ namespace nre::newrg
             ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
             ED_descriptor_heap_flag::NONE,
             NRE_INTERMEDIATE_DESCRIPTOR_PAGE_CAPACITY
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.intermediate_descriptor_manager.descriptor_allocators[CBV_SRV_UAV]")
         );
         allocators_[1] = F_descriptor_allocator(
             ED_descriptor_heap_type::SAMPLER,
             ED_descriptor_heap_flag::NONE,
             NRE_INTERMEDIATE_DESCRIPTOR_PAGE_CAPACITY
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.intermediate_descriptor_manager.descriptor_allocators[SAMPLER]")
         );
         allocators_[2] = F_descriptor_allocator(
             ED_descriptor_heap_type::RENDER_TARGET,
             ED_descriptor_heap_flag::NONE,
             NRE_INTERMEDIATE_DESCRIPTOR_PAGE_CAPACITY
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.intermediate_descriptor_manager.descriptor_allocators[RENDER_TARGET]")
         );
         allocators_[3] = F_descriptor_allocator(
             ED_descriptor_heap_type::DEPTH_STENCIL,
             ED_descriptor_heap_flag::NONE,
             NRE_INTERMEDIATE_DESCRIPTOR_PAGE_CAPACITY
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.intermediate_descriptor_manager.descriptor_allocators[DEPTH_STENCIL]")
         );
     }
     F_intermediate_descriptor_manager::~F_intermediate_descriptor_manager()

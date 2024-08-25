@@ -17,24 +17,47 @@ namespace nre::newrg
         F_rhi_placed_resource_pool* parent_p_;
         TG_ring_buffer<TU<A_resource>> rhi_placed_resource_p_ring_buffer_;
 
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        F_debug_name name_;
+#endif
+
     public:
         NCPP_FORCE_INLINE ED_resource_type resource_type() const noexcept { return resource_type_; }
         NCPP_FORCE_INLINE F_rhi_placed_resource_pool* parent_p() const noexcept { return parent_p_; }
         NCPP_FORCE_INLINE const auto& rhi_placed_resource_p_ring_buffer() const noexcept { return rhi_placed_resource_p_ring_buffer_; }
 
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        NCPP_FORCE_INLINE const auto& name() const noexcept { return name_; }
+#endif
+
 
 
     public:
         F_rhi_placed_resource_pool() = default;
-        F_rhi_placed_resource_pool(ED_resource_type resource_type, F_rhi_placed_resource_pool* parent_p = 0) :
+        F_rhi_placed_resource_pool(
+            ED_resource_type resource_type,
+            F_rhi_placed_resource_pool* parent_p = 0
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_debug_name& name = ""
+#endif
+        ) :
             resource_type_(resource_type),
             parent_p_(parent_p),
             rhi_placed_resource_p_ring_buffer_(NRE_RENDER_GRAPH_RHI_RESOURCE_POOL_CAPACITY)
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , name_(name)
+#endif
         {
         }
 
         F_rhi_placed_resource_pool(const F_rhi_placed_resource_pool& x) :
-            F_rhi_placed_resource_pool(x.resource_type_, x.parent_p_)
+            F_rhi_placed_resource_pool(
+                x.resource_type_,
+                x.parent_p_
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , x.name_
+#endif
+            )
         {
         }
         F_rhi_placed_resource_pool& operator = (const F_rhi_placed_resource_pool& x)
@@ -44,6 +67,9 @@ namespace nre::newrg
             rhi_placed_resource_p_ring_buffer_ = TG_ring_buffer<TU<A_resource>>(
                 NRE_RENDER_GRAPH_RHI_RESOURCE_POOL_CAPACITY
             );
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            name_ = x.name_;
+#endif
 
             return *this;
         }
@@ -57,15 +83,25 @@ namespace nre::newrg
             u64 heap_offset
         )
         {
-            return H_resource::create_placed(
+            auto result_p = H_resource::create_placed(
                 NRE_MAIN_DEVICE(),
                 desc,
                 heap_p,
                 heap_offset
             );
+
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            result_p->set_debug_name(name_ + ".<unknown_object>");
+#endif
+
+            return std::move(result_p);
         }
         void destroy_rgi_resource_internal(TU<A_resource>&& rhi_placed_resource_p)
         {
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            rhi_placed_resource_p->set_debug_name(name_ + ".<unknown_object>");
+#endif
+
             rhi_placed_resource_p.reset();
         }
 

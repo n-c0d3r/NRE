@@ -35,6 +35,10 @@ namespace nre {
 			)
 		)
 	{
+		NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+			device_p_->set_debug_name("nre.main_device");
+		);
+
 		instance_ps = NCPP_KTHIS_UNSAFE();
 
 		// create pipeline

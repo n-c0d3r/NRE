@@ -253,6 +253,12 @@ namespace nre::newrg
         void flush_states_internal();
 
     private:
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        void apply_debug_names_internal();
+        void apply_resource_debug_names_internal();
+#endif
+
+    private:
         void setup_internal();
 
     private:

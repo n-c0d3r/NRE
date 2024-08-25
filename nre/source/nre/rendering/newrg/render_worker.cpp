@@ -7,6 +7,19 @@
 
 namespace nre::newrg
 {
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+    namespace internal
+    {
+        F_debug_name parse_render_worker_name(u8 index, const F_debug_name& name)
+        {
+            if(name.size())
+                return name;
+            else
+                return ("nre.newrg.render_workers[" + G_to_string(index) + "]").c_str();
+        }
+    }
+#endif
+
     A_render_worker::A_render_worker(
         u8 index,
         u8 worker_thread_index,
@@ -14,6 +27,9 @@ namespace nre::newrg
         F_threads_sync_point& end_sync_point,
         F_frame_param frame_param,
         ED_command_list_type command_list_type
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , const F_debug_name& name
+#endif
     ) :
         index_(index),
         worker_thread_index_(worker_thread_index),
@@ -29,11 +45,24 @@ namespace nre::newrg
                 }
             )
         ),
-        cpu_gpu_sync_point_(NRE_MAIN_DEVICE()),
+        cpu_gpu_sync_point_(
+            NRE_MAIN_DEVICE()
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , internal::parse_render_worker_name(index, name) + ".fence"
+#endif
+        ),
         command_list_batch_ring_buffer_(NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY),
         managed_render_work_ring_buffer_(NRE_RENDER_WORK_RING_BUFFER_CAPACITY),
         command_list_pool_(command_list_type, NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY)
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , name_(name)
+#endif
     {
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        command_queue_p_->set_debug_name(
+            internal::parse_render_worker_name(index, name)
+        );
+#endif
     }
 
     A_render_worker::~A_render_worker()

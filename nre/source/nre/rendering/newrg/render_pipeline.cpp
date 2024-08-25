@@ -75,6 +75,10 @@ namespace nre::newrg {
 					.type = ED_command_list_type::DIRECT
 				}
 			);
+			NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+				main_command_allocator_p_->set_debug_name("nre.newrg.render_pipeline.main_command_allocator");
+			);
+
 			main_command_list_p_ = H_command_list::create_with_command_allocator(
 				NRE_MAIN_DEVICE(),
 				{
@@ -83,12 +87,18 @@ namespace nre::newrg {
 				}
 			);
 			main_command_list_p_->async_end();
+			NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+				main_command_list_p_->set_debug_name("nre.newrg.render_pipeline.main_command_list");
+			);
 
 			blit_command_queue_p_ = H_command_queue::create(
 				NRE_MAIN_DEVICE(),
 				{
 					ED_command_list_type::BLIT
 				}
+			);
+			NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+				blit_command_queue_p_->set_debug_name("nre.newrg.render_pipeline.blit_command_queue");
 			);
 
 			imgui_descriptor_heap_p_ = H_descriptor_heap::create(
@@ -99,6 +109,9 @@ namespace nre::newrg {
 					.descriptor_count = 1
 				}
 			);
+			NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+				imgui_descriptor_heap_p_->set_debug_name("nre.newrg.render_pipeline.imgui_descriptor_heap");
+			);
 
 			main_swapchain_p_ = H_swapchain::create(
 				NCPP_FOH_VALID(main_render_worker_p->command_queue_p()),
@@ -108,6 +121,9 @@ namespace nre::newrg {
 				F_swapchain_desc {
 				}
 			);
+			NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+				main_swapchain_p_->set_debug_name("nre.newrg.render_pipeline.main_swapchain");
+			);
 			main_frame_buffer_p_ = H_frame_buffer::create(
 				NRE_MAIN_DEVICE(),
 				{
@@ -115,6 +131,9 @@ namespace nre::newrg {
 						main_swapchain_p_->back_rtv_p()
 					}
 				}
+			);
+			NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+				main_frame_buffer_p_->set_debug_name("nre.newrg.render_pipeline.main_frame_buffer");
 			);
 		}
 
