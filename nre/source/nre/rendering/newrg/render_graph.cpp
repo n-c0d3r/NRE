@@ -1870,7 +1870,10 @@ namespace nre::newrg
             auto rhi_p = resource_p->rhi_p();
             if(rhi_p)
             {
-                rhi_p->set_debug_name(resource_p->name().c_str());
+                if(resource_p->name().size())
+                    rhi_p->set_debug_name(resource_p->name().c_str());
+                else
+                    rhi_p->set_debug_name("nre.render_graph.<unnamed_resource>");
             }
         }
     }
