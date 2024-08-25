@@ -90,8 +90,6 @@ namespace nre
 				clear_depth,
 				clear_stencil
 			);
-
-			main_frame_buffer_p_->update_viewport();
 		}
 
 		return true;
