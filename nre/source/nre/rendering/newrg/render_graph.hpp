@@ -192,6 +192,7 @@ namespace nre::newrg
 
     private:
         void initialize_resource_views_internal();
+        void initialize_sampler_states_internal();
         void copy_src_descriptors_internal();
 
     private:
@@ -364,6 +365,15 @@ namespace nre::newrg
         F_render_descriptor* create_resource_view(
             F_render_resource* resource_p,
             ED_resource_view_type view_type
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , F_render_frame_name name = ""
+#endif
+        );
+        /**
+         *  Thread-safe
+         */
+        F_render_descriptor* create_sampler_state(
+            const F_sampler_state_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name = ""
 #endif

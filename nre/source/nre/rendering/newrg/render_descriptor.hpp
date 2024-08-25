@@ -29,7 +29,9 @@ namespace nre::newrg
         F_render_descriptor_id id_ = NCPP_U32_MAX;
 
         F_render_resource* resource_to_create_p_ = 0;
-        F_resource_view_desc* desc_to_create_p_ = 0;
+        F_resource_view_desc* resource_view_desc_to_create_p_ = 0;
+
+        F_sampler_state_desc* sampler_state_desc_to_create_p_ = 0;
 
         F_descriptor_allocation allocation_;
         F_descriptor_handle_range handle_range_;
@@ -48,7 +50,9 @@ namespace nre::newrg
         NCPP_FORCE_INLINE F_render_descriptor_id id() const noexcept { return id_; }
 
         NCPP_FORCE_INLINE F_render_resource* resource_to_create_p() const noexcept { return resource_to_create_p_; }
-        NCPP_FORCE_INLINE F_resource_view_desc* desc_to_create_p() const noexcept { return desc_to_create_p_; }
+        NCPP_FORCE_INLINE F_resource_view_desc* resource_view_desc_to_create_p() const noexcept { return resource_view_desc_to_create_p_; }
+
+        NCPP_FORCE_INLINE F_sampler_state_desc* sampler_state_desc_to_create_p() const noexcept { return sampler_state_desc_to_create_p_; }
 
         NCPP_FORCE_INLINE const auto& allocation() const noexcept { return allocation_; }
         NCPP_FORCE_INLINE const auto& handle_range() const noexcept { return handle_range_; }
@@ -56,12 +60,16 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& src_handle_range() const noexcept { return src_handle_range_; }
 
-        NCPP_FORCE_INLINE b8 need_to_create() const noexcept
+        NCPP_FORCE_INLINE b8 need_to_create_resource_view() const noexcept
         {
             return (
-                (desc_to_create_p_ != 0)
+                (resource_view_desc_to_create_p_ != 0)
                 && (resource_to_create_p_ != 0)
             );
+        }
+        NCPP_FORCE_INLINE b8 need_to_create_sampler_state() const noexcept
+        {
+            return (sampler_state_desc_to_create_p_ != 0);
         }
 
         NCPP_FORCE_INLINE b8 need_to_allocate() const noexcept
@@ -71,7 +79,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE b8 will_be_deallocated() const noexcept
         {
             return (
-                (allocation_ || (desc_to_create_p_ && resource_to_create_p_))
+                (allocation_ || need_to_create_resource_view() || need_to_create_sampler_state())
                 && !need_to_export()
             );
         }
@@ -102,6 +110,12 @@ namespace nre::newrg
         F_render_descriptor(
             F_render_resource* resource_to_create_p,
             F_resource_view_desc* desc_to_create_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_render_frame_name& name
+#endif
+        );
+        F_render_descriptor(
+            F_sampler_state_desc* sampler_state_desc_to_create_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
 #endif

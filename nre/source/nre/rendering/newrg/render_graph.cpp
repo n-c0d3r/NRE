@@ -772,13 +772,6 @@ namespace nre::newrg
         {
             for(F_render_descriptor* descriptor_p : descriptor_span)
             {
-                if(descriptor_p->need_to_create())
-                {
-                    F_render_resource* resource_p = descriptor_p->resource_to_create_p_;
-                    auto& desc = *(descriptor_p->desc_to_create_p_);
-                    desc.resource_p = resource_p->rhi_p();
-                }
-
                 if(descriptor_p->need_to_allocate())
                 {
                     F_descriptor_handle_range& descriptor_handle_range = descriptor_p->handle_range_;
@@ -860,17 +853,40 @@ namespace nre::newrg
         auto descriptor_span = descriptor_p_owf_stack_.item_span();
         for(F_render_descriptor* descriptor_p : descriptor_span)
         {
-            if(descriptor_p->need_to_create())
+            if(descriptor_p->need_to_create_resource_view())
             {
-                auto& desc = *(descriptor_p->desc_to_create_p_);
+                F_render_resource* resource_p = descriptor_p->resource_to_create_p_;
+                auto& desc = *(descriptor_p->resource_view_desc_to_create_p_);
+                desc.resource_p = resource_p->rhi_p();
 
                 auto& descriptor_allocation = descriptor_p->allocation_;
                 auto& descriptor_handle_range = descriptor_p->handle_range_;
-                auto descriptor_heap_type = descriptor_p->heap_type_;
 
                 auto& page = descriptor_allocation.allocator_p->pages()[descriptor_allocation.page_index];
 
                 H_descriptor::initialize_resource_view(
+                    NCPP_FOH_VALID(page.heap_p),
+                    descriptor_handle_range.begin_handle.cpu_address,
+                    desc
+                );
+            }
+        }
+    }
+    void F_render_graph::initialize_sampler_states_internal()
+    {
+        auto descriptor_span = descriptor_p_owf_stack_.item_span();
+        for(F_render_descriptor* descriptor_p : descriptor_span)
+        {
+            if(descriptor_p->need_to_create_resource_view())
+            {
+                auto& desc = *(descriptor_p->sampler_state_desc_to_create_p_);
+
+                auto& descriptor_allocation = descriptor_p->allocation_;
+                auto& descriptor_handle_range = descriptor_p->handle_range_;
+
+                auto& page = descriptor_allocation.allocator_p->pages()[descriptor_allocation.page_index];
+
+                H_descriptor::initialize_sampler_state(
                     NCPP_FOH_VALID(page.heap_p),
                     descriptor_handle_range.begin_handle.cpu_address,
                     desc
@@ -1660,6 +1676,7 @@ namespace nre::newrg
         create_rhi_resources_internal();
         allocate_descriptors_internal();
         initialize_resource_views_internal();
+        initialize_sampler_states_internal();
         copy_src_descriptors_internal();
 
         create_pass_fences_internal();
@@ -1853,6 +1870,26 @@ namespace nre::newrg
 
         F_render_descriptor* render_descriptor_p = T_create<F_render_descriptor>(
             resource_p,
+            desc_to_create_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , name
+#endif
+        );
+
+        render_descriptor_p->id_ = descriptor_p_owf_stack_.push_and_return_index(render_descriptor_p);
+
+        return render_descriptor_p;
+    }
+    F_render_descriptor* F_render_graph::create_sampler_state(
+        const F_sampler_state_desc& desc
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , F_render_frame_name name
+#endif
+    )
+    {
+        F_sampler_state_desc* desc_to_create_p = T_create<F_sampler_state_desc>(desc);
+
+        F_render_descriptor* render_descriptor_p = T_create<F_render_descriptor>(
             desc_to_create_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , name

@@ -13,7 +13,7 @@ namespace nre::newrg
 #endif
     ) :
         resource_to_create_p_(resource_to_create_p),
-        desc_to_create_p_(desc_to_create_p),
+        resource_view_desc_to_create_p_(desc_to_create_p),
         handle_range_({ .count = 1 })
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , name_(name)
@@ -21,7 +21,7 @@ namespace nre::newrg
     {
         // convert view type to descriptor heap type
         NRHI_ENUM_SWITCH(
-            desc_to_create_p_->type,
+            resource_view_desc_to_create_p_->type,
             NRHI_ENUM_CASE(
                 ED_resource_view_type::SHADER_RESOURCE,
                 heap_type_ = ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS
@@ -39,6 +39,20 @@ namespace nre::newrg
                 heap_type_ = ED_descriptor_heap_type::DEPTH_STENCIL
             )
         );
+    }
+    F_render_descriptor::F_render_descriptor(
+        F_sampler_state_desc* sampler_state_desc_to_create_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , const F_render_frame_name& name
+#endif
+    ) :
+        sampler_state_desc_to_create_p_(sampler_state_desc_to_create_p),
+        handle_range_({ .count = 1 }),
+        heap_type_(ED_descriptor_heap_type::SAMPLER)
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , name_(name)
+#endif
+    {
     }
     F_render_descriptor::F_render_descriptor(
         const F_descriptor_allocation& allocation,
