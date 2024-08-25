@@ -6,6 +6,7 @@
 #include <nre/rendering/newrg/render_descriptor_id.hpp>
 #include <nre/rendering/newrg/descriptor_allocation.hpp>
 #include <nre/rendering/newrg/descriptor_handle_range.hpp>
+#include <nre/rendering/newrg/render_resource.hpp>
 
 
 namespace nre::newrg

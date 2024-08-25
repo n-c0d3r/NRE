@@ -40,7 +40,7 @@ namespace nre::newrg
         pass_p_owf_stack_(NRE_RENDER_GRAPH_PASS_OWF_STACK_CAPACITY),
         resource_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
         descriptor_p_owf_stack_(NRE_RENDER_GRAPH_DESCRIPTOR_OWF_STACK_CAPACITY),
-        rhi_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_TO_RELEASE_OWF_STACK_CAPACITY),
+        rhi_resource_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_RESOURCE_TO_RELEASE_OWF_STACK_CAPACITY),
         execute_range_owf_stack_(NRE_RENDER_GRAPH_EXECUTE_RANGE_OWF_STACK_CAPACITY),
         epilogue_resource_state_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY)
     {
@@ -848,6 +848,23 @@ namespace nre::newrg
         }
     }
 
+    void F_render_graph::validate_resource_views_to_create_internal()
+    {
+        auto descriptor_span = descriptor_p_owf_stack_.item_span();
+        for(F_render_descriptor* descriptor_p : descriptor_span)
+        {
+            if(descriptor_p->need_to_create_resource_view())
+            {
+                F_render_resource* resource_p = descriptor_p->resource_to_create_p_;
+
+                if(!(resource_p->rhi_p()))
+                {
+                    descriptor_p->resource_to_create_p_ = 0;
+                    descriptor_p->resource_view_desc_to_create_p_ = 0;
+                }
+            }
+        }
+    }
     void F_render_graph::initialize_resource_views_internal()
     {
         auto descriptor_span = descriptor_p_owf_stack_.item_span();
@@ -1595,9 +1612,9 @@ namespace nre::newrg
         }
     }
 
-    void F_render_graph::flush_rhi_to_release_internal()
+    void F_render_graph::flush_rhi_resource_to_release_internal()
     {
-        rhi_to_release_owf_stack_.reset();
+        rhi_resource_to_release_owf_stack_.reset();
     }
     void F_render_graph::flush_descriptor_allocation_to_release_internal()
     {
@@ -1634,7 +1651,7 @@ namespace nre::newrg
 
         flush_rhi_resources_internal();
 
-        flush_rhi_to_release_internal();
+        flush_rhi_resource_to_release_internal();
 
         epilogue_resource_state_stack_.reset();
         resource_p_owf_stack_.reset();
@@ -1675,6 +1692,7 @@ namespace nre::newrg
 
         create_rhi_resources_internal();
         allocate_descriptors_internal();
+        validate_resource_views_to_create_internal();
         initialize_resource_views_internal();
         initialize_sampler_states_internal();
         copy_src_descriptors_internal();
@@ -1929,9 +1947,10 @@ namespace nre::newrg
     }
     F_render_resource* F_render_graph::import_resource(TKPA_valid<F_external_render_resource> external_resource_p)
     {
-        NCPP_ASSERT(external_resource_p->rhi_p_) << "can export and import a resource both in a frame";
-
         NCPP_SCOPED_LOCK(external_resource_p->import_lock_);
+
+        if(!(external_resource_p->rhi_p_))
+            return 0;
 
         if(!(external_resource_p->internal_p_))
         {
@@ -1977,9 +1996,10 @@ namespace nre::newrg
 
     F_render_descriptor* F_render_graph::import_descriptor(TKPA_valid<F_external_render_descriptor> external_descriptor_p)
     {
-        NCPP_ASSERT(external_descriptor_p->handle_range_) << "can export and import a resource view both in a frame";
-
         NCPP_SCOPED_LOCK(external_descriptor_p->import_lock_);
+
+        if(!(external_descriptor_p->allocation_))
+            return 0;
 
         if(!(external_descriptor_p->internal_p_))
         {
@@ -2053,10 +2073,10 @@ namespace nre::newrg
         return render_descriptor_p;
     }
 
-    void F_render_graph::enqueue_rhi_to_release(F_rhi_to_release&& rhi_to_release)
+    void F_render_graph::enqueue_rhi_resource_to_release(F_rhi_resource_to_release&& rhi_resource_to_release)
     {
-        rhi_to_release_owf_stack_.push(
-            std::move(rhi_to_release)
+        rhi_resource_to_release_owf_stack_.push(
+            std::move(rhi_resource_to_release)
         );
     }
 

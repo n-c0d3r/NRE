@@ -23,7 +23,7 @@ namespace nre::newrg
 
         if(rhi_p_)
         {
-            F_render_graph::instance_p()->enqueue_rhi_to_release({
+            F_render_graph::instance_p()->enqueue_rhi_resource_to_release({
                 std::move(rhi_p_),
                 allocation_
             });

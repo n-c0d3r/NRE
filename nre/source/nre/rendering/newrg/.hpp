@@ -41,6 +41,9 @@
 #include <nre/rendering/newrg/render_descriptor.hpp>
 #include <nre/rendering/newrg/render_descriptor_id.hpp>
 #include <nre/rendering/newrg/external_render_descriptor.hpp>
+#include <nre/rendering/newrg/render_frame_buffer.hpp>
+#include <nre/rendering/newrg/render_frame_buffer_id.hpp>
+#include <nre/rendering/newrg/external_render_frame_buffer.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

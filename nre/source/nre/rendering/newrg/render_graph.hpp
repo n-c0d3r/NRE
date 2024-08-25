@@ -78,12 +78,12 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_render_resource*> resource_p_owf_stack_;
         TG_concurrent_owf_stack<F_render_descriptor*> descriptor_p_owf_stack_;
 
-        struct F_rhi_to_release
+        struct F_rhi_resource_to_release
         {
             TU<A_resource> rhi_p;
             F_render_resource_allocation allocation;
         };
-        TG_concurrent_owf_stack<F_rhi_to_release> rhi_to_release_owf_stack_;
+        TG_concurrent_owf_stack<F_rhi_resource_to_release> rhi_resource_to_release_owf_stack_;
 
         TG_concurrent_owf_stack<F_descriptor_allocation> descriptor_allocation_to_release_owf_stack_;
 
@@ -119,7 +119,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& resource_p_owf_stack() noexcept { return resource_p_owf_stack_; }
         NCPP_FORCE_INLINE auto& descriptor_p_owf_stack() noexcept { return descriptor_p_owf_stack_; }
 
-        NCPP_FORCE_INLINE auto& rhi_to_release_owf_stack() noexcept { return rhi_to_release_owf_stack_; }
+        NCPP_FORCE_INLINE auto& rhi_resource_to_release_owf_stack() noexcept { return rhi_resource_to_release_owf_stack_; }
 
         NCPP_FORCE_INLINE auto& descriptor_allocation_to_release_owf_stack() noexcept { return descriptor_allocation_to_release_owf_stack_; }
 
@@ -191,6 +191,7 @@ namespace nre::newrg
         void deallocate_descriptors_internal();
 
     private:
+        void validate_resource_views_to_create_internal();
         void initialize_resource_views_internal();
         void initialize_sampler_states_internal();
         void copy_src_descriptors_internal();
@@ -216,7 +217,7 @@ namespace nre::newrg
         void export_descriptors_internal();
 
     private:
-        void flush_rhi_to_release_internal();
+        void flush_rhi_resource_to_release_internal();
         void flush_descriptor_allocation_to_release_internal();
 
     private:
@@ -432,7 +433,7 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        void enqueue_rhi_to_release(F_rhi_to_release&& rhi_to_release);
+        void enqueue_rhi_resource_to_release(F_rhi_resource_to_release&& rhi_resource_to_release);
 
     public:
         /**
