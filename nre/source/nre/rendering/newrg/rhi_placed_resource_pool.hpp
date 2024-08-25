@@ -98,10 +98,6 @@ namespace nre::newrg
         }
         void destroy_rgi_resource_internal(TU<A_resource>&& rhi_placed_resource_p)
         {
-#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            rhi_placed_resource_p->set_debug_name(name_ + ".<unknown_object>");
-#endif
-
             rhi_placed_resource_p.reset();
         }
 

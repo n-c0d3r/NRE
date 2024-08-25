@@ -7,10 +7,16 @@ namespace nre::newrg
 {
     TU<A_command_list> F_command_list_pool::create_command_list_internal(const F_command_list_desc& desc)
     {
-        return H_command_list::create_with_command_allocator(
+        auto result_p = H_command_list::create_with_command_allocator(
             NRE_MAIN_DEVICE(),
             desc
         );
+
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        result_p->set_debug_name(name_ + ".[unknown_object]");
+#endif
+
+        return std::move(result_p);
     }
     void F_command_list_pool::destroy_rgi_command_list_internal(TU<A_command_list>&& command_list_p)
     {

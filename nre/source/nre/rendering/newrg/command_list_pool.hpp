@@ -17,25 +17,50 @@ namespace nre::newrg
         F_command_list_pool* parent_p_ = 0;
         TG_concurrent_ring_buffer<TU<A_command_list>> command_list_p_ring_buffer_;
 
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        F_debug_name name_;
+#endif
+
     public:
         NCPP_FORCE_INLINE ED_command_list_type command_list_type() const noexcept { return command_list_type_; }
         NCPP_FORCE_INLINE F_command_list_pool* parent_p() const noexcept { return parent_p_; }
         NCPP_FORCE_INLINE const auto& command_list_p_ring_buffer() const noexcept { return command_list_p_ring_buffer_; }
         NCPP_FORCE_INLINE u32 capacity() const noexcept { return command_list_p_ring_buffer_.capacity(); }
 
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        NCPP_FORCE_INLINE const auto& name() const noexcept { return name_; }
+#endif
+
 
 
     public:
         F_command_list_pool() = default;
-        F_command_list_pool(ED_command_list_type command_list_type, u32 capacity, F_command_list_pool* parent_p = 0) :
+        F_command_list_pool(
+            ED_command_list_type command_list_type,
+            u32 capacity,
+            F_command_list_pool* parent_p = 0
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_debug_name& name = ""
+#endif
+        ) :
             command_list_type_(command_list_type),
             parent_p_(parent_p),
             command_list_p_ring_buffer_(capacity * 2)
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , name_(name)
+#endif
         {
         }
 
         F_command_list_pool(const F_command_list_pool& x) :
-            F_command_list_pool(x.command_list_type_, x.capacity(), x.parent_p_)
+            F_command_list_pool(
+                x.command_list_type_,
+                x.capacity(),
+                x.parent_p_
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , x.name_
+#endif
+            )
         {
         }
         F_command_list_pool& operator = (const F_command_list_pool& x)
@@ -45,6 +70,9 @@ namespace nre::newrg
             command_list_p_ring_buffer_ = TG_concurrent_ring_buffer<TU<A_command_list>>(
                 x.capacity() * 2
             );
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            name_ = x.name_;
+#endif
 
             return *this;
         }

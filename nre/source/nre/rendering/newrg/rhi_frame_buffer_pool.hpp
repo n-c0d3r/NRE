@@ -89,10 +89,6 @@ namespace nre::newrg
         }
         void destroy_rgi_frame_buffer_internal(TU<A_frame_buffer>&& rhi_frame_buffer_p)
         {
-#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            rhi_frame_buffer_p->set_debug_name(name_ + ".<unknown_object>");
-#endif
-
             rhi_frame_buffer_p.reset();
         }
 

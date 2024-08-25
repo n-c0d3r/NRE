@@ -53,9 +53,16 @@ namespace nre::newrg
         ),
         command_list_batch_ring_buffer_(NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY),
         managed_render_work_ring_buffer_(NRE_RENDER_WORK_RING_BUFFER_CAPACITY),
-        command_list_pool_(command_list_type, NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY)
+        command_list_pool_(
+            command_list_type,
+            NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY,
+            0
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , name_(name)
+            , internal::parse_render_worker_name(index, name) + ".command_list_pool"
+#endif
+        )
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , name_(internal::parse_render_worker_name(index, name))
 #endif
     {
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
