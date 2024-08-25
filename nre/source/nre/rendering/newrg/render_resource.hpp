@@ -69,7 +69,7 @@ namespace nre::newrg
                 (desc_to_create_p_ != 0) &&
                 (
                     (access_dependencies_.size() != 0)
-                    || need_to_export()
+                    // || need_to_export()
                 )
             );
         }

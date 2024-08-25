@@ -622,25 +622,25 @@ namespace nre::newrg
             }
         }
 
-        // allocate resource that is not used by any pass but need to exported
-        auto resource_span = resource_p_owf_stack_.item_span();
-        for(F_render_resource* resource_p : resource_span)
-        {
-            if(!(resource_p->need_to_create()))
-                continue;
-
-            if(!(resource_p->need_to_export()))
-                continue;
-
-            const auto& desc = *(resource_p->desc_to_create_p_);
-
-            auto& allocator = find_resource_allocator(desc.type, desc.flags);
-
-            resource_p->allocation_ = allocator.allocate(
-                desc.size,
-                internal::appropriate_alignment(desc)
-            );
-        }
+        // // allocate resource that is not used by any pass but need to exported
+        // auto resource_span = resource_p_owf_stack_.item_span();
+        // for(F_render_resource* resource_p : resource_span)
+        // {
+        //     if(!(resource_p->need_to_create()))
+        //         continue;
+        //
+        //     if(!(resource_p->need_to_export()))
+        //         continue;
+        //
+        //     const auto& desc = *(resource_p->desc_to_create_p_);
+        //
+        //     auto& allocator = find_resource_allocator(desc.type, desc.flags);
+        //
+        //     resource_p->allocation_ = allocator.allocate(
+        //         desc.size,
+        //         internal::appropriate_alignment(desc)
+        //     );
+        // }
     }
     void F_render_graph::calculate_resource_aliases_internal()
     {
@@ -2142,6 +2142,7 @@ namespace nre::newrg
     )
     {
         NCPP_SCOPED_LOCK(frame_buffer_p->export_lock_);
+        NCPP_ASSERT(frame_buffer_p->need_to_create() || frame_buffer_p->rhi_p()) << "can't export permanent frame buffer";
 
         if(!(frame_buffer_p->external_p_))
         {
