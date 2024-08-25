@@ -13,7 +13,7 @@ namespace nre::newrg
         );
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        result_p->set_debug_name(name_ + ".<unknown_object>");
+        result_p->set_debug_name(name_ + ".<unnamed_object>");
 #endif
 
         return std::move(result_p);
