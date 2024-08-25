@@ -57,7 +57,7 @@ namespace
             desc
         );
 
-        return H_resource_view::create_with_descriptor(
+        return H_resource_view::create_with_managed_descriptor(
             device_p,
             desc,
             {
@@ -138,7 +138,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::release_driver_specific_imp
     TKPA_valid<A_resource_view> resource_view_p
 )
 {
-    const F_descriptor& descriptor = resource_view_p->descriptor();
+    const F_descriptor& descriptor = resource_view_p->managed_descriptor();
     NCPP_ASSERT(descriptor);
 
     const F_resource_view_desc& desc = resource_view_p->desc();

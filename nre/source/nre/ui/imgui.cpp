@@ -147,7 +147,7 @@ namespace nre {
 				// uase dx12 instead of cross-driver API due to the need of frame buffer
 				auto d3d12_command_list_p = main_command_list_p.T_cast<F_directx12_command_list>()->d3d12_command_list_p();
 				D3D12_CPU_DESCRIPTOR_HANDLE back_rtv_cpu_address = {
-					main_swapchain_p->back_rtv_p()->descriptor().handle.cpu_address
+					main_swapchain_p->back_rtv_p()->descriptor_handle().cpu_address
 				};
 				d3d12_command_list_p->OMSetRenderTargets(
 					1,

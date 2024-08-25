@@ -53,7 +53,7 @@ int main() {
 
 			F_render_descriptor* rg_back_rtv_p = render_graph_p->create_descriptor_from_src(
 				{
-					.begin_handle = back_rtv_p->descriptor().handle,
+					.begin_handle = back_rtv_p->descriptor_handle(),
 					.count = 1
 				},
 				ED_descriptor_heap_type::RENDER_TARGET
