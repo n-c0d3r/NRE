@@ -861,6 +861,41 @@ namespace nre::newrg
         {
             if(frame_buffer_p->need_to_create())
             {
+                auto& rtv_descriptor_p_vector = frame_buffer_p->rtv_descriptor_p_vector_to_create_;
+                u32 rtv_descriptor_count = rtv_descriptor_p_vector.size();
+                auto& dsv_descriptor_p = frame_buffer_p->dsv_descriptor_p_to_create_;
+
+                // validate rtvs
+                TG_fixed_vector<F_descriptor_cpu_address, 8, false> rtv_descriptor_cpu_addresses(rtv_descriptor_count);
+                for(u32 i = 0; i < rtv_descriptor_count; ++i)
+                {
+                    auto rtv_descriptor_p = rtv_descriptor_p_vector[i];
+
+                    F_descriptor_cpu_address descriptor_cpu_address = rtv_descriptor_p->handle_range_.begin_handle.cpu_address;
+                    rtv_descriptor_cpu_addresses[i] = descriptor_cpu_address;
+                    if(!descriptor_cpu_address)
+                    {
+                        continue;
+                    }
+                }
+
+                // validate dsv
+                F_descriptor_cpu_address dsv_descriptor_cpu_address = 0;
+                if(dsv_descriptor_p)
+                {
+                    dsv_descriptor_cpu_address = dsv_descriptor_p->handle_range_.begin_handle.cpu_address;
+                }
+                if(!dsv_descriptor_cpu_address)
+                {
+                    continue;
+                }
+
+                //
+                frame_buffer_p->owned_rhi_p_ = rhi_frame_buffer_pool_.pop(
+                    rtv_descriptor_cpu_addresses,
+                    dsv_descriptor_cpu_address
+                );
+                frame_buffer_p->rhi_p_ = frame_buffer_p->owned_rhi_p_;
             }
         }
     }
@@ -871,6 +906,9 @@ namespace nre::newrg
         {
             if(frame_buffer_p->can_be_deallocated())
             {
+                rhi_frame_buffer_pool_.push(
+                    std::move(frame_buffer_p->owned_rhi_p_)
+                );
             }
         }
     }
@@ -1981,6 +2019,11 @@ namespace nre::newrg
 #endif
     )
     {
+#ifdef NCPP_ENABLE_ASSERT
+        for(auto& rtv_descriptor_p : rtv_descriptor_p_vector)
+            NCPP_ASSERT(rtv_descriptor_p) << "invalid rtv descriptor";
+#endif
+
         F_render_frame_buffer* render_frame_buffer_p = T_create<F_render_frame_buffer>(
             rtv_descriptor_p_vector,
             dsv_descriptor_p

@@ -60,6 +60,12 @@ int main() {
 				NRE_OPTIONAL_DEBUG_PARAM("back_rtv")
 			);
 
+			F_render_frame_buffer* rg_frame_buffer_p = render_graph_p->create_frame_buffer(
+				{ rg_back_rtv_p },
+				0
+				NRE_OPTIONAL_DEBUG_PARAM("frame_buffer")
+			);
+
 			F_render_pass* rg_pass_p = render_graph_p->create_pass(
 				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
 				{

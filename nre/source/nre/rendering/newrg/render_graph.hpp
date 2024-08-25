@@ -8,6 +8,7 @@
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_resource_allocator.hpp>
 #include <nre/rendering/newrg/rhi_placed_resource_pool.hpp>
+#include <nre/rendering/newrg/rhi_frame_buffer_pool.hpp>
 #include <nre/rendering/newrg/render_pass_execute_range.hpp>
 #include <nre/rendering/newrg/render_fence_state.hpp>
 #include <nre/rendering/newrg/render_resource_state.hpp>
@@ -75,6 +76,7 @@ namespace nre::newrg
 
         TG_array<F_render_resource_allocator, NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_COUNT> resource_allocators_;
         TG_unordered_map<u32, F_rhi_placed_resource_pool> rhi_placed_resource_pools_;
+        F_rhi_frame_buffer_pool rhi_frame_buffer_pool_;
 
         TG_concurrent_owf_stack<F_render_pass*> pass_p_owf_stack_;
         TG_concurrent_owf_stack<F_render_resource*> resource_p_owf_stack_;
@@ -119,6 +121,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& resource_allocators() noexcept { return resource_allocators_; }
         NCPP_FORCE_INLINE const auto& rhi_placed_resource_pools() const noexcept { return rhi_placed_resource_pools_; }
         NCPP_FORCE_INLINE auto& rhi_placed_resource_pools() noexcept { return rhi_placed_resource_pools_; }
+        NCPP_FORCE_INLINE const auto& rhi_frame_buffer_pool() const noexcept { return rhi_frame_buffer_pool_; }
+        NCPP_FORCE_INLINE auto& rhi_frame_buffer_pool() noexcept { return rhi_frame_buffer_pool_; }
 
         NCPP_FORCE_INLINE auto& pass_p_owf_stack() noexcept { return pass_p_owf_stack_; }
         NCPP_FORCE_INLINE auto& resource_p_owf_stack() noexcept { return resource_p_owf_stack_; }
