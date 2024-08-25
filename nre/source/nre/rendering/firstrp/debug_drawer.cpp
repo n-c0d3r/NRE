@@ -152,6 +152,10 @@ namespace nre {
 						0
 					);
 
+					render_command_list_p->ZRS_bind_viewport({
+						.max_xy = render_view_p->size()
+					});
+
 					render_command_list_p->ZOM_bind_frame_buffer(
 						NCPP_FOH_VALID(render_view_frame_buffer_p)
 					);

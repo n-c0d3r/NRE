@@ -93,7 +93,11 @@ int main() {
 				  	auto main_frame_buffer_p = casted_render_view_p->main_frame_buffer_p();
 
 				  	if(!main_frame_buffer_p)
-					  	return;
+				  		return;
+
+					main_command_list_p->ZRS_bind_viewport({
+						.max_xy = render_view_p->size()
+					});
 
 				  	main_command_list_p->ZOM_bind_frame_buffer(
 						NCPP_FOH_VALID(main_frame_buffer_p)

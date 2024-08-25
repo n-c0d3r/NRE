@@ -319,6 +319,10 @@ int main() {
 					0
 				);
 
+				main_command_list_p->ZRS_bind_viewport({
+					.max_xy = NRE_MAIN_SURFACE()->desc().size
+				});
+
 				main_command_list_p->ZOM_bind_frame_buffer(
 					NCPP_FOH_VALID(main_frame_buffer_p)
 				);

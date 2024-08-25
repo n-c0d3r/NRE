@@ -232,7 +232,11 @@ int main() {
 								NCPP_FOH_VALID(main_frame_buffer_p)
 							);
 					  	}
-				  	);
+					);
+
+					main_command_list_p->ZRS_bind_viewport({
+						.max_xy = render_view_p->size()
+					});
 
 				  	main_command_list_p->ZOM_bind_frame_buffer(
 						NCPP_FOH_VALID(main_frame_buffer_p)

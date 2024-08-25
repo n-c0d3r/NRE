@@ -175,13 +175,6 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_sampler_state(
 {
 }
 
-void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZOM_bind_frame_buffer(
-    TKPA_valid<A_command_list> command_list_p,
-    TKPA_valid<A_frame_buffer> frame_buffer_p
-)
-{
-}
-
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_constant_buffers(
     TKPA_valid<A_command_list> command_list_p,
     const TG_span<K_valid_buffer_handle>& constant_buffer_p_span,

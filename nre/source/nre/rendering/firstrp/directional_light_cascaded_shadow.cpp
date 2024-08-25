@@ -348,6 +348,10 @@ namespace nre {
 				0
 			);
 
+			render_command_list_p->ZRS_bind_viewport({
+				.max_xy = casted_shadow_p->map_size()
+			});
+
 			render_command_list_p->ZOM_bind_frame_buffer(shadow_frame_buffer_p);
 			NRE_MATERIAL_SYSTEM()->T_for_each<I_has_simple_shadow_render_render_material_proxy>(
 				[&](const auto& material_p)
