@@ -46,7 +46,7 @@ namespace nre::newrg
         frame_buffer_p_owf_stack_(NRE_RENDER_GRAPH_FRAME_BUFFER_OWF_STACK_CAPACITY),
         rhi_resource_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_RESOURCE_TO_RELEASE_OWF_STACK_CAPACITY),
         descriptor_allocation_to_release_owf_stack_(NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATION_TO_RELEASE_OWF_STACK_CAPACITY),
-        rhi_frame_buffer_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_RESOURCE_TO_RELEASE_OWF_STACK_CAPACITY),
+        rhi_frame_buffer_to_release_owf_stack_(NRE_RENDER_GRAPH_RHI_FRAME_BUFFER_TO_RELEASE_OWF_STACK_CAPACITY),
         execute_range_owf_stack_(NRE_RENDER_GRAPH_EXECUTE_RANGE_OWF_STACK_CAPACITY),
         epilogue_resource_state_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY)
     {
