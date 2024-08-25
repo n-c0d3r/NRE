@@ -9,6 +9,7 @@ TU<A_pipeline_state> NRHI_DRIVER_ALTERNATIVE(nrhi, H_pipeline_state)::create(
     const A_pipeline_state_desc& desc
 )
 {
+    NCPP_ASSERT(false) << "not supported";
     return {};
 }
 
@@ -17,6 +18,7 @@ U_graphics_pipeline_state_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_pipeline_state)
     const F_graphics_pipeline_state_options& options
 )
 {
+    NCPP_ASSERT(false) << "not supported";
     return {};
 }
 U_compute_pipeline_state_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_pipeline_state)::create_compute_pipeline_state(
@@ -24,5 +26,6 @@ U_compute_pipeline_state_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_pipeline_state):
     const F_compute_pipeline_state_options& options
 )
 {
+    NCPP_ASSERT(false) << "not supported";
     return {};
 }

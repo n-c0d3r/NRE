@@ -17,17 +17,20 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::begin(
     TKPA_valid<A_command_list> command_list_p
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::end(
     TKPA_valid<A_command_list> command_list_p
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::clear_state(
     TKPA_valid<A_command_list> command_list_p
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::clear_rtv(
     TKPA_valid<A_command_list> command_list_p,
@@ -35,6 +38,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::clear_rtv(
     PA_vector4_f32 color
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::clear_dsv(
     TKPA_valid<A_command_list> command_list_p,
@@ -44,6 +48,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::clear_dsv(
     u8 stencil
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::bind_pipeline_state(
@@ -51,18 +56,21 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::bind_pipeline_state(
     TKPA_valid<A_pipeline_state> pipeline_state_p
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZG_bind_pipeline_state(
     TKPA_valid<A_command_list> command_list_p,
     KPA_valid_graphics_pipeline_state_handle pipeline_state_p
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZC_bind_pipeline_state(
     TKPA_valid<A_command_list> command_list_p,
     KPA_valid_compute_pipeline_state_handle pipeline_state_p
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZIA_bind_index_buffer(
@@ -71,6 +79,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZIA_bind_index_buffer(
     u32 offset
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZIA_bind_input_buffers(
     TKPA_valid<A_command_list> command_list_p,
@@ -79,6 +88,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZIA_bind_input_buffers(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZIA_bind_input_buffer(
     TKPA_valid<A_command_list> command_list_p,
@@ -87,6 +97,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZIA_bind_input_buffer(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_constant_buffers(
@@ -95,6 +106,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_constant_buffers(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_constant_buffer(
     TKPA_valid<A_command_list> command_list_p,
@@ -102,6 +114,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_constant_buffer(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_srvs(
     TKPA_valid<A_command_list> command_list_p,
@@ -109,6 +122,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_srvs(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_srv(
     TKPA_valid<A_command_list> command_list_p,
@@ -116,6 +130,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_srv(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_sampler_states(
     TKPA_valid<A_command_list> command_list_p,
@@ -123,6 +138,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_sampler_states(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_sampler_state(
     TKPA_valid<A_command_list> command_list_p,
@@ -130,6 +146,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZVS_bind_sampler_state(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_constant_buffers(
@@ -138,6 +155,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_constant_buffers(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_constant_buffer(
     TKPA_valid<A_command_list> command_list_p,
@@ -145,6 +163,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_constant_buffer(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_srvs(
     TKPA_valid<A_command_list> command_list_p,
@@ -152,6 +171,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_srvs(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_srv(
     TKPA_valid<A_command_list> command_list_p,
@@ -159,6 +179,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_srv(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_sampler_states(
     TKPA_valid<A_command_list> command_list_p,
@@ -166,6 +187,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_sampler_states(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_sampler_state(
     TKPA_valid<A_command_list> command_list_p,
@@ -173,6 +195,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZPS_bind_sampler_state(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_constant_buffers(
@@ -181,6 +204,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_constant_buffers(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_constant_buffer(
     TKPA_valid<A_command_list> command_list_p,
@@ -188,6 +212,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_constant_buffer(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_srvs(
     TKPA_valid<A_command_list> command_list_p,
@@ -195,6 +220,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_srvs(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_srv(
     TKPA_valid<A_command_list> command_list_p,
@@ -202,6 +228,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_srv(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_uavs(
     TKPA_valid<A_command_list> command_list_p,
@@ -209,6 +236,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_uavs(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_uav(
     TKPA_valid<A_command_list> command_list_p,
@@ -216,6 +244,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_uav(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_sampler_states(
     TKPA_valid<A_command_list> command_list_p,
@@ -223,6 +252,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_sampler_states(
     u32 base_slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_sampler_state(
     TKPA_valid<A_command_list> command_list_p,
@@ -230,6 +260,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::ZCS_bind_sampler_state(
     u32 slot_index
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw(
@@ -238,6 +269,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw(
     u32 base_vertex_location
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_instanced(
     TKPA_valid<A_command_list> command_list_p,
@@ -247,6 +279,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_instanced(
     u32 base_instance_location
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_indexed(
     TKPA_valid<A_command_list> command_list_p,
@@ -255,6 +288,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_indexed(
     u32 base_vertex_location
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_indexed_instanced(
     TKPA_valid<A_command_list> command_list_p,
@@ -265,6 +299,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_indexed_instanced(
     u32 base_instance_location
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::dispatch(
@@ -272,6 +307,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::dispatch(
     PA_vector3_u32 thread_group_count_3d
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_instanced_indirect(
@@ -280,6 +316,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_instanced_indirect(
     u32 buffer_offset
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_indexed_instanced_indirect(
     TKPA_valid<A_command_list> command_list_p,
@@ -287,6 +324,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_indexed_instanced_indir
     u32 buffer_offset
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::dispatch_indirect(
@@ -295,6 +333,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::dispatch_indirect(
     u32 buffer_offset
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::update_resource_data(
@@ -306,10 +345,12 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::update_resource_data(
     u32 dst_data_offset
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::generate_mips(
     TKPA_valid<A_command_list> command_list_p,
     KPA_valid_srv_handle srv_p
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }

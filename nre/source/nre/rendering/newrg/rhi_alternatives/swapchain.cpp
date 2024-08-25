@@ -8,4 +8,5 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_swapchain)::present(
     TKPA_valid<A_swapchain> swapchain_p
 )
 {
+    NCPP_ASSERT(false) << "not supported";
 }
