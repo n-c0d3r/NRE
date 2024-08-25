@@ -30,7 +30,7 @@
 #include <nre/rendering/newrg/managed_command_list_batch.hpp>
 #include <nre/rendering/newrg/managed_fence_batch.hpp>
 #include <nre/rendering/newrg/managed_render_work.hpp>
-#include <nre/rendering/newrg/renderer_tick_event.hpp>
+#include <nre/rendering/newrg/renderer_events.hpp>
 #include <nre/rendering/newrg/renderer.hpp>
 #include <nre/rendering/newrg/render_resource_aliasing_state.hpp>
 #include <nre/rendering/newrg/descriptor_allocator.hpp>

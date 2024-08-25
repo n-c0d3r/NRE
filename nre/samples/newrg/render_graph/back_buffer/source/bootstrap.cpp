@@ -76,6 +76,12 @@ int main() {
 				.states = ED_resource_state::RENDER_TARGET
 			});
 		};
+		NRE_NEWRG_RENDERER_UPLOAD()
+		{
+		};
+		NRE_NEWRG_RENDERER_READBACK()
+		{
+		};
 	}
 
 	application_p->start();

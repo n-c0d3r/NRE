@@ -113,6 +113,9 @@ namespace nre::newrg
         ab8 is_in_execution_ = false;
         ab8 is_began_ = false;
 
+        eastl::function<void()> upload_callback_;
+        eastl::function<void()> readback_callback_;
+
     public:
         NCPP_FORCE_INLINE const auto& temp_object_cache_stack() const noexcept { return temp_object_cache_stack_; }
         NCPP_FORCE_INLINE b8 is_rhi_available() const noexcept { return is_rhi_available_; }
@@ -154,6 +157,9 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE b8 is_began() const noexcept { return is_began_.load(eastl::memory_order_acquire); }
         NCPP_FORCE_INLINE b8 is_in_execution() const noexcept { return is_in_execution_.load(eastl::memory_order_acquire); }
+
+        NCPP_FORCE_INLINE const auto& upload_callback() const noexcept { return upload_callback_; }
+        NCPP_FORCE_INLINE const auto& readback_callback() const noexcept { return readback_callback_; }
 
 
 
@@ -265,7 +271,10 @@ namespace nre::newrg
         void install();
 
     public:
-        void begin_register();
+        void begin_register(
+            const eastl::function<void()>& upload_callback,
+            const eastl::function<void()>& readback_callback
+        );
         void execute();
         b8 is_end();
         void flush();

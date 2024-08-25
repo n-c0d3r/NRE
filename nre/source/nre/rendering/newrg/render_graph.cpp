@@ -1927,8 +1927,14 @@ namespace nre::newrg
         }
     }
 
-    void F_render_graph::begin_register()
+    void F_render_graph::begin_register(
+        const eastl::function<void()>& upload_callback,
+        const eastl::function<void()>& readback_callback
+    )
     {
+        upload_callback_ = upload_callback;
+        readback_callback_ = readback_callback;
+
         create_prologue_pass_internal();
     }
     void F_render_graph::execute()
@@ -1949,6 +1955,10 @@ namespace nre::newrg
         is_in_execution_.store(true, eastl::memory_order_release);
 
         setup_internal();
+
+        if(upload_callback_)
+            upload_callback_();
+
         execute_passes_internal();
     }
     b8 F_render_graph::is_end()
@@ -1957,6 +1967,9 @@ namespace nre::newrg
     }
     void F_render_graph::flush()
     {
+        if(readback_callback_)
+            readback_callback_();
+
         flush_execute_range_owf_stack_internal();
 
         flush_frame_buffers_internal();

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nre/prerequisites.hpp>
-#include <nre/rendering/newrg/renderer_tick_event.hpp>
+#include <nre/rendering/newrg/renderer_events.hpp>
 
 
 
@@ -23,10 +23,14 @@ namespace nre::newrg
 
     private:
         F_renderer_tick_event tick_event_;
+        F_renderer_upload_event upload_event_;
+        F_renderer_readback_event readback_event_;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(
-            tick_event_
+            tick_event_,
+            upload_event_,
+            readback_event_
         );
 
 
@@ -61,7 +65,36 @@ namespace nre::newrg::internal
             );
         }
     };
+
+    struct F_renderer_upload_event_caller
+    {
+        template<typename F__>
+        NCPP_FORCE_INLINE void operator = (F__&& functor) {
+
+            F_renderer::instance_p()->T_get_event<F_renderer_upload_event>().T_push_back_listener(
+                std::forward<F__>(functor)
+            );
+        }
+    };
+
+    struct F_renderer_readback_event_caller
+    {
+        template<typename F__>
+        NCPP_FORCE_INLINE void operator = (F__&& functor) {
+
+            F_renderer::instance_p()->T_get_event<F_renderer_readback_event>().T_push_back_listener(
+                std::forward<F__>(functor)
+            );
+        }
+    };
 }
+
 #define NRE_NEWRG_RENDERER_TICK() \
     nre::newrg::internal::F_renderer_tick_event_caller NCPP_GLUE(___nre_renderer_tick_event___, NCPP_LINE); \
     NCPP_GLUE(___nre_renderer_tick_event___, NCPP_LINE) = [&](auto&)
+#define NRE_NEWRG_RENDERER_UPLOAD() \
+    nre::newrg::internal::F_renderer_upload_event_caller NCPP_GLUE(___nre_renderer_upload_event___, NCPP_LINE); \
+    NCPP_GLUE(___nre_renderer_upload_event___, NCPP_LINE) = [&](auto&)
+#define NRE_NEWRG_RENDERER_READBACK() \
+    nre::newrg::internal::F_renderer_readback_event_caller NCPP_GLUE(___nre_renderer_readback_event___, NCPP_LINE); \
+    NCPP_GLUE(___nre_renderer_readback_event___, NCPP_LINE) = [&](auto&)
