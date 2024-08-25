@@ -483,6 +483,89 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
+        NCPP_FORCE_INLINE F_render_descriptor* create_descriptor_from_src(
+            const F_descriptor_handle& descriptor_handle,
+            ED_descriptor_heap_type heap_type
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , F_render_frame_name name = ""
+#endif
+        )
+        {
+            return create_descriptor_from_src(
+                F_descriptor_handle_range { .begin_handle = descriptor_handle, .count = 1 },
+                heap_type
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , name
+#endif
+            );
+        }
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        F_render_descriptor* create_descriptor_from_src(
+            TKPA_valid<A_resource_view> rhi_resource_view_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , F_render_frame_name name = ""
+#endif
+        )
+        {
+            ED_descriptor_heap_type heap_type;
+
+            NRHI_ENUM_SWITCH(
+                rhi_resource_view_p->desc().type,
+                NRHI_ENUM_CASE(
+                    ED_resource_view_type::SHADER_RESOURCE,
+                    heap_type = ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS
+                )
+                NRHI_ENUM_CASE(
+                    ED_resource_view_type::UNORDERED_ACCESS,
+                    heap_type = ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS
+                )
+                NRHI_ENUM_CASE(
+                    ED_resource_view_type::RENDER_TARGET,
+                    heap_type = ED_descriptor_heap_type::RENDER_TARGET
+                )
+                NRHI_ENUM_CASE(
+                    ED_resource_view_type::DEPTH_STENCIL,
+                    heap_type = ED_descriptor_heap_type::DEPTH_STENCIL
+                )
+            );
+
+            return create_descriptor_from_src(
+                F_descriptor_handle_range { .begin_handle = rhi_resource_view_p->descriptor_handle(), .count = 1 },
+                heap_type
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , name
+#endif
+            );
+        }
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        F_render_descriptor* create_descriptor_from_src(
+            TKPA_valid<A_sampler_state> rhi_sampler_state_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , F_render_frame_name name = ""
+#endif
+        )
+        {
+            return create_descriptor_from_src(
+                F_descriptor_handle_range { .begin_handle = rhi_sampler_state_p->descriptor_handle(), .count = 1 },
+                ED_descriptor_heap_type::SAMPLER
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , name
+#endif
+            );
+        }
+
+    public:
+        /**
+         *  Thread-safe
+         */
         F_render_frame_buffer* create_permanent_frame_buffer(
             TKPA_valid<A_frame_buffer> rhi_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
