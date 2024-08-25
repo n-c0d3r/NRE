@@ -49,7 +49,6 @@ namespace
         auto& page = descriptor_allocation.allocator_p->pages()[descriptor_allocation.page_index];
 
         F_descriptor_cpu_address cpu_address = page.base_cpu_address() + descriptor_allocation.placed_range.begin * descriptor_increment_size;
-        F_descriptor_gpu_address gpu_address = page.base_gpu_address() + descriptor_allocation.placed_range.begin * descriptor_increment_size;
 
         H_descriptor::initialize_resource_view(
             NCPP_FOH_VALID(page.heap_p),
@@ -62,8 +61,7 @@ namespace
             desc,
             {
                 .handle = {
-                    .cpu_address = cpu_address,
-                    .gpu_address = gpu_address
+                    .cpu_address = cpu_address
                 },
                 .heap_p = page.heap_p
             }

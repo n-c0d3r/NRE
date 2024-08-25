@@ -54,6 +54,8 @@ namespace nre::newrg
         TF_render_frame_vector<F_render_pass_id> min_sync_pass_id_vector_;
         TF_render_frame_vector<F_render_pass_id> max_sync_pass_id_vector_;
 
+        ED_resource_heap_type heap_type_ = ED_resource_heap_type::DEFAULT;
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
 #endif
@@ -109,6 +111,16 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& max_sync_pass_id_vector() const noexcept { return max_sync_pass_id_vector_; }
 
+        NCPP_FORCE_INLINE ED_resource_heap_type heap_type() const noexcept { return heap_type_; }
+        NCPP_FORCE_INLINE b8 is_available_until_the_end_of_frame() const noexcept
+        {
+            return (heap_type_ == ED_resource_heap_type::CREAD_GWRITE);
+        }
+        NCPP_FORCE_INLINE b8 is_available_at_the_beginning_of_frame() const noexcept
+        {
+            return (heap_type_ == ED_resource_heap_type::GREAD_CWRITE);
+        }
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }
 #endif
@@ -125,14 +137,16 @@ namespace nre::newrg
         F_render_resource(
             TU<A_resource>&& owned_rhi_p,
             F_render_resource_allocation allocation,
-            ED_resource_state initial_states
+            ED_resource_state initial_states,
+            ED_resource_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
 #endif
         );
         F_render_resource(
             TKPA_valid<A_resource> permanent_rhi_p,
-            ED_resource_state initial_states
+            ED_resource_state initial_states,
+            ED_resource_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
 #endif

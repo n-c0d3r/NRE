@@ -505,7 +505,8 @@ namespace nre::newrg
          */
         F_render_resource_allocator& find_resource_allocator(
             ED_resource_type resource_type,
-            ED_resource_flag resource_flags
+            ED_resource_flag resource_flags,
+            ED_resource_heap_type resource_heap_type
         );
         /**
          *  Thread-safe

@@ -54,18 +54,71 @@ namespace nre::newrg
 
         // setup resource allocators
         {
-            resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_BUFFERS] = F_render_resource_allocator(
-                ED_resource_heap_type::DEFAULT,
-                ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
-            );
-            resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_RT_DS_TEXTURES] = F_render_resource_allocator(
-                ED_resource_heap_type::DEFAULT,
-                ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
-            );
-            resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_NON_RT_DS_TEXTURES] = F_render_resource_allocator(
-                ED_resource_heap_type::DEFAULT,
-                ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
-            );
+            // heap type: GREAD-GWRITE
+            {
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_BUFFERS
+                ] = F_render_resource_allocator(
+                    ED_resource_heap_type::DEFAULT,
+                    ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
+                );
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_TEXTURES_RT_DS
+                ] = F_render_resource_allocator(
+                    ED_resource_heap_type::DEFAULT,
+                    ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
+                );
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_TEXTURES_NON_RT_DS
+                ] = F_render_resource_allocator(
+                    ED_resource_heap_type::DEFAULT,
+                    ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
+                );
+            }
+
+            // heap type: CREAD-GWRITE
+            {
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_CREAD_GWRITE_ONLY_BUFFERS
+                ] = F_render_resource_allocator(
+                    ED_resource_heap_type::CREAD_GWRITE,
+                    ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
+                );
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_CREAD_GWRITE_ONLY_TEXTURES_RT_DS
+                ] = F_render_resource_allocator(
+                    ED_resource_heap_type::CREAD_GWRITE,
+                    ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
+                );
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_CREAD_GWRITE_ONLY_TEXTURES_NON_RT_DS
+                ] = F_render_resource_allocator(
+                    ED_resource_heap_type::CREAD_GWRITE,
+                    ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
+                );
+            }
+
+            // heap type: GREAD-CWRITE
+            {
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_CWRITE_ONLY_BUFFERS
+                ] = F_render_resource_allocator(
+                    ED_resource_heap_type::GREAD_CWRITE,
+                    ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
+                );
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_CWRITE_ONLY_TEXTURES_RT_DS
+                ] = F_render_resource_allocator(
+                    ED_resource_heap_type::GREAD_CWRITE,
+                    ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
+                );
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_CWRITE_ONLY_TEXTURES_NON_RT_DS
+                ] = F_render_resource_allocator(
+                    ED_resource_heap_type::GREAD_CWRITE,
+                    ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
+                );
+            }
         }
 
         // setup rhi placed resource pools
@@ -218,7 +271,11 @@ namespace nre::newrg
 
                 // sentinel passes must not affect resource allocation
                 if(access_dependency_pass_p->is_sentinel())
+                {
+                    if(resource_p->is_available_at_the_beginning_of_frame())
+                        resource_p->min_pass_id_ = access_dependency.pass_id;
                     continue;
+                }
 
                 if(resource_p->min_pass_id_ == NCPP_U32_MAX)
                     resource_p->min_pass_id_ = access_dependency.pass_id;
@@ -241,9 +298,13 @@ namespace nre::newrg
             {
                 F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
 
-                // sentinel passes must not affect resource allocation
+                // sentinel passes must not affect resource deallocation except which resources that will be available until the end of frame
                 if(access_dependency_pass_p->is_sentinel())
+                {
+                    if(resource_p->is_available_until_the_end_of_frame())
+                        resource_p->max_pass_id_ = access_dependency.pass_id;
                     continue;
+                }
 
                 if(resource_p->max_pass_id_ == NCPP_U32_MAX)
                     resource_p->max_pass_id_ = access_dependency.pass_id;
@@ -605,7 +666,7 @@ namespace nre::newrg
             {
                 const auto& desc = *(resource_p->desc_to_create_p_);
 
-                auto& allocator = find_resource_allocator(desc.type, desc.flags);
+                auto& allocator = find_resource_allocator(desc.type, desc.flags, desc.heap_type);
 
                 resource_p->allocation_ = allocator.allocate(
                     desc.size,
@@ -621,26 +682,6 @@ namespace nre::newrg
                 allocation.allocator_p->deallocate(allocation);
             }
         }
-
-        // // allocate resource that is not used by any pass but need to exported
-        // auto resource_span = resource_p_owf_stack_.item_span();
-        // for(F_render_resource* resource_p : resource_span)
-        // {
-        //     if(!(resource_p->need_to_create()))
-        //         continue;
-        //
-        //     if(!(resource_p->need_to_export()))
-        //         continue;
-        //
-        //     const auto& desc = *(resource_p->desc_to_create_p_);
-        //
-        //     auto& allocator = find_resource_allocator(desc.type, desc.flags);
-        //
-        //     resource_p->allocation_ = allocator.allocate(
-        //         desc.size,
-        //         internal::appropriate_alignment(desc)
-        //     );
-        // }
     }
     void F_render_graph::calculate_resource_aliases_internal()
     {
@@ -737,7 +778,7 @@ namespace nre::newrg
                 const auto& allocation = resource_p->allocation();
 
                 auto& desc = *(resource_p->desc_to_create_p_);
-                auto& allocator = find_resource_allocator(desc.type, desc.flags);
+                auto& allocator = *(allocation.allocator_p);
                 auto& rhi_placed_resource_pool = find_rhi_placed_resource_pool(desc.type);
 
                 auto& page = allocator.pages()[allocation.page_index];
@@ -959,7 +1000,7 @@ namespace nre::newrg
         auto descriptor_span = descriptor_p_owf_stack_.item_span();
         for(F_render_descriptor* descriptor_p : descriptor_span)
         {
-            if(descriptor_p->need_to_create_resource_view())
+            if(descriptor_p->need_to_create_sampler_state())
             {
                 auto& desc = *(descriptor_p->sampler_state_desc_to_create_p_);
 
@@ -1657,6 +1698,7 @@ namespace nre::newrg
                 auto external_p = resource_p->external_p_;
                 external_p->rhi_p_ = std::move(resource_p->owned_rhi_p_);
                 external_p->allocation_ = resource_p->allocation_;
+                external_p->heap_type_ = resource_p->heap_type_;
 
                 resource_p->allocation_ = {};
             }
@@ -2075,7 +2117,8 @@ namespace nre::newrg
             F_render_resource* render_resource_p = T_create<F_render_resource>(
                 std::move(external_resource_p->rhi_p_),
                 external_resource_p->allocation_,
-                external_resource_p->initial_states_
+                external_resource_p->initial_states_,
+                external_resource_p->heap_type_
     #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , external_resource_p->name_.c_str()
     #endif
@@ -2189,7 +2232,8 @@ namespace nre::newrg
     {
         F_render_resource* render_resource_p = T_create<F_render_resource>(
             rhi_p,
-            initial_states
+            initial_states,
+            rhi_p->desc().heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , name
 #endif
@@ -2274,11 +2318,29 @@ namespace nre::newrg
 
     F_render_resource_allocator& F_render_graph::find_resource_allocator(
         ED_resource_type resource_type,
-        ED_resource_flag resource_flags
+        ED_resource_flag resource_flags,
+        ED_resource_heap_type resource_heap_type
     )
     {
+        u32 allocator_base_index = 0;
+        NRHI_ENUM_SWITCH(
+            resource_heap_type,
+            NRHI_ENUM_CASE(
+                ED_resource_heap_type::GREAD_GWRITE,
+                allocator_base_index += 3 * 0
+            )
+            NRHI_ENUM_CASE(
+                ED_resource_heap_type::CREAD_GWRITE,
+                allocator_base_index += 3 * 1
+                )
+            NRHI_ENUM_CASE(
+                ED_resource_heap_type::GREAD_CWRITE,
+                allocator_base_index += 3 * 2
+            )
+        );
+
         if(resource_type == ED_resource_type::BUFFER)
-            return resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_BUFFERS];
+            return resource_allocators_[allocator_base_index + NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_LOCAL_INDEX_ONLY_BUFFERS];
 
         // only 2d textures can be render target and depth stencil,
         // so 1d, 3d textures are always non-RT, non-DS
@@ -2287,7 +2349,7 @@ namespace nre::newrg
             || (resource_type == ED_resource_type::TEXTURE_1D_ARRAY)
             || (resource_type == ED_resource_type::TEXTURE_3D)
         )
-            return resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_NON_RT_DS_TEXTURES];
+            return resource_allocators_[allocator_base_index + NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_LOCAL_INDEX_ONLY_TEXTURES_RT_DS];
 
         if(
             flag_is_has(
@@ -2299,7 +2361,7 @@ namespace nre::newrg
                 ED_resource_flag::DEPTH_STENCIL
             )
         )
-            return resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_RT_DS_TEXTURES];
+            return resource_allocators_[allocator_base_index + NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_LOCAL_INDEX_ONLY_TEXTURES_NON_RT_DS];
     }
     F_rhi_placed_resource_pool& F_render_graph::find_rhi_placed_resource_pool(ED_resource_type resource_type)
     {

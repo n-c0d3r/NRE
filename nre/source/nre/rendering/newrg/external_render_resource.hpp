@@ -30,6 +30,8 @@ namespace nre::newrg
 
         ED_resource_state initial_states_ = ED_resource_state::COMMON;
 
+        ED_resource_heap_type heap_type_ = ED_resource_heap_type::DEFAULT;
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_debug_name name_;
 #endif
@@ -45,6 +47,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE b8 need_to_import() const noexcept { return (internal_p_ != 0); }
 
         NCPP_FORCE_INLINE ED_resource_state initial_states() const noexcept { return initial_states_; }
+
+        NCPP_FORCE_INLINE ED_resource_heap_type heap_type() const noexcept { return heap_type_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_debug_name& name() const noexcept { return name_; }
