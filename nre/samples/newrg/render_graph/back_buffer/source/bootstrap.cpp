@@ -49,7 +49,7 @@ int main() {
 				back_buffer_p.oref,
 				ED_resource_state::PRESENT
 				NRE_OPTIONAL_DEBUG_PARAM("back_buffer")
-				);
+			);
 
 			F_render_descriptor* rg_back_rtv_p = render_graph_p->create_descriptor_from_src(
 				{
