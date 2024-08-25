@@ -59,18 +59,21 @@ namespace nre::newrg
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_BUFFERS
                 ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_GREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::DEFAULT,
                     ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_TEXTURES_RT_DS
                 ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_GREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::DEFAULT,
                     ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_TEXTURES_NON_RT_DS
                 ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_GREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::DEFAULT,
                     ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
                 );
@@ -81,18 +84,21 @@ namespace nre::newrg
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_CREAD_GWRITE_ONLY_BUFFERS
                 ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_CREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::CREAD_GWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_CREAD_GWRITE_ONLY_TEXTURES_RT_DS
                 ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_CREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::CREAD_GWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_CREAD_GWRITE_ONLY_TEXTURES_NON_RT_DS
                 ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_CREAD_GWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::CREAD_GWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
                 );
@@ -103,18 +109,21 @@ namespace nre::newrg
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_CWRITE_ONLY_BUFFERS
                 ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_GREAD_CWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::GREAD_CWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_CWRITE_ONLY_TEXTURES_RT_DS
                 ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_GREAD_CWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::GREAD_CWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
                 );
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_CWRITE_ONLY_TEXTURES_NON_RT_DS
                 ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_GREAD_CWRITE_PAGE_CAPACITY,
                     ED_resource_heap_type::GREAD_CWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
                 );

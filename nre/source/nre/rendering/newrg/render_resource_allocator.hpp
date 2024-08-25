@@ -22,12 +22,16 @@ namespace nre::newrg
 
 
     private:
+        sz page_capacity_ = 0;
+
         ED_resource_heap_type heap_type_ = ED_resource_heap_type::DEFAULT;
         ED_resource_heap_flag heap_flags_ = ED_resource_heap_flag::NONE;
 
         TG_vector<F_render_resource_page> pages_;
 
     public:
+        NCPP_FORCE_INLINE sz page_capacity() const noexcept { return page_capacity_; }
+
         NCPP_FORCE_INLINE ED_resource_heap_type heap_type() const noexcept { return heap_type_; }
         NCPP_FORCE_INLINE ED_resource_heap_flag heap_flags() const noexcept { return heap_flags_; }
 
@@ -38,15 +42,17 @@ namespace nre::newrg
     public:
         F_render_resource_allocator() = default;
         F_render_resource_allocator(
+            sz page_capacity,
             ED_resource_heap_type heap_type,
             ED_resource_heap_flag heap_flags
         );
         F_render_resource_allocator(const F_render_resource_allocator& x) :
-            F_render_resource_allocator(x.heap_type_, x.heap_flags_)
+            F_render_resource_allocator(x.page_capacity_, x.heap_type_, x.heap_flags_)
         {
         }
         F_render_resource_allocator& operator = (const F_render_resource_allocator& x)
         {
+            page_capacity_ = x.page_capacity_;
             heap_type_ = x.heap_type_;
             heap_flags_ = x.heap_flags_;
             pages_.clear();

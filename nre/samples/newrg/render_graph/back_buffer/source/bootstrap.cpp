@@ -45,31 +45,6 @@ int main() {
 			auto back_buffer_p = NRE_MAIN_SWAPCHAIN()->back_buffer_p();
 			auto back_rtv_p = NRE_MAIN_SWAPCHAIN()->back_rtv_p();
 
-			F_render_resource* rg_upload_buffer_p = render_graph_p->create_resource(
-				H_resource_desc::create_buffer_desc(
-					1024,
-					ED_format::R32G32B32A32_FLOAT,
-					ED_resource_flag::SHADER_RESOURCE,
-					ED_resource_heap_type::GREAD_CWRITE,
-					ED_resource_state::_GENERIC_READ
-				)
-				NRE_OPTIONAL_DEBUG_PARAM("demo_buffer")
-			);
-
-			F_render_resource* rg_demo_buffer_p = render_graph_p->create_resource(
-				H_resource_desc::create_buffer_desc(
-					1024,
-					ED_format::R32G32B32A32_FLOAT,
-					ED_resource_flag::SHADER_RESOURCE
-				)
-				NRE_OPTIONAL_DEBUG_PARAM("demo_buffer")
-			);
-			F_render_descriptor* rg_demo_srv_p = render_graph_p->create_resource_view(
-				rg_demo_buffer_p,
-				ED_resource_view_type::SHADER_RESOURCE
-				NRE_OPTIONAL_DEBUG_PARAM("demo_srv")
-			);
-
 			F_render_resource* rg_back_buffer_p = render_graph_p->create_permanent_resource(
 				back_buffer_p.oref,
 				ED_resource_state::PRESENT
@@ -96,14 +71,6 @@ int main() {
 				E_render_pass_flag::NONE
 				NRE_OPTIONAL_DEBUG_PARAM("clear_back_buffer")
 			);
-			rg_pass_p->add_resource_state({
-				.resource_p = rg_upload_buffer_p,
-				.states = ED_resource_state::PIXEL_SHADER_RESOURCE
-			});
-			rg_pass_p->add_resource_state({
-				.resource_p = rg_demo_buffer_p,
-				.states = ED_resource_state::PIXEL_SHADER_RESOURCE
-			});
 			rg_pass_p->add_resource_state({
 				.resource_p = rg_back_buffer_p,
 				.states = ED_resource_state::RENDER_TARGET

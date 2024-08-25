@@ -47,7 +47,7 @@ namespace nre::newrg
 
     F_descriptor_allocation F_descriptor_allocator::allocate(u32 count, b8 create_page)
     {
-        NCPP_ASSERT(count <= NRE_RENDER_GRAPH_RESOURCE_PAGE_CAPACITY);
+        NCPP_ASSERT(count <= page_capacity_);
         NCPP_ASSERT(count != 0);
 
         // try allocate from allocated pages
@@ -92,7 +92,7 @@ namespace nre::newrg
     }
     eastl::optional<F_descriptor_allocation> F_descriptor_allocator::try_allocate(u32 count, u32& overflow, b8 create_page)
     {
-        NCPP_ASSERT(count <= NRE_RENDER_GRAPH_RESOURCE_PAGE_CAPACITY);
+        NCPP_ASSERT(count <= page_capacity_);
         NCPP_ASSERT(count != 0);
 
         // try allocate from allocated pages

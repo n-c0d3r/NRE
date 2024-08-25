@@ -5,9 +5,11 @@
 namespace nre::newrg
 {
     F_render_resource_allocator::F_render_resource_allocator(
+        sz page_capacity,
         ED_resource_heap_type heap_type,
         ED_resource_heap_flag heap_flags
     ) :
+        page_capacity_(page_capacity),
         heap_type_(heap_type),
         heap_flags_(heap_flags)
     {
@@ -25,14 +27,14 @@ namespace nre::newrg
             {
                 .type = heap_type_,
                 .flags = heap_flags_,
-                .size = NRE_RENDER_GRAPH_RESOURCE_PAGE_CAPACITY,
+                .size = page_capacity_,
                 .alignment = alignment
             }
         );
 
         pages_.push_back({
             .free_ranges = {
-                F_render_resource_placed_range{0, NRE_RENDER_GRAPH_RESOURCE_PAGE_CAPACITY}
+                F_render_resource_placed_range{0, page_capacity_}
             },
             .heap_p = std::move(heap_p),
             .alignment = alignment
@@ -47,7 +49,7 @@ namespace nre::newrg
     {
         sz actual_size = align_size(size, alignment);
 
-        NCPP_ASSERT(actual_size <= NRE_RENDER_GRAPH_RESOURCE_PAGE_CAPACITY);
+        NCPP_ASSERT(actual_size <= page_capacity_);
         NCPP_ASSERT(actual_size != 0);
 
         // try allocate from allocated pages
