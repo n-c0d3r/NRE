@@ -13,6 +13,9 @@ namespace nre::newrg
         TK<A_fence> fence_p;
         u64 value = 0;
 
+        void (*cpu_wait_callback_p)(void*) = 0;
+        void* cpu_wait_callback_param_p = 0;
+
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {
             return fence_p;

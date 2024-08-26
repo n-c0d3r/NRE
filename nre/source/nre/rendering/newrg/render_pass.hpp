@@ -66,8 +66,11 @@ namespace nre::newrg
         // Each element corresponds to a fence state on a render worker at the specified index.
         TF_render_frame_vector<F_render_fence_state> wait_fence_states_;
 
-        F_render_fence_batch signal_fence_batch_;
-        F_render_fence_batch wait_fence_batch_;
+        F_render_fence_batch gpu_signal_fence_batch_;
+        F_render_fence_batch gpu_wait_fence_batch_;
+        F_render_fence_batch cpu_signal_fence_batch_;
+        F_render_fence_batch cpu_wait_cpu_fence_batch_;
+        F_render_fence_batch cpu_wait_gpu_fence_batch_;
 
         u32 execute_range_index_ = NCPP_U32_MAX;
 
@@ -107,8 +110,11 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& signal_fence_states() const noexcept { return signal_fence_states_; }
         NCPP_FORCE_INLINE const auto& wait_fence_states() const noexcept { return wait_fence_states_; }
 
-        NCPP_FORCE_INLINE const auto& signal_fence_batch() const noexcept { return signal_fence_batch_; }
-        NCPP_FORCE_INLINE const auto& wait_fence_batch() const noexcept { return wait_fence_batch_; }
+        NCPP_FORCE_INLINE const auto& gpu_signal_fence_batch() const noexcept { return gpu_signal_fence_batch_; }
+        NCPP_FORCE_INLINE const auto& gpu_wait_fence_batch() const noexcept { return gpu_wait_fence_batch_; }
+        NCPP_FORCE_INLINE const auto& cpu_signal_fence_batch() const noexcept { return cpu_signal_fence_batch_; }
+        NCPP_FORCE_INLINE const auto& cpu_wait_gpu_fence_batch() const noexcept { return cpu_wait_gpu_fence_batch_; }
+        NCPP_FORCE_INLINE const auto& cpu_wait_cpu_fence_batch() const noexcept { return cpu_wait_cpu_fence_batch_; }
 
         NCPP_FORCE_INLINE u32 execute_range_index() const noexcept { return execute_range_index_; }
 

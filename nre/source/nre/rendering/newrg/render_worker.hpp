@@ -128,6 +128,16 @@ namespace nre::newrg
         void enqueue_fence_signal_batch(F_managed_fence_batch&& fence_batch);
 
     public:
+        void enqueue_fence_wait_cpu(
+            TKPA_valid<A_fence> fence_p,
+            u64 value,
+            void (*cpu_wait_callback_p)(void*),
+            void* cpu_wait_callback_param_p = 0
+        );
+        void enqueue_fence_wait_batch_cpu(const F_managed_fence_batch& fence_batch);
+        void enqueue_fence_wait_batch_cpu(F_managed_fence_batch&& fence_batch);
+
+    public:
         void enqueue_managed_render_work(F_managed_render_work&& render_work);
     };
 

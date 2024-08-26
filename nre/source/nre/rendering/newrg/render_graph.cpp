@@ -190,6 +190,7 @@ namespace nre::newrg
                 auto render_worker_p = render_worker_list[i];
 
                 fence_states_[i] = { 1 };
+
                 fence_p_vector_.push_back(
                     H_fence::create(
                         NRE_MAIN_DEVICE(),
@@ -202,6 +203,8 @@ namespace nre::newrg
                 NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
                     fence_p_vector_.back()->set_debug_name(("nre.newrg.render_graph.fences[" + G_to_string(i) + "]").c_str());
                 );
+
+                cpu_fences_.push_back({ 0 });
             }
         }
 
@@ -269,7 +272,7 @@ namespace nre::newrg
             {
             },
             ED_pipeline_state_type::GRAPHICS,
-            E_render_pass_flag::SENTINEL
+            E_render_pass_flag::PROLOGUE
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.prologue_pass")
         );
     }
@@ -280,7 +283,7 @@ namespace nre::newrg
             {
             },
             ED_pipeline_state_type::GRAPHICS,
-            E_render_pass_flag::SENTINEL
+            E_render_pass_flag::EPILOGUE
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.epilogue_pass")
         );
 
@@ -611,7 +614,14 @@ namespace nre::newrg
                     )
                         continue;
 
-                    if(!(use_resource_state.is_writable()))
+                    // if the current pass is after a cpu-sync pass
+                    b8 is_cpu_sync_point = H_render_pass_flag::can_cpu_sync_render_worker_index(
+                        use_pass_p->flags(),
+                        pass_p->flags()
+                    );
+
+                    // in the case the current pass can't be synchronized by the producer pass
+                    if(!(use_resource_state.is_writable() | is_cpu_sync_point))
                         continue;
 
                     if(use_pass_p->id() >= pass_id)
@@ -1233,13 +1243,14 @@ namespace nre::newrg
                         }
                         else
                         {
-                            resource_barriers_before[i] = calculate_resource_barrier(
-                                (TKPA_valid<A_resource>)rhi_p,
-                                producer_resource_state.subresource_index,
-                                resource_state.subresource_index,
-                                producer_resource_state.states,
-                                resource_state.states
-                            );
+                            if(resource_state.states != producer_resource_state.states)
+                                resource_barriers_before[i] = calculate_resource_barrier(
+                                    (TKPA_valid<A_resource>)rhi_p,
+                                    producer_resource_state.subresource_index,
+                                    resource_state.subresource_index,
+                                    producer_resource_state.states,
+                                    resource_state.states
+                                );
                         }
                     }
                     else
@@ -1304,7 +1315,9 @@ namespace nre::newrg
                     if(!resource_barrier)
                         continue;
 
-                    for(F_render_pass_id before_pass_id = pass_id - 1; ; )
+                    F_render_pass_id begin_loop_pass_id = pass_id - 1;
+                    F_render_pass_id end_loop_pass_id = first_pass_id - 1;
+                    for(F_render_pass_id before_pass_id = begin_loop_pass_id; before_pass_id != end_loop_pass_id; --before_pass_id)
                     {
                         F_render_pass* before_pass_p = pass_span[before_pass_id];
 
@@ -1323,7 +1336,9 @@ namespace nre::newrg
                             ];
 
                             if(!before_resource_barrier)
-                                goto next_step;
+                            {
+                                continue;
+                            }
 
                             auto& resource_barrier_value = resource_barrier.value();
                             auto& before_resource_barrier_value = before_resource_barrier.value();
@@ -1331,7 +1346,7 @@ namespace nre::newrg
                             // can't merge if their subresource indices are not the same
                             if(before_resource_state.subresource_index != resource_state.subresource_index)
                             {
-                                goto next_step;
+                                continue;
                             }
 
                             // skip this resource state if they both are the same and not unordered access barriers
@@ -1341,7 +1356,7 @@ namespace nre::newrg
                             )
                             {
                                 resource_barrier = eastl::nullopt;
-                                goto next_step;
+                                continue;
                             }
 
                             // merge readable states
@@ -1357,17 +1372,9 @@ namespace nre::newrg
                                     resource_barrier_value
                                 );
                                 resource_barrier = eastl::nullopt;
-                                goto next_step;
+                                continue;
                             }
                         }
-
-                        // check for the next step
-                        next_step:
-                        if(before_pass_id > first_pass_id)
-                        {
-                            --before_pass_id;
-                        }
-                        else break;
                     }
                 }
             }
@@ -1493,25 +1500,46 @@ namespace nre::newrg
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
+            u8 pass_render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
+
             auto& wait_fence_states = pass_p->wait_fence_states_;
 
             // update max sync pass ids
             const auto& local_max_sync_pass_ids = pass_p->max_sync_pass_ids();
-            for(u32 i = 0; i < render_worker_count; ++i)
+            for(
+                u32 sync_render_worker_index = 0;
+                sync_render_worker_index < render_worker_count;
+                ++sync_render_worker_index
+            )
             {
-                F_render_pass_id local_max_sync_pass_id = local_max_sync_pass_ids[i];
+                F_render_pass_id local_max_sync_pass_id = local_max_sync_pass_ids[
+                    sync_render_worker_index
+                ];
                 if(local_max_sync_pass_id == NCPP_U32_MAX)
                     continue;
 
-                F_render_pass_id& max_sync_pass_id = max_sync_pass_ids[i];
+                F_render_pass_id& max_sync_pass_id = max_sync_pass_ids[
+                    sync_render_worker_index
+                ];
 
                 F_render_pass* local_max_sync_pass_p = pass_span[local_max_sync_pass_id];
+                b8 is_local_max_sync_pass_cpu_sync = H_render_pass_flag::is_cpu_sync_pass(local_max_sync_pass_p->flags());
 
+                // if the current pass is after a cpu-sync pass
+                b8 is_cpu_sync_point = H_render_pass_flag::can_cpu_sync_render_worker_index(
+                    local_max_sync_pass_p->flags(),
+                    pass_p->flags()
+                );
+
+                // if we need to sync
                 if(
-                    H_render_pass_flag::render_worker_index(local_max_sync_pass_p->flags())
-                    != H_render_pass_flag::render_worker_index(pass_p->flags())
+                    // for the case the current pass and the local sync pass are in different render workers
+                    (pass_render_worker_index != sync_render_worker_index)
+                    // They can also be synchronized with CPU
+                    || is_cpu_sync_point
                 )
                 {
+                    // if the local sync pass is after the last max sync pass, update sync state
                     if(
                         (local_max_sync_pass_id > max_sync_pass_id)
                         || (max_sync_pass_id == NCPP_U32_MAX)
@@ -1519,18 +1547,49 @@ namespace nre::newrg
                     {
                         max_sync_pass_id = local_max_sync_pass_id;
 
-                        // try to update writable producer signal fence state
-                        {
-                            F_render_fence_state& signal_fence_state = local_max_sync_pass_p->signal_fence_states_[i];
+                        b8 gpu_signal = true;
+                        b8 gpu_wait = true;
 
-                            if(!signal_fence_state)
+                        // try to update local sync pass signal fence state
+                        {
+                            F_render_fence_state& signal_fence_state = local_max_sync_pass_p->signal_fence_states_[
+                                sync_render_worker_index
+                            ];
+
+                            NCPP_ASSERT(!signal_fence_state);
                             {
-                                ++(fence_states_[i].value);
-                                signal_fence_state = fence_states_[i];
+                                ++(fence_states_[sync_render_worker_index].value);
+
+                                signal_fence_state = fence_states_[sync_render_worker_index];
+
+                                // the last pass does not have GPU works, so the GPU is already synchronized with the CPU
+                                if(is_local_max_sync_pass_cpu_sync)
+                                    gpu_signal = false;
+                                // there is GPU works, so need to signal on GPU
+                                else
+                                    gpu_signal = true;
+
+                                signal_fence_state.gpu_signal = gpu_signal;
+                                signal_fence_state.gpu_wait = gpu_signal;
                             }
                         }
 
-                        wait_fence_states[i] = fence_states_[i];
+                        // update wait fence state
+                        {
+                            auto& wait_fence_state = wait_fence_states[sync_render_worker_index];
+
+                            wait_fence_state = fence_states_[sync_render_worker_index];
+
+                            // GPU need to wait for the CPU
+                            if(is_cpu_sync_point)
+                                gpu_wait = false;
+                            // no need to use CPU wait, just synchronize between 2 render workers
+                            else
+                                gpu_wait = true;
+
+                            wait_fence_state.gpu_signal = gpu_signal;
+                            wait_fence_state.gpu_wait = gpu_wait;
+                        }
                     }
                 }
             }
@@ -1548,10 +1607,21 @@ namespace nre::newrg
             for(auto& fence_state : signal_fence_states)
             {
                 if(fence_state)
-                    pass_p->signal_fence_batch_.push_back({
+                {
+                    F_render_fence_batch* fence_batch_p = 0;
+
+                    if(fence_state.gpu_signal)
+                        fence_batch_p = &(pass_p->gpu_signal_fence_batch_);
+                    else
+                        fence_batch_p = &(pass_p->cpu_signal_fence_batch_);
+
+                    fence_batch_p->push_back({
+                        .value = fence_state.value,
                         .render_worker_index = render_worker_index,
-                        .value = fence_state.value
+                        .gpu_signal = fence_state.gpu_signal,
+                        .gpu_wait = fence_state.gpu_wait
                     });
+                }
 
                 ++render_worker_index;
             }
@@ -1561,10 +1631,26 @@ namespace nre::newrg
             for(auto& fence_state : wait_fence_states)
             {
                 if(fence_state)
-                    pass_p->wait_fence_batch_.push_back({
+                {
+                    F_render_fence_batch* fence_batch_p = 0;
+
+                    if(fence_state.gpu_wait)
+                        fence_batch_p = &(pass_p->gpu_wait_fence_batch_);
+                    else
+                    {
+                        if(fence_state.gpu_signal)
+                            fence_batch_p = &(pass_p->cpu_wait_gpu_fence_batch_);
+                        else
+                            fence_batch_p = &(pass_p->cpu_wait_cpu_fence_batch_);
+                    }
+
+                    fence_batch_p->push_back({
+                        .value = fence_state.value,
                         .render_worker_index = render_worker_index,
-                        .value = fence_state.value
+                        .gpu_signal = fence_state.gpu_signal,
+                        .gpu_wait = fence_state.gpu_wait
                     });
+                }
 
                 ++render_worker_index;
             }
@@ -1574,66 +1660,101 @@ namespace nre::newrg
     {
         auto pass_span = pass_p_owf_stack_.item_span();
 
-        F_render_pass_execute_range execute_range;
-
-        u32 execute_range_index = 0;
-
-        for(F_render_pass* pass_p : pass_span)
+        // make execute ranges
         {
-            u8 render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
+            F_render_pass_execute_range execute_range;
 
-            auto& signal_fence_batch = pass_p->signal_fence_batch_;
-            auto& wait_fence_batch = pass_p->wait_fence_batch_;
-
-            // we can't add fence wait inside a command list, so need to split command list even they run on the same render worker
-            if(wait_fence_batch.size())
+            u32 execute_range_index = 0;
+            for(F_render_pass* pass_p : pass_span)
             {
-                if(execute_range)
+                u8 render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
+
+                auto& gpu_signal_fence_batch = pass_p->gpu_signal_fence_batch_;
+                auto& gpu_wait_fence_batch = pass_p->gpu_wait_fence_batch_;
+                auto& cpu_wait_gpu_fence_batch = pass_p->cpu_wait_gpu_fence_batch_;
+
+                // we can't add fence wait inside a command list, so need to split command list even they run on the same render worker
+                if(gpu_wait_fence_batch.size())
                 {
-                    execute_range_owf_stack_.push(execute_range);
-                    ++execute_range_index;
-                    execute_range = {
-                        .render_worker_index = render_worker_index
-                    };
+                    if(execute_range)
+                    {
+                        execute_range_owf_stack_.push(execute_range);
+                        ++execute_range_index;
+                        execute_range = {
+                            .render_worker_index = render_worker_index
+                        };
+                    }
+                }
+
+                // the GPU works are not continous in this case
+                if(cpu_wait_gpu_fence_batch.size())
+                {
+                    if(execute_range)
+                    {
+                        execute_range_owf_stack_.push(execute_range);
+                        ++execute_range_index;
+                        execute_range = {
+                            .render_worker_index = render_worker_index
+                        };
+                    }
+                }
+
+                // different render workers, so use new command list -> new execute range
+                if(
+                    execute_range
+                    && (execute_range.render_worker_index != render_worker_index)
+                )
+                {
+                    if(execute_range)
+                    {
+                        execute_range_owf_stack_.push(execute_range);
+                        ++execute_range_index;
+                        execute_range = {};
+                    }
+                }
+
+                pass_p->execute_range_index_ = execute_range_index;
+
+                execute_range.render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
+                execute_range.pass_p_vector.push_back(pass_p);
+
+                // we can't add fence signal inside a command list, so need to split command list even they run on the same render worker
+                if(gpu_signal_fence_batch.size())
+                {
+                    if(execute_range)
+                    {
+                        execute_range_owf_stack_.push(execute_range);
+                        ++execute_range_index;
+                        execute_range = {};
+                    }
                 }
             }
 
-            // different render workers, so use new command list -> new execute range
-            if(
-                execute_range
-                && (execute_range.render_worker_index != render_worker_index)
-            )
+            if(execute_range)
             {
-                if(execute_range)
-                {
-                    execute_range_owf_stack_.push(execute_range);
-                    ++execute_range_index;
-                    execute_range = {};
-                }
-            }
-
-            pass_p->execute_range_index_ = execute_range_index;
-
-            execute_range.render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
-            execute_range.pass_p_vector.push_back(pass_p);
-
-            // we can't add fence signal inside a command list, so need to split command list even they run on the same render worker
-            if(signal_fence_batch.size())
-            {
-                if(execute_range)
-                {
-                    execute_range_owf_stack_.push(execute_range);
-                    ++execute_range_index;
-                    execute_range = {};
-                }
+                execute_range_owf_stack_.push(execute_range);
+                ++execute_range_index;
+                execute_range = {};
             }
         }
 
-        if(execute_range)
+        // check which execute range has gpu works
         {
-            execute_range_owf_stack_.push(execute_range);
-            ++execute_range_index;
-            execute_range = {};
+            auto execute_range_span = execute_range_owf_stack_.item_span();
+            for(auto& execute_range : execute_range_span)
+            {
+                execute_range.has_gpu_works = false;
+
+                auto& pass_p_vector = execute_range.pass_p_vector;
+                for(F_render_pass* pass_p : pass_p_vector)
+                {
+                    if(!(H_render_pass_flag::is_cpu_sync_pass(pass_p->flags())))
+                    {
+                        execute_range.has_gpu_works = true;
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -1641,30 +1762,35 @@ namespace nre::newrg
     {
         auto& pass_p_vector = execute_range.pass_p_vector;
         auto render_worker_p = find_render_worker(execute_range.render_worker_index);
-        auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
-        auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
 
-        // there can't be any pass having fences in the mid of an execute range
-        auto& wait_fence_batch = pass_p_vector.front()->wait_fence_batch();
-        u32 wait_fence_count = wait_fence_batch.size();
+        F_render_pass* first_pass_p = pass_p_vector.front();
+        F_render_pass* last_pass_p = pass_p_vector.back();
 
-        // there can't be any pass having fences in the mid of an execute range
-        auto& signal_fence_batch = pass_p_vector.back()->signal_fence_batch();
-        u32 signal_fence_count = signal_fence_batch.size();
+        // there can't be any pass using gpu fences in the mid of an execute range
+        auto& gpu_wait_fence_batch = first_pass_p->gpu_wait_fence_batch();
+        u32 gpu_wait_fence_count = gpu_wait_fence_batch.size();
 
-        // fence wait
-        if(wait_fence_count)
+        // there can't be any pass using gpu fences in the mid of an execute range
+        auto& gpu_signal_fence_batch = last_pass_p->gpu_signal_fence_batch();
+        u32 gpu_signal_fence_count = gpu_signal_fence_batch.size();
+
+        // there can't be any pass using gpu fences in the mid of an execute range
+        auto& cpu_wait_gpu_fence_batch = first_pass_p->cpu_wait_gpu_fence_batch();
+        u32 cpu_wait_gpu_fence_count = cpu_wait_gpu_fence_batch.size();
+
+        // gpu wait gpu fences
+        if(gpu_wait_fence_count)
         {
             F_managed_fence_batch managed_fence_batch;
 
-            managed_fence_batch.resize(wait_fence_count);
-            for(u32 i = 0; i < wait_fence_count; ++i)
+            managed_fence_batch.resize(gpu_wait_fence_count);
+            for(u32 i = 0; i < gpu_wait_fence_count; ++i)
             {
-                auto& fence_value_and_index = wait_fence_batch[i];
+                auto& fence_target = gpu_wait_fence_batch[i];
                 auto& managed_fence_state = managed_fence_batch[i];
 
-                managed_fence_state.fence_p = fence_p_vector_[fence_value_and_index.render_worker_index];
-                managed_fence_state.value = fence_value_and_index.value;
+                managed_fence_state.fence_p = fence_p_vector_[fence_target.render_worker_index];
+                managed_fence_state.value = fence_target.value;
             }
 
             render_worker_p->enqueue_fence_wait_batch(
@@ -1672,17 +1798,96 @@ namespace nre::newrg
             );
         }
 
-        // command list
+        // cpu wait gpu fences
+        if(cpu_wait_gpu_fence_count)
         {
+            F_managed_fence_batch managed_fence_batch;
+
+            struct F_cpu_wall_callback_param
+            {
+                F_task_counter task_counter;
+            };
+            F_cpu_wall_callback_param cpu_wall_callback_param = {
+                .task_counter = cpu_wait_gpu_fence_count
+            };
+
+            managed_fence_batch.resize(cpu_wait_gpu_fence_count);
+            for(u32 i = 0; i < cpu_wait_gpu_fence_count; ++i)
+            {
+                auto& fence_target = cpu_wait_gpu_fence_batch[i];
+                auto& managed_fence_state = managed_fence_batch[i];
+
+                managed_fence_state.fence_p = fence_p_vector_[fence_target.render_worker_index];
+                managed_fence_state.value = fence_target.value;
+
+                managed_fence_state.cpu_wait_callback_param_p = &cpu_wall_callback_param;
+                managed_fence_state.cpu_wait_callback_p = [](void* param_p)
+                {
+                    F_cpu_wall_callback_param* cpu_wall_callback_param_p = (F_cpu_wall_callback_param*)param_p;
+                    cpu_wall_callback_param_p->task_counter.fetch_sub(1, eastl::memory_order_acq_rel);
+                };
+            }
+
+            render_worker_p->enqueue_fence_wait_batch_cpu(
+                std::move(managed_fence_batch)
+            );
+
+            H_task_context::yield(
+                F_wait_for_counter(&(cpu_wall_callback_param.task_counter))
+            );
+        }
+
+        // submit gpu works
+        if(execute_range.has_gpu_works)
+        {
+            auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
+            auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
+
             F_managed_command_list_batch command_list_batch;
 
             for(F_render_pass* pass_p : pass_p_vector)
             {
+                auto& cpu_wait_cpu_fence_batch = pass_p->cpu_wait_cpu_fence_batch();
+                u32 cpu_wait_cpu_fence_count = cpu_wait_cpu_fence_batch.size();
+
+                auto& cpu_signal_cpu_fence_batch = pass_p->cpu_signal_fence_batch();
+                u32 cpu_signal_cpu_fence_count = cpu_signal_cpu_fence_batch.size();
+
+                // cpu wait cpu fences
+                for(auto& fence_target : cpu_wait_gpu_fence_batch)
+                {
+                    auto& cpu_fence = cpu_fences_[fence_target.render_worker_index];
+
+                    if(cpu_fence.is_complete(fence_target.value))
+                        continue;
+
+                    H_task_context::yield(
+                        [&]()
+                        {
+                            return cpu_fence.is_complete(fence_target.value);
+                        }
+                    );
+                }
+
                 if(pass_p->resource_barrier_batch_before_.size())
                     command_list_p->async_resource_barriers(
                         pass_p->resource_barrier_batch_before_
                     );
+
                 pass_p->execute_internal(NCPP_FOH_VALID(command_list_p));
+
+                if(pass_p->resource_barrier_batch_after_.size())
+                    command_list_p->async_resource_barriers(
+                        pass_p->resource_barrier_batch_after_
+                    );
+
+                // cpu signal cpu fences
+                for(auto& fence_target : cpu_signal_cpu_fence_batch)
+                {
+                    auto& cpu_fence = cpu_fences_[fence_target.render_worker_index];
+
+                    cpu_fence.signal(fence_target.value);
+                }
             }
 
             command_list_p->async_end();
@@ -1696,19 +1901,19 @@ namespace nre::newrg
             );
         }
 
-        // fence signal
-        if(signal_fence_count)
+        // gpu signal fences
+        if(gpu_signal_fence_count)
         {
             F_managed_fence_batch managed_fence_batch;
 
-            managed_fence_batch.resize(signal_fence_count);
-            for(u32 i = 0; i < signal_fence_count; ++i)
+            managed_fence_batch.resize(gpu_signal_fence_count);
+            for(u32 i = 0; i < gpu_signal_fence_count; ++i)
             {
-                auto& fence_value_and_index = signal_fence_batch[i];
+                auto& fence_target = gpu_signal_fence_batch[i];
                 auto& managed_fence_state = managed_fence_batch[i];
 
-                managed_fence_state.fence_p = fence_p_vector_[fence_value_and_index.render_worker_index];
-                managed_fence_state.value = fence_value_and_index.value;
+                managed_fence_state.fence_p = fence_p_vector_[fence_target.render_worker_index];
+                managed_fence_state.value = fence_target.value;
             }
 
             render_worker_p->enqueue_fence_signal_batch(

@@ -103,6 +103,25 @@ namespace nre::newrg
         TG_vector<F_render_fence_state> fence_states_;
         TG_vector<TU<A_fence>> fence_p_vector_;
 
+        struct F_cpu_fence
+        {
+            u64 value = 0;
+
+            NCPP_FORCE_INLINE void signal(u64 new_value) noexcept
+            {
+                value = new_value;
+            }
+            NCPP_FORCE_INLINE b8 is_complete(u64 target_value) const noexcept
+            {
+                return (target_value <= value);
+            }
+            NCPP_FORCE_INLINE void wait(u64 target_value) const noexcept
+            {
+                 while(is_complete(target_value));
+            }
+        };
+        TG_vector<F_cpu_fence> cpu_fences_;
+
         TG_vector<F_descriptor_allocator> descriptor_allocators_;
 
         TG_concurrent_owf_stack<F_render_resource_state> epilogue_resource_state_stack_;

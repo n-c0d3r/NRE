@@ -100,6 +100,26 @@ namespace nre::newrg
                         );
                     break;
                 }
+                case E_managed_render_work_type::FENCE_WAIT_CPU:
+                {
+                    auto& managed_fence_batch = managed_render_work.fence_batch;
+                    for(auto& managed_fence_state : managed_fence_batch)
+                    {
+                        if(managed_fence_state.fence_p->is_completed(managed_fence_state.value))
+                        {
+                            NCPP_ASSERT(managed_fence_state.cpu_wait_callback_p) << "invalid cpu wait callback";
+                            managed_fence_state.cpu_wait_callback_p(managed_fence_state.cpu_wait_callback_param_p);
+                        }
+                        else
+                        {
+                            managed_render_work_ring_buffer_.push({
+                                .fence_batch = F_managed_fence_batch({managed_fence_state}),
+                                .type = E_managed_render_work_type::FENCE_WAIT_CPU
+                            });
+                        }
+                    }
+                    break;
+                }
                 case E_managed_render_work_type::COMMAND_LIST_BATCH:
                 {
                     auto& managed_command_list_batch = managed_render_work.command_list_batch;
@@ -374,6 +394,46 @@ namespace nre::newrg
         managed_render_work_ring_buffer_.push({
             .fence_batch = std::move(fence_batch),
             .type = E_managed_render_work_type::FENCE_SIGNAL
+        });
+    }
+
+    void A_render_worker::enqueue_fence_wait_cpu(
+        TKPA_valid<A_fence> fence_p,
+        u64 value,
+        void (*cpu_wait_callback_p)(void*),
+        void* cpu_wait_callback_param_p
+    )
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        managed_render_work_ring_buffer_.push({
+            .fence_batch = F_managed_fence_batch({
+                F_managed_fence_state{
+                    .fence_p = fence_p.no_requirements(),
+                    .value = value,
+                    .cpu_wait_callback_p = cpu_wait_callback_p,
+                    .cpu_wait_callback_param_p = cpu_wait_callback_param_p
+                }
+            }),
+            .type = E_managed_render_work_type::FENCE_WAIT_CPU
+        });
+    }
+    void A_render_worker::enqueue_fence_wait_batch_cpu(const F_managed_fence_batch& fence_batch)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        managed_render_work_ring_buffer_.push({
+            .fence_batch = fence_batch,
+            .type = E_managed_render_work_type::FENCE_WAIT_CPU
+        });
+    }
+    void A_render_worker::enqueue_fence_wait_batch_cpu(F_managed_fence_batch&& fence_batch)
+    {
+        NCPP_ASSERT(is_in_frame_);
+
+        managed_render_work_ring_buffer_.push({
+            .fence_batch = std::move(fence_batch),
+            .type = E_managed_render_work_type::FENCE_WAIT_CPU
         });
     }
 

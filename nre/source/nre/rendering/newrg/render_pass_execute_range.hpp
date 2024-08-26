@@ -18,6 +18,7 @@ namespace nre::newrg
     {
         TF_render_frame_vector<F_render_pass*> pass_p_vector;
         u8 render_worker_index = 0;
+        b8 has_gpu_works = true;
 
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {
