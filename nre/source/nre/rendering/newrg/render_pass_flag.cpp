@@ -12,7 +12,8 @@ namespace nre::newrg
 
         if(
             flag_is_has(flags, E_render_pass_flag::MAIN)
-            || flag_is_has(flags, E_render_pass_flag::MAIN_CPU_SYNC)
+            || flag_is_has(flags, E_render_pass_flag::MAIN_CPU_SYNC_BEFORE)
+            || flag_is_has(flags, E_render_pass_flag::MAIN_CPU_SYNC_AFTER)
         )
         {
             NCPP_ASSERT(index == 0xFF) << "multiple render workers are not allowed";
@@ -21,7 +22,8 @@ namespace nre::newrg
 
         if(
             flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE)
-            || flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC)
+            || flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC_BEFORE)
+            || flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC_AFTER)
         )
         {
             NCPP_ASSERT(index == 0xFF) << "multiple render workers are not allowed";
@@ -33,48 +35,31 @@ namespace nre::newrg
     }
     b8 H_render_pass_flag::is_cpu_sync_pass(E_render_pass_flag flags)
     {
-        if(flag_is_has(flags, E_render_pass_flag::MAIN_CPU_SYNC))
-        {
-            return true;
-        }
-        if(flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC))
-        {
-            return true;
-        }
-
-        return false;
-    }
-    b8 H_render_pass_flag::can_cpu_sync_render_worker_index(E_render_pass_flag flags, u8 other_render_worker_index)
-    {
-        if(flag_is_has(flags, E_render_pass_flag::MAIN_CPU_SYNC))
-        {
-            return (F_main_render_worker::instance_p()->index() == other_render_worker_index);
-        }
-        if(flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC))
-        {
-            return (F_async_compute_render_worker::instance_p()->index() == other_render_worker_index);
-        }
-
-        return false;
+        return (
+            flag_is_has(flags, E_render_pass_flag::MAIN_CPU_SYNC_BEFORE)
+            || flag_is_has(flags, E_render_pass_flag::MAIN_CPU_SYNC_AFTER)
+            || flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC_BEFORE)
+            || flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC_AFTER)
+        );
     }
     b8 H_render_pass_flag::can_cpu_sync_render_worker_index(E_render_pass_flag first_pass_flags, E_render_pass_flag second_pass_flags)
     {
         u8 second_render_worker_index = render_worker_index(second_pass_flags);
-        if(flag_is_has(first_pass_flags, E_render_pass_flag::MAIN_CPU_SYNC))
+        if(flag_is_has(first_pass_flags, E_render_pass_flag::MAIN_CPU_SYNC_AFTER))
         {
             return (F_main_render_worker::instance_p()->index() == second_render_worker_index);
         }
-        if(flag_is_has(first_pass_flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC))
+        if(flag_is_has(first_pass_flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC_AFTER))
         {
             return (F_async_compute_render_worker::instance_p()->index() == second_render_worker_index);
         }
 
         u8 first_render_worker_index = render_worker_index(first_pass_flags);
-        if(flag_is_has(second_pass_flags, E_render_pass_flag::MAIN_CPU_SYNC))
+        if(flag_is_has(second_pass_flags, E_render_pass_flag::MAIN_CPU_SYNC_BEFORE))
         {
             return (F_main_render_worker::instance_p()->index() == first_render_worker_index);
         }
-        if(flag_is_has(second_pass_flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC))
+        if(flag_is_has(second_pass_flags, E_render_pass_flag::ASYNC_COMPUTE_CPU_SYNC_BEFORE))
         {
             return (F_async_compute_render_worker::instance_p()->index() == first_render_worker_index);
         }
