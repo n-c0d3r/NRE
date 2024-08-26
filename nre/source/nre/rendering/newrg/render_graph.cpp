@@ -1998,7 +1998,7 @@ namespace nre::newrg
     {
         execute_passes_counter_ = 0;
 
-        // schedule execute passes on schedulable worker threads
+        // run on schedulable worker threads to use "yield"
         H_task_system::schedule(
             [this](u32)
             {
@@ -2007,6 +2007,7 @@ namespace nre::newrg
 
                 F_task_counter execute_ranges_counter = execute_range_count;
 
+                // schedule parallel tasks to execute ranges
                 H_task_system::schedule(
                     [this, &execute_ranges_counter](u32 execute_range_id)
                     {
