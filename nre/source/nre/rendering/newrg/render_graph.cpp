@@ -2029,7 +2029,7 @@ namespace nre::newrg
                                 }
                             }
 
-                            // long dependencies check
+                            // yield, to not block other tasks while dependencies are not done
                             if(enable_long_dependencies_check)
                                 H_task_context::yield(
                                     [this, &dependency_id_batch, &execute_range_span]()
