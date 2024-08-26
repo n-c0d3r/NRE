@@ -9,7 +9,6 @@ input_assembler demo_input_assembler
     NORMAL
 )
 
-@input_assembler(demo_input_assembler)
 vertex_shader vs_main
 (
     position(POSITION)
@@ -26,6 +25,7 @@ pixel_shader ps_main
     color = float4(1, 1, 1, 1);
 }
 
+@input_assembler(demo_input_assembler)
 pipeline_state graphics_pso_main
 (
     vs_main
