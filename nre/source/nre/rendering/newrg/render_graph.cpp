@@ -506,13 +506,10 @@ namespace nre::newrg
                     )
                         continue;
 
-                    // if the current pass the the use pass need to be synchronized,
-                    // there will be no producer-consumer relationship that can affect resource barrier placement
+                    // passes without gpu work can't affect resource barrier placement
                     if(
-                        H_render_pass_flag::can_cpu_sync_render_worker_index(
-                            use_pass_p->flags(),
-                            pass_p->flags()
-                        )
+                        H_render_pass_flag::has_gpu_work(use_pass_p->flags())
+                        && H_render_pass_flag::has_gpu_work(pass_p->flags())
                     )
                         continue;
 
@@ -574,13 +571,10 @@ namespace nre::newrg
                     )
                         continue;
 
-                    // if the current pass the the use pass need to be synchronized,
-                    // there will be no producer-consumer relationship that can affect resource barrier placement
+                    // passes without gpu work can't affect resource barrier placement
                     if(
-                        H_render_pass_flag::can_cpu_sync_render_worker_index(
-                            use_pass_p->flags(),
-                            pass_p->flags()
-                        )
+                        H_render_pass_flag::has_gpu_work(use_pass_p->flags())
+                        && H_render_pass_flag::has_gpu_work(pass_p->flags())
                     )
                         continue;
 
@@ -1763,14 +1757,14 @@ namespace nre::newrg
             auto execute_range_span = execute_range_owf_stack_.item_span();
             for(auto& execute_range : execute_range_span)
             {
-                execute_range.has_gpu_works = false;
+                execute_range.has_gpu_work = false;
 
                 auto& pass_p_vector = execute_range.pass_p_vector;
                 for(F_render_pass* pass_p : pass_p_vector)
                 {
-                    if(!(H_render_pass_flag::is_cpu_sync_pass(pass_p->flags())))
+                    if(H_render_pass_flag::has_gpu_work(pass_p->flags()))
                     {
-                        execute_range.has_gpu_works = true;
+                        execute_range.has_gpu_work = true;
                         break;
                     }
                 }
@@ -1931,7 +1925,7 @@ namespace nre::newrg
         }
 
         // submit gpu works
-        if(execute_range.has_gpu_works)
+        if(execute_range.has_gpu_work)
         {
             auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
             auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);

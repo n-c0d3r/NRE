@@ -33,6 +33,10 @@ namespace nre::newrg
         NCPP_ASSERT(index != 0xFF) << "invalid flags, no render worker specified";
         return index;
     }
+    b8 H_render_pass_flag::has_gpu_work(E_render_pass_flag flags)
+    {
+        return !flag_is_has(flags, E_render_pass_flag::NO_GPU_WORK);
+    }
     b8 H_render_pass_flag::is_cpu_sync_pass(E_render_pass_flag flags)
     {
         return (
