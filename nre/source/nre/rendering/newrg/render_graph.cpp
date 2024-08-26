@@ -506,6 +506,16 @@ namespace nre::newrg
                     )
                         continue;
 
+                    // if the current pass the the use pass need to be synchronized,
+                    // there will be no producer-consumer relationship that can affect resource barrier placement
+                    if(
+                        H_render_pass_flag::can_cpu_sync_render_worker_index(
+                            use_pass_p->flags(),
+                            pass_p->flags()
+                        )
+                    )
+                        continue;
+
                     if(use_pass_p->id() >= pass_id)
                         continue;
 
@@ -561,6 +571,16 @@ namespace nre::newrg
                     if(
                         H_render_pass_flag::render_worker_index(pass_p->flags())
                         != H_render_pass_flag::render_worker_index(use_pass_p->flags())
+                    )
+                        continue;
+
+                    // if the current pass the the use pass need to be synchronized,
+                    // there will be no producer-consumer relationship that can affect resource barrier placement
+                    if(
+                        H_render_pass_flag::can_cpu_sync_render_worker_index(
+                            use_pass_p->flags(),
+                            pass_p->flags()
+                        )
                     )
                         continue;
 
