@@ -2074,7 +2074,8 @@ namespace nre::newrg
                     },
                     {
                         .counter_p = &execute_ranges_counter,
-                        .parallel_count = execute_range_count
+                        .parallel_count = execute_range_count,
+                        .batch_size = 1
                     }
                 );
 
