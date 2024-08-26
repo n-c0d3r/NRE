@@ -71,6 +71,47 @@ int main() {
 				.resource_p = rg_back_buffer_p,
 				.states = ED_resource_state::RENDER_TARGET
 			});
+
+			F_render_pass* rg_pass_1_p = render_graph_p->create_pass(
+				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				{
+					int a = 5;
+				},
+				ED_pipeline_state_type::GRAPHICS,
+				E_render_pass_flag::MAIN_CPU_SYNC_BEFORE
+				NRE_OPTIONAL_DEBUG_PARAM("pass_1")
+			);
+			rg_pass_1_p->add_resource_state({
+				.resource_p = rg_back_buffer_p,
+				.states = ED_resource_state::RENDER_TARGET
+			});
+
+			F_render_pass* rg_pass_2_p = render_graph_p->create_pass(
+				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				{
+					int a = 5;
+				},
+				ED_pipeline_state_type::GRAPHICS,
+				E_render_pass_flag::MAIN_CPU_SYNC
+				NRE_OPTIONAL_DEBUG_PARAM("pass_2")
+			);
+			rg_pass_2_p->add_resource_state({
+				.resource_p = rg_back_buffer_p,
+				.states = ED_resource_state::RENDER_TARGET
+			});
+
+			F_render_pass* rg_pass_3_p = render_graph_p->create_pass(
+				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				{
+				},
+				ED_pipeline_state_type::GRAPHICS,
+				E_render_pass_flag::DEFAULT
+				NRE_OPTIONAL_DEBUG_PARAM("pass_3")
+			);
+			rg_pass_3_p->add_resource_state({
+				.resource_p = rg_back_buffer_p,
+				.states = ED_resource_state::RENDER_TARGET
+			});
 		};
 		NRE_NEWRG_RENDERER_UPLOAD()
 		{

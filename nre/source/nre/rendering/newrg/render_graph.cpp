@@ -1757,6 +1757,79 @@ namespace nre::newrg
             }
         }
     }
+    void F_render_graph::create_execute_range_dependency_ids()
+    {
+        auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
+        auto& render_worker_list = render_pipeline_p->render_worker_list();
+        u32 render_worker_count = render_worker_list.size();
+
+        auto pass_span = pass_p_owf_stack_.item_span();
+
+        auto execute_range_span = execute_range_owf_stack_.item_span();
+        u32 execute_range_count = execute_range_span.size();
+        for(u32 i = 0; i < execute_range_count; ++i)
+        {
+            auto& execute_range = execute_range_span[i];
+
+            auto& pass_p_vector = execute_range.pass_p_vector;
+
+            auto& dependency_ids = execute_range.dependency_ids;
+            dependency_ids.resize(render_worker_count);
+            for(auto& dependency_id : dependency_ids)
+                dependency_id = NCPP_U32_MAX;
+
+            for(u32 j = 0; j < render_worker_count; ++j)
+            {
+                auto& dependency_id = dependency_ids[j];
+
+                for(F_render_pass* pass_p : pass_p_vector)
+                {
+                    F_render_pass_id max_sync_pass_id = pass_p->max_sync_pass_ids_[j];
+
+                    if(max_sync_pass_id == NCPP_U32_MAX)
+                        continue;
+
+                    F_render_pass* max_sync_pass_p = pass_span[max_sync_pass_id];
+
+                    F_render_pass_execute_range_id max_sync_pass_execute_range_id = max_sync_pass_p->execute_range_index();
+                    if(max_sync_pass_execute_range_id < i)
+                    {
+                        if(dependency_id == NCPP_U32_MAX)
+                        {
+                            dependency_id = max_sync_pass_execute_range_id;
+                        }
+                        else
+                        {
+                            dependency_id = eastl::max(
+                                dependency_id,
+                                max_sync_pass_execute_range_id
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    void F_render_graph::create_execute_range_dependency_id_batches()
+    {
+        auto execute_range_span = execute_range_owf_stack_.item_span();
+        u32 execute_range_count = execute_range_span.size();
+        for(u32 i = 0; i < execute_range_count; ++i)
+        {
+            auto& execute_range = execute_range_span[i];
+
+            auto& dependency_ids = execute_range.dependency_ids;
+            auto& dependency_id_batch = execute_range.dependency_id_batch;
+
+            for(auto dependency_id : dependency_ids)
+            {
+                if(dependency_id != NCPP_U32_MAX)
+                {
+                    dependency_id_batch.push_back(dependency_id);
+                }
+            }
+        }
+    }
 
     void F_render_graph::execute_range_internal(const F_render_pass_execute_range& execute_range)
     {
@@ -1925,15 +1998,68 @@ namespace nre::newrg
     {
         execute_passes_counter_ = 0;
 
+        // schedule execute passes on schedulable worker threads
         H_task_system::schedule(
             [this](u32)
-            {;
+            {
                 auto execute_range_span = execute_range_owf_stack_.item_span();
-                for(auto& execute_range : execute_range_span)
-                {
-                    execute_range_internal(execute_range);
-                }
+                u32 execute_range_count = execute_range_span.size();
 
+                F_task_counter execute_ranges_counter = execute_range_count;
+
+                H_task_system::schedule(
+                    [this, &execute_ranges_counter](u32 execute_range_id)
+                    {
+                        auto execute_range_span = execute_range_owf_stack_.item_span();
+                        auto& execute_range = execute_range_span[execute_range_id];
+
+                        // check dependencies
+                        auto& dependency_id_batch = execute_range.dependency_id_batch;
+                        if(dependency_id_batch.size())
+                        {
+                            // early check dependencies
+                            b8 enable_long_dependencies_check = true;
+                            for(auto dependency_id : dependency_id_batch)
+                            {
+                                auto& dependency = execute_range_span[dependency_id];
+                                if(EA::Thread::AtomicGetValue(&(dependency.counter)) != 0)
+                                {
+                                    enable_long_dependencies_check = false;
+                                    break;
+                                }
+                            }
+
+                            // long dependencies check
+                            if(enable_long_dependencies_check)
+                                H_task_context::yield(
+                                    [this, &dependency_id_batch, &execute_range_span]()
+                                    {
+                                        for(auto dependency_id : dependency_id_batch)
+                                        {
+                                            auto& dependency = execute_range_span[dependency_id];
+                                            if(EA::Thread::AtomicGetValue(&(dependency.counter)))
+                                                return false;
+                                        }
+                                        return true;
+                                    }
+                                );
+                        }
+
+                        //
+                        execute_range_internal(execute_range);
+
+                        //
+                        execute_ranges_counter.fetch_sub(1, eastl::memory_order_acq_rel);
+                    },
+                    {
+                        .counter_p = &execute_ranges_counter,
+                        .parallel_count = execute_range_count
+                    }
+                );
+
+                H_task_context::yield(
+                    F_wait_for_counter(&execute_ranges_counter)
+                );
                 is_began_.store(true, eastl::memory_order_release);
             },
             {
@@ -2115,6 +2241,8 @@ namespace nre::newrg
         create_pass_fence_batches_internal();
 
         build_execute_range_owf_stack_internal();
+        create_execute_range_dependency_ids();
+        create_execute_range_dependency_id_batches();
 
         create_resource_barriers_internal();
         merge_resource_barriers_before_internal();
