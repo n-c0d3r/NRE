@@ -1854,7 +1854,7 @@ namespace nre::newrg
                 u32 cpu_signal_cpu_fence_count = cpu_signal_cpu_fence_batch.size();
 
                 // cpu wait cpu fences
-                for(auto& fence_target : cpu_wait_gpu_fence_batch)
+                for(auto& fence_target : cpu_wait_cpu_fence_batch)
                 {
                     auto& cpu_fence = cpu_fences_[fence_target.render_worker_index];
 
