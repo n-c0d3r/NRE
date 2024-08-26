@@ -64,7 +64,7 @@ int main() {
 					);
 				},
 				ED_pipeline_state_type::GRAPHICS,
-				E_render_pass_flag::NONE
+				E_render_pass_flag::DEFAULT
 				NRE_OPTIONAL_DEBUG_PARAM("clear_back_buffer")
 			);
 			rg_pass_p->add_resource_state({

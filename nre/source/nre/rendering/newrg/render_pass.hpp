@@ -56,7 +56,7 @@ namespace nre::newrg
         TF_render_frame_vector<F_render_resource*> resource_to_export_vector_;
 
         ED_pipeline_state_type pipeline_state_type_ = ED_pipeline_state_type::NONE;
-        E_render_pass_flag flags_ = E_render_pass_flag::NONE;
+        E_render_pass_flag flags_ = E_render_pass_flag::DEFAULT;
 
         // Each element corresponds to a writable producer pass running on a render worker at the specified index.
         TF_render_frame_vector<F_render_pass_id> max_sync_pass_ids_;

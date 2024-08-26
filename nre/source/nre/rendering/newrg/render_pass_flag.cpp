@@ -8,9 +8,21 @@ namespace nre::newrg
 {
     u8 H_render_pass_flag::render_worker_index(E_render_pass_flag flags)
     {
-        if(flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE))
-            return F_async_compute_render_worker::instance_p()->index();
+        u8 index = 0xFF;
 
-        return F_main_render_worker::instance_p()->index();
+        if(flag_is_has(flags, E_render_pass_flag::MAIN))
+        {
+            NCPP_ASSERT(index == 0xFF) << "multiple render workers are not allowed";
+            index = F_main_render_worker::instance_p()->index();
+        }
+
+        if(flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE))
+        {
+            NCPP_ASSERT(index == 0xFF) << "multiple render workers are not allowed";
+            index = F_async_compute_render_worker::instance_p()->index();
+        }
+
+        NCPP_ASSERT(index != 0xFF) << "invalid flags, no render worker specified";
+        return index;
     }
 }
