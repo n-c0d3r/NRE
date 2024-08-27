@@ -29,4 +29,12 @@ namespace nre {
         {}
         ~F_renderer_readback_event(){}
     };
+
+    class F_renderer_release_event : public F_event {
+
+    public:
+        NCPP_FORCE_INLINE F_renderer_release_event()
+        {}
+        ~F_renderer_release_event(){}
+    };
 }

@@ -78,6 +78,9 @@ int main() {
 		NRE_NEWRG_RENDERER_READBACK()
 		{
 		};
+		NRE_NEWRG_RENDERER_RELEASE()
+		{
+		};
 	}
 
 	application_p->start();

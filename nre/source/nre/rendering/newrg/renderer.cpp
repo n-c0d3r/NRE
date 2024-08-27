@@ -18,6 +18,7 @@ namespace nre::newrg
     }
     F_renderer::~F_renderer()
     {
+        release_event_.invoke();
     }
 
 
