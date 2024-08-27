@@ -1199,7 +1199,7 @@ namespace nre::newrg
 
     void F_render_graph::create_resource_barriers_internal()
     {
-        auto calculate_resource_barrier = [](
+        auto calculate_resource_barrier_before = [](
             TKPA_valid<A_resource> rhi_p,
             u32 subresource_index_before,
             u32 subresource_index_after,
@@ -1236,6 +1236,11 @@ namespace nre::newrg
                 return H_resource_barrier::uav({
                     .resource_p = (TKPA<A_resource>)rhi_p
                 });
+            }
+
+            if(states_before == states_after)
+            {
+                return eastl::nullopt;
             }
 
             return H_resource_barrier::transition(
@@ -1334,14 +1339,13 @@ namespace nre::newrg
                         }
                         else
                         {
-                            if(resource_state.states != producer_resource_state.states)
-                                resource_barriers_before[i] = calculate_resource_barrier(
-                                    (TKPA_valid<A_resource>)rhi_p,
-                                    producer_resource_state.subresource_index,
-                                    resource_state.subresource_index,
-                                    producer_resource_state.states,
-                                    resource_state.states
-                                );
+                            resource_barriers_before[i] = calculate_resource_barrier_before(
+                                (TKPA_valid<A_resource>)rhi_p,
+                                producer_resource_state.subresource_index,
+                                resource_state.subresource_index,
+                                producer_resource_state.states,
+                                resource_state.states
+                            );
                         }
                     }
                     else
