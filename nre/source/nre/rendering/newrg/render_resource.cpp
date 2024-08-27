@@ -89,21 +89,21 @@ namespace nre::newrg
 
 
 
-    void F_render_resource::skip_uav_barriers(const F_render_pass_id_range& pass_id_range)
+    void F_render_resource::enable_concurrent_uav(const F_render_pass_id_range& pass_id_range)
     {
         NCPP_ASSERT(pass_id_range.end > pass_id_range.begin) << "invalid pass id range";
 
-        if(uav_barrier_skipping_pass_id_ranges_.size())
+        if(concurrent_uav_pass_id_ranges_.size())
         {
-            auto& last_uav_barrier_skipping_pass_id_ranges = uav_barrier_skipping_pass_id_ranges_.back();
-            if(last_uav_barrier_skipping_pass_id_ranges.end >= pass_id_range.begin)
+            auto& last_concurrent_uav_pass_id_ranges = concurrent_uav_pass_id_ranges_.back();
+            if(last_concurrent_uav_pass_id_ranges.end >= pass_id_range.begin)
             {
-                last_uav_barrier_skipping_pass_id_ranges.end = eastl::max(pass_id_range.begin, last_uav_barrier_skipping_pass_id_ranges.end);
+                last_concurrent_uav_pass_id_ranges.end = eastl::max(pass_id_range.begin, last_concurrent_uav_pass_id_ranges.end);
                 return;
             }
         }
 
-        uav_barrier_skipping_pass_id_ranges_.push_back({
+        concurrent_uav_pass_id_ranges_.push_back({
             .begin = pass_id_range.begin,
             .end = pass_id_range.end
         });

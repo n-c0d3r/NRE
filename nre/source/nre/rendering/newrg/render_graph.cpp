@@ -363,30 +363,62 @@ namespace nre::newrg
             }
         }
     }
-    void F_render_graph::setup_resource_is_uav_barriers_skippable_internal()
+    void F_render_graph::setup_resource_is_in_uav_concurrent_ranges_internal()
     {
-        // auto pass_span = pass_p_owf_stack_.item_span();
-        // auto resource_span = resource_p_owf_stack_.item_span();
-        // for(F_render_resource* resource_p : resource_span)
-        // {
-        //     auto& access_dependencies = resource_p->access_dependencies_;
-        //     for(const auto& access_dependency : access_dependencies)
-        //     {
-        //         F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
-        //         auto& access_dependency_is_uav_barriers_skippable = access_dependency_pass_p->resource_is_uav_barriers_skippable_[
-        //             access_dependency.resource_state_index
-        //         ];
-        //         access_dependency_is_uav_barriers_skippable = true;
-        //
-        //         if(resource_p->min_pass_id_ == NCPP_U32_MAX)
-        //             resource_p->min_pass_id_ = access_dependency.pass_id;
-        //         else
-        //             resource_p->min_pass_id_ = eastl::min(
-        //                 resource_p->min_pass_id_,
-        //                 access_dependency.pass_id
-        //             );
-        //     }
-        // }
+        auto pass_span = pass_p_owf_stack_.item_span();
+        auto resource_span = resource_p_owf_stack_.item_span();
+        for(F_render_resource* resource_p : resource_span)
+        {
+            auto& access_dependencies = resource_p->access_dependencies_;
+            u32 access_dependency_count = access_dependencies.size();
+
+            //
+            auto& concurrent_uav_pass_id_ranges = resource_p->concurrent_uav_pass_id_ranges_;
+            u32 concurrent_uav_pass_id_range_count = concurrent_uav_pass_id_ranges.size();
+            u32 concurrent_uav_pass_id_range_index = 0;
+
+            //
+            for(u32 access_dependency_index = 0; access_dependency_index < access_dependency_count; ++access_dependency_index)
+            {
+                auto& access_dependency = access_dependencies[access_dependency_index];
+
+                F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
+
+                //
+                auto& access_dependency_is_in_uav_concurrent_ranges = access_dependency_pass_p->resource_is_in_uav_concurrent_ranges_;
+                access_dependency_is_in_uav_concurrent_ranges.resize(
+                    access_dependency_pass_p->resource_states_.size()
+                );
+
+                //
+                auto& access_dependency_is_in_uav_concurrent_range = access_dependency_is_in_uav_concurrent_ranges[
+                    access_dependency.resource_state_index
+                ];
+                access_dependency_is_in_uav_concurrent_range = false;
+
+                // move to the appropriate concurrent_uav_pass_id_range
+                for(; concurrent_uav_pass_id_range_index < concurrent_uav_pass_id_range_count; ++concurrent_uav_pass_id_range_index)
+                {
+                    auto& concurrent_uav_pass_id_range = concurrent_uav_pass_id_ranges[
+                        concurrent_uav_pass_id_range_index
+                    ];
+
+                    if(concurrent_uav_pass_id_range.end > access_dependency.pass_id)
+                        break;
+                }
+
+                // check if there is a uav barrier skipping range
+                if(concurrent_uav_pass_id_range_index < concurrent_uav_pass_id_range_count)
+                {
+                    auto& concurrent_uav_pass_id_range = concurrent_uav_pass_id_ranges[
+                        concurrent_uav_pass_id_range_index
+                    ];
+
+                    if(concurrent_uav_pass_id_range.begin <= access_dependency.pass_id)
+                        access_dependency_is_in_uav_concurrent_range = true;
+                }
+            }
+        }
     }
     void F_render_graph::setup_resource_min_pass_ids_internal()
     {
@@ -1205,7 +1237,8 @@ namespace nre::newrg
             u32 subresource_index_after,
             ED_resource_state states_before,
             ED_resource_state states_after,
-            ED_resource_barrier_flag barrier_flags = ED_resource_barrier_flag::NONE
+            b8 is_concurrent_uav_before,
+            b8 is_concurrent_uav_after
         )->eastl::optional<F_resource_barrier>
         {
             u32 subresource_index = subresource_index_after;
@@ -1233,6 +1266,12 @@ namespace nre::newrg
                 && (subresource_index == resource_barrier_all_subresources)
             )
             {
+                // if both 2 states are concurrent uavs
+                if(is_concurrent_uav_before && is_concurrent_uav_after)
+                {
+                    return eastl::nullopt;
+                }
+
                 return H_resource_barrier::uav({
                     .resource_p = (TKPA<A_resource>)rhi_p
                 });
@@ -1249,8 +1288,7 @@ namespace nre::newrg
                     .subresource_index = subresource_index,
                     .state_before = states_before,
                     .state_after = states_after
-                },
-                barrier_flags
+                }
             );
         };
 
@@ -1267,6 +1305,7 @@ namespace nre::newrg
             for(F_render_pass* pass_p : pass_p_vector)
             {
                 auto& resource_states = pass_p->resource_states_;
+                auto& resource_is_in_uav_concurrent_ranges = pass_p->resource_is_in_uav_concurrent_ranges_;
                 auto& resource_producer_dependencies = pass_p->resource_producer_dependencies_;
                 auto& resource_consumer_dependencies = pass_p->resource_consumer_dependencies_;
                 auto& resource_barriers_before = pass_p->resource_barriers_before_;
@@ -1280,6 +1319,7 @@ namespace nre::newrg
                 for(u32 i = 0; i < resource_state_count; ++i)
                 {
                     auto& resource_state = resource_states[i];
+                    auto resource_is_in_uav_concurrent_range = resource_is_in_uav_concurrent_ranges[i];
 
                     F_render_resource* resource_p = resource_state.resource_p;
                     auto rhi_p = resource_p->rhi_p();
@@ -1322,6 +1362,7 @@ namespace nre::newrg
                     {
                         F_render_pass* producer_pass_p = pass_span[resource_producer_dependency.pass_id];
                         auto& producer_resource_state = producer_pass_p->resource_states_[resource_producer_dependency.resource_state_index];
+                        auto producer_resource_is_in_uav_concurrent_range = producer_pass_p->resource_is_in_uav_concurrent_ranges_[resource_producer_dependency.resource_state_index];
 
                         if(first_pass_id > resource_producer_dependency.pass_id)
                         {
@@ -1344,7 +1385,9 @@ namespace nre::newrg
                                 producer_resource_state.subresource_index,
                                 resource_state.subresource_index,
                                 producer_resource_state.states,
-                                resource_state.states
+                                resource_state.states,
+                                producer_resource_is_in_uav_concurrent_range,
+                                resource_is_in_uav_concurrent_range
                             );
                         }
                     }
@@ -1467,7 +1510,7 @@ namespace nre::newrg
                                     resource_barrier_value
                                 );
                                 resource_barrier = eastl::nullopt;
-                                continue;
+                                break;
                             }
                         }
                     }
@@ -2371,7 +2414,7 @@ namespace nre::newrg
     void F_render_graph::setup_internal()
     {
         setup_resource_access_dependencies_internal();
-        setup_resource_is_uav_barriers_skippable_internal();
+        setup_resource_is_in_uav_concurrent_ranges_internal();
         setup_resource_min_pass_ids_internal();
         setup_resource_max_pass_ids_internal();
         setup_resource_max_sync_pass_ids_internal();

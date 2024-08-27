@@ -202,7 +202,7 @@ namespace nre::newrg
 
     private:
         void setup_resource_access_dependencies_internal();
-        void setup_resource_is_uav_barriers_skippable_internal();
+        void setup_resource_is_in_uav_concurrent_ranges_internal();
         void setup_resource_min_pass_ids_internal();
         void setup_resource_max_pass_ids_internal();
         void setup_resource_max_sync_pass_ids_internal();
