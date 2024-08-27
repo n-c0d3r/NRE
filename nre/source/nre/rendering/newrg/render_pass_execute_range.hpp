@@ -19,6 +19,7 @@ namespace nre::newrg
         TF_render_frame_vector<F_render_pass*> pass_p_vector;
         u8 render_worker_index = 0;
         b8 has_gpu_work = true;
+        b8 is_cpu_sync = false;
 
         u32 counter = 1;
 

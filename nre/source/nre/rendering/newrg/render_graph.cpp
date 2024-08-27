@@ -1682,6 +1682,7 @@ namespace nre::newrg
             for(F_render_pass* pass_p : pass_span)
             {
                 u8 render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
+                b8 is_cpu_sync = H_render_pass_flag::is_cpu_sync_pass(pass_p->flags());
 
                 auto& gpu_signal_fence_batch = pass_p->gpu_signal_fence_batch_;
                 auto& gpu_wait_fence_batch = pass_p->gpu_wait_fence_batch_;
@@ -1695,7 +1696,8 @@ namespace nre::newrg
                         execute_range_owf_stack_.push(execute_range);
                         ++execute_range_index;
                         execute_range = {
-                            .render_worker_index = render_worker_index
+                            .render_worker_index = render_worker_index,
+                            .is_cpu_sync = is_cpu_sync
                         };
                     }
                 }
@@ -1708,15 +1710,19 @@ namespace nre::newrg
                         execute_range_owf_stack_.push(execute_range);
                         ++execute_range_index;
                         execute_range = {
-                            .render_worker_index = render_worker_index
+                            .render_worker_index = render_worker_index,
+                            .is_cpu_sync = is_cpu_sync
                         };
                     }
                 }
 
-                // different render workers, so use new command list -> new execute range
+                // different render workers or different is_cpu_sync -> use new command list -> new execute range
                 if(
                     execute_range
-                    && (execute_range.render_worker_index != render_worker_index)
+                    && (
+                        (execute_range.render_worker_index != render_worker_index)
+                        | (execute_range.is_cpu_sync != is_cpu_sync)
+                    )
                 )
                 {
                     if(execute_range)
@@ -1727,9 +1733,11 @@ namespace nre::newrg
                     }
                 }
 
+                // push back pass into execute range
                 pass_p->execute_range_index_ = execute_range_index;
 
-                execute_range.render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
+                execute_range.render_worker_index = render_worker_index;
+                execute_range.is_cpu_sync = is_cpu_sync;
                 execute_range.pass_p_vector.push_back(pass_p);
 
                 // we can't add fence signal inside a command list, so need to split command list even they run on the same render worker
