@@ -22,6 +22,7 @@
 #include <nre/rendering/newrg/main_render_worker.hpp>
 #include <nre/rendering/newrg/render_pass_functor.hpp>
 #include <nre/rendering/newrg/render_pass_flag.hpp>
+#include <nre/rendering/newrg/render_pass_id_range.hpp>
 #include <nre/rendering/newrg/render_pass_execute_range.hpp>
 #include <nre/rendering/newrg/render_fence_state.hpp>
 #include <nre/rendering/newrg/render_fence_batch.hpp>

@@ -11,8 +11,6 @@
 #include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 
-#include "external_render_descriptor.hpp"
-
 
 namespace nre::newrg
 {
@@ -297,6 +295,8 @@ namespace nre::newrg
     void F_render_graph::setup_resource_access_dependencies_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
+        auto resource_span = resource_p_owf_stack_.item_span();
+
         for(F_render_pass* pass_p : pass_span)
         {
             auto& resource_states = pass_p->resource_states_;
@@ -307,12 +307,86 @@ namespace nre::newrg
                 auto& resource_state = resource_states[i];
 
                 F_render_resource* resource_p = resource_state.resource_p;
+
                 resource_p->access_dependencies_.push_back({
                     .pass_id = pass_p->id(),
                     .resource_state_index = i
                 });
+                resource_p->access_counts_[H_render_pass_flag::render_worker_index(pass_p->flags())]++;
+            }
+
+            pass_p->resource_access_dependency_indices_.resize(resource_state_count);
+        }
+
+        // sort access dependencies by pass ids
+        {
+            auto compare = [](const F_render_resource_dependency& a, const F_render_resource_dependency& b)
+            {
+                return a.pass_id < b.pass_id;
+            };
+            for(F_render_resource* resource_p : resource_span)
+            {
+                eastl::sort(
+                    resource_p->access_dependencies_.begin(),
+                    resource_p->access_dependencies_.end(),
+                    compare
+                );
             }
         }
+
+        // bind resource access dependency indices
+        for(F_render_resource* resource_p : resource_span)
+        {
+            auto& access_dependencies = resource_p->access_dependencies_;
+            u32 access_dependency_count = access_dependencies.size();
+
+            for(u32 i = 0; i < access_dependency_count; ++i)
+            {
+                auto& access_dependency = access_dependencies[i];
+                F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
+
+                access_dependency_pass_p->resource_access_dependency_indices_[
+                    access_dependency.resource_state_index
+                ] = i;
+            }
+        }
+
+        // set resource accessable render worker counts
+        for(F_render_resource* resource_p : resource_span)
+        {
+            auto& access_counts = resource_p->access_counts_;
+            auto& accessable_render_worker_count = resource_p->accessable_render_worker_count_;
+            for(auto& access_count : access_counts)
+            {
+                if(access_count != 0)
+                    ++accessable_render_worker_count;
+            }
+        }
+    }
+    void F_render_graph::setup_resource_is_uav_barriers_skippable_internal()
+    {
+        // auto pass_span = pass_p_owf_stack_.item_span();
+        // auto resource_span = resource_p_owf_stack_.item_span();
+        // for(F_render_resource* resource_p : resource_span)
+        // {
+        //     auto& access_dependencies = resource_p->access_dependencies_;
+        //     for(const auto& access_dependency : access_dependencies)
+        //     {
+        //         F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
+        //         auto& access_dependency_is_uav_barriers_skippable = access_dependency_pass_p->resource_is_uav_barriers_skippable_[
+        //             access_dependency.resource_state_index
+        //         ];
+        //         access_dependency_is_uav_barriers_skippable = true;
+        //
+        //         if(resource_p->min_pass_id_ == NCPP_U32_MAX)
+        //             resource_p->min_pass_id_ = access_dependency.pass_id;
+        //         else
+        //             resource_p->min_pass_id_ = eastl::min(
+        //                 resource_p->min_pass_id_,
+        //                 access_dependency.pass_id
+        //             );
+        //     }
+        // }
     }
     void F_render_graph::setup_resource_min_pass_ids_internal()
     {
@@ -321,25 +395,22 @@ namespace nre::newrg
         for(F_render_resource* resource_p : resource_span)
         {
             auto& access_dependencies = resource_p->access_dependencies_;
-            for(const auto& access_dependency : access_dependencies)
+
+            if(access_dependencies.size())
             {
-                F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
+                auto& first_access_dependency = access_dependencies.front();
+
+                F_render_pass* access_dependency_pass_p = pass_span[first_access_dependency.pass_id];
 
                 // sentinel passes must not affect resource allocation
                 if(access_dependency_pass_p->is_sentinel())
                 {
                     if(resource_p->is_available_at_the_beginning_of_frame())
-                        resource_p->min_pass_id_ = access_dependency.pass_id;
+                        resource_p->min_pass_id_ = first_access_dependency.pass_id;
                     continue;
                 }
 
-                if(resource_p->min_pass_id_ == NCPP_U32_MAX)
-                    resource_p->min_pass_id_ = access_dependency.pass_id;
-                else
-                    resource_p->min_pass_id_ = eastl::min(
-                        resource_p->min_pass_id_,
-                        access_dependency.pass_id
-                    );
+                resource_p->min_pass_id_ = first_access_dependency.pass_id;
             }
         }
     }
@@ -350,25 +421,21 @@ namespace nre::newrg
         for(F_render_resource* resource_p : resource_span)
         {
             auto& access_dependencies = resource_p->access_dependencies_;
-            for(const auto& access_dependency : access_dependencies)
+            if(access_dependencies.size())
             {
-                F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
+                auto& last_access_dependency = access_dependencies.back();
 
-                // sentinel passes must not affect resource deallocation except which resources that will be available until the end of frame
+                F_render_pass* access_dependency_pass_p = pass_span[last_access_dependency.pass_id];
+
+                // sentinel passes must not affect resource allocation
                 if(access_dependency_pass_p->is_sentinel())
                 {
                     if(resource_p->is_available_until_the_end_of_frame())
-                        resource_p->max_pass_id_ = access_dependency.pass_id;
+                        resource_p->max_pass_id_ = last_access_dependency.pass_id;
                     continue;
                 }
 
-                if(resource_p->max_pass_id_ == NCPP_U32_MAX)
-                    resource_p->max_pass_id_ = access_dependency.pass_id;
-                else
-                    resource_p->max_pass_id_ = eastl::max(
-                        resource_p->max_pass_id_,
-                        access_dependency.pass_id
-                    );
+                resource_p->max_pass_id_ = last_access_dependency.pass_id;
             }
         }
     }
@@ -380,9 +447,16 @@ namespace nre::newrg
         {
             auto& max_sync_pass_id_vector = resource_p->max_sync_pass_id_vector_;
 
+            u32 accessable_render_worker_count = resource_p->accessable_render_worker_count_;
+            u32 found_render_worker_count = 0;
+
             auto& access_dependencies = resource_p->access_dependencies_;
-            for(const auto& access_dependency : access_dependencies)
+            u32 access_dependency_count = access_dependencies.size();
+
+            for(u32 i = access_dependency_count - 1; i != NCPP_U32_MAX; --i)
             {
+                auto& access_dependency = access_dependencies[i];
+
                 F_render_pass_id pass_id = access_dependency.pass_id;
                 F_render_pass* pass_p = pass_span[pass_id];
 
@@ -397,10 +471,10 @@ namespace nre::newrg
                 if(max_sync_pass_id == NCPP_U32_MAX)
                 {
                     max_sync_pass_id = pass_id;
-                }
-                else
-                {
-                    max_sync_pass_id = eastl::max(pass_id, max_sync_pass_id);
+                    ++found_render_worker_count;
+
+                    if(found_render_worker_count == accessable_render_worker_count)
+                        break;
                 }
             }
         }
@@ -408,63 +482,74 @@ namespace nre::newrg
     void F_render_graph::setup_resource_allocation_lists_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
-        for(F_render_pass* pass_p : pass_span)
+        auto resource_span = resource_p_owf_stack_.item_span();
+        for(F_render_resource* resource_p : resource_span)
         {
-            auto& resource_to_allocate_vector = pass_p->resource_to_allocate_vector_;
+            if(!(resource_p->need_to_create()))
+                continue;
 
-            for(auto& resource_state : pass_p->resource_states())
+            auto& access_dependencies = resource_p->access_dependencies_;
+            u32 access_dependency_count = access_dependencies.size();
+
+            if(!access_dependency_count)
+                continue;
+
+            for(u32 i = 0; i < access_dependency_count; ++i)
             {
-                F_render_resource* resource_p = resource_state.resource_p;
+                auto& access_dependency = access_dependencies[i];
 
-                if(!(resource_p->need_to_create()))
-                    continue;
+                F_render_pass* pass_p = pass_span[access_dependency.pass_id];
+                auto& resource_to_allocate_vector = pass_p->resource_to_allocate_vector_;
 
-                if(resource_p->min_pass_id() == pass_p->id())
+                if(
+                    // sentinel passes must not affect resource allocation
+                    // unless it will be available at the beginning of the frame
+                    pass_p->is_sentinel()
+                    && !(resource_p->is_available_at_the_beginning_of_frame())
+                )
                 {
-                    resource_to_allocate_vector.push_back(resource_p);
+                    continue;
                 }
+
+                resource_to_allocate_vector.push_back(resource_p);
+                break;
             }
         }
     }
     void F_render_graph::setup_resource_deallocation_lists_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
-        for(F_render_pass* pass_p : pass_span)
+        auto resource_span = resource_p_owf_stack_.item_span();
+        for(F_render_resource* resource_p : resource_span)
         {
-            auto& resource_to_deallocate_vector = pass_p->resource_to_deallocate_vector_;
+            if(!(resource_p->will_be_deallocated()))
+                continue;
 
-            for(auto& resource_state : pass_p->resource_states())
+            auto& access_dependencies = resource_p->access_dependencies_;
+            u32 access_dependency_count = access_dependencies.size();
+
+            if(!access_dependency_count)
+                continue;
+
+            for(u32 i = access_dependency_count - 1; i != NCPP_U32_MAX; --i)
             {
-                F_render_resource* resource_p = resource_state.resource_p;
+                auto& access_dependency = access_dependencies[i];
 
-                if(!(resource_p->will_be_deallocated()))
-                    continue;
+                F_render_pass* pass_p = pass_span[access_dependency.pass_id];
+                auto& resource_to_deallocate_vector = pass_p->resource_to_deallocate_vector_;
 
-                if(resource_p->max_pass_id() == pass_p->id())
+                if(
+                    // sentinel passes must not affect resource deallocation
+                    // unless it will be available until the end of the frame
+                    pass_p->is_sentinel()
+                    && !(resource_p->is_available_until_the_end_of_frame())
+                )
                 {
-                    resource_to_deallocate_vector.push_back(resource_p);
-                }
-            }
-        }
-    }
-    void F_render_graph::setup_resource_export_lists_internal()
-    {
-        auto pass_span = pass_p_owf_stack_.item_span();
-        for(F_render_pass* pass_p : pass_span)
-        {
-            auto& resource_to_export_vector = pass_p->resource_to_export_vector_;
-
-            for(auto& resource_state : pass_p->resource_states())
-            {
-                F_render_resource* resource_p = resource_state.resource_p;
-
-                if(!(resource_p->need_to_export()))
                     continue;
-
-                if(resource_p->min_pass_id() == pass_p->id())
-                {
-                    resource_to_export_vector.push_back(resource_p);
                 }
+
+                resource_to_deallocate_vector.push_back(resource_p);
+                break;
             }
         }
     }
@@ -2290,12 +2375,12 @@ namespace nre::newrg
     void F_render_graph::setup_internal()
     {
         setup_resource_access_dependencies_internal();
+        setup_resource_is_uav_barriers_skippable_internal();
         setup_resource_min_pass_ids_internal();
         setup_resource_max_pass_ids_internal();
         setup_resource_max_sync_pass_ids_internal();
         setup_resource_allocation_lists_internal();
         setup_resource_deallocation_lists_internal();
-        setup_resource_export_lists_internal();
 
         calculate_resource_allocations_internal();
         calculate_resource_aliases_internal();

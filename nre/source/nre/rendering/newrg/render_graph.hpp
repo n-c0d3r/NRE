@@ -202,12 +202,12 @@ namespace nre::newrg
 
     private:
         void setup_resource_access_dependencies_internal();
+        void setup_resource_is_uav_barriers_skippable_internal();
         void setup_resource_min_pass_ids_internal();
         void setup_resource_max_pass_ids_internal();
         void setup_resource_max_sync_pass_ids_internal();
         void setup_resource_allocation_lists_internal();
         void setup_resource_deallocation_lists_internal();
-        void setup_resource_export_lists_internal();
         void setup_resource_producer_dependencies_internal();
         void setup_resource_consumer_dependencies_internal();
         void setup_resource_sync_producer_dependencies_internal();

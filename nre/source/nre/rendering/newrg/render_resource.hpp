@@ -4,6 +4,7 @@
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
+#include <nre/rendering/newrg/render_pass_id_range.hpp>
 #include <nre/rendering/newrg/render_resource_id.hpp>
 #include <nre/rendering/newrg/render_resource_allocation.hpp>
 #include <nre/rendering/newrg/render_resource_access_dependency.hpp>
@@ -35,7 +36,11 @@ namespace nre::newrg
 
         F_resource_desc* desc_to_create_p_ = 0;
 
+        // always in increasing order
         TF_render_frame_vector<F_render_resource_access_dependency> access_dependencies_;
+        // each element corresponds to a render worker
+        TF_render_frame_vector<u32> access_counts_;
+        u32 accessable_render_worker_count_ = 0;
 
         F_render_pass_id min_pass_id_ = NCPP_U32_MAX;
         F_render_pass_id max_pass_id_ = NCPP_U32_MAX;
@@ -51,8 +56,9 @@ namespace nre::newrg
 
         TF_render_frame_vector<F_render_resource*> aliased_resource_p_vector_;
 
-        TF_render_frame_vector<F_render_pass_id> min_sync_pass_id_vector_;
         TF_render_frame_vector<F_render_pass_id> max_sync_pass_id_vector_;
+
+        TF_render_frame_vector<F_render_pass_id_range> uav_barrier_skipping_pass_id_ranges_;
 
         ED_resource_heap_type heap_type_ = ED_resource_heap_type::DEFAULT;
 
@@ -92,6 +98,8 @@ namespace nre::newrg
         }
 
         NCPP_FORCE_INLINE const auto& access_dependencies() const noexcept { return access_dependencies_; }
+        NCPP_FORCE_INLINE const auto& access_counts() const noexcept { return access_counts_; }
+        NCPP_FORCE_INLINE u32 accessable_render_worker_count() const noexcept { return accessable_render_worker_count_; }
 
         NCPP_FORCE_INLINE F_render_pass_id min_pass_id() const noexcept { return min_pass_id_; }
         NCPP_FORCE_INLINE F_render_pass_id max_pass_id() const noexcept { return max_pass_id_; }
@@ -110,6 +118,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& aliased_resource_p_vector() const noexcept { return aliased_resource_p_vector_; }
 
         NCPP_FORCE_INLINE const auto& max_sync_pass_id_vector() const noexcept { return max_sync_pass_id_vector_; }
+
+        NCPP_FORCE_INLINE const auto& uav_barrier_skipping_pass_id_ranges() const noexcept { return uav_barrier_skipping_pass_id_ranges_; }
 
         NCPP_FORCE_INLINE ED_resource_heap_type heap_type() const noexcept { return heap_type_; }
         NCPP_FORCE_INLINE b8 is_available_until_the_end_of_frame() const noexcept
@@ -156,6 +166,22 @@ namespace nre::newrg
 
 
     private:
+        void initialize_access_counts();
         void initialize_max_sync_pass_id_vector();
+
+
+
+    public:
+        void skip_uav_barriers(const F_render_pass_id_range& pass_id_range);
+        NCPP_FORCE_INLINE void skip_uav_barriers(
+            F_render_pass_id begin_pass_id,
+            F_render_pass_id end_pass_id
+        )
+        {
+            skip_uav_barriers({
+                .begin = begin_pass_id,
+                .end = end_pass_id
+            });
+        }
     };
 }

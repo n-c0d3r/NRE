@@ -18,6 +18,7 @@ namespace nre::newrg
         , name_(name)
 #endif
     {
+        initialize_access_counts();
         initialize_max_sync_pass_id_vector();
     }
     F_render_resource::F_render_resource(
@@ -38,6 +39,7 @@ namespace nre::newrg
         , name_(name)
 #endif
     {
+        initialize_access_counts();
         initialize_max_sync_pass_id_vector();
     }
     F_render_resource::F_render_resource(
@@ -55,6 +57,7 @@ namespace nre::newrg
         , name_(name)
 #endif
     {
+        initialize_access_counts();
         initialize_max_sync_pass_id_vector();
     }
     F_render_resource::~F_render_resource()
@@ -63,6 +66,16 @@ namespace nre::newrg
 
 
 
+    void F_render_resource::initialize_access_counts()
+    {
+        access_counts_.resize(
+            F_render_pipeline::instance_p().T_cast<F_render_pipeline>()->render_worker_list().size()
+        );
+        for(auto& access_count : access_counts_)
+        {
+            access_count = 0;
+        }
+    }
     void F_render_resource::initialize_max_sync_pass_id_vector()
     {
         max_sync_pass_id_vector_.resize(
@@ -72,5 +85,27 @@ namespace nre::newrg
         {
             max_sync_pass_id = NCPP_U32_MAX;
         }
+    }
+
+
+
+    void F_render_resource::skip_uav_barriers(const F_render_pass_id_range& pass_id_range)
+    {
+        NCPP_ASSERT(pass_id_range.end > pass_id_range.begin) << "invalid pass id range";
+
+        if(uav_barrier_skipping_pass_id_ranges_.size())
+        {
+            auto& last_uav_barrier_skipping_pass_id_ranges = uav_barrier_skipping_pass_id_ranges_.back();
+            if(last_uav_barrier_skipping_pass_id_ranges.end >= pass_id_range.begin)
+            {
+                last_uav_barrier_skipping_pass_id_ranges.end = eastl::max(pass_id_range.begin, last_uav_barrier_skipping_pass_id_ranges.end);
+                return;
+            }
+        }
+
+        uav_barrier_skipping_pass_id_ranges_.push_back({
+            .begin = pass_id_range.begin,
+            .end = pass_id_range.end
+        });
     }
 }
