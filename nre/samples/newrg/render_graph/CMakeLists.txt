@@ -1,3 +1,4 @@
 
 add_subdirectory(back_buffer)
 add_subdirectory(cpu_sync_pass)
+add_subdirectory(pass_dependencies)
