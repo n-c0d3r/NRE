@@ -2029,6 +2029,7 @@ namespace nre::newrg
                     execute_pass_batch,
                     {
                         .counter_p = &parallel_batch_counter,
+                        .priority = E_task_priority::HIGH,
                         .parallel_count = (batch_count - 1)
                     }
                 );
@@ -2126,6 +2127,7 @@ namespace nre::newrg
                     },
                     {
                         .counter_p = &execute_ranges_counter,
+                        .priority = E_task_priority::HIGH,
                         .parallel_count = execute_range_count,
                         .batch_size = 1
                     }
@@ -2137,7 +2139,8 @@ namespace nre::newrg
                 is_began_.store(true, eastl::memory_order_release);
             },
             {
-                .counter_p = &execute_passes_counter_
+                .counter_p = &execute_passes_counter_,
+                .priority = E_task_priority::HIGH
             }
         );
     }
