@@ -13,21 +13,22 @@ namespace nre::newrg
         NO_GPU_WORK = 0x2,
 
         MAIN = 0x4,
-        MAIN_CPU_SYNC_BEFORE = 0x8,
-        MAIN_CPU_SYNC_AFTER = 0x10,
-        MAIN_CPU_SYNC = MAIN_CPU_SYNC_BEFORE | MAIN_CPU_SYNC_AFTER,
+        ASYNC_COMPUTE = 0x8,
 
-        ASYNC_COMPUTE = 0x20,
-        ASYNC_COMPUTE_CPU_SYNC_BEFORE = 0x40,
-        ASYNC_COMPUTE_CPU_SYNC_AFTER = 0x80,
-        ASYNC_COMPUTE_CPU_SYNC = ASYNC_COMPUTE_CPU_SYNC_BEFORE | ASYNC_COMPUTE_CPU_SYNC_AFTER,
+        CPU_SYNC_BEFORE = 0x10,
+        CPU_SYNC_AFTER = 0x20,
+        CPU_SYNC = CPU_SYNC_BEFORE | CPU_SYNC_AFTER,
+
+        MAIN_CPU_SYNC_BEFORE = MAIN | CPU_SYNC_BEFORE,
+        MAIN_CPU_SYNC_AFTER = MAIN | CPU_SYNC_AFTER,
+        MAIN_CPU_SYNC = MAIN | CPU_SYNC,
+
+        ASYNC_COMPUTE_CPU_SYNC_BEFORE = ASYNC_COMPUTE | CPU_SYNC_BEFORE,
+        ASYNC_COMPUTE_CPU_SYNC_AFTER = ASYNC_COMPUTE | CPU_SYNC_AFTER,
+        ASYNC_COMPUTE_CPU_SYNC = ASYNC_COMPUTE | CPU_SYNC,
 
         PROLOGUE = MAIN | SENTINEL, // internal use only
         EPILOGUE = MAIN | SENTINEL, // internal use only
-
-        ALL_CPU_SYNC_BEFORE = MAIN_CPU_SYNC_BEFORE | ASYNC_COMPUTE_CPU_SYNC_BEFORE,
-        ALL_CPU_SYNC_AFTER = MAIN_CPU_SYNC_AFTER | ASYNC_COMPUTE_CPU_SYNC_AFTER,
-        ALL_CPU_SYNC = ALL_CPU_SYNC_BEFORE | ALL_CPU_SYNC_AFTER,
 
         DEFAULT = MAIN
     };
@@ -38,6 +39,6 @@ namespace nre::newrg
         static u8 render_worker_index(E_render_pass_flag flags);
         static b8 has_gpu_work(E_render_pass_flag flags);
         static b8 is_cpu_sync_pass(E_render_pass_flag flags);
-        static b8 can_cpu_sync_render_worker_index(E_render_pass_flag first_pass_flags, E_render_pass_flag second_pass_flags);
+        static b8 can_cpu_sync(E_render_pass_flag first_pass_flags, E_render_pass_flag second_pass_flags);
     };
 }

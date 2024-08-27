@@ -629,7 +629,7 @@ namespace nre::newrg
                         continue;
 
                     // if the current pass is after a cpu-sync pass
-                    b8 is_cpu_sync_point = H_render_pass_flag::can_cpu_sync_render_worker_index(
+                    b8 is_cpu_sync_point = H_render_pass_flag::can_cpu_sync(
                         use_pass_p->flags(),
                         pass_p->flags()
                     );
@@ -1540,7 +1540,7 @@ namespace nre::newrg
                 b8 is_local_max_sync_pass_cpu_sync = H_render_pass_flag::is_cpu_sync_pass(local_max_sync_pass_p->flags());
 
                 // if the current pass is after a cpu-sync pass
-                b8 is_cpu_sync_point = H_render_pass_flag::can_cpu_sync_render_worker_index(
+                b8 is_cpu_sync_point = H_render_pass_flag::can_cpu_sync(
                     local_max_sync_pass_p->flags(),
                     pass_p->flags()
                 );
