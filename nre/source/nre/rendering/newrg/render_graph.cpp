@@ -1716,12 +1716,16 @@ namespace nre::newrg
                     }
                 }
 
-                // different render workers or different is_cpu_sync -> use new command list -> new execute range
+                //
                 if(
                     execute_range
                     && (
+                        // due to different render workers
                         (execute_range.render_worker_index != render_worker_index)
+                        // due to different is_cpu_sync
                         | (execute_range.is_cpu_sync != is_cpu_sync)
+                        // due to maximum size of execute range
+                        | (execute_range.pass_p_vector.size() >= NRE_RENDER_GRAPH_MAX_EXECUTE_RANGE_SIZE)
                     )
                 )
                 {
