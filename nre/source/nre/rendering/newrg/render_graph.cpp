@@ -1935,62 +1935,108 @@ namespace nre::newrg
         // submit gpu works
         if(execute_range.has_gpu_work)
         {
-            auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
-            auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
-
-            F_managed_command_list_batch command_list_batch;
-
-            for(F_render_pass* pass_p : pass_p_vector)
-            {
-                auto& cpu_wait_cpu_fence_batch = pass_p->cpu_wait_cpu_fence_batch();
-                u32 cpu_wait_cpu_fence_count = cpu_wait_cpu_fence_batch.size();
-
-                auto& cpu_signal_cpu_fence_batch = pass_p->cpu_signal_fence_batch();
-                u32 cpu_signal_cpu_fence_count = cpu_signal_cpu_fence_batch.size();
-
-                // cpu wait cpu fences
-                for(auto& fence_target : cpu_wait_cpu_fence_batch)
-                {
-                    auto& cpu_fence = cpu_fences_[fence_target.render_worker_index];
-
-                    if(cpu_fence.is_complete(fence_target.value))
-                        continue;
-
-                    H_task_context::yield(
-                        [&]()
-                        {
-                            return cpu_fence.is_complete(fence_target.value);
-                        }
-                    );
-                }
-
-                if(pass_p->resource_barrier_batch_before_.size())
-                    command_list_p->async_resource_barriers(
-                        pass_p->resource_barrier_batch_before_
-                    );
-
-                pass_p->execute_internal(NCPP_FOH_VALID(command_list_p));
-
-                if(pass_p->resource_barrier_batch_after_.size())
-                    command_list_p->async_resource_barriers(
-                        pass_p->resource_barrier_batch_after_
-                    );
-
-                // cpu signal cpu fences
-                for(auto& fence_target : cpu_signal_cpu_fence_batch)
-                {
-                    auto& cpu_fence = cpu_fences_[fence_target.render_worker_index];
-
-                    cpu_fence.signal(fence_target.value);
-                }
-            }
-
-            command_list_p->async_end();
-
-            command_list_batch.push_back(
-                std::move(command_list_p)
+            u32 pass_count = pass_p_vector.size();
+            u32 batch_count = ceil(
+                f32(pass_count)
+                / f32(NRE_RENDER_GRAPH_EXECUTE_PASS_BATCH_SIZE)
             );
 
+            //
+            F_managed_command_list_batch command_list_batch;
+            command_list_batch.resize(batch_count);
+
+            //
+            auto execute_pass_batch = [&](u32 batch_index_minus_one)
+            {
+                u32 batch_index = batch_index_minus_one + 1;
+                u32 begin_pass_index = batch_index * NRE_RENDER_GRAPH_EXECUTE_PASS_BATCH_SIZE;
+                u32 end_pass_index = eastl::min(begin_pass_index + NRE_RENDER_GRAPH_EXECUTE_PASS_BATCH_SIZE, pass_count);
+
+                auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
+                auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
+
+                // for each pass in this batch, execute it
+                for(u32 pass_index = begin_pass_index; pass_index != end_pass_index; ++pass_index)
+                {
+                    F_render_pass* pass_p = pass_p_vector[pass_index];
+
+                    auto& cpu_wait_cpu_fence_batch = pass_p->cpu_wait_cpu_fence_batch();
+                    u32 cpu_wait_cpu_fence_count = cpu_wait_cpu_fence_batch.size();
+
+                    auto& cpu_signal_cpu_fence_batch = pass_p->cpu_signal_fence_batch();
+                    u32 cpu_signal_cpu_fence_count = cpu_signal_cpu_fence_batch.size();
+
+                    // cpu wait cpu fences
+                    for(auto& fence_target : cpu_wait_cpu_fence_batch)
+                    {
+                        auto& cpu_fence = cpu_fences_[fence_target.render_worker_index];
+
+                        if(cpu_fence.is_complete(fence_target.value))
+                            continue;
+
+                        H_task_context::yield(
+                            [&]()
+                            {
+                                return cpu_fence.is_complete(fence_target.value);
+                            }
+                        );
+                    }
+
+                    //
+                    if(pass_p->resource_barrier_batch_before_.size())
+                        command_list_p->async_resource_barriers(
+                            pass_p->resource_barrier_batch_before_
+                        );
+
+                    //
+                    pass_p->execute_internal(NCPP_FOH_VALID(command_list_p));
+
+                    //
+                    if(pass_p->resource_barrier_batch_after_.size())
+                        command_list_p->async_resource_barriers(
+                            pass_p->resource_barrier_batch_after_
+                        );
+
+                    // cpu signal cpu fences
+                    for(auto& fence_target : cpu_signal_cpu_fence_batch)
+                    {
+                        auto& cpu_fence = cpu_fences_[fence_target.render_worker_index];
+
+                        cpu_fence.signal(fence_target.value);
+                    }
+                }
+
+                command_list_p->async_end();
+
+                command_list_batch[batch_index] = std::move(command_list_p);
+            };
+
+            // execute the first batch on this task
+            {
+                execute_pass_batch(NCPP_U32_MAX);
+            }
+
+            // execute the first batch on this task
+            if(batch_count > 1)
+            {
+                F_task_counter parallel_batch_counter = 0;
+
+                H_task_system::schedule(
+                    execute_pass_batch,
+                    {
+                        .counter_p = &parallel_batch_counter,
+                        .parallel_count = (batch_count - 1)
+                    }
+                );
+
+                // wait until all pass batches are done
+                if(parallel_batch_counter.load(eastl::memory_order_acquire))
+                    H_task_context::yield(
+                        F_wait_for_counter(&parallel_batch_counter)
+                    );
+            }
+
+            //
             render_worker_p->enqueue_command_list_batch(
                 std::move(command_list_batch)
             );
