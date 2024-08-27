@@ -32,20 +32,30 @@ namespace nre::newrg
     b8 H_render_pass_flag::is_cpu_sync_pass(E_render_pass_flag flags)
     {
         return (
-            flag_is_has(flags, E_render_pass_flag::CPU_SYNC_BEFORE)
-            || flag_is_has(flags, E_render_pass_flag::CPU_SYNC_AFTER)
+            flag_is_has(flags, E_render_pass_flag::CPU_SYNC_BEFORE_GPU)
+            || flag_is_has(flags, E_render_pass_flag::CPU_SYNC_BEFORE_CPU)
+            || flag_is_has(flags, E_render_pass_flag::CPU_SYNC_AFTER_GPU)
+            || flag_is_has(flags, E_render_pass_flag::CPU_SYNC_AFTER_CPU)
         );
     }
     b8 H_render_pass_flag::can_cpu_sync(E_render_pass_flag first_pass_flags, E_render_pass_flag second_pass_flags)
     {
-        if(flag_is_has(first_pass_flags, E_render_pass_flag::CPU_SYNC_AFTER))
+        if(flag_is_has(first_pass_flags, E_render_pass_flag::CPU_SYNC_AFTER_GPU))
         {
-            return true;
+            return is_cpu_sync_pass(second_pass_flags);
+        }
+        if(flag_is_has(first_pass_flags, E_render_pass_flag::CPU_SYNC_AFTER_CPU))
+        {
+            return !is_cpu_sync_pass(second_pass_flags);
         }
 
-        if(flag_is_has(second_pass_flags, E_render_pass_flag::CPU_SYNC_BEFORE))
+        if(flag_is_has(second_pass_flags, E_render_pass_flag::CPU_SYNC_BEFORE_GPU))
         {
-            return true;
+            return is_cpu_sync_pass(first_pass_flags);
+        }
+        if(flag_is_has(second_pass_flags, E_render_pass_flag::CPU_SYNC_BEFORE_CPU))
+        {
+            return !is_cpu_sync_pass(first_pass_flags);
         }
 
         return false;
