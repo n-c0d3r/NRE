@@ -13,6 +13,13 @@ namespace nre::newrg
         F_render_pass_id begin = NCPP_U32_MAX;
         F_render_pass_id end = NCPP_U32_MAX;
 
+        NCPP_FORCE_INLINE u32 size () const noexcept
+        {
+            if(!*this)
+                return 0;
+
+            return end - begin;
+        }
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {
             return (

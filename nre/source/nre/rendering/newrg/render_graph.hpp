@@ -246,7 +246,10 @@ namespace nre::newrg
     private:
         void create_pass_fences_internal();
         void create_pass_fence_batches_internal();
-        void build_execute_range_owf_stack_internal();
+        void create_execute_ranges_internal();
+        void setup_execute_range_dependency_ids_internal();
+        void create_parallel_subexecute_ranges_internal();
+        void setup_parallel_subexecute_range_dependency_ids_internal();
 
     private:
         void execute_range_internal(const F_render_pass_execute_range& execute_range);
