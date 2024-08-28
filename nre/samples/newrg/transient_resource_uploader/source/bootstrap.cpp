@@ -45,8 +45,21 @@ int main() {
 			auto transient_resource_uploader_p = F_transient_resource_uploader::instance_p();
 
 			F_render_resource* transient_resource_p = transient_resource_uploader_p->T_upload(
-				F_vector4_f32::forward()
+				F_vector4_f32::forward(),
+				ED_resource_flag::CONSTANT_BUFFER
 			);
+
+			F_render_pass* rg_pass_p = render_graph_p->create_pass(
+				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				{
+				},
+				E_render_pass_flag::DEFAULT
+				NRE_OPTIONAL_DEBUG_PARAM("demo_pass")
+			);
+			rg_pass_p->add_resource_state({
+				.resource_p = transient_resource_p,
+				.states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+			});
 		};
 		NRE_NEWRG_RENDERER_UPLOAD()
 		{

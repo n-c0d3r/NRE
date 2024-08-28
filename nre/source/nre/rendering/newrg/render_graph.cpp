@@ -11,6 +11,7 @@
 #include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 
+#include "../../../../../build/clion/cmake-build-debug/nre/submodules/NRHI/nrhi/generated_files/nrhi/resource_state.hpp"
 #include "nrhi/resource_barrier_type.hpp"
 
 
@@ -758,6 +759,17 @@ namespace nre::newrg
                     );
 
                     b8 is_resource_state_synchronizable = other_resource_state.is_writable();
+                    if(is_resource_state_synchronizable)
+                        is_resource_state_synchronizable = !(
+                            (
+                                (other_resource_state.states == ED_resource_state::RENDER_TARGET)
+                                && (resource_state.states == ED_resource_state::RENDER_TARGET)
+                            )
+                            || (
+                                (other_resource_state.states == ED_resource_state::DEPTH_WRITE)
+                                && (resource_state.states == ED_resource_state::DEPTH_WRITE)
+                            )
+                        );
 
                     // in the case the current pass can't be synchronized by the producer pass
                     if(!(is_resource_state_synchronizable | is_cpu_sync_point))
@@ -791,8 +803,6 @@ namespace nre::newrg
                 auto& resource_state = resource_states[access_dependency.resource_state_index];
                 auto& resource_sync_consumer_dependency = resource_sync_consumer_dependencies[access_dependency.resource_state_index];
 
-                b8 is_resource_state_synchronizable = resource_state.is_writable();
-
                 //
                 for(u32 other_access_dependency_index = access_dependency_index + 1; other_access_dependency_index != access_dependency_count; ++other_access_dependency_index)
                 {
@@ -817,6 +827,19 @@ namespace nre::newrg
                         other_pass_p->flags(),
                         pass_p->flags()
                     );
+
+                    b8 is_resource_state_synchronizable = resource_state.is_writable();
+                    if(is_resource_state_synchronizable)
+                        is_resource_state_synchronizable = !(
+                            (
+                                (other_resource_state.states == ED_resource_state::RENDER_TARGET)
+                                && (resource_state.states == ED_resource_state::RENDER_TARGET)
+                            )
+                            || (
+                                (other_resource_state.states == ED_resource_state::DEPTH_WRITE)
+                                && (resource_state.states == ED_resource_state::DEPTH_WRITE)
+                            )
+                        );
 
                     // in the case the current pass can't be synchronized by the consumer pass
                     if(!(is_resource_state_synchronizable | is_cpu_sync_point))
@@ -1328,15 +1351,14 @@ namespace nre::newrg
             if(subresource_index == resource_barrier_all_subresources)
                 subresource_index = subresource_index_before;
 
-            // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
             if(
                 (
-                    flag_is_has(states_before, ED_resource_state::RENDER_TARGET)
-                    && flag_is_has(states_after, ED_resource_state::RENDER_TARGET)
+                    (states_before == ED_resource_state::RENDER_TARGET)
+                    && (states_after == ED_resource_state::RENDER_TARGET)
                 )
                 || (
-                    flag_is_has(states_before, ED_resource_state::DEPTH_WRITE)
-                    && flag_is_has(states_after, ED_resource_state::DEPTH_WRITE)
+                    (states_before == ED_resource_state::DEPTH_WRITE)
+                    && (states_after == ED_resource_state::DEPTH_WRITE)
                 )
             )
             {
@@ -1344,8 +1366,8 @@ namespace nre::newrg
             }
 
             if(
-                flag_is_has(states_before, ED_resource_state::UNORDERED_ACCESS)
-                && flag_is_has(states_after, ED_resource_state::UNORDERED_ACCESS)
+                (states_before == ED_resource_state::UNORDERED_ACCESS)
+                && (states_after == ED_resource_state::UNORDERED_ACCESS)
                 && (subresource_index == resource_barrier_all_subresources)
             )
             {
