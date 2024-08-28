@@ -23,11 +23,6 @@ namespace nre::newrg
 
         u32 counter = 1;
 
-        // each dependency id corresponds to a render worker
-        TF_render_frame_vector<F_render_pass_execute_range_id> dependency_ids;
-
-        TF_render_frame_vector<F_render_pass_execute_range_id> dependency_id_batch;
-
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {
             return (pass_p_vector.size() != 0);

@@ -11,6 +11,8 @@
 #include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 
+#include "nrhi/resource_barrier_type.hpp"
+
 
 namespace nre::newrg
 {
@@ -1493,115 +1495,6 @@ namespace nre::newrg
             }
         }
     }
-    void F_render_graph::merge_resource_barriers_before_internal()
-    {
-        auto merge_readable_resource_barriers = [](const F_resource_barrier& a, const F_resource_barrier& b)
-        -> F_resource_barrier
-        {
-            NCPP_ASSERT(a.type == b.type);
-            NCPP_ASSERT(a.flags == b.flags);
-            NCPP_ASSERT(a.type == ED_resource_barrier_type::TRANSITION);
-
-            F_resource_barrier result = a;
-            result.transition.state_before = a.transition.state_before | b.transition.state_before;
-            result.transition.state_after = a.transition.state_after | b.transition.state_after;
-
-            return result;
-        };
-
-        auto pass_span = pass_p_owf_stack_.item_span();
-        auto execute_range_span = execute_range_owf_stack_.item_span();
-
-        for(auto& execute_range : execute_range_span)
-        {
-            F_render_pass* first_pass_p = execute_range.pass_p_vector.front();
-            F_render_pass_id first_pass_id = first_pass_p->id();
-
-            for(F_render_pass* pass_p : execute_range.pass_p_vector)
-            {
-                F_render_pass_id pass_id = pass_p->id();
-
-                if(pass_id == 0)
-                    continue;
-
-                auto& resource_states = pass_p->resource_states_;
-                auto& resource_barriers_before = pass_p->resource_barriers_before_;
-
-                u32 resource_state_count = resource_states.size();
-
-                for(u32 i = 0; i < resource_state_count; ++i)
-                {
-                    auto resource_state = resource_states[i];
-                    auto& resource_barrier = resource_barriers_before[i];
-
-                    if(!resource_barrier)
-                        continue;
-
-                    F_render_pass_id begin_loop_pass_id = pass_id - 1;
-                    F_render_pass_id end_loop_pass_id = first_pass_id - 1;
-                    for(F_render_pass_id before_pass_id = begin_loop_pass_id; before_pass_id != end_loop_pass_id; --before_pass_id)
-                    {
-                        F_render_pass* before_pass_p = pass_span[before_pass_id];
-
-                        u32 before_resource_state_index = before_pass_p->find_resource_state_index(
-                            resource_state.resource_p,
-                            resource_state.subresource_index
-                        );
-
-                        if(before_resource_state_index != NCPP_U32_MAX)
-                        {
-                            auto& before_resource_state = before_pass_p->resource_states_[
-                                before_resource_state_index
-                            ];
-                            auto& before_resource_barrier = before_pass_p->resource_barriers_before_[
-                                before_resource_state_index
-                            ];
-
-                            if(!before_resource_barrier)
-                            {
-                                continue;
-                            }
-
-                            auto& resource_barrier_value = resource_barrier.value();
-                            auto& before_resource_barrier_value = before_resource_barrier.value();
-
-                            // can't merge if their subresource indices are not the same
-                            if(before_resource_state.subresource_index != resource_state.subresource_index)
-                            {
-                                continue;
-                            }
-
-                            // skip this resource state if they both are the same and not unordered access barriers
-                            if(
-                                (before_resource_barrier_value == resource_barrier_value)
-                                && !flag_is_has(before_resource_state.states, ED_resource_state::UNORDERED_ACCESS)
-                            )
-                            {
-                                resource_barrier = eastl::nullopt;
-                                continue;
-                            }
-
-                            // merge readable states
-                            if(
-                                (before_resource_barrier_value.type == resource_barrier_value.type)
-                                && (before_resource_barrier_value.flags == resource_barrier_value.flags)
-                                && !before_resource_state.is_writable()
-                                && !resource_state.is_writable()
-                            )
-                            {
-                                before_resource_barrier = merge_readable_resource_barriers(
-                                    before_resource_barrier_value,
-                                    resource_barrier_value
-                                );
-                                resource_barrier = eastl::nullopt;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
     void F_render_graph::create_resource_aliasing_barriers_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
@@ -1991,79 +1884,6 @@ namespace nre::newrg
             }
         }
     }
-    void F_render_graph::create_execute_range_dependency_ids()
-    {
-        auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
-        auto& render_worker_list = render_pipeline_p->render_worker_list();
-        u32 render_worker_count = render_worker_list.size();
-
-        auto pass_span = pass_p_owf_stack_.item_span();
-
-        auto execute_range_span = execute_range_owf_stack_.item_span();
-        u32 execute_range_count = execute_range_span.size();
-        for(u32 i = 0; i < execute_range_count; ++i)
-        {
-            auto& execute_range = execute_range_span[i];
-
-            auto& pass_p_vector = execute_range.pass_p_vector;
-
-            auto& dependency_ids = execute_range.dependency_ids;
-            dependency_ids.resize(render_worker_count);
-            for(auto& dependency_id : dependency_ids)
-                dependency_id = NCPP_U32_MAX;
-
-            for(u32 j = 0; j < render_worker_count; ++j)
-            {
-                auto& dependency_id = dependency_ids[j];
-
-                for(F_render_pass* pass_p : pass_p_vector)
-                {
-                    F_render_pass_id max_sync_pass_id = pass_p->max_sync_pass_ids_[j];
-
-                    if(max_sync_pass_id == NCPP_U32_MAX)
-                        continue;
-
-                    F_render_pass* max_sync_pass_p = pass_span[max_sync_pass_id];
-
-                    F_render_pass_execute_range_id max_sync_pass_execute_range_id = max_sync_pass_p->execute_range_index();
-                    if(max_sync_pass_execute_range_id < i)
-                    {
-                        if(dependency_id == NCPP_U32_MAX)
-                        {
-                            dependency_id = max_sync_pass_execute_range_id;
-                        }
-                        else
-                        {
-                            dependency_id = eastl::max(
-                                dependency_id,
-                                max_sync_pass_execute_range_id
-                            );
-                        }
-                    }
-                }
-            }
-        }
-    }
-    void F_render_graph::create_execute_range_dependency_id_batches()
-    {
-        auto execute_range_span = execute_range_owf_stack_.item_span();
-        u32 execute_range_count = execute_range_span.size();
-        for(u32 i = 0; i < execute_range_count; ++i)
-        {
-            auto& execute_range = execute_range_span[i];
-
-            auto& dependency_ids = execute_range.dependency_ids;
-            auto& dependency_id_batch = execute_range.dependency_id_batch;
-
-            for(auto dependency_id : dependency_ids)
-            {
-                if(dependency_id != NCPP_U32_MAX)
-                {
-                    dependency_id_batch.push_back(dependency_id);
-                }
-            }
-        }
-    }
 
     void F_render_graph::execute_range_internal(const F_render_pass_execute_range& execute_range)
     {
@@ -2154,6 +1974,7 @@ namespace nre::newrg
             );
 
             //
+            au32 submitted_command_list_index = 0;
             F_managed_command_list_batch command_list_batch;
             command_list_batch.resize(batch_count);
 
@@ -2220,7 +2041,8 @@ namespace nre::newrg
 
                 command_list_p->async_end();
 
-                command_list_batch[batch_index] = std::move(command_list_p);
+                u32 command_list_index = submitted_command_list_index.fetch_add(1, eastl::memory_order_acq_rel);
+                command_list_batch[command_list_index] = std::move(command_list_p);
             };
 
             // execute the first batch on this task
@@ -2294,38 +2116,6 @@ namespace nre::newrg
                     {
                         auto execute_range_span = execute_range_owf_stack_.item_span();
                         auto& execute_range = execute_range_span[execute_range_id];
-
-                        // check dependencies
-                        auto& dependency_id_batch = execute_range.dependency_id_batch;
-                        if(dependency_id_batch.size())
-                        {
-                            // early check dependencies
-                            b8 enable_long_dependencies_check = true;
-                            for(auto dependency_id : dependency_id_batch)
-                            {
-                                auto& dependency = execute_range_span[dependency_id];
-                                if(EA::Thread::AtomicGetValue(&(dependency.counter)) != 0)
-                                {
-                                    enable_long_dependencies_check = false;
-                                    break;
-                                }
-                            }
-
-                            // yield, to not block other tasks while dependencies are not done
-                            if(enable_long_dependencies_check)
-                                H_task_context::yield(
-                                    [this, &dependency_id_batch, &execute_range_span]()
-                                    {
-                                        for(auto dependency_id : dependency_id_batch)
-                                        {
-                                            auto& dependency = execute_range_span[dependency_id];
-                                            if(EA::Thread::AtomicGetValue(&(dependency.counter)))
-                                                return false;
-                                        }
-                                        return true;
-                                    }
-                                );
-                        }
 
                         //
                         execute_range_internal(execute_range);
@@ -2527,11 +2317,8 @@ namespace nre::newrg
         create_pass_fence_batches_internal();
 
         build_execute_range_owf_stack_internal();
-        create_execute_range_dependency_ids();
-        create_execute_range_dependency_id_batches();
 
         create_resource_barriers_internal();
-        merge_resource_barriers_before_internal();
         create_resource_aliasing_barriers_internal();
         create_resource_barrier_batches_internal();
 

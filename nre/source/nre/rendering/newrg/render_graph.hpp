@@ -240,7 +240,6 @@ namespace nre::newrg
 
     private:
         void create_resource_barriers_internal();
-        void merge_resource_barriers_before_internal();
         void create_resource_aliasing_barriers_internal();
         void create_resource_barrier_batches_internal();
 
@@ -248,8 +247,6 @@ namespace nre::newrg
         void create_pass_fences_internal();
         void create_pass_fence_batches_internal();
         void build_execute_range_owf_stack_internal();
-        void create_execute_range_dependency_ids();
-        void create_execute_range_dependency_id_batches();
 
     private:
         void execute_range_internal(const F_render_pass_execute_range& execute_range);

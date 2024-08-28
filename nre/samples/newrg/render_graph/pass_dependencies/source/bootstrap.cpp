@@ -46,7 +46,12 @@ int main() {
 			auto back_rtv_p = NRE_MAIN_SWAPCHAIN()->back_rtv_p();
 
 			F_render_resource* rg_demo_buffer_p = render_graph_p->create_resource(
-				H_resource_desc::create_buffer_desc(128, ED_format::R32_UINT, ED_resource_flag::SHADER_RESOURCE)
+				H_resource_desc::create_buffer_desc(
+					128,
+					ED_format::R32_UINT,
+					ED_resource_flag::SHADER_RESOURCE
+					| ED_resource_flag::UNORDERED_ACCESS
+				)
 				NRE_OPTIONAL_DEBUG_PARAM("demo_buffer")
 			);
 
