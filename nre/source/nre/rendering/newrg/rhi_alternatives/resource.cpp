@@ -1,6 +1,6 @@
 #include <nre/prerequisites.hpp>
 
-#include <nre/rendering/newrg/resource_uploader.hpp>
+#include <nre/rendering/newrg/general_resource_uploader.hpp>
 
 using namespace nre;
 using namespace nre::newrg;
@@ -37,12 +37,12 @@ namespace
 
         if(initial_resource_data.size())
         {
-            auto resource_uploader_p = F_resource_uploader::instance_p();
-            resource_uploader_p->upload(
+            auto general_resource_uploader_p = F_general_resource_uploader::instance_p();
+            general_resource_uploader_p->upload(
                 NCPP_FOH_VALID(resource_p),
                 initial_resource_data
             );
-            resource_uploader_p->sync();
+            general_resource_uploader_p->sync();
         }
 
         return std::move(resource_p);

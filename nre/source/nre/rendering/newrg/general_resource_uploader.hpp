@@ -6,13 +6,13 @@
 
 namespace nre::newrg
 {
-    class NRE_API F_resource_uploader
+    class NRE_API F_general_resource_uploader
     {
     private:
-        static TK<F_resource_uploader> instance_p_;
+        static TK<F_general_resource_uploader> instance_p_;
 
     public:
-        static NCPP_FORCE_INLINE TKPA_valid<F_resource_uploader> instance_p() { return (TKPA_valid<F_resource_uploader>)instance_p_; }
+        static NCPP_FORCE_INLINE TKPA_valid<F_general_resource_uploader> instance_p() { return (TKPA_valid<F_general_resource_uploader>)instance_p_; }
 
 
 
@@ -39,11 +39,11 @@ namespace nre::newrg
 
 
     public:
-        F_resource_uploader();
-        ~F_resource_uploader();
+        F_general_resource_uploader();
+        ~F_general_resource_uploader();
 
     public:
-        NCPP_OBJECT(F_resource_uploader);
+        NCPP_OBJECT(F_general_resource_uploader);
 
 
 
@@ -58,6 +58,6 @@ namespace nre::newrg
 
 
 
-#define NRE_NEWRG_RESOURCE_UPLOADER_COMMAND_QUEUE() nre::newrg::F_resource_uploader::instance_p()->command_queue_p()
-#define NRE_NEWRG_RESOURCE_UPLOADER_COMMAND_ALLOCATOR() nre::newrg::F_resource_uploader::instance_p()->command_allocator_p()
-#define NRE_NEWRG_RESOURCE_UPLOADER_COMMAND_LIST() nre::newrg::F_resource_uploader::instance_p()->command_list_p()
+#define NRE_NEWRG_RESOURCE_UPLOADER_COMMAND_QUEUE() nre::newrg::F_general_resource_uploader::instance_p()->command_queue_p()
+#define NRE_NEWRG_RESOURCE_UPLOADER_COMMAND_ALLOCATOR() nre::newrg::F_general_resource_uploader::instance_p()->command_allocator_p()
+#define NRE_NEWRG_RESOURCE_UPLOADER_COMMAND_LIST() nre::newrg::F_general_resource_uploader::instance_p()->command_list_p()
