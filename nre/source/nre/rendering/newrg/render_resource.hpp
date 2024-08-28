@@ -58,7 +58,7 @@ namespace nre::newrg
 
         TF_render_frame_vector<F_render_pass_id> max_sync_pass_id_vector_;
 
-        TF_render_frame_vector<F_render_pass_id_range> concurrent_uav_pass_id_ranges_;
+        TF_render_frame_vector<F_render_pass_id_range> concurrent_write_pass_id_ranges_;
 
         ED_resource_heap_type heap_type_ = ED_resource_heap_type::DEFAULT;
 
@@ -119,7 +119,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& max_sync_pass_id_vector() const noexcept { return max_sync_pass_id_vector_; }
 
-        NCPP_FORCE_INLINE const auto& concurrent_uav_pass_id_ranges() const noexcept { return concurrent_uav_pass_id_ranges_; }
+        NCPP_FORCE_INLINE const auto& concurrent_write_pass_id_ranges() const noexcept { return concurrent_write_pass_id_ranges_; }
 
         NCPP_FORCE_INLINE ED_resource_heap_type heap_type() const noexcept { return heap_type_; }
         NCPP_FORCE_INLINE b8 is_available_until_the_end_of_frame() const noexcept
@@ -172,13 +172,13 @@ namespace nre::newrg
 
 
     public:
-        void enable_concurrent_uav(const F_render_pass_id_range& pass_id_range);
-        NCPP_FORCE_INLINE void enable_concurrent_uav(
+        void enable_concurrent_write(const F_render_pass_id_range& pass_id_range);
+        NCPP_FORCE_INLINE void enable_concurrent_write(
             F_render_pass_id begin_pass_id,
             F_render_pass_id end_pass_id
         )
         {
-            enable_concurrent_uav({
+            enable_concurrent_write({
                 .begin = begin_pass_id,
                 .end = end_pass_id
             });

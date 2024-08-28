@@ -202,7 +202,7 @@ namespace nre::newrg
 
     private:
         void setup_resource_access_dependencies_internal();
-        void setup_resource_is_in_uav_concurrent_ranges_internal();
+        void setup_resource_concurrent_write_range_indices_internal();
         void setup_resource_min_pass_ids_internal();
         void setup_resource_max_pass_ids_internal();
         void setup_resource_max_sync_pass_ids_internal();
@@ -211,6 +211,7 @@ namespace nre::newrg
         void setup_resource_producer_dependencies_internal();
         void setup_resource_consumer_dependencies_internal();
         void setup_resource_sync_producer_dependencies_internal();
+        void setup_resource_sync_consumer_dependencies_internal();
 
     private:
         void setup_pass_max_sync_pass_ids_internal();

@@ -76,7 +76,7 @@ int main() {
 				.states = ED_resource_state::UNORDERED_ACCESS
 			});
 
-			rg_demo_buffer_p->enable_concurrent_uav(
+			rg_demo_buffer_p->enable_concurrent_write(
 				rg_pass_1_p->id(),
 				rg_pass_2_p->id() + 1
 			);

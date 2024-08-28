@@ -95,7 +95,7 @@ int main() {
 			});
 			rg_pass_1_p->add_resource_state({
 				.resource_p = rg_demo_buffer_p,
-				.states = ED_resource_state::COMMON
+				.states = ED_resource_state::UNORDERED_ACCESS
 			});
 
 			F_render_pass* rg_pass_2_p = render_graph_p->create_pass(
@@ -109,6 +109,10 @@ int main() {
 			rg_pass_2_p->add_resource_state({
 				.resource_p = rg_back_buffer_p,
 				.states = ED_resource_state::RENDER_TARGET
+			});
+			rg_pass_2_p->add_resource_state({
+				.resource_p = rg_demo_buffer_p,
+				.states = ED_resource_state::ALL_SHADER_RESOURCE
 			});
 		};
 		NRE_NEWRG_RENDERER_UPLOAD()
