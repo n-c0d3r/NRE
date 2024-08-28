@@ -1383,13 +1383,15 @@ namespace nre::newrg
 
         for(auto& execute_range : execute_range_span)
         {
-            auto& pass_p_vector = execute_range.pass_p_vector;
+            auto& pass_id_range = execute_range.pass_id_range;
 
-            F_render_pass_id first_pass_id = pass_p_vector.front()->id();
-            F_render_pass_id last_pass_id = pass_p_vector.back()->id();
+            F_render_pass_id first_pass_id = pass_id_range.begin;
+            F_render_pass_id last_pass_id = pass_id_range.end - 1;
 
-            for(F_render_pass* pass_p : pass_p_vector)
+            for(F_render_pass_id pass_id = pass_id_range.begin; pass_id < pass_id_range.end; ++pass_id)
             {
+                F_render_pass* pass_p = pass_span[pass_id];
+
                 auto& resource_states = pass_p->resource_states_;
                 auto& resource_concurrent_write_range_indices = pass_p->resource_concurrent_write_range_indices_;
                 auto& resource_producer_dependencies = pass_p->resource_producer_dependencies_;
@@ -1502,14 +1504,13 @@ namespace nre::newrg
 
         for(auto& execute_range : execute_range_span)
         {
-            auto& pass_p_vector = execute_range.pass_p_vector;
+            auto& pass_id_range = execute_range.pass_id_range;
 
-            F_render_pass* first_pass_p = pass_p_vector.front();
-            F_render_pass_id first_pass_id = first_pass_p->id();
+            F_render_pass_id first_pass_id = pass_id_range.begin;
 
-            for(F_render_pass* pass_p : pass_p_vector)
+            for(F_render_pass_id pass_id = pass_id_range.begin; pass_id < pass_id_range.end; ++pass_id)
             {
-                F_render_pass_id pass_id = pass_p->id();
+                F_render_pass* pass_p = pass_span[pass_id];
 
                 auto& resource_aliasing_barriers_before = pass_p->resource_aliasing_barriers_before_;
 
@@ -1826,7 +1827,7 @@ namespace nre::newrg
                         // due to different is_cpu_sync
                         | (execute_range.is_cpu_sync != is_cpu_sync)
                         // due to maximum size of execute range
-                        | (execute_range.pass_p_vector.size() >= NRE_RENDER_GRAPH_MAX_EXECUTE_RANGE_SIZE)
+                        | (execute_range.size() >= NRE_RENDER_GRAPH_MAX_EXECUTE_RANGE_SIZE)
                     )
                 )
                 {
@@ -1839,11 +1840,14 @@ namespace nre::newrg
                 }
 
                 // push back pass into execute range
+                if(execute_range.pass_id_range.begin == NCPP_U32_MAX)
+                    execute_range.pass_id_range.begin = pass_p->id();
+
                 pass_p->execute_range_index_ = execute_range_index;
 
                 execute_range.render_worker_index = render_worker_index;
                 execute_range.is_cpu_sync = is_cpu_sync;
-                execute_range.pass_p_vector.push_back(pass_p);
+                execute_range.pass_id_range.end = pass_p->id() + 1;
 
                 // we can't add fence signal inside a command list, so need to split command list even they run on the same render worker
                 if(gpu_signal_fence_batch.size())
@@ -1872,9 +1876,11 @@ namespace nre::newrg
             {
                 execute_range.has_gpu_work = false;
 
-                auto& pass_p_vector = execute_range.pass_p_vector;
-                for(F_render_pass* pass_p : pass_p_vector)
+                auto& pass_id_range = execute_range.pass_id_range;
+                for(F_render_pass_id pass_id = pass_id_range.begin; pass_id < pass_id_range.end; ++pass_id)
                 {
+                    F_render_pass* pass_p = pass_span[pass_id];
+
                     if(H_render_pass_flag::has_gpu_work(pass_p->flags()))
                     {
                         execute_range.has_gpu_work = true;
@@ -1887,11 +1893,18 @@ namespace nre::newrg
 
     void F_render_graph::execute_range_internal(const F_render_pass_execute_range& execute_range)
     {
-        auto& pass_p_vector = execute_range.pass_p_vector;
+        auto pass_span = pass_p_owf_stack_.item_span();
+
+        auto& pass_id_range = execute_range.pass_id_range;
+        u32 pass_count = execute_range.size();
+
         auto render_worker_p = find_render_worker(execute_range.render_worker_index);
 
-        F_render_pass* first_pass_p = pass_p_vector.front();
-        F_render_pass* last_pass_p = pass_p_vector.back();
+        F_render_pass_id first_pass_id = pass_id_range.begin;
+        F_render_pass_id last_pass_id = pass_id_range.end - 1;
+
+        F_render_pass* first_pass_p = pass_span[first_pass_id];
+        F_render_pass* last_pass_p = pass_span[last_pass_id];
 
         // there can't be any pass using gpu fences in the mid of an execute range
         auto& gpu_wait_fence_batch = first_pass_p->gpu_wait_fence_batch();
@@ -1967,7 +1980,6 @@ namespace nre::newrg
         // submit gpu works
         if(execute_range.has_gpu_work)
         {
-            u32 pass_count = pass_p_vector.size();
             u32 batch_count = ceil(
                 f32(pass_count)
                 / f32(NRE_RENDER_GRAPH_EXECUTE_PASS_BATCH_SIZE)
@@ -1982,16 +1994,20 @@ namespace nre::newrg
             auto execute_pass_batch = [&](u32 batch_index_minus_one)
             {
                 u32 batch_index = batch_index_minus_one + 1;
+
                 u32 begin_pass_index = batch_index * NRE_RENDER_GRAPH_EXECUTE_PASS_BATCH_SIZE;
                 u32 end_pass_index = eastl::min(begin_pass_index + NRE_RENDER_GRAPH_EXECUTE_PASS_BATCH_SIZE, pass_count);
+
+                F_render_pass_id begin_pass_id = begin_pass_index + pass_id_range.begin;
+                F_render_pass_id end_pass_id = end_pass_index + pass_id_range.begin;
 
                 auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
                 auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
 
                 // for each pass in this batch, execute it
-                for(u32 pass_index = begin_pass_index; pass_index != end_pass_index; ++pass_index)
+                for(F_render_pass_id pass_id = begin_pass_id; pass_id != end_pass_id; ++pass_id)
                 {
-                    F_render_pass* pass_p = pass_p_vector[pass_index];
+                    F_render_pass* pass_p = pass_span[pass_id];
 
                     auto& cpu_wait_cpu_fence_batch = pass_p->cpu_wait_cpu_fence_batch();
                     u32 cpu_wait_cpu_fence_count = cpu_wait_cpu_fence_batch.size();
@@ -2107,6 +2123,9 @@ namespace nre::newrg
             {
                 auto execute_range_span = execute_range_owf_stack_.item_span();
                 u32 execute_range_count = execute_range_span.size();
+
+                if(!execute_range_count)
+                    return;
 
                 F_task_counter execute_ranges_counter = execute_range_count;
 

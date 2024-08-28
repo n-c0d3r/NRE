@@ -5,6 +5,7 @@
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_pass_flag.hpp>
 #include <nre/rendering/newrg/render_fence_batch.hpp>
+#include <nre/rendering/newrg/render_pass_id_range.hpp>
 
 
 
@@ -16,16 +17,21 @@ namespace nre::newrg
 
     struct F_render_pass_execute_range
     {
-        TF_render_frame_vector<F_render_pass*> pass_p_vector;
+        F_render_pass_id_range pass_id_range;
+
         u8 render_worker_index = 0;
         b8 has_gpu_work = true;
         b8 is_cpu_sync = false;
 
         u32 counter = 1;
 
+        NCPP_FORCE_INLINE u32 size () const noexcept
+        {
+            return pass_id_range.end - pass_id_range.begin;
+        }
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {
-            return (pass_p_vector.size() != 0);
+            return pass_id_range;
         }
     };
 }
