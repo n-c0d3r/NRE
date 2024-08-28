@@ -1797,7 +1797,7 @@ namespace nre::newrg
                         execute_range = {
                             .render_worker_index = render_worker_index,
                             .is_cpu_sync = is_cpu_sync,
-                            .gpu_signal_fence_batch = pass_p->gpu_signal_fence_batch_
+                            .gpu_wait_fence_batch = pass_p->gpu_signal_fence_batch_
                         };
                     }
                 }
