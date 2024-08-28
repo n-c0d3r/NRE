@@ -1794,12 +1794,10 @@ namespace nre::newrg
                     {
                         execute_range_owf_stack_.push(execute_range);
                         ++execute_range_index;
-                        execute_range = {
-                            .render_worker_index = render_worker_index,
-                            .is_cpu_sync = is_cpu_sync,
-                            .gpu_wait_fence_batch = pass_p->gpu_signal_fence_batch_
-                        };
                     }
+                    execute_range = {
+                        .gpu_wait_fence_batch = pass_p->gpu_signal_fence_batch_
+                    };
                 }
 
                 // the GPU works are not continous in this case
@@ -1809,12 +1807,10 @@ namespace nre::newrg
                     {
                         execute_range_owf_stack_.push(execute_range);
                         ++execute_range_index;
-                        execute_range = {
-                            .render_worker_index = render_worker_index,
-                            .is_cpu_sync = is_cpu_sync,
-                            .cpu_wait_gpu_fence_batch = pass_p->cpu_wait_gpu_fence_batch_
-                        };
                     }
+                    execute_range = {
+                        .cpu_wait_gpu_fence_batch = pass_p->cpu_wait_gpu_fence_batch_
+                    };
                 }
 
                 //
@@ -1834,8 +1830,8 @@ namespace nre::newrg
                     {
                         execute_range_owf_stack_.push(execute_range);
                         ++execute_range_index;
-                        execute_range = {};
                     }
+                    execute_range = {};
                 }
 
                 // push back pass into execute range
