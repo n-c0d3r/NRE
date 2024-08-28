@@ -62,8 +62,6 @@ namespace nre::newrg
 
         ED_resource_heap_type heap_type_ = ED_resource_heap_type::DEFAULT;
 
-        ab8 is_initiali_states_optained_ = false;
-
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
 #endif

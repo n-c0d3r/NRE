@@ -1407,25 +1407,41 @@ namespace nre::newrg
                         if(!rhi_p)
                             continue;
 
+                        auto& desc = rhi_p->desc();
+
                         auto& resource_consumer_dependency = resource_consumer_dependencies[i];
                         if(
                             !resource_consumer_dependency
                             || (
                                 resource_consumer_dependency
-                                && (resource_consumer_dependency.pass_id > parallel_subexecute_last_pass_id)
+                                && (resource_consumer_dependency.pass_id > last_pass_id)
                             )
                         )
                         {
-                            if(resource_p->default_states() != resource_state.states)
+                            if(
+                                !(
+                                    (
+                                        (desc.type == ED_resource_type::TEXTURE_1D)
+                                        || (desc.type == ED_resource_type::TEXTURE_1D_ARRAY)
+                                        || (desc.type == ED_resource_type::TEXTURE_2D)
+                                        || (desc.type == ED_resource_type::TEXTURE_2D_ARRAY)
+                                        || (desc.type == ED_resource_type::TEXTURE_3D)
+                                    )
+                                    || flag_is_has(desc.flags, ED_resource_flag::SIMULTANEOUS)
+                                )
+                            )
                             {
-                                resource_barriers_after[i] = H_resource_barrier::transition(
-                                    F_resource_transition_barrier {
-                                        .resource_p = (TKPA<A_resource>)rhi_p,
-                                        .subresource_index = resource_state.subresource_index,
-                                        .state_before = resource_state.states,
-                                        .state_after = resource_p->default_states()
-                                    }
-                                );
+                                if(resource_p->default_states() != resource_state.states)
+                                {
+                                    resource_barriers_after[i] = H_resource_barrier::transition(
+                                        F_resource_transition_barrier {
+                                            .resource_p = (TKPA<A_resource>)rhi_p,
+                                            .subresource_index = resource_state.subresource_index,
+                                            .state_before = resource_state.states,
+                                            .state_after = resource_p->default_states()
+                                        }
+                                    );
+                                }
                             }
                         }
 
@@ -1434,7 +1450,7 @@ namespace nre::newrg
                             !resource_producer_dependency
                             || (
                                 resource_producer_dependency
-                                && (resource_producer_dependency.pass_id < parallel_subexecute_first_pass_id)
+                                && (resource_producer_dependency.pass_id < first_pass_id)
                             )
                         )
                         {
