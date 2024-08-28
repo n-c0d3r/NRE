@@ -78,8 +78,8 @@ namespace nre::newrg
             return (
                 (desc_to_create_p_ != 0) &&
                 (
-                    (access_dependencies_.size() != 0)
-                    // || need_to_export()
+                    access_dependencies_.size()
+                    > 1 // prologue pass
                 )
             );
         }

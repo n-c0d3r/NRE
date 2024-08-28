@@ -1,2 +1,3 @@
 
 add_subdirectory(render_graph)
+add_subdirectory(transient_resource_uploader)

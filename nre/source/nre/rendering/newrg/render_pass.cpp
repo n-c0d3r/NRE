@@ -9,14 +9,12 @@ namespace nre::newrg
 {
     F_render_pass::F_render_pass(
         const F_render_pass_functor_cache& functor_cache,
-        ED_pipeline_state_type pipeline_state_type,
         E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     ) :
         functor_cache_(functor_cache),
-        pipeline_state_type_(pipeline_state_type),
         flags_(flags)
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , name_(name)

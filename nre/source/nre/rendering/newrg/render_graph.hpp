@@ -286,10 +286,9 @@ namespace nre::newrg
     private:
         F_render_pass* create_pass_internal(
             const F_render_pass_functor_cache& functor_cache,
-            ED_pipeline_state_type pipeline_state_type,
             E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name
+            , const F_render_frame_name& name
 #endif
         );
 
@@ -357,10 +356,9 @@ namespace nre::newrg
          */
         F_render_pass* create_pass(
             auto&& functor,
-            ED_pipeline_state_type pipeline_state_type,
             E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         )
         {
@@ -390,7 +388,6 @@ namespace nre::newrg
                     },
                     functor_p
                 },
-                pipeline_state_type,
                 flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , name
@@ -403,7 +400,7 @@ namespace nre::newrg
         F_render_resource* create_resource(
             const F_resource_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         );
         /**
@@ -413,7 +410,7 @@ namespace nre::newrg
             F_render_resource* resource_p,
             const F_resource_view_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         );
         /**
@@ -423,7 +420,7 @@ namespace nre::newrg
             F_render_resource* resource_p,
             ED_resource_view_type view_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         );
         /**
@@ -432,7 +429,7 @@ namespace nre::newrg
         F_render_descriptor* create_sampler_state(
             const F_sampler_state_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         );
         /**
@@ -442,7 +439,7 @@ namespace nre::newrg
             const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptor_p_vector,
             F_render_descriptor* dsv_descriptor_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         );
 
@@ -491,7 +488,7 @@ namespace nre::newrg
             TKPA_valid<A_resource> rhi_p,
             ED_resource_state default_states = ED_resource_state::COMMON
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         );
 
@@ -503,7 +500,7 @@ namespace nre::newrg
             const F_descriptor_handle_range& src_handle_range,
             ED_descriptor_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
             );
 
@@ -515,7 +512,7 @@ namespace nre::newrg
             const F_descriptor_handle& descriptor_handle,
             ED_descriptor_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         )
         {
@@ -535,7 +532,7 @@ namespace nre::newrg
         F_render_descriptor* create_descriptor_from_src(
             TKPA_valid<A_resource_view> rhi_resource_view_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         )
         {
@@ -577,7 +574,7 @@ namespace nre::newrg
         F_render_descriptor* create_descriptor_from_src(
             TKPA_valid<A_sampler_state> rhi_sampler_state_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         )
         {
@@ -597,7 +594,7 @@ namespace nre::newrg
         F_render_frame_buffer* create_permanent_frame_buffer(
             TKPA_valid<A_frame_buffer> rhi_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name = ""
+            , const F_render_frame_name& name = ""
 #endif
         );
 

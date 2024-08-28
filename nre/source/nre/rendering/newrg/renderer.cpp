@@ -4,6 +4,7 @@
 #include <nre/rendering/newrg/render_resource.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/application/application.hpp>
+#include <nre/rendering/newrg/transient_resource_uploader.hpp>
 
 
 namespace nre::newrg
@@ -15,6 +16,8 @@ namespace nre::newrg
     F_renderer::F_renderer()
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
+
+        transient_resource_uploader_p_ = TU<F_transient_resource_uploader>()();
     }
     F_renderer::~F_renderer()
     {
@@ -37,8 +40,12 @@ namespace nre::newrg
             }
         );
 
+        transient_resource_uploader_p_->RG_begin_register();
+
         if(F_application::instance_p()->is_started())
-            tick_event_.invoke();
+            rg_tick_event_.invoke();
+
+        transient_resource_uploader_p_->RG_end_register();
 
         render_graph_p->execute();
     }

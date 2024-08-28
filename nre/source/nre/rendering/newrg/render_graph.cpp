@@ -271,7 +271,6 @@ namespace nre::newrg
             [](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
             {
             },
-            ED_pipeline_state_type::GRAPHICS,
             E_render_pass_flag::PROLOGUE
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.prologue_pass")
         );
@@ -282,7 +281,6 @@ namespace nre::newrg
             [](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
             {
             },
-            ED_pipeline_state_type::GRAPHICS,
             E_render_pass_flag::EPILOGUE
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.epilogue_pass")
         );
@@ -1430,6 +1428,9 @@ namespace nre::newrg
                         F_render_resource* resource_p = resource_state.resource_p;
                         auto rhi_p = resource_p->rhi_p();
 
+                        if(!rhi_p)
+                            continue;
+
                         auto& resource_consumer_dependency = resource_consumer_dependencies[i];
                         if(
                             !resource_consumer_dependency
@@ -2569,16 +2570,14 @@ namespace nre::newrg
 
     F_render_pass* F_render_graph::create_pass_internal(
         const F_render_pass_functor_cache& functor_cache,
-        ED_pipeline_state_type pipeline_state_type,
         E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
         F_render_pass* render_pass_p = T_create<F_render_pass>(
             functor_cache,
-            pipeline_state_type,
             flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , name
@@ -2709,7 +2708,7 @@ namespace nre::newrg
     F_render_resource* F_render_graph::create_resource(
         const F_resource_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -2736,7 +2735,7 @@ namespace nre::newrg
         F_render_resource* resource_p,
         const F_resource_view_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -2758,7 +2757,7 @@ namespace nre::newrg
         F_render_resource* resource_p,
         ED_resource_view_type view_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -2780,7 +2779,7 @@ namespace nre::newrg
     F_render_descriptor* F_render_graph::create_sampler_state(
         const F_sampler_state_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -2801,7 +2800,7 @@ namespace nre::newrg
         const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptor_p_vector,
         F_render_descriptor* dsv_descriptor_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -2970,7 +2969,7 @@ namespace nre::newrg
         TKPA_valid<A_resource> rhi_p,
         ED_resource_state default_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -3003,7 +3002,7 @@ namespace nre::newrg
         const F_descriptor_handle_range& handle_range,
         ED_descriptor_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -3023,7 +3022,7 @@ namespace nre::newrg
     F_render_frame_buffer* F_render_graph::create_permanent_frame_buffer(
         TKPA_valid<A_frame_buffer> rhi_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
