@@ -211,7 +211,6 @@ namespace nre::newrg
         void setup_resource_producer_dependencies_internal();
         void setup_resource_consumer_dependencies_internal();
         void setup_resource_sync_producer_dependencies_internal();
-        void setup_resource_sync_consumer_dependencies_internal();
 
     private:
         void setup_pass_max_sync_pass_ids_internal();

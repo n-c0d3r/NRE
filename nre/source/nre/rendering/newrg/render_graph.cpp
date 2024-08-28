@@ -714,6 +714,11 @@ namespace nre::newrg
     }
     void F_render_graph::setup_resource_sync_producer_dependencies_internal()
     {
+        auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
+        auto& render_worker_list = render_pipeline_p->render_worker_list();
+        u32 render_worker_count = render_worker_list.size();
+
+        //
         auto pass_span = pass_p_owf_stack_.item_span();
         auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
@@ -721,6 +726,7 @@ namespace nre::newrg
             auto& access_dependencies = resource_p->access_dependencies_;
             u32 access_dependency_count = access_dependencies.size();
 
+            //
             for(u32 access_dependency_index = 0; access_dependency_index < access_dependency_count; ++access_dependency_index)
             {
                 auto& access_dependency = access_dependencies[access_dependency_index];
@@ -728,125 +734,90 @@ namespace nre::newrg
                 F_render_pass* pass_p = pass_span[access_dependency.pass_id];
 
                 auto& resource_states = pass_p->resource_states_;
+                auto& resource_concurrent_write_range_indices = pass_p->resource_concurrent_write_range_indices_;
                 auto& resource_sync_producer_dependencies = pass_p->resource_sync_producer_dependencies_;
-                resource_sync_producer_dependencies.resize(resource_states.size());
+                resource_sync_producer_dependencies.resize(resource_states.size() * render_worker_count);
 
                 auto& resource_state = resource_states[access_dependency.resource_state_index];
-                auto& resource_sync_producer_dependency = resource_sync_producer_dependencies[access_dependency.resource_state_index];
-
-                for(u32 other_access_dependency_index = access_dependency_index - 1; other_access_dependency_index != NCPP_U32_MAX; --other_access_dependency_index)
-                {
-                    auto& other_access_dependency = access_dependencies[other_access_dependency_index];
-
-                    F_render_pass* other_pass_p = pass_span[other_access_dependency.pass_id];
-
-                    auto& other_resource_states = other_pass_p->resource_states_;
-
-                    auto& other_resource_state = other_resource_states[other_access_dependency.resource_state_index];
-
-                    // check if do they access the same subresource. If not, go to next access_dependency
-                    if(
-                        (other_resource_state.subresource_index != resource_state.subresource_index)
-                        && (other_resource_state.subresource_index != resource_barrier_all_subresources)
-                        && (resource_state.subresource_index != resource_barrier_all_subresources)
-                    )
-                        continue;
-
-                    //
-                    b8 is_cpu_sync_point = H_render_pass_flag::can_cpu_sync(
-                        other_pass_p->flags(),
-                        pass_p->flags()
-                    );
-
-                    b8 is_resource_state_synchronizable = other_resource_state.is_writable();
-                    if(is_resource_state_synchronizable)
-                        is_resource_state_synchronizable = !(
-                            (
-                                (other_resource_state.states == ED_resource_state::RENDER_TARGET)
-                                && (resource_state.states == ED_resource_state::RENDER_TARGET)
-                            )
-                            || (
-                                (other_resource_state.states == ED_resource_state::DEPTH_WRITE)
-                                && (resource_state.states == ED_resource_state::DEPTH_WRITE)
-                            )
-                        );
-
-                    // in the case the current pass can't be synchronized by the producer pass
-                    if(!(is_resource_state_synchronizable | is_cpu_sync_point))
-                        continue;
-
-                    resource_sync_producer_dependency = other_access_dependency;
-                    break;
-                }
-            }
-        }
-    }
-    void F_render_graph::setup_resource_sync_consumer_dependencies_internal()
-    {
-        auto pass_span = pass_p_owf_stack_.item_span();
-        auto resource_span = resource_p_owf_stack_.item_span();
-        for(F_render_resource* resource_p : resource_span)
-        {
-            auto& access_dependencies = resource_p->access_dependencies_;
-            u32 access_dependency_count = access_dependencies.size();
-
-            for(u32 access_dependency_index = 0; access_dependency_index < access_dependency_count; ++access_dependency_index)
-            {
-                auto& access_dependency = access_dependencies[access_dependency_index];
-
-                F_render_pass* pass_p = pass_span[access_dependency.pass_id];
-
-                auto& resource_states = pass_p->resource_states_;
-                auto& resource_sync_consumer_dependencies = pass_p->resource_sync_consumer_dependencies_;
-                resource_sync_consumer_dependencies.resize(resource_states.size());
-
-                auto& resource_state = resource_states[access_dependency.resource_state_index];
-                auto& resource_sync_consumer_dependency = resource_sync_consumer_dependencies[access_dependency.resource_state_index];
 
                 //
-                for(u32 other_access_dependency_index = access_dependency_index + 1; other_access_dependency_index != access_dependency_count; ++other_access_dependency_index)
+                for(u32 render_worker_index = 0; render_worker_index < render_worker_count; ++render_worker_index)
                 {
-                    auto& other_access_dependency = access_dependencies[other_access_dependency_index];
-
-                    F_render_pass* other_pass_p = pass_span[other_access_dependency.pass_id];
-
-                    auto& other_resource_states = other_pass_p->resource_states_;
-
-                    auto& other_resource_state = other_resource_states[other_access_dependency.resource_state_index];
-
-                    // check if do they access the same subresource. If not, go to next access_dependency
-                    if(
-                        (other_resource_state.subresource_index != resource_state.subresource_index)
-                        && (other_resource_state.subresource_index != resource_barrier_all_subresources)
-                        && (resource_state.subresource_index != resource_barrier_all_subresources)
-                    )
-                        continue;
+                    auto& resource_sync_producer_dependency = resource_sync_producer_dependencies[
+                        access_dependency.resource_state_index * render_worker_count
+                        + render_worker_index
+                    ];
+                    auto resource_concurrent_write_range_index = resource_concurrent_write_range_indices[access_dependency.resource_state_index];
 
                     //
-                    b8 is_cpu_sync_point = H_render_pass_flag::can_cpu_sync(
-                        other_pass_p->flags(),
-                        pass_p->flags()
-                    );
+                    for(u32 other_access_dependency_index = access_dependency_index - 1; other_access_dependency_index != NCPP_U32_MAX; --other_access_dependency_index)
+                    {
+                        auto& other_access_dependency = access_dependencies[other_access_dependency_index];
 
-                    b8 is_resource_state_synchronizable = resource_state.is_writable();
-                    if(is_resource_state_synchronizable)
-                        is_resource_state_synchronizable = !(
-                            (
-                                (other_resource_state.states == ED_resource_state::RENDER_TARGET)
-                                && (resource_state.states == ED_resource_state::RENDER_TARGET)
-                            )
-                            || (
-                                (other_resource_state.states == ED_resource_state::DEPTH_WRITE)
-                                && (resource_state.states == ED_resource_state::DEPTH_WRITE)
-                            )
+                        F_render_pass* other_pass_p = pass_span[other_access_dependency.pass_id];
+
+                        u32 other_pass_render_worker_index = H_render_pass_flag::render_worker_index(other_pass_p->flags());
+                        if(other_pass_render_worker_index != render_worker_index)
+                            continue;
+
+                        auto& other_resource_states = other_pass_p->resource_states_;
+                        auto& other_resource_concurrent_write_range_indices = other_pass_p->resource_concurrent_write_range_indices_;
+
+                        auto& other_resource_state = other_resource_states[other_access_dependency.resource_state_index];
+
+                        // if both resource states are in concurrent write, skip it
+                        auto other_resource_concurrent_write_range_index = other_resource_concurrent_write_range_indices[
+                            other_access_dependency.resource_state_index
+                        ];
+                        if(
+                            (resource_concurrent_write_range_index == other_resource_concurrent_write_range_index)
+                            && (resource_concurrent_write_range_index != NCPP_U32_MAX)
+                        )
+                            continue;
+
+                        // check if do they access the same subresource. If not, go to next access_dependency
+                        if(
+                            (other_resource_state.subresource_index != resource_state.subresource_index)
+                            && (other_resource_state.subresource_index != resource_barrier_all_subresources)
+                            && (resource_state.subresource_index != resource_barrier_all_subresources)
+                        )
+                            continue;
+
+                        //
+                        b8 is_cpu_sync_point = H_render_pass_flag::can_cpu_sync(
+                            other_pass_p->flags(),
+                            pass_p->flags()
                         );
 
-                    // in the case the current pass can't be synchronized by the consumer pass
-                    if(!(is_resource_state_synchronizable | is_cpu_sync_point))
-                        continue;
+                        //
+                        b8 can_reorder;
+                        if(resource_state.is_writable())
+                        {
+                            can_reorder = true;
+                        }
+                        else
+                        {
+                            can_reorder = other_resource_state.is_writable();
+                            if(can_reorder)
+                                can_reorder = !(
+                                    (
+                                        (other_resource_state.states == ED_resource_state::RENDER_TARGET)
+                                        && (resource_state.states == ED_resource_state::RENDER_TARGET)
+                                    )
+                                    || (
+                                        (other_resource_state.states == ED_resource_state::DEPTH_WRITE)
+                                        && (resource_state.states == ED_resource_state::DEPTH_WRITE)
+                                    )
+                                );
+                        }
 
-                    resource_sync_consumer_dependency = other_access_dependency;
-                    break;
+                        // in the case the current pass can't be synchronized by the producer pass
+                        if(!(can_reorder | is_cpu_sync_point))
+                            continue;
+
+                        resource_sync_producer_dependency = other_access_dependency;
+                        break;
+                    }
                 }
             }
         }
@@ -858,9 +829,6 @@ namespace nre::newrg
         auto& render_worker_list = render_pipeline_p->render_worker_list();
         u32 render_worker_count = render_worker_list.size();
 
-        // writable producers just need to be synchronized by fences in the case they are on different render workers
-        // if they are on the same render worker, the implicit barriers among execute_command_lists guarantee that they are always be synchronized
-        // Therefore, the only probability of a writable producer becomes the one signing a fence on a render worker is the latest writable producers on that render worker that affect a specified pass.
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
         {
@@ -870,40 +838,27 @@ namespace nre::newrg
             if(pass_p->is_sentinel())
                 continue;
 
+            auto& resource_states = pass_p->resource_states_;
+            auto& resource_sync_producer_dependencies = pass_p->resource_sync_producer_dependencies_;
+
+            u32 resource_state_count = resource_states.size();
+
             auto& max_sync_pass_ids = pass_p->max_sync_pass_ids_;
 
             // find potential sync passes from writable producer states
+            for(u32 i = 0; i < resource_state_count; ++i)
             {
-                auto& resource_states = pass_p->resource_states_;
-                auto& resource_sync_producer_dependencies = pass_p->resource_sync_producer_dependencies_;
-                auto& resource_concurrent_write_range_indices = pass_p->resource_concurrent_write_range_indices_;
-                u32 resource_state_count = resource_sync_producer_dependencies.size();
-
-                for(u32 i = 0; i < resource_state_count; ++i)
+                for(u32 render_worker_index = 0; render_worker_index < render_worker_count; ++render_worker_index)
                 {
-                    auto& resource_state = resource_states[i];
-                    auto& resource_sync_producer_dependency = resource_sync_producer_dependencies[i];
-                    auto resource_concurrent_write_range_index = resource_concurrent_write_range_indices[i];
+                    auto& resource_sync_producer_dependency = resource_sync_producer_dependencies[
+                        i * render_worker_count
+                        + render_worker_index
+                    ];
 
                     if(!resource_sync_producer_dependency)
                         continue;
 
-                    F_render_pass* sync_producer_pass_p = pass_span[resource_sync_producer_dependency.pass_id];
-
-                    auto& sync_producer_resource_concurrent_write_range_indices = sync_producer_pass_p->resource_concurrent_write_range_indices_;
-
-                    auto sync_producer_resource_concurrent_write_range_index = sync_producer_resource_concurrent_write_range_indices[
-                        resource_sync_producer_dependency.resource_state_index
-                    ];
-                    if(
-                        (resource_concurrent_write_range_index == sync_producer_resource_concurrent_write_range_index)
-                        && (resource_concurrent_write_range_index != NCPP_U32_MAX)
-                    )
-                        continue;
-
-                    u8 sync_producer_render_worker_index = H_render_pass_flag::render_worker_index(sync_producer_pass_p->flags());
-
-                    auto& max_sync_pass_id = max_sync_pass_ids[sync_producer_render_worker_index];
+                    auto& max_sync_pass_id = max_sync_pass_ids[render_worker_index];
 
                     if(max_sync_pass_id == NCPP_U32_MAX)
                     {
@@ -917,7 +872,6 @@ namespace nre::newrg
             }
 
             // find potential sync passes from fences synchronizing aliased resources
-            auto& resource_states = pass_p->resource_states_;
             for(auto& resource_state : resource_states)
             {
                 F_render_resource* resource_p = resource_state.resource_p;
@@ -2561,7 +2515,6 @@ namespace nre::newrg
         setup_resource_producer_dependencies_internal();
         setup_resource_consumer_dependencies_internal();
         setup_resource_sync_producer_dependencies_internal();
-        setup_resource_sync_consumer_dependencies_internal();
 
         setup_pass_max_sync_pass_ids_internal();
 
