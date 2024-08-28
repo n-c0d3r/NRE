@@ -39,7 +39,7 @@ int main() {
 
 	// renderer event
 	{
-		NRE_NEWRG_RENDERER_TICK()
+		NRE_NEWRG_RENDERER_RG_REGISTER()
 		{
 			auto render_graph_p = F_render_graph::instance_p();
 			auto back_buffer_p = NRE_MAIN_SWAPCHAIN()->back_buffer_p();
@@ -72,7 +72,6 @@ int main() {
 						F_vector4_f32::forward()
 					);
 				},
-				ED_pipeline_state_type::GRAPHICS,
 				E_render_pass_flag::DEFAULT
 				NRE_OPTIONAL_DEBUG_PARAM("clear_back_buffer")
 			);
@@ -89,7 +88,6 @@ int main() {
 				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
 				{
 				},
-				ED_pipeline_state_type::GRAPHICS,
 				E_render_pass_flag::MAIN_CPU_SYNC
 				NRE_OPTIONAL_DEBUG_PARAM("pass_1")
 			);
@@ -102,7 +100,6 @@ int main() {
 				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
 				{
 				},
-				ED_pipeline_state_type::GRAPHICS,
 				E_render_pass_flag::DEFAULT
 				NRE_OPTIONAL_DEBUG_PARAM("pass_2")
 			);

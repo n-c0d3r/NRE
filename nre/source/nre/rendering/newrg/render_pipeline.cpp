@@ -1,5 +1,5 @@
 #include <nre/rendering/newrg/render_pipeline.hpp>
-#include <nre/rendering/newrg/resource_uploader.hpp>
+#include <nre/rendering/newrg/general_resource_uploader.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/renderer.hpp>
 #include <nre/rendering/newrg/intermediate_descriptor_manager.hpp>
@@ -149,7 +149,7 @@ namespace nre::newrg {
 		}
 
 		//
-		resource_uploader_p_ = TU<F_resource_uploader>()();
+		general_resource_uploader_p_ = TU<F_general_resource_uploader>()();
 		intermediate_descriptor_manager_p_ = TU<F_intermediate_descriptor_manager>()();
 		render_graph_p_ = TU<F_render_graph>()();
 		renderer_p_ = TU<F_renderer>()();

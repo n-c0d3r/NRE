@@ -11,7 +11,7 @@
 
 namespace nre::newrg
 {
-    class F_resource_uploader;
+    class F_general_resource_uploader;
     class F_render_graph;
     class F_renderer;
     class F_intermediate_descriptor_manager;
@@ -32,7 +32,7 @@ namespace nre::newrg
             F_async_compute_render_worker
         > render_worker_list_;
 
-        TU<F_resource_uploader> resource_uploader_p_;
+        TU<F_general_resource_uploader> general_resource_uploader_p_;
 
         TU<A_command_queue> blit_command_queue_p_;
 

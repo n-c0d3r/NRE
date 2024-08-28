@@ -58,7 +58,6 @@ namespace nre::newrg
         TF_render_frame_vector<F_render_resource*> resource_to_allocate_vector_;
         TF_render_frame_vector<F_render_resource*> resource_to_deallocate_vector_;
 
-        ED_pipeline_state_type pipeline_state_type_ = ED_pipeline_state_type::NONE;
         E_render_pass_flag flags_ = E_render_pass_flag::DEFAULT;
 
         // Each element corresponds to a writable producer pass running on a render worker at the specified index.
@@ -105,7 +104,6 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& resource_to_allocate_vector() const noexcept { return resource_to_allocate_vector_; }
         NCPP_FORCE_INLINE const auto& resource_to_deallocate_vector() const noexcept { return resource_to_deallocate_vector_; }
 
-        NCPP_FORCE_INLINE ED_pipeline_state_type pipeline_state_type() const noexcept { return pipeline_state_type_; }
         NCPP_FORCE_INLINE E_render_pass_flag flags() const noexcept { return flags_; }
 
         NCPP_FORCE_INLINE b8 is_async_compute() const noexcept { return flag_is_has(flags_, E_render_pass_flag::ASYNC_COMPUTE); }
@@ -134,10 +132,9 @@ namespace nre::newrg
     public:
         F_render_pass(
             const F_render_pass_functor_cache& functor_cache,
-            ED_pipeline_state_type pipeline_state_type,
             E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , F_render_frame_name name
+            , const F_render_frame_name& name
 #endif
         );
         ~F_render_pass();

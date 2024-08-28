@@ -8,6 +8,7 @@
 namespace nre::newrg
 {
     class F_external_render_resource;
+    class F_transient_resource_uploader;
 
 
 
@@ -22,14 +23,16 @@ namespace nre::newrg
 
 
     private:
-        F_renderer_tick_event tick_event_;
+        F_renderer_rg_tick_event rg_tick_event_;
         F_renderer_upload_event upload_event_;
         F_renderer_readback_event readback_event_;
         F_renderer_release_event release_event_;
 
+        TU<F_transient_resource_uploader> transient_resource_uploader_p_;
+
     public:
         NCPP_DECLARE_STATIC_EVENTS(
-            tick_event_,
+            rg_tick_event_,
             upload_event_,
             readback_event_,
             release_event_
@@ -57,12 +60,12 @@ namespace nre::newrg
 
 namespace nre::newrg::internal
 {
-    struct F_renderer_tick_event_caller
+    struct F_renderer_rg_tick_event_caller
     {
         template<typename F__>
         NCPP_FORCE_INLINE void operator = (F__&& functor) {
 
-            F_renderer::instance_p()->T_get_event<F_renderer_tick_event>().T_push_back_listener(
+            F_renderer::instance_p()->T_get_event<F_renderer_rg_tick_event>().T_push_back_listener(
                 std::forward<F__>(functor)
             );
         }
@@ -102,9 +105,9 @@ namespace nre::newrg::internal
     };
 }
 
-#define NRE_NEWRG_RENDERER_TICK() \
-    nre::newrg::internal::F_renderer_tick_event_caller NCPP_GLUE(___nre_renderer_tick_event___, NCPP_LINE); \
-    NCPP_GLUE(___nre_renderer_tick_event___, NCPP_LINE) = [&](auto&)
+#define NRE_NEWRG_RENDERER_RG_REGISTER() \
+    nre::newrg::internal::F_renderer_rg_tick_event_caller NCPP_GLUE(___nre_renderer_rg_tick_event___, NCPP_LINE); \
+    NCPP_GLUE(___nre_renderer_rg_tick_event___, NCPP_LINE) = [&](auto&)
 #define NRE_NEWRG_RENDERER_UPLOAD() \
     nre::newrg::internal::F_renderer_upload_event_caller NCPP_GLUE(___nre_renderer_upload_event___, NCPP_LINE); \
     NCPP_GLUE(___nre_renderer_upload_event___, NCPP_LINE) = [&](auto&)

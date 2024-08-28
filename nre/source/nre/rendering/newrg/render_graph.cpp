@@ -11,6 +11,7 @@
 #include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 
+#include "../../../../../build/clion/cmake-build-debug/nre/submodules/NRHI/nrhi/generated_files/nrhi/resource_state.hpp"
 #include "nrhi/resource_barrier_type.hpp"
 
 
@@ -271,7 +272,6 @@ namespace nre::newrg
             [](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
             {
             },
-            ED_pipeline_state_type::GRAPHICS,
             E_render_pass_flag::PROLOGUE
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.prologue_pass")
         );
@@ -282,7 +282,6 @@ namespace nre::newrg
             [](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
             {
             },
-            ED_pipeline_state_type::GRAPHICS,
             E_render_pass_flag::EPILOGUE
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.epilogue_pass")
         );
@@ -760,6 +759,17 @@ namespace nre::newrg
                     );
 
                     b8 is_resource_state_synchronizable = other_resource_state.is_writable();
+                    if(is_resource_state_synchronizable)
+                        is_resource_state_synchronizable = !(
+                            (
+                                (other_resource_state.states == ED_resource_state::RENDER_TARGET)
+                                && (resource_state.states == ED_resource_state::RENDER_TARGET)
+                            )
+                            || (
+                                (other_resource_state.states == ED_resource_state::DEPTH_WRITE)
+                                && (resource_state.states == ED_resource_state::DEPTH_WRITE)
+                            )
+                        );
 
                     // in the case the current pass can't be synchronized by the producer pass
                     if(!(is_resource_state_synchronizable | is_cpu_sync_point))
@@ -793,8 +803,6 @@ namespace nre::newrg
                 auto& resource_state = resource_states[access_dependency.resource_state_index];
                 auto& resource_sync_consumer_dependency = resource_sync_consumer_dependencies[access_dependency.resource_state_index];
 
-                b8 is_resource_state_synchronizable = resource_state.is_writable();
-
                 //
                 for(u32 other_access_dependency_index = access_dependency_index + 1; other_access_dependency_index != access_dependency_count; ++other_access_dependency_index)
                 {
@@ -819,6 +827,19 @@ namespace nre::newrg
                         other_pass_p->flags(),
                         pass_p->flags()
                     );
+
+                    b8 is_resource_state_synchronizable = resource_state.is_writable();
+                    if(is_resource_state_synchronizable)
+                        is_resource_state_synchronizable = !(
+                            (
+                                (other_resource_state.states == ED_resource_state::RENDER_TARGET)
+                                && (resource_state.states == ED_resource_state::RENDER_TARGET)
+                            )
+                            || (
+                                (other_resource_state.states == ED_resource_state::DEPTH_WRITE)
+                                && (resource_state.states == ED_resource_state::DEPTH_WRITE)
+                            )
+                        );
 
                     // in the case the current pass can't be synchronized by the consumer pass
                     if(!(is_resource_state_synchronizable | is_cpu_sync_point))
@@ -1330,15 +1351,14 @@ namespace nre::newrg
             if(subresource_index == resource_barrier_all_subresources)
                 subresource_index = subresource_index_before;
 
-            // if both this pass and producer pass use this resource as render target or depth stencil, dont make barrier
             if(
                 (
-                    flag_is_has(states_before, ED_resource_state::RENDER_TARGET)
-                    && flag_is_has(states_after, ED_resource_state::RENDER_TARGET)
+                    (states_before == ED_resource_state::RENDER_TARGET)
+                    && (states_after == ED_resource_state::RENDER_TARGET)
                 )
                 || (
-                    flag_is_has(states_before, ED_resource_state::DEPTH_WRITE)
-                    && flag_is_has(states_after, ED_resource_state::DEPTH_WRITE)
+                    (states_before == ED_resource_state::DEPTH_WRITE)
+                    && (states_after == ED_resource_state::DEPTH_WRITE)
                 )
             )
             {
@@ -1346,8 +1366,8 @@ namespace nre::newrg
             }
 
             if(
-                flag_is_has(states_before, ED_resource_state::UNORDERED_ACCESS)
-                && flag_is_has(states_after, ED_resource_state::UNORDERED_ACCESS)
+                (states_before == ED_resource_state::UNORDERED_ACCESS)
+                && (states_after == ED_resource_state::UNORDERED_ACCESS)
                 && (subresource_index == resource_barrier_all_subresources)
             )
             {
@@ -1429,6 +1449,9 @@ namespace nre::newrg
 
                         F_render_resource* resource_p = resource_state.resource_p;
                         auto rhi_p = resource_p->rhi_p();
+
+                        if(!rhi_p)
+                            continue;
 
                         auto& resource_consumer_dependency = resource_consumer_dependencies[i];
                         if(
@@ -2569,16 +2592,14 @@ namespace nre::newrg
 
     F_render_pass* F_render_graph::create_pass_internal(
         const F_render_pass_functor_cache& functor_cache,
-        ED_pipeline_state_type pipeline_state_type,
         E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
         F_render_pass* render_pass_p = T_create<F_render_pass>(
             functor_cache,
-            pipeline_state_type,
             flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , name
@@ -2709,7 +2730,7 @@ namespace nre::newrg
     F_render_resource* F_render_graph::create_resource(
         const F_resource_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -2736,7 +2757,7 @@ namespace nre::newrg
         F_render_resource* resource_p,
         const F_resource_view_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -2758,7 +2779,7 @@ namespace nre::newrg
         F_render_resource* resource_p,
         ED_resource_view_type view_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -2780,7 +2801,7 @@ namespace nre::newrg
     F_render_descriptor* F_render_graph::create_sampler_state(
         const F_sampler_state_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -2801,7 +2822,7 @@ namespace nre::newrg
         const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptor_p_vector,
         F_render_descriptor* dsv_descriptor_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -2970,7 +2991,7 @@ namespace nre::newrg
         TKPA_valid<A_resource> rhi_p,
         ED_resource_state default_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -3003,7 +3024,7 @@ namespace nre::newrg
         const F_descriptor_handle_range& handle_range,
         ED_descriptor_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {
@@ -3023,7 +3044,7 @@ namespace nre::newrg
     F_render_frame_buffer* F_render_graph::create_permanent_frame_buffer(
         TKPA_valid<A_frame_buffer> rhi_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , F_render_frame_name name
+        , const F_render_frame_name& name
 #endif
     )
     {

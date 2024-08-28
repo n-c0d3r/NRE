@@ -1,15 +1,15 @@
-#include <nre/rendering/newrg/resource_uploader.hpp>
+#include <nre/rendering/newrg/general_resource_uploader.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 
 
 namespace nre::newrg
 {
-    TK<F_resource_uploader> F_resource_uploader::instance_p_;
+    TK<F_general_resource_uploader> F_general_resource_uploader::instance_p_;
 
 
 
-    F_resource_uploader::F_resource_uploader() :
+    F_general_resource_uploader::F_general_resource_uploader() :
         command_queue_p_(
             NRE_INFREQUENT_UPLOAD_COMMAND_QUEUE()
         )
@@ -23,7 +23,7 @@ namespace nre::newrg
             }
         );
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
-            command_allocator_p_->set_debug_name("nre.newrg.resource_uploader.command_allocator");
+            command_allocator_p_->set_debug_name("nre.newrg.general_resource_uploader.command_allocator");
         );
         command_list_p_ = H_command_list::create_with_command_allocator(
             NRE_MAIN_DEVICE(),
@@ -33,7 +33,7 @@ namespace nre::newrg
             }
         );
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
-            command_list_p_->set_debug_name("nre.newrg.resource_uploader.command_list");
+            command_list_p_->set_debug_name("nre.newrg.general_resource_uploader.command_list");
         );
 
         fence_p_ = H_fence::create(
@@ -43,10 +43,10 @@ namespace nre::newrg
             }
         );
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
-            fence_p_->set_debug_name("nre.newrg.resource_uploader.fence");
+            fence_p_->set_debug_name("nre.newrg.general_resource_uploader.fence");
         );
     }
-    F_resource_uploader::~F_resource_uploader()
+    F_general_resource_uploader::~F_general_resource_uploader()
     {
         command_list_p_->async_end();
 
@@ -56,7 +56,7 @@ namespace nre::newrg
 
 
 
-    void F_resource_uploader::upload(
+    void F_general_resource_uploader::upload(
         TKPA_valid<A_resource> resource_p,
         const F_initial_resource_data& initial_resource_data
     )
@@ -173,7 +173,7 @@ namespace nre::newrg
             std::move(temp_resource_p.oref)
         );
     }
-    void F_resource_uploader::sync()
+    void F_general_resource_uploader::sync()
     {
         command_list_p_->async_end();
 
