@@ -4,6 +4,17 @@ NCoder's Learning Aimed C++ Render Engine.
 ---
 
 ## Features
++ Render pipelines:
+  + FirstRP:
+    + Support simple graphics APIs (DirectX 11)
+    + Cascaded shadows
+    + PBR
+    + Image-based sky lighting
+  + NewRG
+    + Support advanced graphics APIs (DirectX 12)
+    + Render graph
+    + Multithreaded rendering
++ Task system
 + Basic actor system
 + Hierarchy:
   + Transform node
@@ -15,9 +26,6 @@ NCoder's Learning Aimed C++ Render Engine.
   + Simple render view
 + Light system
   + Directional light
-+ Basic material system:
-  + HDRI sky material
-  + Lit static mesh material (uses IBL)
 + General textures:
   + Texture builders to build texel data
   + Support basic shader resource view, unordered access view,...
