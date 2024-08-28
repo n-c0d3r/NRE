@@ -489,7 +489,7 @@ namespace nre::newrg
          */
         F_render_resource* create_permanent_resource(
             TKPA_valid<A_resource> rhi_p,
-            ED_resource_state initial_states = ED_resource_state::COMMON
+            ED_resource_state default_states = ED_resource_state::COMMON
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , F_render_frame_name name = ""
 #endif

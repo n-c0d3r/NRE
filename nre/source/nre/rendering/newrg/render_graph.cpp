@@ -759,8 +759,10 @@ namespace nre::newrg
                         pass_p->flags()
                     );
 
+                    b8 is_resource_state_synchronizable = other_resource_state.is_writable();
+
                     // in the case the current pass can't be synchronized by the producer pass
-                    if(!(other_resource_state.is_writable() | is_cpu_sync_point))
+                    if(!(is_resource_state_synchronizable | is_cpu_sync_point))
                         continue;
 
                     resource_sync_producer_dependency = other_access_dependency;
@@ -791,7 +793,7 @@ namespace nre::newrg
                 auto& resource_state = resource_states[access_dependency.resource_state_index];
                 auto& resource_sync_consumer_dependency = resource_sync_consumer_dependencies[access_dependency.resource_state_index];
 
-                b8 is_resource_state_writable = resource_state.is_writable();
+                b8 is_resource_state_synchronizable = resource_state.is_writable();
 
                 //
                 for(u32 other_access_dependency_index = access_dependency_index + 1; other_access_dependency_index != access_dependency_count; ++other_access_dependency_index)
@@ -819,7 +821,7 @@ namespace nre::newrg
                     );
 
                     // in the case the current pass can't be synchronized by the consumer pass
-                    if(!(is_resource_state_writable | is_cpu_sync_point))
+                    if(!(is_resource_state_synchronizable | is_cpu_sync_point))
                         continue;
 
                     resource_sync_consumer_dependency = other_access_dependency;
@@ -1388,73 +1390,78 @@ namespace nre::newrg
             F_render_pass_id first_pass_id = pass_id_range.begin;
             F_render_pass_id last_pass_id = pass_id_range.end - 1;
 
-            for(F_render_pass_id pass_id = pass_id_range.begin; pass_id < pass_id_range.end; ++pass_id)
+            auto& parallel_subexecute_ranges = execute_range.parallel_subexecute_ranges;
+            u32 parallel_subexecute_range_count = parallel_subexecute_ranges.size();
+
+            for(
+                u32 parallel_subexecute_range_index = 0;
+                parallel_subexecute_range_index < parallel_subexecute_range_count;
+                ++parallel_subexecute_range_index
+            )
             {
-                F_render_pass* pass_p = pass_span[pass_id];
+                auto& parallel_subexecute_range = parallel_subexecute_ranges[parallel_subexecute_range_index];
 
-                auto& resource_states = pass_p->resource_states_;
-                auto& resource_concurrent_write_range_indices = pass_p->resource_concurrent_write_range_indices_;
-                auto& resource_producer_dependencies = pass_p->resource_producer_dependencies_;
-                auto& resource_consumer_dependencies = pass_p->resource_consumer_dependencies_;
-                auto& resource_barriers_before = pass_p->resource_barriers_before_;
-                auto& resource_barriers_after = pass_p->resource_barriers_after_;
+                auto& parallel_subexecute_pass_id_range = parallel_subexecute_range.pass_id_range;
 
-                u32 resource_state_count = resource_states.size();
+                F_render_pass_id parallel_subexecute_first_pass_id = parallel_subexecute_pass_id_range.begin;
+                F_render_pass_id parallel_subexecute_last_pass_id = parallel_subexecute_pass_id_range.end - 1;
 
-                resource_barriers_before.resize(resource_state_count);
-                resource_barriers_after.resize(resource_state_count);
-
-                for(u32 i = 0; i < resource_state_count; ++i)
+                for(F_render_pass_id pass_id = parallel_subexecute_first_pass_id; pass_id <= parallel_subexecute_last_pass_id; ++pass_id)
                 {
-                    auto& resource_state = resource_states[i];
-                    auto resource_concurrent_write_range_index = resource_concurrent_write_range_indices[i];
+                    F_render_pass* pass_p = pass_span[pass_id];
 
-                    F_render_resource* resource_p = resource_state.resource_p;
-                    auto rhi_p = resource_p->rhi_p();
+                    auto& resource_states = pass_p->resource_states_;
+                    auto& resource_concurrent_write_range_indices = pass_p->resource_concurrent_write_range_indices_;
+                    auto& resource_producer_dependencies = pass_p->resource_producer_dependencies_;
+                    auto& resource_consumer_dependencies = pass_p->resource_consumer_dependencies_;
+                    auto& resource_barriers_before = pass_p->resource_barriers_before_;
+                    auto& resource_barriers_after = pass_p->resource_barriers_after_;
 
-                    auto& resource_consumer_dependency = resource_consumer_dependencies[i];
-                    if(resource_consumer_dependency)
+                    u32 resource_state_count = resource_states.size();
+
+                    resource_barriers_before.resize(resource_state_count);
+                    resource_barriers_after.resize(resource_state_count);
+
+                    for(u32 i = 0; i < resource_state_count; ++i)
                     {
-                        if(resource_consumer_dependency.pass_id > last_pass_id)
+                        auto& resource_state = resource_states[i];
+                        auto resource_concurrent_write_range_index = resource_concurrent_write_range_indices[i];
+
+                        F_render_resource* resource_p = resource_state.resource_p;
+                        auto rhi_p = resource_p->rhi_p();
+
+                        auto& resource_consumer_dependency = resource_consumer_dependencies[i];
+                        if(
+                            !resource_consumer_dependency
+                            || (
+                                resource_consumer_dependency
+                                && (resource_consumer_dependency.pass_id > parallel_subexecute_last_pass_id)
+                            )
+                        )
                         {
-                            if(resource_state.states != ED_resource_state::COMMON)
+                            if(resource_p->default_states() != resource_state.states)
                             {
                                 resource_barriers_after[i] = H_resource_barrier::transition(
                                     F_resource_transition_barrier {
                                         .resource_p = (TKPA<A_resource>)rhi_p,
                                         .subresource_index = resource_state.subresource_index,
                                         .state_before = resource_state.states,
-                                        .state_after = ED_resource_state::COMMON
+                                        .state_after = resource_p->default_states()
                                     }
                                 );
                             }
                         }
-                    }
-                    else
-                    {
-                        if(resource_state.states != ED_resource_state::COMMON)
-                        {
-                            resource_barriers_after[i] = H_resource_barrier::transition(
-                                F_resource_transition_barrier {
-                                    .resource_p = (TKPA<A_resource>)rhi_p,
-                                    .subresource_index = resource_state.subresource_index,
-                                    .state_before = resource_state.states,
-                                    .state_after = ED_resource_state::COMMON
-                                }
-                            );
-                        }
-                    }
 
-                    auto& resource_producer_dependency = resource_producer_dependencies[i];
-                    if(resource_producer_dependency)
-                    {
-                        F_render_pass* producer_pass_p = pass_span[resource_producer_dependency.pass_id];
-                        auto& producer_resource_state = producer_pass_p->resource_states_[resource_producer_dependency.resource_state_index];
-                        auto producer_resource_concurrent_write_range_index = producer_pass_p->resource_concurrent_write_range_indices_[resource_producer_dependency.resource_state_index];
-
-                        if(first_pass_id > resource_producer_dependency.pass_id)
+                        auto& resource_producer_dependency = resource_producer_dependencies[i];
+                        if(
+                            !resource_producer_dependency
+                            || (
+                                resource_producer_dependency
+                                && (resource_producer_dependency.pass_id < parallel_subexecute_first_pass_id)
+                            )
+                        )
                         {
-                            if(resource_state.states != ED_resource_state::COMMON)
+                            if(resource_p->default_states() != resource_state.states)
                             {
                                 resource_barriers_before[i] = H_resource_barrier::transition(
                                     F_resource_transition_barrier {
@@ -1468,6 +1475,10 @@ namespace nre::newrg
                         }
                         else
                         {
+                            F_render_pass* producer_pass_p = pass_span[resource_producer_dependency.pass_id];
+                            auto& producer_resource_state = producer_pass_p->resource_states_[resource_producer_dependency.resource_state_index];
+                            auto producer_resource_concurrent_write_range_index = producer_pass_p->resource_concurrent_write_range_indices_[resource_producer_dependency.resource_state_index];
+
                             resource_barriers_before[i] = calculate_resource_barrier_before(
                                 (TKPA_valid<A_resource>)rhi_p,
                                 producer_resource_state.subresource_index,
@@ -1476,20 +1487,6 @@ namespace nre::newrg
                                 resource_state.states,
                                 producer_resource_concurrent_write_range_index,
                                 resource_concurrent_write_range_index
-                            );
-                        }
-                    }
-                    else
-                    {
-                        if(resource_state.states != resource_p->initial_states())
-                        {
-                            resource_barriers_before[i] = H_resource_barrier::transition(
-                                F_resource_transition_barrier {
-                                    .resource_p = (TKPA<A_resource>)rhi_p,
-                                    .subresource_index = resource_state.subresource_index,
-                                    .state_before = resource_p->initial_states(),
-                                    .state_after = resource_state.states
-                                }
                             );
                         }
                     }
@@ -2066,27 +2063,20 @@ namespace nre::newrg
     {
         auto pass_span = pass_p_owf_stack_.item_span();
 
-        auto& pass_id_range = execute_range.pass_id_range;
-        u32 pass_count = execute_range.size();
+        auto& parallel_subexecute_ranges = execute_range.parallel_subexecute_ranges;
 
         auto render_worker_p = find_render_worker(execute_range.render_worker_index);
 
-        F_render_pass_id first_pass_id = pass_id_range.begin;
-        F_render_pass_id last_pass_id = pass_id_range.end - 1;
-
-        F_render_pass* first_pass_p = pass_span[first_pass_id];
-        F_render_pass* last_pass_p = pass_span[last_pass_id];
-
         // there can't be any pass using gpu fences in the mid of an execute range
-        auto& gpu_wait_fence_batch = first_pass_p->gpu_wait_fence_batch();
+        auto& gpu_wait_fence_batch = execute_range.gpu_wait_fence_batch;
         u32 gpu_wait_fence_count = gpu_wait_fence_batch.size();
 
         // there can't be any pass using gpu fences in the mid of an execute range
-        auto& gpu_signal_fence_batch = last_pass_p->gpu_signal_fence_batch();
+        auto& gpu_signal_fence_batch = execute_range.gpu_signal_fence_batch;
         u32 gpu_signal_fence_count = gpu_signal_fence_batch.size();
 
         // there can't be any pass using gpu fences in the mid of an execute range
-        auto& cpu_wait_gpu_fence_batch = first_pass_p->cpu_wait_gpu_fence_batch();
+        auto& cpu_wait_gpu_fence_batch = execute_range.cpu_wait_gpu_fence_batch;
         u32 cpu_wait_gpu_fence_count = cpu_wait_gpu_fence_batch.size();
 
         // gpu wait gpu fences
@@ -2151,13 +2141,9 @@ namespace nre::newrg
         // submit gpu works
         if(execute_range.has_gpu_work)
         {
-            u32 batch_count = ceil(
-                f32(pass_count)
-                / f32(NRE_RENDER_GRAPH_PARALLEL_SUBEXECUTE_RANGE_CAPACITY)
-            );
+            u32 batch_count = parallel_subexecute_ranges.size();
 
             //
-            au32 submitted_command_list_index = 0;
             F_managed_command_list_batch command_list_batch;
             command_list_batch.resize(batch_count);
 
@@ -2166,14 +2152,48 @@ namespace nre::newrg
             {
                 u32 batch_index = batch_index_minus_one + 1;
 
-                u32 begin_pass_index = batch_index * NRE_RENDER_GRAPH_PARALLEL_SUBEXECUTE_RANGE_CAPACITY;
-                u32 end_pass_index = eastl::min(begin_pass_index + NRE_RENDER_GRAPH_PARALLEL_SUBEXECUTE_RANGE_CAPACITY, pass_count);
+                auto& parallel_subexecute_range = parallel_subexecute_ranges[batch_index];
 
-                F_render_pass_id begin_pass_id = begin_pass_index + pass_id_range.begin;
-                F_render_pass_id end_pass_id = end_pass_index + pass_id_range.begin;
+                auto& pass_id_range = parallel_subexecute_range.pass_id_range;
 
+                F_render_pass_id begin_pass_id = pass_id_range.begin;
+                F_render_pass_id end_pass_id = pass_id_range.end;
+
+                //
                 auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
                 auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
+
+                // sync with dependencies
+                auto& dependency_ids = parallel_subexecute_range.dependency_ids;
+                if(dependency_ids.size())
+                {
+                    // early check dependencies
+                    b8 enable_long_dependencies_check = true;
+                    for(auto dependency_id : dependency_ids)
+                    {
+                        auto& dependency = parallel_subexecute_ranges[dependency_id];
+                        if(EA::Thread::AtomicGetValue(&(dependency.counter)) != 0)
+                        {
+                            enable_long_dependencies_check = false;
+                            break;
+                        }
+                    }
+
+                    // yield, to not block other tasks while dependencies are not done
+                    if(enable_long_dependencies_check)
+                        H_task_context::yield(
+                            [this, &dependency_ids, &parallel_subexecute_ranges]()
+                            {
+                                for(auto dependency_id : dependency_ids)
+                                {
+                                    auto& dependency = parallel_subexecute_ranges[dependency_id];
+                                    if(EA::Thread::AtomicGetValue(&(dependency.counter)))
+                                        return false;
+                                }
+                                return true;
+                            }
+                        );
+                }
 
                 // for each pass in this batch, execute it
                 for(F_render_pass_id pass_id = begin_pass_id; pass_id != end_pass_id; ++pass_id)
@@ -2228,8 +2248,7 @@ namespace nre::newrg
 
                 command_list_p->async_end();
 
-                u32 command_list_index = submitted_command_list_index.fetch_add(1, eastl::memory_order_acq_rel);
-                command_list_batch[command_list_index] = std::move(command_list_p);
+                command_list_batch[batch_index] = std::move(command_list_p);
             };
 
             // execute the first batch on this task
@@ -2237,7 +2256,7 @@ namespace nre::newrg
                 execute_pass_batch(NCPP_U32_MAX);
             }
 
-            // execute the first batch on this task
+            //
             if(batch_count > 1)
             {
                 F_task_counter parallel_batch_counter = 0;
@@ -2308,36 +2327,36 @@ namespace nre::newrg
                         auto& execute_range = execute_range_span[execute_range_id];
 
                         // check dependencies
-                       auto& dependency_ids = execute_range.dependency_ids;
-                       if(dependency_ids.size())
-                       {
-                           // early check dependencies
-                           b8 enable_long_dependencies_check = true;
-                           for(auto dependency_id : dependency_ids)
-                           {
-                               auto& dependency = execute_range_span[dependency_id];
-                               if(EA::Thread::AtomicGetValue(&(dependency.counter)) != 0)
-                               {
-                                   enable_long_dependencies_check = false;
-                                   break;
-                               }
-                           }
+                        auto& dependency_ids = execute_range.dependency_ids;
+                        if(dependency_ids.size())
+                        {
+                            // early check dependencies
+                            b8 enable_long_dependencies_check = true;
+                            for(auto dependency_id : dependency_ids)
+                            {
+                                auto& dependency = execute_range_span[dependency_id];
+                                if(EA::Thread::AtomicGetValue(&(dependency.counter)) != 0)
+                                {
+                                    enable_long_dependencies_check = false;
+                                    break;
+                                }
+                            }
 
-                           // yield, to not block other tasks while dependencies are not done
-                           if(enable_long_dependencies_check)
-                               H_task_context::yield(
-                                   [this, &dependency_ids, &execute_range_span]()
-                                   {
-                                       for(auto dependency_id : dependency_ids)
-                                       {
-                                           auto& dependency = execute_range_span[dependency_id];
-                                           if(EA::Thread::AtomicGetValue(&(dependency.counter)))
-                                               return false;
-                                       }
-                                       return true;
-                                   }
-                               );
-                       }
+                            // yield, to not block other tasks while dependencies are not done
+                            if(enable_long_dependencies_check)
+                                H_task_context::yield(
+                                    [this, &dependency_ids, &execute_range_span]()
+                                    {
+                                        for(auto dependency_id : dependency_ids)
+                                        {
+                                            auto& dependency = execute_range_span[dependency_id];
+                                            if(EA::Thread::AtomicGetValue(&(dependency.counter)))
+                                                return false;
+                                        }
+                                        return true;
+                                    }
+                                );
+                        }
 
                         //
                         execute_range_internal(execute_range);
@@ -2846,7 +2865,7 @@ namespace nre::newrg
             F_render_resource* render_resource_p = T_create<F_render_resource>(
                 std::move(external_resource_p->rhi_p_),
                 external_resource_p->allocation_,
-                external_resource_p->initial_states_,
+                external_resource_p->default_states_,
                 external_resource_p->heap_type_
     #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , external_resource_p->name_.c_str()
@@ -2859,7 +2878,7 @@ namespace nre::newrg
 
             prologue_pass_p_->add_resource_state({
                 .resource_p = render_resource_p,
-                .states = external_resource_p->initial_states()
+                .states = external_resource_p->default_states()
             });
         }
 
@@ -2953,7 +2972,7 @@ namespace nre::newrg
 
     F_render_resource* F_render_graph::create_permanent_resource(
         TKPA_valid<A_resource> rhi_p,
-        ED_resource_state initial_states
+        ED_resource_state default_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , F_render_frame_name name
 #endif
@@ -2961,7 +2980,7 @@ namespace nre::newrg
     {
         F_render_resource* render_resource_p = T_create<F_render_resource>(
             rhi_p,
-            initial_states,
+            default_states,
             rhi_p->desc().heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , name
@@ -2974,11 +2993,11 @@ namespace nre::newrg
 
         prologue_pass_p_->add_resource_state({
             .resource_p = render_resource_p,
-            .states = initial_states
+            .states = default_states
         });
         epilogue_resource_state_stack_.push({
             .resource_p = render_resource_p,
-            .states = initial_states
+            .states = default_states
         });
 
         return render_resource_p;

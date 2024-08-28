@@ -52,7 +52,7 @@ namespace nre::newrg
 
         b8 is_permanent_ = false;
 
-        ED_resource_state initial_states_ = ED_resource_state::COMMON;
+        ED_resource_state default_states_ = ED_resource_state::COMMON;
 
         TF_render_frame_vector<F_render_resource*> aliased_resource_p_vector_;
 
@@ -61,6 +61,8 @@ namespace nre::newrg
         TF_render_frame_vector<F_render_pass_id_range> concurrent_write_pass_id_ranges_;
 
         ED_resource_heap_type heap_type_ = ED_resource_heap_type::DEFAULT;
+
+        ab8 is_initiali_states_optained_ = false;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
@@ -113,7 +115,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE b8 is_permanent() const noexcept { return is_permanent_; }
 
-        NCPP_FORCE_INLINE ED_resource_state initial_states() const noexcept { return initial_states_; }
+        NCPP_FORCE_INLINE ED_resource_state default_states() const noexcept { return default_states_; }
 
         NCPP_FORCE_INLINE const auto& aliased_resource_p_vector() const noexcept { return aliased_resource_p_vector_; }
 
@@ -147,7 +149,7 @@ namespace nre::newrg
         F_render_resource(
             TU<A_resource>&& owned_rhi_p,
             F_render_resource_allocation allocation,
-            ED_resource_state initial_states,
+            ED_resource_state default_states,
             ED_resource_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
@@ -155,7 +157,7 @@ namespace nre::newrg
         );
         F_render_resource(
             TKPA_valid<A_resource> permanent_rhi_p,
-            ED_resource_state initial_states,
+            ED_resource_state default_states,
             ED_resource_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name

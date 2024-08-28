@@ -6,6 +6,7 @@
 #include <nre/rendering/newrg/render_pass_flag.hpp>
 #include <nre/rendering/newrg/render_fence_batch.hpp>
 #include <nre/rendering/newrg/render_pass_id_range.hpp>
+#include <nre/rendering/newrg/render_resource_barrier_batch.hpp>
 
 
 
@@ -21,6 +22,8 @@ namespace nre::newrg
         F_render_pass_id_range pass_id_range;
 
         TF_render_frame_vector<F_render_pass_parallel_subexecute_range_id> dependency_ids;
+
+        u32 counter = 1;
 
         NCPP_FORCE_INLINE u32 size () const noexcept
         {

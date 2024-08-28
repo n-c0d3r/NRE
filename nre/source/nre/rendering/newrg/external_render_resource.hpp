@@ -28,7 +28,7 @@ namespace nre::newrg
         pac::F_spin_lock import_lock_;
         F_render_resource* internal_p_ = 0;
 
-        ED_resource_state initial_states_ = ED_resource_state::COMMON;
+        ED_resource_state default_states_ = ED_resource_state::COMMON;
 
         ED_resource_heap_type heap_type_ = ED_resource_heap_type::DEFAULT;
 
@@ -46,7 +46,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto internal_p() const noexcept { return internal_p_; }
         NCPP_FORCE_INLINE b8 need_to_import() const noexcept { return (internal_p_ != 0); }
 
-        NCPP_FORCE_INLINE ED_resource_state initial_states() const noexcept { return initial_states_; }
+        NCPP_FORCE_INLINE ED_resource_state default_states() const noexcept { return default_states_; }
 
         NCPP_FORCE_INLINE ED_resource_heap_type heap_type() const noexcept { return heap_type_; }
 
@@ -58,7 +58,7 @@ namespace nre::newrg
 
     public:
         F_external_render_resource(
-            ED_resource_state initial_states
+            ED_resource_state default_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_debug_name& name
 #endif

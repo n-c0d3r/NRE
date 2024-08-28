@@ -6,12 +6,12 @@
 namespace nre::newrg
 {
     F_external_render_resource::F_external_render_resource(
-        ED_resource_state initial_states
+        ED_resource_state default_states
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , const F_debug_name& name
 #endif
     ) :
-        initial_states_(initial_states)
+        default_states_(default_states)
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , name_(name)
 #endif
