@@ -46,7 +46,11 @@ int main() {
 			auto back_rtv_p = NRE_MAIN_SWAPCHAIN()->back_rtv_p();
 
 			F_render_resource* rg_demo_buffer_p = render_graph_p->create_resource(
-				H_resource_desc::create_buffer_desc(128, ED_format::R32_UINT)
+				H_resource_desc::create_buffer_desc(
+					128,
+					ED_format::R32_UINT,
+					ED_resource_flag::SHADER_RESOURCE
+				)
 				NRE_OPTIONAL_DEBUG_PARAM("demo_buffer")
 			);
 
@@ -78,7 +82,7 @@ int main() {
 			});
 			rg_pass_p->add_resource_state({
 				.resource_p = rg_demo_buffer_p,
-				.states = ED_resource_state::COMMON
+				.states = ED_resource_state::ALL_SHADER_RESOURCE
 			});
 
 			F_render_pass* rg_pass_1_p = render_graph_p->create_pass(
@@ -89,10 +93,6 @@ int main() {
 				E_render_pass_flag::MAIN_CPU_SYNC
 				NRE_OPTIONAL_DEBUG_PARAM("pass_1")
 			);
-			rg_pass_1_p->add_resource_state({
-				.resource_p = rg_back_buffer_p,
-				.states = ED_resource_state::RENDER_TARGET
-			});
 			rg_pass_1_p->add_resource_state({
 				.resource_p = rg_demo_buffer_p,
 				.states = ED_resource_state::COMMON
@@ -107,8 +107,8 @@ int main() {
 				NRE_OPTIONAL_DEBUG_PARAM("pass_2")
 			);
 			rg_pass_2_p->add_resource_state({
-				.resource_p = rg_back_buffer_p,
-				.states = ED_resource_state::RENDER_TARGET
+				.resource_p = rg_demo_buffer_p,
+				.states = ED_resource_state::ALL_SHADER_RESOURCE
 			});
 		};
 		NRE_NEWRG_RENDERER_UPLOAD()
