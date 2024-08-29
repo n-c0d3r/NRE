@@ -372,7 +372,7 @@ namespace nre::newrg
                 {
                     [](
                         F_render_pass* render_pass_p,
-                        TKPA_valid<A_command_list> command_list_p,
+                        TKPA<A_command_list> command_list_p,
                         void* data_p
                     )
                     {

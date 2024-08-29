@@ -48,7 +48,7 @@ namespace nre::newrg
 
 
 
-    void F_render_pass::execute_internal(TKPA_valid<A_command_list> command_list_p)
+    void F_render_pass::execute_internal(TKPA<A_command_list> command_list_p)
     {
         functor_cache_.call(
             this,

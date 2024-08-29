@@ -65,7 +65,7 @@ int main() {
 			);
 
 			F_render_pass* rg_pass_p = render_graph_p->create_pass(
-				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 				{
 					command_list_p->async_clear_rtv_with_descriptor(
 						rg_back_rtv_p->handle_range().begin_handle.cpu_address,
@@ -85,7 +85,7 @@ int main() {
 			});
 
 			F_render_pass* rg_pass_1_p = render_graph_p->create_pass(
-				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 				{
 				},
 				E_render_pass_flag::MAIN_CPU_SYNC
@@ -97,7 +97,7 @@ int main() {
 			});
 
 			F_render_pass* rg_pass_2_p = render_graph_p->create_pass(
-				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 				{
 				},
 				E_render_pass_flag::DEFAULT

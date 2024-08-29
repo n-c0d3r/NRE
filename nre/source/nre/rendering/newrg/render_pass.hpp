@@ -140,7 +140,7 @@ namespace nre::newrg
 
 
     private:
-        void execute_internal(TKPA_valid<A_command_list> command_list_p);
+        void execute_internal(TKPA<A_command_list> command_list_p);
 
 
 

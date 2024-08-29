@@ -269,21 +269,21 @@ namespace nre::newrg
     void F_render_graph::create_prologue_pass_internal()
     {
         prologue_pass_p_ = create_pass(
-            [](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+            [](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
             {
             },
             E_render_pass_flag::PROLOGUE
-            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.prologue_pass")
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.prologue_pass")
         );
     }
     void F_render_graph::create_epilogue_pass_internal()
     {
         epilogue_pass_p_ = create_pass(
-            [](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+            [](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
             {
             },
             E_render_pass_flag::EPILOGUE
-            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.epilogue_pass")
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.epilogue_pass")
         );
 
         auto epilogue_resource_state_span = epilogue_resource_state_stack_.item_span();
@@ -2127,7 +2127,7 @@ namespace nre::newrg
             );
         }
 
-        // submit gpu works
+        // execute passes and submit gpu work
         if(execute_range.has_gpu_work)
         {
             u32 batch_count = parallel_subexecute_ranges.size();
@@ -2218,7 +2218,7 @@ namespace nre::newrg
                         );
 
                     //
-                    pass_p->execute_internal(NCPP_FOH_VALID(command_list_p));
+                    pass_p->execute_internal(command_list_p);
 
                     //
                     if(pass_p->resource_barrier_batch_after_.size())
@@ -2271,6 +2271,121 @@ namespace nre::newrg
                 std::move(command_list_batch)
             );
         }
+        // execute passes but not submit gpu work
+        else
+        {
+            u32 batch_count = parallel_subexecute_ranges.size();
+
+            //
+            auto execute_pass_batch = [&](u32 batch_index_minus_one)
+            {
+                u32 batch_index = batch_index_minus_one + 1;
+
+                auto& parallel_subexecute_range = parallel_subexecute_ranges[batch_index];
+
+                auto& pass_id_range = parallel_subexecute_range.pass_id_range;
+
+                F_render_pass_id begin_pass_id = pass_id_range.begin;
+                F_render_pass_id end_pass_id = pass_id_range.end;
+
+                // sync with dependencies
+                auto& dependency_ids = parallel_subexecute_range.dependency_ids;
+                if(dependency_ids.size())
+                {
+                    // early check dependencies
+                    b8 enable_long_dependencies_check = true;
+                    for(auto dependency_id : dependency_ids)
+                    {
+                        auto& dependency = parallel_subexecute_ranges[dependency_id];
+                        if(EA::Thread::AtomicGetValue(&(dependency.counter)) != 0)
+                        {
+                            enable_long_dependencies_check = false;
+                            break;
+                        }
+                    }
+
+                    // yield, to not block other tasks while dependencies are not done
+                    if(enable_long_dependencies_check)
+                        H_task_context::yield(
+                            [this, &dependency_ids, &parallel_subexecute_ranges]()
+                            {
+                                for(auto dependency_id : dependency_ids)
+                                {
+                                    auto& dependency = parallel_subexecute_ranges[dependency_id];
+                                    if(EA::Thread::AtomicGetValue(&(dependency.counter)))
+                                        return false;
+                                }
+                                return true;
+                            }
+                        );
+                }
+
+                // for each pass in this batch, execute it
+                for(F_render_pass_id pass_id = begin_pass_id; pass_id != end_pass_id; ++pass_id)
+                {
+                    F_render_pass* pass_p = pass_span[pass_id];
+
+                    auto& cpu_wait_cpu_fence_batch = pass_p->cpu_wait_cpu_fence_batch();
+                    u32 cpu_wait_cpu_fence_count = cpu_wait_cpu_fence_batch.size();
+
+                    auto& cpu_signal_cpu_fence_batch = pass_p->cpu_signal_fence_batch();
+                    u32 cpu_signal_cpu_fence_count = cpu_signal_cpu_fence_batch.size();
+
+                    // cpu wait cpu fences
+                    for(auto& fence_target : cpu_wait_cpu_fence_batch)
+                    {
+                        auto& cpu_fence = cpu_fences_[fence_target.render_worker_index];
+
+                        if(cpu_fence.is_complete(fence_target.value))
+                            continue;
+
+                        H_task_context::yield(
+                            [&]()
+                            {
+                                return cpu_fence.is_complete(fence_target.value);
+                            }
+                        );
+                    }
+
+                    //
+                    pass_p->execute_internal(null);
+
+                    // cpu signal cpu fences
+                    for(auto& fence_target : cpu_signal_cpu_fence_batch)
+                    {
+                        auto& cpu_fence = cpu_fences_[fence_target.render_worker_index];
+
+                        cpu_fence.signal(fence_target.value);
+                    }
+                }
+            };
+
+            // execute the first batch on this task
+            {
+                execute_pass_batch(NCPP_U32_MAX);
+            }
+
+            //
+            if(batch_count > 1)
+            {
+                F_task_counter parallel_batch_counter = 0;
+
+                H_task_system::schedule(
+                    execute_pass_batch,
+                    {
+                        .counter_p = &parallel_batch_counter,
+                        .priority = E_task_priority::HIGH,
+                        .parallel_count = (batch_count - 1)
+                    }
+                );
+
+                // wait until all pass batches are done
+                if(parallel_batch_counter.load(eastl::memory_order_acquire))
+                    H_task_context::yield(
+                        F_wait_for_counter(&parallel_batch_counter)
+                    );
+            }
+        }
 
         // gpu signal fences
         if(gpu_signal_fence_count)
@@ -2291,6 +2406,8 @@ namespace nre::newrg
                 std::move(managed_fence_batch)
             );
         }
+
+        EA::Thread::AtomicSetValue((int*)&(execute_range.counter), 0);
     }
     void F_render_graph::execute_passes_internal()
     {

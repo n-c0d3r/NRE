@@ -49,7 +49,7 @@ int main() {
 			);
 
 			F_render_pass* rg_pass_p = render_graph_p->create_pass(
-				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 				{
 					F_resource_gpu_virtual_address uniform_resource_gpu_virtual_address = uniform_transient_resource_uploader_p->query_gpu_virtual_address(
 						uniform_resource_offset

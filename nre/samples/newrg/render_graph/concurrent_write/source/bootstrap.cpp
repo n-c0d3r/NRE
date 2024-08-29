@@ -51,7 +51,7 @@ int main() {
 			);
 
 			F_render_pass* rg_pass_1_p = render_graph_p->create_pass(
-				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 				{
 				},
 				E_render_pass_flag::DEFAULT
@@ -63,7 +63,7 @@ int main() {
 			});
 
 			F_render_pass* rg_pass_2_p = render_graph_p->create_pass(
-				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
+				[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 				{
 				},
 				E_render_pass_flag::DEFAULT

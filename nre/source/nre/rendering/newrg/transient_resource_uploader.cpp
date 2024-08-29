@@ -28,7 +28,7 @@ namespace nre::newrg
         auto render_graph_p = F_render_graph::instance_p();
 
         map_pass_p_ = render_graph_p->create_pass(
-            [this](F_render_pass*, TKPA_valid<A_command_list> command_list_p)
+            [this](F_render_pass*, TKPA<A_command_list> command_list_p)
             {
                 sz total_upload_heap_size = total_upload_heap_size_.load(eastl::memory_order_acquire);
                 if(!total_upload_heap_size)
@@ -50,11 +50,14 @@ namespace nre::newrg
 
                 upload_rhi_p->unmap(0);
             },
-            E_render_pass_flag::MAIN_CPU_SYNC_AFTER
+            flag_combine(
+                E_render_pass_flag::MAIN_CPU_SYNC_AFTER,
+                E_render_pass_flag::NO_GPU_WORK
+            )
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.map_pass")
         );
         upload_pass_p_ = render_graph_p->create_pass(
-            [this](F_render_pass*, TKPA_valid<A_command_list> command_list_p)
+            [this](F_render_pass*, TKPA<A_command_list> command_list_p)
             {
                 sz total_upload_heap_size = total_upload_heap_size_.load(eastl::memory_order_acquire);
                 if(!total_upload_heap_size)
