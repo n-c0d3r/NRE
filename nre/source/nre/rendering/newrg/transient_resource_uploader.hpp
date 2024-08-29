@@ -40,6 +40,8 @@ namespace nre::newrg
 
         asz total_upload_heap_size_ = 0;
 
+        NCPP_ENABLE_IF_ASSERTION_ENABLED(b8 is_started_rg_register_ = false);
+
     public:
         NCPP_FORCE_INLINE ED_resource_flag resource_flags() const noexcept { return resource_flags_; }
         NCPP_FORCE_INLINE F_render_pass* map_pass_p() const noexcept { return map_pass_p_; }

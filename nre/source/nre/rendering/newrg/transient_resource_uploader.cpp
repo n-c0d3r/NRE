@@ -25,6 +25,8 @@ namespace nre::newrg
 
     void F_transient_resource_uploader::RG_begin_register()
     {
+        NCPP_ENABLE_IF_ASSERTION_ENABLED(is_started_rg_register_ = true);
+
         auto render_graph_p = F_render_graph::instance_p();
 
         map_pass_p_ = render_graph_p->create_pass(
@@ -85,6 +87,8 @@ namespace nre::newrg
     }
     void F_transient_resource_uploader::RG_end_register()
     {
+        NCPP_ENABLE_IF_ASSERTION_ENABLED(is_started_rg_register_ = false);
+
         auto render_graph_p = F_render_graph::instance_p();
 
         //
@@ -142,6 +146,8 @@ namespace nre::newrg
 
     sz F_transient_resource_uploader::enqueue_upload(const TG_span<u8>& data)
     {
+        NCPP_ASSERT(is_started_rg_register_);
+
         sz offset = total_upload_heap_size_.fetch_add(data.size(), eastl::memory_order_acq_rel);
 
         upload_queue_.push({
@@ -157,6 +163,8 @@ namespace nre::newrg
         ED_resource_state states
     )
     {
+        NCPP_ASSERT(is_started_rg_register_);
+
         add_resource_state_queue_.push({
             .pass_p = pass_p,
             .states = states
