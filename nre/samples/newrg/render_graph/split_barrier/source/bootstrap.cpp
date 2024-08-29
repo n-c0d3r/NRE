@@ -11,7 +11,7 @@ int main() {
 	auto application_p = TU<F_application>()(
 		F_application_desc {
 			.main_surface_desc = {
-				.title = L"Transient Resource Uploader (NewRG)",
+				.title = L"Split Barrier (NewRG)",
 				.size = { 1024, 700 }
 			}
 		}
@@ -42,26 +42,41 @@ int main() {
 		NRE_NEWRG_RENDERER_RG_REGISTER()
 		{
 			auto render_graph_p = F_render_graph::instance_p();
-			auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
 
-			sz uniform_resource_offset = uniform_transient_resource_uploader_p->T_enqueue_upload(
-				F_vector4_f32::forward()
+			F_render_resource* rg_depth_buffer_p = render_graph_p->create_resource(
+				H_resource_desc::create_texture_2d_desc(
+					1024,
+					1024,
+					ED_format::D32_FLOAT,
+					1,
+					{},
+					ED_resource_flag::DEPTH_STENCIL | ED_resource_flag::SHADER_RESOURCE
+				)
 			);
 
-			F_render_pass* rg_pass_p = render_graph_p->create_pass(
+			F_render_pass* rg_pass_1_p = render_graph_p->create_pass(
 				[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 				{
-					F_resource_gpu_virtual_address uniform_resource_gpu_virtual_address = uniform_transient_resource_uploader_p->query_gpu_virtual_address(
-						uniform_resource_offset
-					);
 				},
 				E_render_pass_flag::DEFAULT
-				NRE_OPTIONAL_DEBUG_PARAM("demo_pass")
+				NRE_OPTIONAL_DEBUG_PARAM("pass_1")
 			);
-			uniform_transient_resource_uploader_p->enqueue_resource_state(
-				rg_pass_p,
-				ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+			rg_pass_1_p->add_resource_state({
+				.resource_p = rg_depth_buffer_p,
+				.states = ED_resource_state::DEPTH_WRITE
+			});
+
+			F_render_pass* rg_pass_2_p = render_graph_p->create_pass(
+				[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
+				{
+				},
+				E_render_pass_flag::DEFAULT
+				NRE_OPTIONAL_DEBUG_PARAM("pass_2")
 			);
+			rg_pass_2_p->add_resource_state({
+				.resource_p = rg_depth_buffer_p,
+				.states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+			});
 		};
 		NRE_NEWRG_RENDERER_UPLOAD()
 		{
