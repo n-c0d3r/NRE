@@ -24,6 +24,13 @@ namespace nre::newrg
         F_render_resource* upload_resource_p_ = 0;
         F_render_resource* target_resource_p_ = 0;
 
+        struct F_upload
+        {
+            TG_span<u8> data;
+            sz offset;
+        };
+        TF_concurrent_owf_stack<F_upload> upload_queue_;
+
         struct F_add_resource_state
         {
             F_render_pass* pass_p = 0;
@@ -45,7 +52,8 @@ namespace nre::newrg
     public:
         F_transient_resource_uploader(
             ED_resource_flag resource_flags,
-            sz add_resource_state_capacity = NRE_TRANSIENT_RESOURCE_UPLOADER_DEFAULT_ADD_RESOURCE_STATE_QUEUE_CAPACITY
+            sz upload_queue_capacity = NRE_TRANSIENT_RESOURCE_UPLOADER_DEFAULT_UPLOAD_QUEUE_CAPACITY,
+            sz add_resource_state_queue_capacity = NRE_TRANSIENT_RESOURCE_UPLOADER_DEFAULT_ADD_RESOURCE_STATE_QUEUE_CAPACITY
         );
         virtual ~F_transient_resource_uploader();
 

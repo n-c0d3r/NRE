@@ -9,10 +9,12 @@ namespace nre::newrg
 {
     F_transient_resource_uploader::F_transient_resource_uploader(
         ED_resource_flag resource_flags,
-        sz add_resource_state_capacity
+        sz upload_queue_capacity,
+        sz add_resource_state_queue_capacity
     ) :
         resource_flags_(resource_flags),
-        add_resource_state_queue_(add_resource_state_capacity)
+        upload_queue_(upload_queue_capacity),
+        add_resource_state_queue_(add_resource_state_queue_capacity)
     {
     }
     F_transient_resource_uploader::~F_transient_resource_uploader()
@@ -28,6 +30,25 @@ namespace nre::newrg
         map_pass_p_ = render_graph_p->create_pass(
             [this](F_render_pass*, TKPA_valid<A_command_list> command_list_p)
             {
+                sz total_upload_heap_size = total_upload_heap_size_.load(eastl::memory_order_acquire);
+                if(!total_upload_heap_size)
+                    return;
+
+                auto upload_rhi_p = upload_resource_p_->rhi_p();
+
+                auto mapped_subresource = upload_rhi_p->map(0);
+
+                auto upload_span = upload_queue_.item_span();
+                for(auto& upload : upload_span)
+                {
+                    memcpy(
+                        mapped_subresource.data() + upload.offset,
+                        upload.data.data(),
+                        upload.data.size()
+                    );
+                }
+
+                upload_rhi_p->unmap(0);
             },
             E_render_pass_flag::MAIN_CPU_SYNC_AFTER
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.map_pass")
@@ -35,10 +56,25 @@ namespace nre::newrg
         upload_pass_p_ = render_graph_p->create_pass(
             [this](F_render_pass*, TKPA_valid<A_command_list> command_list_p)
             {
+                sz total_upload_heap_size = total_upload_heap_size_.load(eastl::memory_order_acquire);
+                if(!total_upload_heap_size)
+                    return;
+
+                auto upload_rhi_p = upload_resource_p_->rhi_p();
+                auto target_rhi_p = target_resource_p_->rhi_p();
+
+                command_list_p->async_copy_resource(
+                    NCPP_FOH_VALID(target_rhi_p),
+                    NCPP_FOH_VALID(upload_rhi_p)
+                );
             },
-            E_render_pass_flag::MAIN_CPU_SYNC_AFTER
+            E_render_pass_flag::MAIN
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.upload_pass")
         );
+
+        upload_queue_.reset();
+
+        total_upload_heap_size_.store(0, eastl::memory_order_release);
     }
     void F_transient_resource_uploader::RG_end_register()
     {
@@ -98,6 +134,11 @@ namespace nre::newrg
     sz F_transient_resource_uploader::upload(const TG_span<u8>& data)
     {
         sz offset = total_upload_heap_size_.fetch_add(data.size(), eastl::memory_order_acq_rel);
+
+        upload_queue_.push({
+            .data = data,
+            .offset = offset
+        });
 
         return offset;
     }
