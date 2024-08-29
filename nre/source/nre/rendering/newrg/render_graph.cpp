@@ -2417,6 +2417,7 @@ namespace nre::newrg
         H_task_system::schedule(
             [this](u32)
             {
+                auto pass_span = pass_p_owf_stack_.item_span();
                 auto execute_range_span = execute_range_owf_stack_.item_span();
                 u32 execute_range_count = execute_range_span.size();
 

@@ -78,6 +78,10 @@ namespace nre::newrg
         upload_queue_.reset();
 
         total_upload_heap_size_.store(0, eastl::memory_order_release);
+
+        //
+        upload_resource_p_ = 0;
+        target_resource_p_ = 0;
     }
     void F_transient_resource_uploader::RG_end_register()
     {
@@ -87,6 +91,7 @@ namespace nre::newrg
         sz total_upload_heap_size = total_upload_heap_size_.load(eastl::memory_order_acquire);
         if(total_upload_heap_size)
         {
+            //
             upload_resource_p_ = render_graph_p->create_resource(
                 H_resource_desc::create_buffer_desc(
                     total_upload_heap_size,
@@ -106,6 +111,7 @@ namespace nre::newrg
                 .states = ED_resource_state::COPY_SOURCE
             });
 
+            //
             target_resource_p_ = render_graph_p->create_resource(
                 H_resource_desc::create_buffer_desc(
                     total_upload_heap_size,
@@ -120,18 +126,18 @@ namespace nre::newrg
                 .resource_p = target_resource_p_,
                 .states = ED_resource_state::COPY_DEST
             });
-        }
 
-        //
-        auto add_resource_state_span = add_resource_state_queue_.item_span();
-        for(auto& add_resource_state : add_resource_state_span)
-        {
-            add_resource_state.pass_p->add_resource_state({
-                .resource_p = target_resource_p_,
-                .states = add_resource_state.states
-            });
+            //
+            auto add_resource_state_span = add_resource_state_queue_.item_span();
+            for(auto& add_resource_state : add_resource_state_span)
+            {
+                add_resource_state.pass_p->add_resource_state({
+                    .resource_p = target_resource_p_,
+                    .states = add_resource_state.states
+                });
+            }
+            add_resource_state_queue_.reset();
         }
-        add_resource_state_queue_.reset();
     }
 
     sz F_transient_resource_uploader::enqueue_upload(const TG_span<u8>& data)
