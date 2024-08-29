@@ -73,8 +73,7 @@ namespace nre::newrg
         F_render_fence_batch cpu_wait_cpu_fence_batch_;
         F_render_fence_batch cpu_wait_gpu_fence_batch_;
 
-        F_render_pass_execute_range_id execute_range_index_ = NCPP_U32_MAX;
-        F_render_pass_parallel_subexecute_range_id parallel_subexecute_range_index_ = NCPP_U32_MAX;
+        F_render_pass_execute_range_id execute_range_id_ = NCPP_U32_MAX;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
@@ -118,8 +117,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& cpu_wait_gpu_fence_batch() const noexcept { return cpu_wait_gpu_fence_batch_; }
         NCPP_FORCE_INLINE const auto& cpu_wait_cpu_fence_batch() const noexcept { return cpu_wait_cpu_fence_batch_; }
 
-        NCPP_FORCE_INLINE F_render_pass_execute_range_id execute_range_index() const noexcept { return execute_range_index_; }
-        NCPP_FORCE_INLINE F_render_pass_parallel_subexecute_range_id parallel_subexecute_range_index() const noexcept { return parallel_subexecute_range_index_; }
+        NCPP_FORCE_INLINE F_render_pass_execute_range_id execute_range_id() const noexcept { return execute_range_id_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }

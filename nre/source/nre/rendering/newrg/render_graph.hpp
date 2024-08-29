@@ -205,6 +205,7 @@ namespace nre::newrg
         void setup_resource_concurrent_write_range_indices_internal();
         void setup_resource_min_pass_ids_internal();
         void setup_resource_max_pass_ids_internal();
+        void setup_resource_min_sync_pass_ids_internal();
         void setup_resource_max_sync_pass_ids_internal();
         void setup_resource_allocation_lists_internal();
         void setup_resource_deallocation_lists_internal();
@@ -247,8 +248,6 @@ namespace nre::newrg
         void create_pass_fence_batches_internal();
         void create_execute_ranges_internal();
         void setup_execute_range_dependency_ids_internal();
-        void create_parallel_subexecute_ranges_internal();
-        void setup_parallel_subexecute_range_dependency_ids_internal();
 
     private:
         void execute_range_internal(const F_render_pass_execute_range& execute_range);

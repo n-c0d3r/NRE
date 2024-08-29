@@ -472,6 +472,46 @@ namespace nre::newrg
             }
         }
     }
+    void F_render_graph::setup_resource_min_sync_pass_ids_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+        auto resource_span = resource_p_owf_stack_.item_span();
+        for(F_render_resource* resource_p : resource_span)
+        {
+            auto& min_sync_pass_id_vector = resource_p->min_sync_pass_id_vector_;
+
+            u32 accessable_render_worker_count = resource_p->accessable_render_worker_count_;
+            u32 found_render_worker_count = 0;
+
+            auto& access_dependencies = resource_p->access_dependencies_;
+            u32 access_dependency_count = access_dependencies.size();
+
+            for(u32 i = 0; i < access_dependency_count; ++i)
+            {
+                auto& access_dependency = access_dependencies[i];
+
+                F_render_pass_id pass_id = access_dependency.pass_id;
+                F_render_pass* pass_p = pass_span[pass_id];
+
+                // sentinel passes must not affect fence placement
+                if(pass_p->is_sentinel())
+                    continue;
+
+                F_render_pass_id& min_sync_pass_id = min_sync_pass_id_vector[
+                    H_render_pass_flag::render_worker_index(pass_p->flags())
+                ];
+
+                if(min_sync_pass_id == NCPP_U32_MAX)
+                {
+                    min_sync_pass_id = pass_id;
+                    ++found_render_worker_count;
+
+                    if(found_render_worker_count == accessable_render_worker_count)
+                        break;
+                }
+            }
+        }
+    }
     void F_render_graph::setup_resource_max_sync_pass_ids_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
@@ -1354,33 +1394,32 @@ namespace nre::newrg
             );
         };
 
+        //
         auto pass_span = pass_p_owf_stack_.item_span();
-        auto execute_range_span = execute_range_owf_stack_.item_span();
 
-        for(auto& execute_range : execute_range_span)
+        //
+        auto is_pass_id_in_execute_range = [&](F_render_pass_id pass_id, F_render_pass_execute_range_id execute_range_id)
         {
-            auto& pass_id_range = execute_range.pass_id_range;
+            if(pass_id == NCPP_U32_MAX)
+                return false;
 
-            F_render_pass_id first_pass_id = pass_id_range.begin;
-            F_render_pass_id last_pass_id = pass_id_range.end - 1;
+            F_render_pass* pass_p = pass_span[pass_id];
 
-            auto& parallel_subexecute_ranges = execute_range.parallel_subexecute_ranges;
-            u32 parallel_subexecute_range_count = parallel_subexecute_ranges.size();
+            return (pass_p->execute_range_id_ == execute_range_id);
+        };
 
-            for(
-                u32 parallel_subexecute_range_index = 0;
-                parallel_subexecute_range_index < parallel_subexecute_range_count;
-                ++parallel_subexecute_range_index
-            )
+        //
+        auto execute_range_span = execute_range_owf_stack_.item_span();
+        u32 execute_range_count = execute_range_span.size();
+        for(u32 execute_range_index = 0; execute_range_index < execute_range_count; ++execute_range_index)
+        {
+            auto& execute_range = execute_range_span[execute_range_index];
+
+            auto& pass_id_lists = execute_range.pass_id_lists;
+
+            for(auto& pass_id_list : pass_id_lists)
             {
-                auto& parallel_subexecute_range = parallel_subexecute_ranges[parallel_subexecute_range_index];
-
-                auto& parallel_subexecute_pass_id_range = parallel_subexecute_range.pass_id_range;
-
-                F_render_pass_id parallel_subexecute_first_pass_id = parallel_subexecute_pass_id_range.begin;
-                F_render_pass_id parallel_subexecute_last_pass_id = parallel_subexecute_pass_id_range.end - 1;
-
-                for(F_render_pass_id pass_id = parallel_subexecute_first_pass_id; pass_id <= parallel_subexecute_last_pass_id; ++pass_id)
+                for(F_render_pass_id pass_id : pass_id_list)
                 {
                     F_render_pass* pass_p = pass_span[pass_id];
 
@@ -1414,7 +1453,7 @@ namespace nre::newrg
                             !resource_consumer_dependency
                             || (
                                 resource_consumer_dependency
-                                && (resource_consumer_dependency.pass_id > last_pass_id)
+                                && is_pass_id_in_execute_range(resource_consumer_dependency.pass_id, execute_range_index)
                             )
                         )
                         {
@@ -1450,7 +1489,7 @@ namespace nre::newrg
                             !resource_producer_dependency
                             || (
                                 resource_producer_dependency
-                                && (resource_producer_dependency.pass_id < first_pass_id)
+                                && is_pass_id_in_execute_range(resource_producer_dependency.pass_id, execute_range_index)
                             )
                         )
                         {
@@ -1490,55 +1529,67 @@ namespace nre::newrg
     void F_render_graph::create_resource_aliasing_barriers_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
-        auto execute_range_span = execute_range_owf_stack_.item_span();
 
-        for(auto& execute_range : execute_range_span)
+        //
+        auto is_pass_id_in_execute_range = [&](F_render_pass_id pass_id, F_render_pass_execute_range_id execute_range_id)
         {
-            auto& pass_id_range = execute_range.pass_id_range;
+            if(pass_id == NCPP_U32_MAX)
+                return false;
 
-            F_render_pass_id first_pass_id = pass_id_range.begin;
+            F_render_pass* pass_p = pass_span[pass_id];
 
-            for(F_render_pass_id pass_id = pass_id_range.begin; pass_id < pass_id_range.end; ++pass_id)
+            return (pass_p->execute_range_id_ == execute_range_id);
+        };
+
+        //
+        auto execute_range_span = execute_range_owf_stack_.item_span();
+        u32 execute_range_count = execute_range_span.size();
+        for(u32 execute_range_index = 0; execute_range_index < execute_range_count; ++execute_range_index)
+        {
+            auto& execute_range = execute_range_span[execute_range_index];
+
+            auto& pass_id_lists = execute_range.pass_id_lists;
+
+            for(auto& pass_id_list : pass_id_lists)
             {
-                F_render_pass* pass_p = pass_span[pass_id];
-
-                auto& resource_aliasing_barriers_before = pass_p->resource_aliasing_barriers_before_;
-
-                auto& resource_states = pass_p->resource_states_;
-                u32 resource_state_count = resource_states.size();
-
-                for(u32 i = 0; i < resource_state_count; ++i)
+                for(F_render_pass_id pass_id : pass_id_list)
                 {
-                    auto& resource_state = resource_states[i];
-                    F_render_resource* resource_p = resource_state.resource_p;
+                    F_render_pass* pass_p = pass_span[pass_id];
 
-                    if(pass_id == resource_p->min_pass_id())
+                    F_render_pass_id render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
+
+                    auto& resource_aliasing_barriers_before = pass_p->resource_aliasing_barriers_before_;
+
+                    auto& resource_states = pass_p->resource_states_;
+                    u32 resource_state_count = resource_states.size();
+
+                    for(u32 i = 0; i < resource_state_count; ++i)
                     {
-                        auto& aliased_resource_p_vector = resource_p->aliased_resource_p_vector_;
-                        for(F_render_resource* aliased_resource_p : aliased_resource_p_vector)
+                        auto& resource_state = resource_states[i];
+                        F_render_resource* resource_p = resource_state.resource_p;
+
+                        auto& resource_min_sync_pass_ids = resource_p->min_sync_pass_id_vector_;
+                        F_render_pass_id resource_min_sync_pass_id = resource_min_sync_pass_ids[render_worker_index];
+
+                        if(pass_id == resource_min_sync_pass_id)
                         {
-                            if(aliased_resource_p->max_pass_id() < first_pass_id)
-                                continue;
-
-                            // find out max aliased pass id
-                            F_render_pass_id max_aliased_pass_id = NCPP_U32_MAX;
-                            auto& access_dependencies = aliased_resource_p->access_dependencies_;
-                            for(auto& access_dependency : access_dependencies)
+                            auto& aliased_resource_p_vector = resource_p->aliased_resource_p_vector_;
+                            for(F_render_resource* aliased_resource_p : aliased_resource_p_vector)
                             {
-                                F_render_pass_id aliased_pass_id = access_dependency.pass_id;
-                                if(aliased_pass_id >= first_pass_id)
+                                if(!is_pass_id_in_execute_range(aliased_resource_p->max_pass_id(), execute_range_index))
+                                    continue;
+
+                                auto& aliased_resource_min_sync_pass_ids = aliased_resource_p->min_sync_pass_id_vector_;
+                                F_render_pass_id aliased_resource_min_sync_pass_id = aliased_resource_min_sync_pass_ids[render_worker_index];
+
+                                // place resource aliasing barrier if aliased_resource_min_sync_pass_id is valid
+                                if(aliased_resource_min_sync_pass_id != NCPP_U32_MAX)
                                 {
-                                    max_aliased_pass_id = eastl::max(max_aliased_pass_id, aliased_pass_id);
+                                    resource_aliasing_barriers_before[i] = F_resource_aliasing_barrier {
+                                        .resource_before_p = aliased_resource_p->rhi_p().no_requirements(),
+                                        .resource_after_p = resource_p->rhi_p().no_requirements()
+                                    };
                                 }
-                            }
-
-                            // place resource aliasing barrier if max_aliased_pass_id is valid
-                            if(max_aliased_pass_id != NCPP_U32_MAX)
-                            {
-                                resource_aliasing_barriers_before[i] = F_resource_aliasing_barrier {
-                                    .resource_before_p = aliased_resource_p->rhi_p().no_requirements(),
-                                    .resource_after_p = resource_p->rhi_p().no_requirements()
-                                };
                             }
                         }
                     }
@@ -1764,15 +1815,43 @@ namespace nre::newrg
     }
     void F_render_graph::create_execute_ranges_internal()
     {
+        auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
+        auto& render_worker_list = render_pipeline_p->render_worker_list();
+        u32 render_worker_count = render_worker_list.size();
+
         auto pass_span = pass_p_owf_stack_.item_span();
 
-        // make execute ranges
+        // gather execute range datas
+        using F_pass_ids = TF_render_frame_vector<F_render_pass_id>;
+        struct F_execute_range_data
         {
-            F_render_pass_execute_range execute_range;
+            F_pass_ids pass_ids;
+
+            u8 render_worker_index = 0;
+            b8 is_cpu_sync = false;
+
+            F_render_fence_batch gpu_signal_fence_batch;
+            F_render_fence_batch gpu_wait_fence_batch;
+            F_render_fence_batch cpu_wait_gpu_fence_batch;
+
+            NCPP_FORCE_INLINE u32 size () const noexcept
+            {
+                return pass_ids.size();
+            }
+            NCPP_FORCE_INLINE operator b8 () const noexcept
+            {
+                return pass_ids.size() != 0;
+            }
+        };
+        TF_render_frame_vector<TF_render_frame_vector<F_execute_range_data>> render_worker_index_to_execute_range_datas(render_worker_count);
+        {
+            F_execute_range_data execute_range_data;
 
             u32 execute_range_index = 0;
             for(F_render_pass* pass_p : pass_span)
             {
+                F_render_pass_id pass_id = pass_p->id();
+
                 u8 render_worker_index = H_render_pass_flag::render_worker_index(pass_p->flags());
                 b8 is_cpu_sync = H_render_pass_flag::is_cpu_sync_pass(pass_p->flags());
 
@@ -1783,12 +1862,13 @@ namespace nre::newrg
                 // we can't add fence wait inside a command list, so need to split command list even they run on the same render worker
                 if(gpu_wait_fence_batch.size())
                 {
-                    if(execute_range)
+                    if(execute_range_data)
                     {
-                        execute_range_owf_stack_.push(execute_range);
+                        auto& execute_range_datas = render_worker_index_to_execute_range_datas[execute_range_data.render_worker_index];
+                        execute_range_datas.push_back(execute_range_data);
                         ++execute_range_index;
                     }
-                    execute_range = {
+                    execute_range_data = {
                         .gpu_wait_fence_batch = pass_p->gpu_signal_fence_batch_
                     };
                 }
@@ -1796,82 +1876,207 @@ namespace nre::newrg
                 // the GPU works are not continous in this case
                 if(cpu_wait_gpu_fence_batch.size())
                 {
-                    if(execute_range)
+                    if(execute_range_data)
                     {
-                        execute_range_owf_stack_.push(execute_range);
+                        auto& execute_range_datas = render_worker_index_to_execute_range_datas[execute_range_data.render_worker_index];
+                        execute_range_datas.push_back(execute_range_data);
                         ++execute_range_index;
                     }
-                    execute_range = {
+                    execute_range_data = {
                         .cpu_wait_gpu_fence_batch = pass_p->cpu_wait_gpu_fence_batch_
                     };
                 }
 
                 //
                 if(
-                    execute_range
+                    execute_range_data
                     && (
                         // due to different render workers
-                        (execute_range.render_worker_index != render_worker_index)
+                        (execute_range_data.render_worker_index != render_worker_index)
                         // due to different is_cpu_sync
-                        | (execute_range.is_cpu_sync != is_cpu_sync)
+                        | (execute_range_data.is_cpu_sync != is_cpu_sync)
                         // due to maximum size of execute range
-                        | (execute_range.size() >= NRE_RENDER_GRAPH_EXECUTE_RANGE_CAPACITY)
+                        | (execute_range_data.size() >= NRE_RENDER_GRAPH_EXECUTE_RANGE_CAPACITY)
                     )
                 )
                 {
-                    if(execute_range)
+                    if(execute_range_data)
                     {
-                        execute_range_owf_stack_.push(execute_range);
+                        auto& execute_range_datas = render_worker_index_to_execute_range_datas[execute_range_data.render_worker_index];
+                        execute_range_datas.push_back(execute_range_data);
                         ++execute_range_index;
                     }
-                    execute_range = {};
+                    execute_range_data = {};
                 }
 
                 // push back pass into execute range
-                if(execute_range.pass_id_range.begin == NCPP_U32_MAX)
-                    execute_range.pass_id_range.begin = pass_p->id();
-
-                pass_p->execute_range_index_ = execute_range_index;
-
-                execute_range.render_worker_index = render_worker_index;
-                execute_range.is_cpu_sync = is_cpu_sync;
-                execute_range.pass_id_range.end = pass_p->id() + 1;
+                execute_range_data.pass_ids.push_back(pass_id);
+                execute_range_data.render_worker_index = render_worker_index;
+                execute_range_data.is_cpu_sync = is_cpu_sync;
 
                 // we can't add fence signal inside a command list, so need to split command list even they run on the same render worker
                 if(gpu_signal_fence_batch.size())
                 {
-                    execute_range.gpu_signal_fence_batch = pass_p->gpu_signal_fence_batch_;
+                    execute_range_data.gpu_signal_fence_batch = pass_p->gpu_signal_fence_batch_;
 
-                    execute_range_owf_stack_.push(execute_range);
+                    auto& execute_range_datas = render_worker_index_to_execute_range_datas[execute_range_data.render_worker_index];
+                    execute_range_datas.push_back(execute_range_data);
                     ++execute_range_index;
-                    execute_range = {};
+                    execute_range_data = {};
                 }
             }
 
-            if(execute_range)
+            if(execute_range_data)
             {
-                execute_range_owf_stack_.push(execute_range);
+                auto& execute_range_datas = render_worker_index_to_execute_range_datas[execute_range_data.render_worker_index];
+                execute_range_datas.push_back(execute_range_data);
                 ++execute_range_index;
-                execute_range = {};
+                execute_range_data = {};
             }
         }
 
-        // check which execute range has gpu works
+        // merge execute range datas
+        TF_render_frame_vector<F_execute_range_data> merged_execute_range_datas;
+        for(u32 render_worker_index = 0; render_worker_index < render_worker_count; ++render_worker_index)
+        {
+            auto& execute_range_datas = render_worker_index_to_execute_range_datas[render_worker_index];
+
+            F_execute_range_data merged_execute_range_data;
+            for(auto& execute_range_data : execute_range_datas)
+            {
+                auto& gpu_signal_fence_batch = execute_range_data.gpu_signal_fence_batch;
+                auto& gpu_wait_fence_batch = execute_range_data.gpu_wait_fence_batch;
+                auto& cpu_wait_gpu_fence_batch = execute_range_data.cpu_wait_gpu_fence_batch;
+
+                if(gpu_wait_fence_batch.size())
+                {
+                    if(merged_execute_range_data)
+                    {
+                        merged_execute_range_datas.push_back(merged_execute_range_data);
+                    }
+                    merged_execute_range_data = {
+                        .gpu_wait_fence_batch = gpu_signal_fence_batch
+                    };
+                }
+
+                if(cpu_wait_gpu_fence_batch.size())
+                {
+                    if(merged_execute_range_data)
+                    {
+                        merged_execute_range_datas.push_back(merged_execute_range_data);
+                    }
+                    merged_execute_range_data = {
+                        .cpu_wait_gpu_fence_batch = cpu_wait_gpu_fence_batch
+                    };
+                }
+
+                //
+                if(
+                    merged_execute_range_data
+                    && (
+                        // due to different is_cpu_sync
+                        (merged_execute_range_data.is_cpu_sync != execute_range_data.is_cpu_sync)
+                        // due to maximum size of execute range
+                        | (merged_execute_range_data.size() >= NRE_RENDER_GRAPH_EXECUTE_RANGE_CAPACITY)
+                    )
+                )
+                {
+                    if(merged_execute_range_data)
+                    {
+                        merged_execute_range_datas.push_back(merged_execute_range_data);
+                    }
+                    merged_execute_range_data = {};
+                }
+
+                //
+                merged_execute_range_data.pass_ids.insert(
+                    merged_execute_range_data.pass_ids.end(),
+                    execute_range_data.pass_ids.begin(),
+                    execute_range_data.pass_ids.end()
+                );
+                merged_execute_range_data.render_worker_index = render_worker_index;
+                merged_execute_range_data.is_cpu_sync = execute_range_data.is_cpu_sync;
+
+                //
+                if(gpu_signal_fence_batch.size())
+                {
+                    execute_range_data.gpu_signal_fence_batch = gpu_signal_fence_batch;
+
+                    merged_execute_range_datas.push_back(merged_execute_range_data);
+                    merged_execute_range_data = {};
+                }
+            }
+
+            if(merged_execute_range_data)
+            {
+                merged_execute_range_datas.push_back(merged_execute_range_data);
+                merged_execute_range_data = {};
+            }
+        }
+
+        // build execute ranges from merged execute range datas
+        {
+            u32 execute_range_count = merged_execute_range_datas.size();
+            for(u32 execute_range_index = 0; execute_range_index < execute_range_count; ++execute_range_index)
+            {
+                auto& merged_execute_range_data = merged_execute_range_datas[execute_range_index];
+
+                F_render_pass_execute_range execute_range;
+
+                execute_range.render_worker_index = merged_execute_range_data.render_worker_index;
+                execute_range.is_cpu_sync = merged_execute_range_data.is_cpu_sync;
+                execute_range.gpu_signal_fence_batch = merged_execute_range_data.gpu_signal_fence_batch;
+                execute_range.gpu_wait_fence_batch = merged_execute_range_data.gpu_wait_fence_batch;
+                execute_range.cpu_wait_gpu_fence_batch = merged_execute_range_data.cpu_wait_gpu_fence_batch;
+
+                auto& pass_id_lists = execute_range.pass_id_lists;
+
+                F_render_execute_pass_id_list execute_pass_id_list;
+                for(auto pass_id : merged_execute_range_data.pass_ids)
+                {
+                    if(execute_pass_id_list.size() >= NRE_RENDER_GRAPH_EXECUTE_PASS_ID_LIST_CAPACITY)
+                    {
+                        pass_id_lists.push_back(execute_pass_id_list);
+                        execute_pass_id_list = {};
+                    }
+
+                    execute_pass_id_list.push_back(pass_id);
+                }
+
+                if(execute_pass_id_list.size())
+                {
+                    pass_id_lists.push_back(execute_pass_id_list);
+                    execute_pass_id_list = {};
+                }
+
+                execute_range_owf_stack_.push(std::move(execute_range));
+            }
+        }
+
+        // check which execute range has gpu works and bind execute range id for passes
         {
             auto execute_range_span = execute_range_owf_stack_.item_span();
-            for(auto& execute_range : execute_range_span)
+            u32 execute_range_count = execute_range_span.size();
+            for(u32 execute_range_index = 0; execute_range_index < execute_range_count; ++execute_range_index)
             {
+                auto& execute_range = execute_range_span[execute_range_index];
+
                 execute_range.has_gpu_work = false;
 
-                auto& pass_id_range = execute_range.pass_id_range;
-                for(F_render_pass_id pass_id = pass_id_range.begin; pass_id < pass_id_range.end; ++pass_id)
+                auto& pass_id_lists = execute_range.pass_id_lists;
+                for(auto& pass_id_list : pass_id_lists)
                 {
-                    F_render_pass* pass_p = pass_span[pass_id];
-
-                    if(H_render_pass_flag::has_gpu_work(pass_p->flags()))
+                    for(F_render_pass_id pass_id : pass_id_list)
                     {
-                        execute_range.has_gpu_work = true;
-                        break;
+                        F_render_pass* pass_p = pass_span[pass_id];
+
+                        pass_p->execute_range_id_ = execute_range_index;
+
+                        if(H_render_pass_flag::has_gpu_work(pass_p->flags()))
+                        {
+                            execute_range.has_gpu_work = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -1885,131 +2090,36 @@ namespace nre::newrg
 
         TF_render_frame_vector<F_render_pass_execute_range_id> dependency_id_on_render_workers(render_worker_count);
 
+        //
         auto pass_span = pass_p_owf_stack_.item_span();
-        auto execute_range_span = execute_range_owf_stack_.item_span();
-        for(auto& execute_range : execute_range_span)
+
+        //
+        auto is_pass_id_in_execute_range = [&](F_render_pass_id pass_id, F_render_pass_execute_range_id execute_range_id)
         {
+            if(pass_id == NCPP_U32_MAX)
+                return false;
+
+            F_render_pass* pass_p = pass_span[pass_id];
+
+            return (pass_p->execute_range_id_ == execute_range_id);
+        };
+
+        //
+        auto execute_range_span = execute_range_owf_stack_.item_span();
+        u32 execute_range_count = execute_range_span.size();
+        for(u32 execute_range_index = 0; execute_range_index < execute_range_count; ++execute_range_index)
+        {
+            auto& execute_range = execute_range_span[execute_range_index];
+
             // reset dependency_id_on_render_workers
             for(auto& dependency_id : dependency_id_on_render_workers)
                 dependency_id = NCPP_U32_MAX;
 
             //
-            auto& pass_id_range = execute_range.pass_id_range;
-            for(F_render_pass_id pass_id = pass_id_range.begin; pass_id < pass_id_range.end; ++pass_id)
+            auto& pass_id_lists = execute_range.pass_id_lists;
+            for(auto& pass_id_list : pass_id_lists)
             {
-                F_render_pass* pass_p = pass_span[pass_id];
-
-                auto& max_sync_pass_ids = pass_p->max_sync_pass_ids_;
-                for(u32 render_worker_index = 0; render_worker_index < render_worker_count; ++render_worker_index)
-                {
-                    F_render_pass_id max_sync_pass_id = max_sync_pass_ids[render_worker_index];
-
-                    F_render_pass_id& dependency_id = dependency_id_on_render_workers[render_worker_index];
-
-                    if(max_sync_pass_id < pass_id_range.begin)
-                    {
-                        F_render_pass* sync_pass_p = pass_span[max_sync_pass_id];
-                        F_render_pass_execute_range_id sync_pass_execute_range_id = sync_pass_p->execute_range_index();
-
-                        if(dependency_id == NCPP_U32_MAX)
-                        {
-                            dependency_id = sync_pass_execute_range_id;
-                        }
-                        else
-                        {
-                            dependency_id = eastl::max(sync_pass_execute_range_id, dependency_id);
-                        }
-                    }
-                }
-            }
-
-            // apply dependency_ids
-            for(auto& dependency_id : dependency_id_on_render_workers)
-                if(dependency_id != NCPP_U32_MAX)
-                    execute_range.dependency_ids.push_back(dependency_id);
-        }
-    }
-    void F_render_graph::create_parallel_subexecute_ranges_internal()
-    {
-        auto pass_span = pass_p_owf_stack_.item_span();
-        auto execute_range_span = execute_range_owf_stack_.item_span();
-        for(auto& execute_range : execute_range_span)
-        {
-            u32 pass_count = execute_range.size();
-            u32 parallel_subexecute_range_count = ceil(
-                f32(pass_count)
-                / f32(NRE_RENDER_GRAPH_PARALLEL_SUBEXECUTE_RANGE_CAPACITY)
-            );
-
-            auto& pass_id_range = execute_range.pass_id_range;
-
-            auto& parallel_subexecute_ranges = execute_range.parallel_subexecute_ranges;
-            parallel_subexecute_ranges.resize(parallel_subexecute_range_count);
-            for(
-                u32 parallel_subexecute_range_index = 0;
-                parallel_subexecute_range_index < parallel_subexecute_range_count;
-                ++parallel_subexecute_range_index
-            )
-            {
-                F_render_pass_id begin_pass_id = (
-                    pass_id_range.begin
-                    + parallel_subexecute_range_index * NRE_RENDER_GRAPH_PARALLEL_SUBEXECUTE_RANGE_CAPACITY
-                );
-                F_render_pass_id end_pass_id = eastl::min(
-                    begin_pass_id + NRE_RENDER_GRAPH_PARALLEL_SUBEXECUTE_RANGE_CAPACITY,
-                    pass_id_range.end
-                );
-
-                parallel_subexecute_ranges[parallel_subexecute_range_index].pass_id_range.begin = begin_pass_id;
-                parallel_subexecute_ranges[parallel_subexecute_range_index].pass_id_range.end = end_pass_id;
-
-                for(F_render_pass_id pass_id = begin_pass_id; pass_id < end_pass_id; ++pass_id)
-                {
-                    F_render_pass* pass_p = pass_span[pass_id];
-                    pass_p->parallel_subexecute_range_index_ = parallel_subexecute_range_index;
-                }
-            }
-        }
-    }
-    void F_render_graph::setup_parallel_subexecute_range_dependency_ids_internal()
-    {
-        auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
-        auto& render_worker_list = render_pipeline_p->render_worker_list();
-        u32 render_worker_count = render_worker_list.size();
-
-        TF_render_frame_vector<F_render_pass_execute_range_id> dependency_id_on_render_workers(render_worker_count);
-
-        //
-        auto pass_span = pass_p_owf_stack_.item_span();
-        auto execute_range_span = execute_range_owf_stack_.item_span();
-        for(auto& execute_range : execute_range_span)
-        {
-            auto& pass_id_range = execute_range.pass_id_range;
-
-            auto& parallel_subexecute_ranges = execute_range.parallel_subexecute_ranges;
-            u32 parallel_subexecute_range_count = parallel_subexecute_ranges.size();
-
-            //
-            for(
-                u32 parallel_subexecute_range_index = 0;
-                parallel_subexecute_range_index < parallel_subexecute_range_count;
-                ++parallel_subexecute_range_index
-            )
-            {
-                // reset dependency_id_on_render_workers
-                for(auto& dependency_id : dependency_id_on_render_workers)
-                    dependency_id = NCPP_U32_MAX;
-
-                //
-                auto& parallel_subexecute_range = parallel_subexecute_ranges[parallel_subexecute_range_index];
-
-                //
-                auto& parallel_subexecute_pass_id_range = parallel_subexecute_range.pass_id_range;
-                for(
-                    F_render_pass_id pass_id = parallel_subexecute_pass_id_range.begin;
-                    pass_id < parallel_subexecute_pass_id_range.end;
-                    ++pass_id
-                )
+                for(F_render_pass_id pass_id : pass_id_list)
                 {
                     F_render_pass* pass_p = pass_span[pass_id];
 
@@ -2018,15 +2128,15 @@ namespace nre::newrg
                     {
                         F_render_pass_id max_sync_pass_id = max_sync_pass_ids[render_worker_index];
 
+                        if(max_sync_pass_id == NCPP_U32_MAX)
+                            continue;
+
                         F_render_pass_id& dependency_id = dependency_id_on_render_workers[render_worker_index];
 
-                        if(
-                            (max_sync_pass_id < parallel_subexecute_pass_id_range.begin)
-                            && (max_sync_pass_id >= pass_id_range.begin)
-                        )
+                        if(!is_pass_id_in_execute_range(max_sync_pass_id, execute_range_index))
                         {
                             F_render_pass* sync_pass_p = pass_span[max_sync_pass_id];
-                            F_render_pass_execute_range_id sync_pass_execute_range_id = sync_pass_p->execute_range_index();
+                            F_render_pass_execute_range_id sync_pass_execute_range_id = sync_pass_p->execute_range_id();
 
                             if(dependency_id == NCPP_U32_MAX)
                             {
@@ -2039,12 +2149,12 @@ namespace nre::newrg
                         }
                     }
                 }
-
-                // apply dependency_ids
-                for(auto& dependency_id : dependency_id_on_render_workers)
-                    if(dependency_id != NCPP_U32_MAX)
-                        parallel_subexecute_range.dependency_ids.push_back(dependency_id);
             }
+
+            // apply dependency_ids
+            for(auto& dependency_id : dependency_id_on_render_workers)
+                if(dependency_id != NCPP_U32_MAX)
+                    execute_range.dependency_ids.push_back(dependency_id);
         }
     }
 
@@ -2052,7 +2162,7 @@ namespace nre::newrg
     {
         auto pass_span = pass_p_owf_stack_.item_span();
 
-        auto& parallel_subexecute_ranges = execute_range.parallel_subexecute_ranges;
+        auto& pass_id_lists = execute_range.pass_id_lists;
 
         auto render_worker_p = find_render_worker(execute_range.render_worker_index);
 
@@ -2130,7 +2240,7 @@ namespace nre::newrg
         // execute passes and submit gpu work
         if(execute_range.has_gpu_work)
         {
-            u32 batch_count = parallel_subexecute_ranges.size();
+            u32 batch_count = pass_id_lists.size();
 
             //
             F_managed_command_list_batch command_list_batch;
@@ -2141,51 +2251,14 @@ namespace nre::newrg
             {
                 u32 batch_index = batch_index_minus_one + 1;
 
-                auto& parallel_subexecute_range = parallel_subexecute_ranges[batch_index];
-
-                auto& pass_id_range = parallel_subexecute_range.pass_id_range;
-
-                F_render_pass_id begin_pass_id = pass_id_range.begin;
-                F_render_pass_id end_pass_id = pass_id_range.end;
+                auto& pass_id_list = pass_id_lists[batch_index];
 
                 //
                 auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
                 auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
 
-                // sync with dependencies
-                auto& dependency_ids = parallel_subexecute_range.dependency_ids;
-                if(dependency_ids.size())
-                {
-                    // early check dependencies
-                    b8 enable_long_dependencies_check = true;
-                    for(auto dependency_id : dependency_ids)
-                    {
-                        auto& dependency = parallel_subexecute_ranges[dependency_id];
-                        if(EA::Thread::AtomicGetValue(&(dependency.counter)) != 0)
-                        {
-                            enable_long_dependencies_check = false;
-                            break;
-                        }
-                    }
-
-                    // yield, to not block other tasks while dependencies are not done
-                    if(enable_long_dependencies_check)
-                        H_task_context::yield(
-                            [this, &dependency_ids, &parallel_subexecute_ranges]()
-                            {
-                                for(auto dependency_id : dependency_ids)
-                                {
-                                    auto& dependency = parallel_subexecute_ranges[dependency_id];
-                                    if(EA::Thread::AtomicGetValue(&(dependency.counter)))
-                                        return false;
-                                }
-                                return true;
-                            }
-                        );
-                }
-
                 // for each pass in this batch, execute it
-                for(F_render_pass_id pass_id = begin_pass_id; pass_id != end_pass_id; ++pass_id)
+                for(F_render_pass_id pass_id : pass_id_list)
                 {
                     F_render_pass* pass_p = pass_span[pass_id];
 
@@ -2274,54 +2347,17 @@ namespace nre::newrg
         // execute passes but not submit gpu work
         else
         {
-            u32 batch_count = parallel_subexecute_ranges.size();
+            u32 batch_count = pass_id_lists.size();
 
             //
             auto execute_pass_batch = [&](u32 batch_index_minus_one)
             {
                 u32 batch_index = batch_index_minus_one + 1;
 
-                auto& parallel_subexecute_range = parallel_subexecute_ranges[batch_index];
-
-                auto& pass_id_range = parallel_subexecute_range.pass_id_range;
-
-                F_render_pass_id begin_pass_id = pass_id_range.begin;
-                F_render_pass_id end_pass_id = pass_id_range.end;
-
-                // sync with dependencies
-                auto& dependency_ids = parallel_subexecute_range.dependency_ids;
-                if(dependency_ids.size())
-                {
-                    // early check dependencies
-                    b8 enable_long_dependencies_check = true;
-                    for(auto dependency_id : dependency_ids)
-                    {
-                        auto& dependency = parallel_subexecute_ranges[dependency_id];
-                        if(EA::Thread::AtomicGetValue(&(dependency.counter)) != 0)
-                        {
-                            enable_long_dependencies_check = false;
-                            break;
-                        }
-                    }
-
-                    // yield, to not block other tasks while dependencies are not done
-                    if(enable_long_dependencies_check)
-                        H_task_context::yield(
-                            [this, &dependency_ids, &parallel_subexecute_ranges]()
-                            {
-                                for(auto dependency_id : dependency_ids)
-                                {
-                                    auto& dependency = parallel_subexecute_ranges[dependency_id];
-                                    if(EA::Thread::AtomicGetValue(&(dependency.counter)))
-                                        return false;
-                                }
-                                return true;
-                            }
-                        );
-                }
+                auto& pass_id_list = pass_id_lists[batch_index];
 
                 // for each pass in this batch, execute it
-                for(F_render_pass_id pass_id = begin_pass_id; pass_id != end_pass_id; ++pass_id)
+                for(F_render_pass_id pass_id : pass_id_list)
                 {
                     F_render_pass* pass_p = pass_span[pass_id];
 
@@ -2665,8 +2701,6 @@ namespace nre::newrg
 
         create_execute_ranges_internal();
         setup_execute_range_dependency_ids_internal();
-        create_parallel_subexecute_ranges_internal();
-        setup_parallel_subexecute_range_dependency_ids_internal();
 
         create_resource_barriers_internal();
         create_resource_aliasing_barriers_internal();

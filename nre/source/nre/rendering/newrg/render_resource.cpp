@@ -19,6 +19,7 @@ namespace nre::newrg
 #endif
     {
         initialize_access_counts();
+        initialize_min_sync_pass_id_vector();
         initialize_max_sync_pass_id_vector();
     }
     F_render_resource::F_render_resource(
@@ -40,6 +41,7 @@ namespace nre::newrg
 #endif
     {
         initialize_access_counts();
+        initialize_min_sync_pass_id_vector();
         initialize_max_sync_pass_id_vector();
     }
     F_render_resource::F_render_resource(
@@ -58,6 +60,7 @@ namespace nre::newrg
 #endif
     {
         initialize_access_counts();
+        initialize_min_sync_pass_id_vector();
         initialize_max_sync_pass_id_vector();
     }
     F_render_resource::~F_render_resource()
@@ -74,6 +77,16 @@ namespace nre::newrg
         for(auto& access_count : access_counts_)
         {
             access_count = 0;
+        }
+    }
+    void F_render_resource::initialize_min_sync_pass_id_vector()
+    {
+        min_sync_pass_id_vector_.resize(
+            F_render_pipeline::instance_p().T_cast<F_render_pipeline>()->render_worker_list().size()
+        );
+        for(auto& min_sync_pass_id : min_sync_pass_id_vector_)
+        {
+            min_sync_pass_id = NCPP_U32_MAX;
         }
     }
     void F_render_resource::initialize_max_sync_pass_id_vector()
