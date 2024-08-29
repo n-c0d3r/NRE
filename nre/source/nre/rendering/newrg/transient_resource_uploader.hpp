@@ -77,13 +77,13 @@ namespace nre::newrg
          *  Thread-safe
          *  Return: offset
          */
-        sz upload(const TG_span<u8>& data);
+        sz enqueue_upload(const TG_span<u8>& data);
         /**
          *  Thread-safe
          *  Return: offset
          */
         template<typename F_passed_data__>
-        sz T_upload(F_passed_data__&& data)
+        sz T_enqueue_upload(F_passed_data__&& data)
         {
             using F_data = std::remove_const_t<std::remove_reference_t<F_passed_data__>>;
 
@@ -91,7 +91,7 @@ namespace nre::newrg
 
             F_data* temp_data_p = render_graph_p->T_create<F_data>(NCPP_FORWARD(data));
 
-            return upload({ (u8*)temp_data_p, sizeof(F_data) });
+            return enqueue_upload({ (u8*)temp_data_p, sizeof(F_data) });
         }
 
     public:

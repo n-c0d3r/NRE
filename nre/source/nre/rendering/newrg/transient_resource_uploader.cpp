@@ -134,7 +134,7 @@ namespace nre::newrg
         add_resource_state_queue_.reset();
     }
 
-    sz F_transient_resource_uploader::upload(const TG_span<u8>& data)
+    sz F_transient_resource_uploader::enqueue_upload(const TG_span<u8>& data)
     {
         sz offset = total_upload_heap_size_.fetch_add(data.size(), eastl::memory_order_acq_rel);
 

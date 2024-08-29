@@ -44,7 +44,7 @@ int main() {
 			auto render_graph_p = F_render_graph::instance_p();
 			auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
 
-			sz uniform_resource_offset = uniform_transient_resource_uploader_p->T_upload(
+			sz uniform_resource_offset = uniform_transient_resource_uploader_p->T_enqueue_upload(
 				F_vector4_f32::forward()
 			);
 
