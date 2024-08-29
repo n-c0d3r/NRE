@@ -1427,7 +1427,7 @@ namespace nre::newrg
                                         || (desc.type == ED_resource_type::TEXTURE_2D_ARRAY)
                                         || (desc.type == ED_resource_type::TEXTURE_3D)
                                     )
-                                    || flag_is_has(desc.flags, ED_resource_flag::SIMULTANEOUS)
+                                    || flag_is_has(desc.flags, ED_resource_flag::SIMULTANEOUS_TEXTURE)
                                 )
                             )
                             {
