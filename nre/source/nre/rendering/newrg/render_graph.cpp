@@ -2000,7 +2000,7 @@ namespace nre::newrg
                 //
                 if(gpu_signal_fence_batch.size())
                 {
-                    execute_range_data.gpu_signal_fence_batch = gpu_signal_fence_batch;
+                    merged_execute_range_data.gpu_signal_fence_batch = gpu_signal_fence_batch;
 
                     merged_execute_range_datas.push_back(merged_execute_range_data);
                     merged_execute_range_data = {};
@@ -2075,7 +2075,6 @@ namespace nre::newrg
                         if(H_render_pass_flag::has_gpu_work(pass_p->flags()))
                         {
                             execute_range.has_gpu_work = true;
-                            break;
                         }
                     }
                 }
@@ -2088,7 +2087,7 @@ namespace nre::newrg
         auto& render_worker_list = render_pipeline_p->render_worker_list();
         u32 render_worker_count = render_worker_list.size();
 
-        TF_render_frame_vector<F_render_pass_execute_range_id> dependency_id_on_render_workers(render_worker_count);
+        TF_render_frame_vector<F_render_pass_execute_range_id> dependency_pass_id_on_render_workers(render_worker_count);
 
         //
         auto pass_span = pass_p_owf_stack_.item_span();
@@ -2111,9 +2110,9 @@ namespace nre::newrg
         {
             auto& execute_range = execute_range_span[execute_range_index];
 
-            // reset dependency_id_on_render_workers
-            for(auto& dependency_id : dependency_id_on_render_workers)
-                dependency_id = NCPP_U32_MAX;
+            // reset dependency_pass_id_on_render_workers
+            for(auto& dependency_pass_id : dependency_pass_id_on_render_workers)
+                dependency_pass_id = NCPP_U32_MAX;
 
             //
             auto& pass_id_lists = execute_range.pass_id_lists;
@@ -2131,20 +2130,17 @@ namespace nre::newrg
                         if(max_sync_pass_id == NCPP_U32_MAX)
                             continue;
 
-                        F_render_pass_id& dependency_id = dependency_id_on_render_workers[render_worker_index];
+                        F_render_pass_id& dependency_pass_id = dependency_pass_id_on_render_workers[render_worker_index];
 
                         if(!is_pass_id_in_execute_range(max_sync_pass_id, execute_range_index))
                         {
-                            F_render_pass* sync_pass_p = pass_span[max_sync_pass_id];
-                            F_render_pass_execute_range_id sync_pass_execute_range_id = sync_pass_p->execute_range_id();
-
-                            if(dependency_id == NCPP_U32_MAX)
+                            if(dependency_pass_id == NCPP_U32_MAX)
                             {
-                                dependency_id = sync_pass_execute_range_id;
+                                dependency_pass_id = max_sync_pass_id;
                             }
                             else
                             {
-                                dependency_id = eastl::max(sync_pass_execute_range_id, dependency_id);
+                                dependency_pass_id = eastl::max(max_sync_pass_id, dependency_pass_id);
                             }
                         }
                     }
@@ -2152,10 +2148,14 @@ namespace nre::newrg
             }
 
             // apply dependency_ids
-            for(auto& dependency_id : dependency_id_on_render_workers)
-                if(dependency_id != NCPP_U32_MAX)
-                    execute_range.dependency_ids.push_back(dependency_id);
+            for(auto& dependency_pass_id : dependency_pass_id_on_render_workers)
+                if(dependency_pass_id != NCPP_U32_MAX)
+                    execute_range.dependency_ids.push_back(
+                        pass_span[dependency_pass_id]->execute_range_id()
+                    );
         }
+
+        int a = 5;
     }
 
     void F_render_graph::execute_range_internal(const F_render_pass_execute_range& execute_range)

@@ -31,7 +31,7 @@ namespace nre::newrg
         ASYNC_COMPUTE_CPU_SYNC_AFTER = ASYNC_COMPUTE | CPU_SYNC_AFTER,
         ASYNC_COMPUTE_CPU_SYNC = ASYNC_COMPUTE | CPU_SYNC,
 
-        PROLOGUE = MAIN | SENTINEL, // internal use only
+        PROLOGUE = MAIN | SENTINEL | NO_GPU_WORK, // internal use only
         EPILOGUE = MAIN | SENTINEL, // internal use only
 
         DEFAULT = MAIN
