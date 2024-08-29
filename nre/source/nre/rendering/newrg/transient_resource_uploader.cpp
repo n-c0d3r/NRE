@@ -7,14 +7,13 @@
 
 namespace nre::newrg
 {
-    TK<F_transient_resource_uploader> F_transient_resource_uploader::instance_p_;
-
-
-
-    F_transient_resource_uploader::F_transient_resource_uploader() :
-        queue_(NRE_TRANSIENT_RESOURCE_UPLOADER_QUEUE_CAPACITY)
+    F_transient_resource_uploader::F_transient_resource_uploader(
+        ED_resource_flag resource_flags,
+        sz add_resource_state_capacity
+    ) :
+        resource_flags_(resource_flags),
+        add_resource_state_queue_(add_resource_state_capacity)
     {
-        instance_p_ = NCPP_KTHIS_UNSAFE();
     }
     F_transient_resource_uploader::~F_transient_resource_uploader()
     {
@@ -26,6 +25,13 @@ namespace nre::newrg
     {
         auto render_graph_p = F_render_graph::instance_p();
 
+        map_pass_p_ = render_graph_p->create_pass(
+            [this](F_render_pass*, TKPA_valid<A_command_list> command_list_p)
+            {
+            },
+            E_render_pass_flag::MAIN_CPU_SYNC_AFTER
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.map_pass")
+        );
         upload_pass_p_ = render_graph_p->create_pass(
             [this](F_render_pass*, TKPA_valid<A_command_list> command_list_p)
             {
@@ -38,52 +44,91 @@ namespace nre::newrg
     {
         auto render_graph_p = F_render_graph::instance_p();
 
-        auto upload_span = queue_.item_span();
-        for(auto& upload_item : upload_span)
+        //
+        sz total_upload_heap_size = total_upload_heap_size_.load(eastl::memory_order_acquire);
+        if(total_upload_heap_size)
         {
+            upload_resource_p_ = render_graph_p->create_resource(
+                H_resource_desc::create_buffer_desc(
+                    total_upload_heap_size,
+                    1,
+                    ED_resource_flag::NONE,
+                    ED_resource_heap_type::GREAD_CWRITE,
+                    ED_resource_state::_GENERIC_READ
+                )
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.upload_resource")
+            );
+            map_pass_p_->add_resource_state({
+                .resource_p = upload_resource_p_,
+                .states = ED_resource_state::_GENERIC_READ
+            });
             upload_pass_p_->add_resource_state({
-                .resource_p = upload_item.target_resource_p,
+                .resource_p = upload_resource_p_,
+                .states = ED_resource_state::COPY_SOURCE
+            });
+
+            target_resource_p_ = render_graph_p->create_resource(
+                H_resource_desc::create_buffer_desc(
+                    total_upload_heap_size,
+                    1,
+                    ED_resource_flag::NONE,
+                    ED_resource_heap_type::GREAD_GWRITE,
+                    ED_resource_state::COPY_DEST
+                )
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.target_resource")
+            );
+            upload_pass_p_->add_resource_state({
+                .resource_p = target_resource_p_,
                 .states = ED_resource_state::COPY_DEST
             });
         }
 
-        queue_.reset();
+        //
+        auto add_resource_state_span = add_resource_state_queue_.item_span();
+        for(auto& add_resource_state : add_resource_state_span)
+        {
+            add_resource_state.pass_p->add_resource_state({
+                .resource_p = target_resource_p_,
+                .states = add_resource_state.states
+            });
+        }
+        add_resource_state_queue_.reset();
     }
 
-    void F_transient_resource_uploader::register_upload(
-        F_render_resource* target_resource_p,
-        const TG_span<u8>& data,
-        sz offset
+    sz F_transient_resource_uploader::upload(const TG_span<u8>& data)
+    {
+        sz offset = total_upload_heap_size_.fetch_add(data.size(), eastl::memory_order_acq_rel);
+
+        return offset;
+    }
+
+    void F_transient_resource_uploader::enqueue_resource_state(
+        F_render_pass* pass_p,
+        ED_resource_state states
     )
     {
-        total_upload_heap_size_.fetch_add(data.size(), eastl::memory_order_acq_rel);
-
-        queue_.push({
-            .target_resource_p = target_resource_p,
-            .data = data,
-            .offset = offset
+        add_resource_state_queue_.push({
+            .pass_p = pass_p,
+            .states = states
         });
     }
 
-    F_render_resource* F_transient_resource_uploader::upload(
-        const TG_span<u8>& data,
-        ED_resource_flag resource_flags
-        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
-    )
+    F_resource_gpu_virtual_address F_transient_resource_uploader::query_gpu_virtual_address(sz offset)
     {
-        auto render_graph_p = F_render_graph::instance_p();
+        NCPP_ASSERT(target_resource_p_->rhi_p());
+        return target_resource_p_->rhi_p()->gpu_virtual_address() + offset;
+    }
 
-        F_render_resource* target_resource_p = render_graph_p->create_resource(
-            H_resource_desc::create_buffer_desc(data.size(), 1, resource_flags)
-            NRE_OPTIONAL_DEBUG_PARAM(name)
-        );
 
-        register_upload(
-            target_resource_p,
-            data,
-            0
-        );
 
-        return target_resource_p;
+    TK<F_uniform_transient_resource_uploader> F_uniform_transient_resource_uploader::instance_p_;
+
+    F_uniform_transient_resource_uploader::F_uniform_transient_resource_uploader() :
+        F_transient_resource_uploader(ED_resource_flag::CONSTANT_BUFFER)
+    {
+        instance_p_ = NCPP_KTHIS_UNSAFE();
+    }
+    F_uniform_transient_resource_uploader::~F_uniform_transient_resource_uploader()
+    {
     }
 }

@@ -17,7 +17,7 @@ namespace nre::newrg
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
-        transient_resource_uploader_p_ = TU<F_transient_resource_uploader>()();
+        uniform_transient_resource_uploader_p_ = TU<F_uniform_transient_resource_uploader>()();
     }
     F_renderer::~F_renderer()
     {
@@ -40,12 +40,12 @@ namespace nre::newrg
             }
         );
 
-        transient_resource_uploader_p_->RG_begin_register();
+        uniform_transient_resource_uploader_p_->RG_begin_register();
 
         if(F_application::instance_p()->is_started())
             rg_tick_event_.invoke();
 
-        transient_resource_uploader_p_->RG_end_register();
+        uniform_transient_resource_uploader_p_->RG_end_register();
 
         render_graph_p->execute();
     }

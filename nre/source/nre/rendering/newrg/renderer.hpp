@@ -8,7 +8,7 @@
 namespace nre::newrg
 {
     class F_external_render_resource;
-    class F_transient_resource_uploader;
+    class F_uniform_transient_resource_uploader;
 
 
 
@@ -28,7 +28,7 @@ namespace nre::newrg
         F_renderer_readback_event readback_event_;
         F_renderer_release_event release_event_;
 
-        TU<F_transient_resource_uploader> transient_resource_uploader_p_;
+        TU<F_uniform_transient_resource_uploader> uniform_transient_resource_uploader_p_;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(

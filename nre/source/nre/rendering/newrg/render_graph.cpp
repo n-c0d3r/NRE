@@ -916,7 +916,7 @@ namespace nre::newrg
 
                 resource_p->allocation_ = allocator.allocate(
                     desc.size,
-                    internal::appropriate_alignment(desc)
+                    desc.alignment
                 );
             }
 

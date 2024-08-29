@@ -42,24 +42,26 @@ int main() {
 		NRE_NEWRG_RENDERER_RG_REGISTER()
 		{
 			auto render_graph_p = F_render_graph::instance_p();
-			auto transient_resource_uploader_p = F_transient_resource_uploader::instance_p();
+			auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
 
-			F_render_resource* transient_resource_p = transient_resource_uploader_p->T_upload(
-				F_vector4_f32::forward(),
-				ED_resource_flag::CONSTANT_BUFFER
+			sz uniform_resource_offset = uniform_transient_resource_uploader_p->T_upload(
+				F_vector4_f32::forward()
 			);
 
 			F_render_pass* rg_pass_p = render_graph_p->create_pass(
 				[=](F_render_pass* pass_p, TKPA_valid<A_command_list> command_list_p)
 				{
+					F_resource_gpu_virtual_address uniform_resource_gpu_virtual_address = uniform_transient_resource_uploader_p->query_gpu_virtual_address(
+						uniform_resource_offset
+					);
 				},
 				E_render_pass_flag::DEFAULT
 				NRE_OPTIONAL_DEBUG_PARAM("demo_pass")
 			);
-			rg_pass_p->add_resource_state({
-				.resource_p = transient_resource_p,
-				.states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
-			});
+			uniform_transient_resource_uploader_p->enqueue_resource_state(
+				rg_pass_p,
+				ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+			);
 		};
 		NRE_NEWRG_RENDERER_UPLOAD()
 		{
