@@ -1332,6 +1332,7 @@ namespace nre::newrg
     void F_render_graph::optimize_resource_states_internal()
     {
         auto pass_span = pass_p_owf_stack_.item_span();
+        auto resource_span = resource_p_owf_stack_.item_span();
 
         //
         auto is_pass_id_in_execute_range = [&](F_render_pass_id pass_id, F_render_pass_execute_range_id execute_range_id)
@@ -1343,6 +1344,98 @@ namespace nre::newrg
 
             return (pass_p->execute_range_id_ == execute_range_id);
         };
+
+        // initialize resource_state_index_to_optimized_states_
+        for(F_render_pass* pass_p : pass_span)
+        {
+            auto& resource_states = pass_p->resource_states_;
+            u32 resource_state_count = resource_states.size();
+
+            auto& resource_state_index_to_optimized_states = pass_p->resource_state_index_to_optimized_states_;
+            resource_state_index_to_optimized_states.resize(resource_state_count);
+
+            for(u32 i = 0; i < resource_state_count; ++i)
+                resource_state_index_to_optimized_states[i] = resource_states[i].states;
+        }
+
+        //
+        ED_resource_state supported_resource_states_gpu_raster = H_render_pass_flag::supported_resource_states(E_render_pass_flag::GPU_ACCESS_RASTER);
+        ED_resource_state supported_resource_states_gpu_ray = H_render_pass_flag::supported_resource_states(E_render_pass_flag::GPU_ACCESS_RAY);
+        ED_resource_state supported_resource_states_gpu_compute = H_render_pass_flag::supported_resource_states(E_render_pass_flag::GPU_ACCESS_COMPUTE);
+        ED_resource_state supported_resource_states_gpu_copy = H_render_pass_flag::supported_resource_states(E_render_pass_flag::GPU_ACCESS_COPY);
+        ED_resource_state supported_resource_states_cpu_all = H_render_pass_flag::supported_resource_states(E_render_pass_flag::CPU_ACCESS_ALL);
+
+        // initialize resource_state_index_to_optimized_states_
+        for(F_render_resource* resource_p : resource_span)
+        {
+            auto& access_dependencies = resource_p->access_dependencies_;
+            u32 access_dependency_count = access_dependencies.size();
+
+            for(u32 access_dependency_index = 0; access_dependency_index < access_dependency_count; ++access_dependency_index)
+            {
+                auto& access_dependency = access_dependencies[access_dependency_index];
+
+                F_render_pass* access_pass_p = pass_span[access_dependency.pass_id];
+
+                ED_resource_state access_supported_resource_states = H_render_pass_flag::combine_supported_resource_states(
+                    access_pass_p->flags(),
+                    supported_resource_states_gpu_raster,
+                    supported_resource_states_gpu_ray,
+                    supported_resource_states_gpu_compute,
+                    supported_resource_states_gpu_copy,
+                    supported_resource_states_cpu_all
+                );
+
+                auto& access_resource_producer_dependencies = access_pass_p->resource_producer_dependencies_;
+                auto& access_resource_producer_dependency = access_resource_producer_dependencies[access_dependency.resource_state_index];
+
+                auto& access_resource_state_index_to_optimized_states = access_pass_p->resource_state_index_to_optimized_states_;
+                auto& access_optimized_states = access_resource_state_index_to_optimized_states[access_dependency.resource_state_index];
+
+                if(access_resource_producer_dependency.pass_id != NCPP_U32_MAX)
+                {
+                    F_render_pass* producer_access_pass_p = pass_span[access_resource_producer_dependency.pass_id];
+
+                    if(producer_access_pass_p->execute_range_id() != access_pass_p->execute_range_id())
+                        break;
+
+                    ED_resource_state producer_access_supported_resource_states = H_render_pass_flag::combine_supported_resource_states(
+                        producer_access_pass_p->flags(),
+                        supported_resource_states_gpu_raster,
+                        supported_resource_states_gpu_ray,
+                        supported_resource_states_gpu_compute,
+                        supported_resource_states_gpu_copy,
+                        supported_resource_states_cpu_all
+                    );
+
+                    auto& producer_access_resource_state_index_to_optimized_states = producer_access_pass_p->resource_state_index_to_optimized_states_;
+                    auto& producer_access_optimized_states = producer_access_resource_state_index_to_optimized_states[access_resource_producer_dependency.resource_state_index];
+
+                    if(
+                        !H_resource_state::is_writable(producer_access_optimized_states)
+                        && !H_resource_state::is_writable(access_optimized_states)
+                    )
+                    {
+                        ED_resource_state unsafe_merged_states_before = (
+                            producer_access_optimized_states
+                            | access_optimized_states
+                        );
+
+                        ED_resource_state merged_states_before = (
+                            producer_access_supported_resource_states
+                            & unsafe_merged_states_before
+                        );
+                        ED_resource_state merged_states_after = (
+                            access_supported_resource_states
+                            & unsafe_merged_states_before
+                        );
+
+                        producer_access_optimized_states = merged_states_before;
+                        access_optimized_states = merged_states_after;
+                    }
+                }
+            }
+        }
     }
     void F_render_graph::create_resource_barriers_internal()
     {
@@ -1440,6 +1533,7 @@ namespace nre::newrg
 
                     auto& resource_states = pass_p->resource_states_;
                     auto& resource_concurrent_write_range_indices = pass_p->resource_concurrent_write_range_indices_;
+                    auto& resource_state_index_to_optimized_states = pass_p->resource_state_index_to_optimized_states_;
                     auto& resource_producer_dependencies = pass_p->resource_producer_dependencies_;
                     auto& resource_consumer_dependencies = pass_p->resource_consumer_dependencies_;
                     auto& resource_barriers_before = pass_p->resource_barriers_before_;
@@ -1454,6 +1548,7 @@ namespace nre::newrg
                     {
                         auto& resource_state = resource_states[i];
                         auto resource_concurrent_write_range_index = resource_concurrent_write_range_indices[i];
+                        auto optimized_states = resource_state_index_to_optimized_states[i];
 
                         F_render_resource* resource_p = resource_state.resource_p;
                         auto rhi_p = resource_p->rhi_p();
@@ -1468,7 +1563,7 @@ namespace nre::newrg
                             !resource_consumer_dependency
                             || (
                                 resource_consumer_dependency
-                                && is_pass_id_in_execute_range(resource_consumer_dependency.pass_id, execute_range_index)
+                                && !is_pass_id_in_execute_range(resource_consumer_dependency.pass_id, execute_range_index)
                             )
                         )
                         {
@@ -1485,13 +1580,13 @@ namespace nre::newrg
                                 )
                             )
                             {
-                                if(resource_p->default_states() != resource_state.states)
+                                if(resource_p->default_states() != optimized_states)
                                 {
                                     resource_barriers_after[i] = H_resource_barrier::transition(
                                         F_resource_transition_barrier {
                                             .resource_p = (TKPA<A_resource>)rhi_p,
                                             .subresource_index = resource_state.subresource_index,
-                                            .state_before = resource_state.states,
+                                            .state_before = optimized_states,
                                             .state_after = resource_p->default_states()
                                         }
                                     );
@@ -1504,18 +1599,18 @@ namespace nre::newrg
                             !resource_producer_dependency
                             || (
                                 resource_producer_dependency
-                                && is_pass_id_in_execute_range(resource_producer_dependency.pass_id, execute_range_index)
+                                && !is_pass_id_in_execute_range(resource_producer_dependency.pass_id, execute_range_index)
                             )
                         )
                         {
-                            if(resource_p->default_states() != resource_state.states)
+                            if(resource_p->default_states() != optimized_states)
                             {
                                 resource_barriers_before[i] = H_resource_barrier::transition(
                                     F_resource_transition_barrier {
                                         .resource_p = (TKPA<A_resource>)rhi_p,
                                         .subresource_index = resource_state.subresource_index,
                                         .state_before = ED_resource_state::COMMON,
-                                        .state_after = resource_state.states
+                                        .state_after = optimized_states
                                     }
                                 );
                             }
@@ -1525,13 +1620,14 @@ namespace nre::newrg
                             F_render_pass* producer_pass_p = pass_span[resource_producer_dependency.pass_id];
                             auto& producer_resource_state = producer_pass_p->resource_states_[resource_producer_dependency.resource_state_index];
                             auto producer_resource_concurrent_write_range_index = producer_pass_p->resource_concurrent_write_range_indices_[resource_producer_dependency.resource_state_index];
+                            auto producer_optimized_states = producer_pass_p->resource_state_index_to_optimized_states_[resource_producer_dependency.resource_state_index];
 
                             resource_barriers_before[i] = calculate_resource_barrier_before(
                                 (TKPA_valid<A_resource>)rhi_p,
                                 producer_resource_state.subresource_index,
                                 resource_state.subresource_index,
-                                producer_resource_state.states,
-                                resource_state.states,
+                                producer_optimized_states,
+                                optimized_states,
                                 producer_resource_concurrent_write_range_index,
                                 resource_concurrent_write_range_index
                             );
@@ -2169,8 +2265,6 @@ namespace nre::newrg
                         pass_span[dependency_pass_id]->execute_range_id()
                     );
         }
-
-        int a = 5;
     }
 
     void F_render_graph::execute_range_internal(const F_render_pass_execute_range& execute_range)

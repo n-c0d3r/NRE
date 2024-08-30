@@ -104,8 +104,16 @@ namespace nre::newrg
          */
         F_render_pass* create_readback_pass(
             auto&& readback_functor,
-            E_render_pass_flag copy_flags = E_render_pass_flag::MAIN,
-            E_render_pass_flag readback_flags = flag_combine(E_render_pass_flag::MAIN_CPU_SYNC, E_render_pass_flag::NO_GPU_WORK)
+            E_render_pass_flag copy_flags = flag_combine(
+                E_render_pass_flag::MAIN_RENDER_WORKER,
+                E_render_pass_flag::GPU_ACCESS_COPY
+            ),
+            E_render_pass_flag readback_flags = flag_combine(
+                E_render_pass_flag::MAIN_RENDER_WORKER,
+                E_render_pass_flag::CPU_ACCESS_ALL,
+                E_render_pass_flag::CPU_SYNC,
+                E_render_pass_flag::NO_GPU_WORK
+            )
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         )
         {

@@ -88,7 +88,11 @@ int main() {
 				[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 				{
 				},
-				E_render_pass_flag::MAIN_CPU_SYNC
+				flag_combine(
+					E_render_pass_flag::MAIN_RENDER_WORKER,
+					E_render_pass_flag::GPU_ACCESS_RASTER,
+					E_render_pass_flag::CPU_SYNC
+				)
 				NRE_OPTIONAL_DEBUG_PARAM("pass_1")
 			);
 			rg_pass_1_p->add_resource_state({

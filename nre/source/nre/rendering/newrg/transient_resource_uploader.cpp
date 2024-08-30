@@ -53,7 +53,9 @@ namespace nre::newrg
                 upload_rhi_p->unmap(0);
             },
             flag_combine(
-                E_render_pass_flag::MAIN_CPU_SYNC_AFTER,
+                E_render_pass_flag::MAIN_RENDER_WORKER,
+                E_render_pass_flag::CPU_ACCESS_ALL,
+                E_render_pass_flag::CPU_SYNC_AFTER,
                 E_render_pass_flag::NO_GPU_WORK
             )
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.map_pass")
@@ -73,7 +75,10 @@ namespace nre::newrg
                     NCPP_FOH_VALID(upload_rhi_p)
                 );
             },
-            E_render_pass_flag::MAIN
+            flag_combine(
+                E_render_pass_flag::MAIN_RENDER_WORKER,
+                E_render_pass_flag::GPU_ACCESS_COPY
+            )
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.upload_pass")
         );
 

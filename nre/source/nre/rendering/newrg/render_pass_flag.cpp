@@ -10,13 +10,13 @@ namespace nre::newrg
     {
         u8 index = 0xFF;
 
-        if(flag_is_has(flags, E_render_pass_flag::MAIN))
+        if(flag_is_has(flags, E_render_pass_flag::MAIN_RENDER_WORKER))
         {
             NCPP_ASSERT(index == 0xFF) << "multiple render workers are not allowed";
             index = F_main_render_worker::instance_p()->index();
         }
 
-        if(flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE))
+        if(flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE_RENDER_WORKER))
         {
             NCPP_ASSERT(index == 0xFF) << "multiple render workers are not allowed";
             index = F_async_compute_render_worker::instance_p()->index();
@@ -64,87 +64,105 @@ namespace nre::newrg
     }
     b8 H_render_pass_flag::validate_resource_states(E_render_pass_flag flags, ED_resource_state resource_states)
     {
-        if(
-            flag_is_has(resource_states, ED_resource_state::INPUT_AND_CONSTANT_BUFFER)
-            && !flag_is_has(flags, E_render_pass_flag::RASTER)
-        ) return false;
+        ED_resource_state supported_resource_states = H_render_pass_flag::supported_resource_states(flags);
 
-        if(
-            flag_is_has(resource_states, ED_resource_state::INDEX_BUFFER)
-            && !flag_is_has(flags, E_render_pass_flag::RASTER)
-        ) return false;
+        return flag_is_has(supported_resource_states, resource_states);
+    }
+    ED_resource_state H_render_pass_flag::supported_resource_states(E_render_pass_flag flags)
+    {
+        ED_resource_state resource_states = ED_resource_state::COMMON;
 
-        if(
-            flag_is_has(resource_states, ED_resource_state::RENDER_TARGET)
-            && !flag_is_has(flags, E_render_pass_flag::RASTER)
-        ) return false;
+        if(flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_RASTER))
+        {
+            resource_states = (
+                resource_states
+                | ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+                | ED_resource_state::INDEX_BUFFER
+                | ED_resource_state::RENDER_TARGET
+                | ED_resource_state::UNORDERED_ACCESS
+                | ED_resource_state::DEPTH_WRITE
+                | ED_resource_state::DEPTH_READ
+                | ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                | ED_resource_state::PIXEL_SHADER_RESOURCE
+                | ED_resource_state::STREAM_OUT
+                | ED_resource_state::INDIRECT_ARGUMENT
+                | ED_resource_state::SHADING_RATE_SOURCE
+                | ED_resource_state::ALL_SHADER_RESOURCE
+            );
+        }
+        if(flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_RAY))
+        {
+            resource_states = (
+                resource_states
+                | ED_resource_state::UNORDERED_ACCESS
+                | ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                | ED_resource_state::INDIRECT_ARGUMENT
+                | ED_resource_state::RAYTRACING_ACCELERATION_STRUCTURE
+            );
+        }
+        if(flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_COMPUTE))
+        {
+            resource_states = (
+                resource_states
+                | ED_resource_state::UNORDERED_ACCESS
+                | ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                | ED_resource_state::INDIRECT_ARGUMENT
+            );
+        }
+        if(flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_COPY))
+        {
+            resource_states = (
+                resource_states
+                | ED_resource_state::COPY_DEST
+                | ED_resource_state::COPY_SOURCE
+                | ED_resource_state::RESOLVE_DEST
+                | ED_resource_state::RESOLVE_SOURCE
+            );
+        }
+        if(flag_is_has(flags, E_render_pass_flag::CPU_ACCESS_ALL))
+        {
+            resource_states = (
+                resource_states
+                | ED_resource_state::_GENERIC_READ
+                | ED_resource_state::COPY_DEST
+                | ED_resource_state::RESOLVE_DEST
+            );
+        }
 
-        if(
-            flag_is_has(resource_states, ED_resource_state::UNORDERED_ACCESS)
-            && !flag_is_has(flags, E_render_pass_flag::RASTER)
-            && !flag_is_has(flags, E_render_pass_flag::COMPUTE)
-            && !flag_is_has(flags, E_render_pass_flag::RAY)
-        ) return false;
+        return resource_states;
+    }
+    ED_resource_state H_render_pass_flag::combine_supported_resource_states(
+        E_render_pass_flag flags,
+        ED_resource_state supported_resource_states_gpu_raster,
+        ED_resource_state supported_resource_states_gpu_ray,
+        ED_resource_state supported_resource_states_gpu_compute,
+        ED_resource_state supported_resource_states_gpu_copy,
+        ED_resource_state supported_resource_states_cpu_all
+    )
+    {
+        ED_resource_state resource_states = ED_resource_state::COMMON;
 
-        if(
-            flag_is_has(resource_states, ED_resource_state::DEPTH_WRITE)
-            && !flag_is_has(flags, E_render_pass_flag::RASTER)
-        ) return false;
+        if(flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_RASTER))
+        {
+            resource_states = resource_states | supported_resource_states_gpu_raster;
+        }
+        if(flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_RAY))
+        {
+            resource_states = resource_states | supported_resource_states_gpu_ray;
+        }
+        if(flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_COMPUTE))
+        {
+            resource_states = resource_states | supported_resource_states_gpu_compute;
+        }
+        if(flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_COPY))
+        {
+            resource_states = resource_states | supported_resource_states_gpu_copy;
+        }
+        if(flag_is_has(flags, E_render_pass_flag::CPU_ACCESS_ALL))
+        {
+            resource_states = resource_states | supported_resource_states_cpu_all;
+        }
 
-        if(
-            flag_is_has(resource_states, ED_resource_state::DEPTH_READ)
-            && !flag_is_has(flags, E_render_pass_flag::RASTER)
-        ) return false;
-
-        if(
-            flag_is_has(resource_states, ED_resource_state::NON_PIXEL_SHADER_RESOURCE)
-            && !flag_is_has(flags, E_render_pass_flag::RASTER)
-            && !flag_is_has(flags, E_render_pass_flag::COMPUTE)
-            && !flag_is_has(flags, E_render_pass_flag::RAY)
-        ) return false;
-
-        if(
-            flag_is_has(resource_states, ED_resource_state::PIXEL_SHADER_RESOURCE)
-            && !flag_is_has(flags, E_render_pass_flag::RASTER)
-        ) return false;
-
-        if(
-            flag_is_has(resource_states, ED_resource_state::STREAM_OUT)
-            && !flag_is_has(flags, E_render_pass_flag::RASTER)
-        ) return false;
-
-        if(
-            flag_is_has(resource_states, ED_resource_state::COPY_DEST)
-            && !flag_is_has(flags, E_render_pass_flag::COPY)
-        ) return false;
-
-        if(
-            flag_is_has(resource_states, ED_resource_state::COPY_SOURCE)
-            && !flag_is_has(flags, E_render_pass_flag::COPY)
-        ) return false;
-
-        if(
-            flag_is_has(resource_states, ED_resource_state::RESOLVE_DEST)
-            && !flag_is_has(flags, E_render_pass_flag::COPY)
-        ) return false;
-
-        if(
-            flag_is_has(resource_states, ED_resource_state::RESOLVE_SOURCE)
-            && !flag_is_has(flags, E_render_pass_flag::COPY)
-        ) return false;
-
-        if(
-            flag_is_has(resource_states, ED_resource_state::RAYTRACING_ACCELERATION_STRUCTURE)
-            && !flag_is_has(flags, E_render_pass_flag::RAY)
-        ) return false;
-
-        if(
-            flag_is_has(resource_states, ED_resource_state::ALL_SHADER_RESOURCE)
-            && !flag_is_has(flags, E_render_pass_flag::RASTER)
-            && !flag_is_has(flags, E_render_pass_flag::COMPUTE)
-            && !flag_is_has(flags, E_render_pass_flag::RAY)
-        ) return false;
-
-        return true;
+        return resource_states;
     }
 }

@@ -105,7 +105,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE E_render_pass_flag flags() const noexcept { return flags_; }
 
-        NCPP_FORCE_INLINE b8 is_async_compute() const noexcept { return flag_is_has(flags_, E_render_pass_flag::ASYNC_COMPUTE); }
+        NCPP_FORCE_INLINE b8 is_async_compute() const noexcept { return flag_is_has(flags_, E_render_pass_flag::ASYNC_COMPUTE_RENDER_WORKER); }
         NCPP_FORCE_INLINE b8 is_sentinel() const noexcept { return flag_is_has(flags_, E_render_pass_flag::SENTINEL); }
 
         NCPP_FORCE_INLINE const auto& max_sync_pass_ids() const noexcept { return max_sync_pass_ids_; }
