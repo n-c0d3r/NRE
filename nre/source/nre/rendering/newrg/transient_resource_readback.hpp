@@ -111,8 +111,7 @@ namespace nre::newrg
             E_render_pass_flag readback_flags = flag_combine(
                 E_render_pass_flag::MAIN_RENDER_WORKER,
                 E_render_pass_flag::CPU_ACCESS_ALL,
-                E_render_pass_flag::CPU_SYNC,
-                E_render_pass_flag::NO_GPU_WORK
+                E_render_pass_flag::CPU_SYNC
             )
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         )

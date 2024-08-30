@@ -22,6 +22,8 @@ namespace nre::newrg
         color_(color)
 #endif
     {
+        NCPP_ASSERT(H_render_pass_flag::validate(flags)) << "invalid flags";
+
         auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
         const auto& render_worker_list = render_pipeline_p->render_worker_list();
 

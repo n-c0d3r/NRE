@@ -6,6 +6,23 @@
 
 namespace nre::newrg
 {
+    u8 H_render_pass_flag::validate(E_render_pass_flag flags)
+    {
+        u8 render_worker_index = 0xFF;
+
+        if(flag_is_has(flags, E_render_pass_flag::MAIN_RENDER_WORKER))
+        {
+            render_worker_index = F_main_render_worker::instance_p()->index();
+        }
+        if(flag_is_has(flags, E_render_pass_flag::ASYNC_COMPUTE_RENDER_WORKER))
+        {
+            if(render_worker_index != 0xFF)
+                return false;
+            render_worker_index = F_async_compute_render_worker::instance_p()->index();
+        }
+
+        return (render_worker_index != 0xFF);
+    }
     u8 H_render_pass_flag::render_worker_index(E_render_pass_flag flags)
     {
         u8 index = 0xFF;
@@ -27,7 +44,16 @@ namespace nre::newrg
     }
     b8 H_render_pass_flag::has_gpu_work(E_render_pass_flag flags)
     {
-        return !flag_is_has(flags, E_render_pass_flag::NO_GPU_WORK);
+        return (
+            (
+                flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_RASTER)
+                | flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_RAY)
+                | flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_COMPUTE)
+                | flag_is_has(flags, E_render_pass_flag::GPU_ACCESS_COPY)
+            )
+            // prologue can't have GPU work because it can make 1-length command list batch
+            & !flag_is_has(flags, E_render_pass_flag::PROLOGUE)
+        );
     }
     b8 H_render_pass_flag::is_cpu_sync_pass(E_render_pass_flag flags)
     {

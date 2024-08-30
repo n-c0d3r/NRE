@@ -55,8 +55,7 @@ namespace nre::newrg
             flag_combine(
                 E_render_pass_flag::MAIN_RENDER_WORKER,
                 E_render_pass_flag::CPU_ACCESS_ALL,
-                E_render_pass_flag::CPU_SYNC_AFTER,
-                E_render_pass_flag::NO_GPU_WORK
+                E_render_pass_flag::CPU_SYNC_AFTER
             )
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.map_pass")
         );
