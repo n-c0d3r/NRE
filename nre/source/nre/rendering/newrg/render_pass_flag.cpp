@@ -62,4 +62,89 @@ namespace nre::newrg
             )
         );
     }
+    b8 H_render_pass_flag::validate_resource_states(E_render_pass_flag flags, ED_resource_state resource_states)
+    {
+        if(
+            flag_is_has(resource_states, ED_resource_state::INPUT_AND_CONSTANT_BUFFER)
+            && !flag_is_has(flags, E_render_pass_flag::RASTER)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::INDEX_BUFFER)
+            && !flag_is_has(flags, E_render_pass_flag::RASTER)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::RENDER_TARGET)
+            && !flag_is_has(flags, E_render_pass_flag::RASTER)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::UNORDERED_ACCESS)
+            && !flag_is_has(flags, E_render_pass_flag::RASTER)
+            && !flag_is_has(flags, E_render_pass_flag::COMPUTE)
+            && !flag_is_has(flags, E_render_pass_flag::RAY)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::DEPTH_WRITE)
+            && !flag_is_has(flags, E_render_pass_flag::RASTER)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::DEPTH_READ)
+            && !flag_is_has(flags, E_render_pass_flag::RASTER)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::NON_PIXEL_SHADER_RESOURCE)
+            && !flag_is_has(flags, E_render_pass_flag::RASTER)
+            && !flag_is_has(flags, E_render_pass_flag::COMPUTE)
+            && !flag_is_has(flags, E_render_pass_flag::RAY)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::PIXEL_SHADER_RESOURCE)
+            && !flag_is_has(flags, E_render_pass_flag::RASTER)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::STREAM_OUT)
+            && !flag_is_has(flags, E_render_pass_flag::RASTER)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::COPY_DEST)
+            && !flag_is_has(flags, E_render_pass_flag::COPY)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::COPY_SOURCE)
+            && !flag_is_has(flags, E_render_pass_flag::COPY)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::RESOLVE_DEST)
+            && !flag_is_has(flags, E_render_pass_flag::COPY)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::RESOLVE_SOURCE)
+            && !flag_is_has(flags, E_render_pass_flag::COPY)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::RAYTRACING_ACCELERATION_STRUCTURE)
+            && !flag_is_has(flags, E_render_pass_flag::RAY)
+        ) return false;
+
+        if(
+            flag_is_has(resource_states, ED_resource_state::ALL_SHADER_RESOURCE)
+            && !flag_is_has(flags, E_render_pass_flag::RASTER)
+            && !flag_is_has(flags, E_render_pass_flag::COMPUTE)
+            && !flag_is_has(flags, E_render_pass_flag::RAY)
+        ) return false;
+
+        return true;
+    }
 }

@@ -42,6 +42,7 @@ namespace nre::newrg
 
         TF_render_frame_vector<F_render_resource_state> resource_states_;
         TF_render_frame_vector<u32> resource_access_dependency_indices_;
+        TF_render_frame_vector<ED_resource_state> resource_state_index_to_optimized_states_;
         TF_render_frame_vector<F_render_resource_producer_dependency> resource_producer_dependencies_;
         TF_render_frame_vector<F_render_resource_consumer_dependency> resource_consumer_dependencies_;
         TF_render_frame_vector<u32> resource_concurrent_write_range_indices_;
@@ -86,6 +87,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& resource_states() const noexcept { return resource_states_; }
         NCPP_FORCE_INLINE const auto& resource_access_dependency_indices() const noexcept { return resource_access_dependency_indices_; }
+        NCPP_FORCE_INLINE const auto& resource_state_index_to_optimized_states() const noexcept { return resource_state_index_to_optimized_states_; }
         NCPP_FORCE_INLINE const auto& resource_producer_dependencies() const noexcept { return resource_producer_dependencies_; }
         NCPP_FORCE_INLINE const auto& resource_consumer_dependencies() const noexcept { return resource_consumer_dependencies_; }
         NCPP_FORCE_INLINE const auto& resource_concurrent_write_range_indices() const noexcept { return resource_concurrent_write_range_indices_; }

@@ -69,6 +69,13 @@ namespace nre::newrg
             ) == NCPP_U32_MAX
         ) << "already added";
 
+        NCPP_ASSERT(
+            H_render_pass_flag::validate_resource_states(
+                flags_,
+                resource_state.states
+            ) == NCPP_U32_MAX
+        ) << "invalid states";
+
         resource_states_.push_back(resource_state);
     }
 

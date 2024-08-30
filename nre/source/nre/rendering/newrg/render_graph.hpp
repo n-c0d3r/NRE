@@ -239,6 +239,7 @@ namespace nre::newrg
         void copy_src_descriptors_internal();
 
     private:
+        void optimize_resource_states_internal();
         void create_resource_barriers_internal();
         void create_resource_aliasing_barriers_internal();
         void create_resource_barrier_batches_internal();

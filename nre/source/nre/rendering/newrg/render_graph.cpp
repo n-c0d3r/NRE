@@ -1329,6 +1329,21 @@ namespace nre::newrg
         }
     }
 
+    void F_render_graph::optimize_resource_states_internal()
+    {
+        auto pass_span = pass_p_owf_stack_.item_span();
+
+        //
+        auto is_pass_id_in_execute_range = [&](F_render_pass_id pass_id, F_render_pass_execute_range_id execute_range_id)
+        {
+            if(pass_id == NCPP_U32_MAX)
+                return false;
+
+            F_render_pass* pass_p = pass_span[pass_id];
+
+            return (pass_p->execute_range_id_ == execute_range_id);
+        };
+    }
     void F_render_graph::create_resource_barriers_internal()
     {
         auto calculate_resource_barrier_before = [](
@@ -1379,7 +1394,7 @@ namespace nre::newrg
                 });
             }
 
-            if(states_before == states_after)
+            if(flag_is_has(states_before, states_after))
             {
                 return eastl::nullopt;
             }
@@ -2702,6 +2717,7 @@ namespace nre::newrg
         create_execute_ranges_internal();
         setup_execute_range_dependency_ids_internal();
 
+        optimize_resource_states_internal();
         create_resource_barriers_internal();
         create_resource_aliasing_barriers_internal();
         create_resource_barrier_batches_internal();
