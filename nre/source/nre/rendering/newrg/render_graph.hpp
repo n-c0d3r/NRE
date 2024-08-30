@@ -287,7 +287,8 @@ namespace nre::newrg
             const F_render_pass_functor_cache& functor_cache,
             E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , const F_render_frame_name& name
+            , const F_render_frame_name& name,
+            PA_vector3_f32 color
 #endif
         );
 
@@ -357,7 +358,8 @@ namespace nre::newrg
             auto&& functor,
             E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , const F_render_frame_name& name = ""
+            , const F_render_frame_name& name = "",
+            PA_vector3_f32 color = F_vector3_f32::one()
 #endif
         )
         {
@@ -389,7 +391,8 @@ namespace nre::newrg
                 },
                 flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-                , name
+                , name,
+                color
 #endif
             );
         }

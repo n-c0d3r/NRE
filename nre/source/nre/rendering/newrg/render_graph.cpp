@@ -2397,7 +2397,15 @@ namespace nre::newrg
                         );
 
                     //
+                    NRHI_COMMAND_LIST_BEGIN_EVENT(
+                        NCPP_FOH_VALID(command_list_p),
+                        pass_p->color(),
+                        pass_p->name().c_str()
+                    );
                     pass_p->execute_internal(command_list_p);
+                    NRHI_COMMAND_LIST_END_EVENT(
+                        NCPP_FOH_VALID(command_list_p)
+                    );
 
                     //
                     if(pass_p->resource_barrier_batch_after_.size())
@@ -2822,7 +2830,8 @@ namespace nre::newrg
         const F_render_pass_functor_cache& functor_cache,
         E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , const F_render_frame_name& name
+        , const F_render_frame_name& name,
+        PA_vector3_f32 color
 #endif
     )
     {
@@ -2830,7 +2839,8 @@ namespace nre::newrg
             functor_cache,
             flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-            , name
+            , name,
+            color
 #endif
         );
 

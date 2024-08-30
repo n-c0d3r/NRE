@@ -11,13 +11,15 @@ namespace nre::newrg
         const F_render_pass_functor_cache& functor_cache,
         E_render_pass_flag flags
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , const F_render_frame_name& name
+        , const F_render_frame_name& name,
+        PA_vector3_f32 color
 #endif
     ) :
         functor_cache_(functor_cache),
         flags_(flags)
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , name_(name)
+        , name_(name),
+        color_(color)
 #endif
     {
         auto render_pipeline_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>();
