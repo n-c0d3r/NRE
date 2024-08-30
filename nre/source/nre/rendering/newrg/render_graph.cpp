@@ -2414,20 +2414,29 @@ namespace nre::newrg
                     {
                         F_render_binder_group* pass_binder_group = pass_p->binder_group_p_;
 
-                        if(pass_binder_group && (current_binder_group_p != pass_binder_group))
+                        if(current_binder_group_p != pass_binder_group)
                         {
-                            // NRHI_COMMAND_LIST_BEGIN_EVENT(
-                            //     NCPP_FOH_VALID(command_list_p),
-                            //     pass_binder_group->color(),
-                            //     pass_binder_group->name().c_str()
-                            // );
+                            NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+                                if(current_binder_group_p)
+                                {
+                                    NRHI_COMMAND_LIST_END_EVENT(
+                                        NCPP_FOH_VALID(command_list_p)
+                                    );
+                                }
+                            )
 
-                            pass_binder_group->execute_internal(NCPP_FOH_VALID(command_list_p), current_binder_group_signatures);
+                            if(pass_binder_group)
+                            {
+                                pass_binder_group->execute_internal(NCPP_FOH_VALID(command_list_p), current_binder_group_signatures);
+
+                                NRHI_COMMAND_LIST_BEGIN_EVENT(
+                                    NCPP_FOH_VALID(command_list_p),
+                                    pass_binder_group->color(),
+                                    pass_binder_group->name().c_str()
+                                );
+                            }
+
                             current_binder_group_p = pass_binder_group;
-
-                            // NRHI_COMMAND_LIST_END_EVENT(
-                            //     NCPP_FOH_VALID(command_list_p)
-                            // );
                         }
                     }
 
@@ -2462,6 +2471,15 @@ namespace nre::newrg
                         cpu_fence.signal(fence_target.value);
                     }
                 }
+
+                NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+                    if(current_binder_group_p)
+                    {
+                        NRHI_COMMAND_LIST_END_EVENT(
+                            NCPP_FOH_VALID(command_list_p)
+                        );
+                    }
+                )
 
                 command_list_p->async_end();
 
@@ -2766,6 +2784,10 @@ namespace nre::newrg
         prologue_pass_p_ = 0;
         epilogue_pass_p_ = 0;
     }
+    void F_render_graph::flush_binder_groups_internal()
+    {
+        binder_group_p_owf_stack_.reset();
+    }
     void F_render_graph::flush_resources_internal()
     {
         export_resources_internal();
@@ -3019,6 +3041,7 @@ namespace nre::newrg
         flush_frame_buffers_internal();
         flush_descriptors_internal();
         flush_resources_internal();
+        flush_binder_groups_internal();
         flush_passes_internal();
 
         flush_states_internal();

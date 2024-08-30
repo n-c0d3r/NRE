@@ -274,6 +274,7 @@ namespace nre::newrg
     private:
         void flush_objects_internal();
         void flush_passes_internal();
+        void flush_binder_groups_internal();
         void flush_resources_internal();
         void flush_descriptors_internal();
         void flush_frame_buffers_internal();

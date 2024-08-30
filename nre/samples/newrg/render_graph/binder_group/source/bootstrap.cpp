@@ -85,7 +85,10 @@ int main() {
 					);
 				},
 				E_render_pass_flag::DEFAULT
-				NRE_OPTIONAL_DEBUG_PARAM("clear_back_buffer")
+				NRE_OPTIONAL_DEBUG_PARAM(
+					"clear_back_buffer",
+					F_vector3_f32(0.0f, 0.75f, 0.84f)
+				)
 			);
 			rg_pass_p->set_binder_group(rg_demo_binder_group_p);
 			rg_pass_p->add_resource_state({
@@ -102,7 +105,10 @@ int main() {
 				{
 				},
 				E_render_pass_flag::DEFAULT
-				NRE_OPTIONAL_DEBUG_PARAM("pass_1")
+				NRE_OPTIONAL_DEBUG_PARAM(
+					"pass_1",
+					F_vector3_f32(0.0f, 0.84f, 0.5f)
+				)
 			);
 			rg_pass_1_p->set_binder_group(rg_demo_binder_group_p);
 			rg_pass_1_p->add_resource_state({
@@ -119,7 +125,10 @@ int main() {
 				{
 				},
 				E_render_pass_flag::DEFAULT
-				NRE_OPTIONAL_DEBUG_PARAM("pass_2")
+				NRE_OPTIONAL_DEBUG_PARAM(
+					"pass_2",
+					F_vector3_f32(0.7f, 0.24f, 0.5f)
+				)
 			);
 			rg_pass_2_p->set_binder_group(rg_demo_binder_group_p);
 			rg_pass_2_p->add_resource_state({
