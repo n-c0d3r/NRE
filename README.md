@@ -64,6 +64,9 @@ NCoder's Learning Aimed C++ Render Engine.
 + [NTS](https://github.com/n-c0d3r/NTS)
 + OBJ-Loader
 + FreeImage
++ libpng
++ imgui
++ zlib
 
 ---
 
