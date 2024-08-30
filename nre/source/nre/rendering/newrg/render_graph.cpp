@@ -11,9 +11,6 @@
 #include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 
-#include "../../../../../build/clion/cmake-build-debug/nre/submodules/NRHI/nrhi/generated_files/nrhi/resource_state.hpp"
-#include "nrhi/resource_barrier_type.hpp"
-
 
 namespace nre::newrg
 {

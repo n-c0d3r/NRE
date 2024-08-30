@@ -9,8 +9,9 @@ namespace nre::newrg
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         const F_debug_name& name
 #endif
-    ) :
+    )
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+    :
         name_(name)
 #endif
     {

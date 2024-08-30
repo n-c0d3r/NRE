@@ -17,10 +17,9 @@ namespace nre::newrg {
 		async_compute_render_worker_p_(F_async_compute_render_worker::instance_p())
 	{
 		// check driver
+#ifdef NCPP_ENABLE_ASSERT
 		{
-			NCPP_ENABLE_IF_ASSERTION_ENABLED(
-				b8 is_compatible_driver_detected = false;
-			);
+			b8 is_compatible_driver_detected = false;
 
 #ifdef NRHI_DRIVER_DIRECTX_12
 			if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_12)
@@ -29,6 +28,7 @@ namespace nre::newrg {
 
 			NCPP_ASSERT(is_compatible_driver_detected);
 		}
+#endif
 
 		// render workers
 		auto main_render_worker_p = F_main_render_worker::instance_p();
