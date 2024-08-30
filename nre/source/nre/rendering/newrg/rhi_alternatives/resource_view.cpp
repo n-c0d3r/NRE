@@ -11,23 +11,25 @@ namespace
 {
     ED_descriptor_heap_type resource_view_type_to_descriptor_heap_type(ED_resource_view_type resource_view_type)
     {
+        NCPP_ASSERT(resource_view_type != ED_resource_view_type::NONE);
+
         NRHI_ENUM_SWITCH(
             resource_view_type,
             NRHI_ENUM_CASE(
                 ED_resource_view_type::SHADER_RESOURCE,
-                return ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS
+                return ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS;
             )
             NRHI_ENUM_CASE(
                 ED_resource_view_type::UNORDERED_ACCESS,
-                return ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS
+                return ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS;
             )
             NRHI_ENUM_CASE(
                 ED_resource_view_type::RENDER_TARGET,
-                return ED_descriptor_heap_type::RENDER_TARGET
+                return ED_descriptor_heap_type::RENDER_TARGET;
             )
             NRHI_ENUM_CASE(
                 ED_resource_view_type::DEPTH_STENCIL,
-                return ED_descriptor_heap_type::DEPTH_STENCIL
+                return ED_descriptor_heap_type::DEPTH_STENCIL;
             )
         );
     }
@@ -112,25 +114,53 @@ U_srv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_default_srv(
     TKPA_valid<A_resource> resource_p
 )
 {
-    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p.no_requirements() }) };
+    return {
+        create_intermediate(resource_p->device_p(),
+            {
+                .type = ED_resource_view_type::SHADER_RESOURCE,
+                .resource_p = resource_p.no_requirements()
+            }
+        )
+    };
 }
 U_uav_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_default_uav(
     TKPA_valid<A_resource> resource_p
 )
 {
-    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p.no_requirements() }) };
+    return {
+        create_intermediate(resource_p->device_p(),
+            {
+                .type = ED_resource_view_type::UNORDERED_ACCESS,
+                .resource_p = resource_p.no_requirements()
+            }
+        )
+    };
 }
 U_rtv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_default_rtv(
     TKPA_valid<A_resource> resource_p
 )
 {
-    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p.no_requirements() }) };
+    return {
+        create_intermediate(resource_p->device_p(),
+            {
+                .type = ED_resource_view_type::RENDER_TARGET,
+                .resource_p = resource_p.no_requirements()
+            }
+        )
+    };
 }
 U_dsv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_default_dsv(
     TKPA_valid<A_resource> resource_p
 )
 {
-    return { create_intermediate(resource_p->device_p(), { .resource_p = resource_p.no_requirements() }) };
+    return {
+        create_intermediate(resource_p->device_p(),
+            {
+                .type = ED_resource_view_type::DEPTH_STENCIL,
+                .resource_p = resource_p.no_requirements()
+            }
+        )
+    };
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::release_driver_specific_implementation(
     TKPA_valid<A_resource_view> resource_view_p
