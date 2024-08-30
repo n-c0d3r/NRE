@@ -22,6 +22,7 @@ namespace nre::newrg
 {
     class F_render_resource;
     class F_export_render_resource;
+    class F_render_binder_group;
 
 
 
@@ -76,6 +77,8 @@ namespace nre::newrg
 
         F_render_pass_execute_range_id execute_range_id_ = NCPP_U32_MAX;
 
+        F_render_binder_group* binder_group_p_ = 0;
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
         F_vector3_f32 color_;
@@ -122,6 +125,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE F_render_pass_execute_range_id execute_range_id() const noexcept { return execute_range_id_; }
 
+        NCPP_FORCE_INLINE F_render_binder_group* binder_group_p() const noexcept { return binder_group_p_; }
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }
         NCPP_FORCE_INLINE PA_vector3_f32 color() const noexcept { return color_; }
@@ -149,11 +154,15 @@ namespace nre::newrg
 
     public:
         /**
-         *  Thread-safe
+         *  Non thread-safe
          */
         void add_resource_state(
             const F_render_resource_state& resource_state
         );
+        /**
+         *  Non thread-safe
+         */
+        void set_binder_group(F_render_binder_group* binder_group_p);
 
     public:
         u32 find_resource_state_index(

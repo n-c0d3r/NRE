@@ -3,6 +3,7 @@
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/renderer.hpp>
 #include <nre/rendering/newrg/intermediate_descriptor_manager.hpp>
+#include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/application/application.hpp>
 #include <nre/ui/imgui.hpp>
@@ -151,6 +152,7 @@ namespace nre::newrg {
 		//
 		general_resource_uploader_p_ = TU<F_general_resource_uploader>()();
 		intermediate_descriptor_manager_p_ = TU<F_intermediate_descriptor_manager>()();
+		binder_signature_manager_p_ = TU<F_binder_signature_manager>()();
 		render_graph_p_ = TU<F_render_graph>()();
 		renderer_p_ = TU<F_renderer>()();
 	}

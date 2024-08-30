@@ -49,6 +49,13 @@
 #include <nre/rendering/newrg/general_resource_uploader.hpp>
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
 #include <nre/rendering/newrg/transient_resource_readback.hpp>
+#include <nre/rendering/newrg/render_binder_group.hpp>
+#include <nre/rendering/newrg/render_binder_group_id.hpp>
+#include <nre/rendering/newrg/render_binder_group_functor.hpp>
+#include <nre/rendering/newrg/render_binder_group_signatures.hpp>
+#include <nre/rendering/newrg/binder_signature_manager.hpp>
+#include <nre/rendering/newrg/binder_signature.hpp>
+#include <nre/rendering/newrg/binder.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

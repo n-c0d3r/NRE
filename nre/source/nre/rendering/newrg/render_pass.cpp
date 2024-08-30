@@ -82,6 +82,10 @@ namespace nre::newrg
 
         resource_states_.push_back(resource_state);
     }
+    void F_render_pass::set_binder_group(F_render_binder_group* binder_group_p)
+    {
+        binder_group_p_ = binder_group_p;
+    }
 
     u32 F_render_pass::find_resource_state_index(
         F_render_resource* resource_p,

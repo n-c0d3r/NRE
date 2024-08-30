@@ -1,5 +1,7 @@
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/render_pass.hpp>
+#include <nre/rendering/newrg/render_binder_group.hpp>
+#include <nre/rendering/newrg/binder_signature.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
 #include <nre/rendering/newrg/render_descriptor.hpp>
 #include <nre/rendering/newrg/render_frame_buffer.hpp>
@@ -39,6 +41,7 @@ namespace nre::newrg
     F_render_graph::F_render_graph() :
         temp_object_cache_stack_(NRE_RENDER_GRAPH_TEMP_OBJECT_CACHE_STRACK_CAPACITY),
         pass_p_owf_stack_(NRE_RENDER_GRAPH_PASS_OWF_STACK_CAPACITY),
+        binder_group_p_owf_stack_(NRE_RENDER_GRAPH_BINDER_GROUP_OWF_STACK_CAPACITY),
         resource_p_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
         descriptor_p_owf_stack_(NRE_RENDER_GRAPH_DESCRIPTOR_OWF_STACK_CAPACITY),
         frame_buffer_p_owf_stack_(NRE_RENDER_GRAPH_FRAME_BUFFER_OWF_STACK_CAPACITY),
@@ -1146,21 +1149,24 @@ namespace nre::newrg
 
                 F_descriptor_allocation& descriptor_allocation = descriptor_p->allocation_;
 
-                auto& page = descriptor_allocation.allocator_p->pages()[descriptor_allocation.page_index];
+                auto allocator_p = descriptor_allocation.allocator_p;
+
+                auto& page = allocator_p->pages()[descriptor_allocation.page_index];
+
+                if(flag_is_has(allocator_p->heap_flags(), ED_descriptor_heap_flag::SHADER_VISIBLE))
+                {
+                    F_descriptor_gpu_address gpu_address = (
+                        page.base_gpu_address()
+                        + descriptor_allocation.placed_range.begin * descriptor_increment_size
+                    );
+                    descriptor_p->handle_range_.begin_handle.gpu_address = gpu_address;
+                }
 
                 F_descriptor_cpu_address cpu_address = (
                     page.base_cpu_address()
                     + descriptor_allocation.placed_range.begin * descriptor_increment_size
                 );
-                F_descriptor_gpu_address gpu_address = (
-                    page.base_gpu_address()
-                    + descriptor_allocation.placed_range.begin * descriptor_increment_size
-                );
-
-                descriptor_p->handle_range_.begin_handle = {
-                    .cpu_address = cpu_address,
-                    .gpu_address = gpu_address
-                };
+                descriptor_p->handle_range_.begin_handle.cpu_address = cpu_address;
             }
         }
     }
@@ -1383,6 +1389,9 @@ namespace nre::newrg
                     supported_resource_states_cpu_all
                 );
 
+                auto& access_resource_states = access_pass_p->resource_states_;
+                auto& access_resource_state = access_resource_states[access_dependency.resource_state_index];
+
                 auto& access_resource_producer_dependencies = access_pass_p->resource_producer_dependencies_;
                 auto& access_resource_producer_dependency = access_resource_producer_dependencies[access_dependency.resource_state_index];
 
@@ -1405,12 +1414,17 @@ namespace nre::newrg
                         supported_resource_states_cpu_all
                     );
 
+                    auto& producer_access_resource_states = producer_access_pass_p->resource_states_;
+                    auto& producer_access_resource_state = producer_access_resource_states[access_resource_producer_dependency.resource_state_index];
+
                     auto& producer_access_resource_state_index_to_optimized_states = producer_access_pass_p->resource_state_index_to_optimized_states_;
                     auto& producer_access_optimized_states = producer_access_resource_state_index_to_optimized_states[access_resource_producer_dependency.resource_state_index];
 
                     if(
                         !H_resource_state::is_writable(producer_access_optimized_states)
                         && !H_resource_state::is_writable(access_optimized_states)
+                        && access_resource_state.enable_states_optimization
+                        && producer_access_resource_state.enable_states_optimization
                     )
                     {
                         ED_resource_state unsafe_merged_states_before = (
@@ -1443,7 +1457,8 @@ namespace nre::newrg
             ED_resource_state states_before,
             ED_resource_state states_after,
             u32 concurrent_write_range_index_before,
-            u32 concurrent_write_range_index_after
+            u32 concurrent_write_range_index_after,
+            b8 can_be_optimized_after
         )->eastl::optional<F_resource_barrier>
         {
             u32 subresource_index = subresource_index_after;
@@ -1484,7 +1499,7 @@ namespace nre::newrg
                 });
             }
 
-            if(flag_is_has(states_before, states_after))
+            if(flag_is_has(states_before, states_after) && can_be_optimized_after)
             {
                 return eastl::nullopt;
             }
@@ -1626,7 +1641,8 @@ namespace nre::newrg
                                 producer_optimized_states,
                                 optimized_states,
                                 producer_resource_concurrent_write_range_index,
-                                resource_concurrent_write_range_index
+                                resource_concurrent_write_range_index,
+                                resource_state.enable_states_optimization
                             );
                         }
                     }
@@ -2363,6 +2379,10 @@ namespace nre::newrg
                 auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
                 auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
 
+                // binder groups
+                F_render_binder_group* current_binder_group_p = 0;
+                F_render_binder_group_signatures current_binder_group_signatures;
+
                 // for each pass in this batch, execute it
                 for(F_render_pass_id pass_id : pass_id_list)
                 {
@@ -2388,6 +2408,27 @@ namespace nre::newrg
                                 return cpu_fence.is_complete(fence_target.value);
                             }
                         );
+                    }
+
+                    // apply binder groups
+                    {
+                        F_render_binder_group* pass_binder_group = pass_p->binder_group_p_;
+
+                        if(pass_binder_group && (current_binder_group_p != pass_binder_group))
+                        {
+                            // NRHI_COMMAND_LIST_BEGIN_EVENT(
+                            //     NCPP_FOH_VALID(command_list_p),
+                            //     pass_binder_group->color(),
+                            //     pass_binder_group->name().c_str()
+                            // );
+
+                            pass_binder_group->execute_internal(NCPP_FOH_VALID(command_list_p), current_binder_group_signatures);
+                            current_binder_group_p = pass_binder_group;
+
+                            // NRHI_COMMAND_LIST_END_EVENT(
+                            //     NCPP_FOH_VALID(command_list_p)
+                            // );
+                        }
                     }
 
                     //
@@ -2848,6 +2889,28 @@ namespace nre::newrg
 
         return render_pass_p;
     }
+    F_render_binder_group* F_render_graph::create_binder_group_internal(
+        const F_render_binder_group_functor_cache& functor_cache,
+        const F_render_binder_group_signatures& signatures
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , const F_render_frame_name& name,
+        PA_vector3_f32 color
+#endif
+    )
+    {
+        F_render_binder_group* render_binder_group_p = T_create<F_render_binder_group>(
+            functor_cache,
+            signatures
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , name,
+            color
+#endif
+        );
+
+        render_binder_group_p->id_ = binder_group_p_owf_stack_.push_and_return_index(render_binder_group_p);
+
+        return render_binder_group_p;
+    }
 
 
 
@@ -2985,7 +3048,8 @@ namespace nre::newrg
 
         prologue_pass_p_->add_resource_state({
             .resource_p = render_resource_p,
-            .states = desc.initial_state
+            .states = desc.initial_state,
+            .enable_states_optimization = false
         });
 
         return render_resource_p;
@@ -3102,7 +3166,8 @@ namespace nre::newrg
 
             epilogue_resource_state_stack_.push({
                 .resource_p = resource_p,
-                .states = new_states
+                .states = new_states,
+                .enable_states_optimization = false
             });
         }
 
@@ -3133,7 +3198,8 @@ namespace nre::newrg
 
             prologue_pass_p_->add_resource_state({
                 .resource_p = render_resource_p,
-                .states = external_resource_p->default_states()
+                .states = external_resource_p->default_states(),
+                .enable_states_optimization = false
             });
         }
 
@@ -3248,11 +3314,13 @@ namespace nre::newrg
 
         prologue_pass_p_->add_resource_state({
             .resource_p = render_resource_p,
-            .states = default_states
+            .states = default_states,
+            .enable_states_optimization = false
         });
         epilogue_resource_state_stack_.push({
             .resource_p = render_resource_p,
-            .states = default_states
+            .states = default_states,
+            .enable_states_optimization = false
         });
 
         return render_resource_p;

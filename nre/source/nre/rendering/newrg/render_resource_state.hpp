@@ -15,6 +15,7 @@ namespace nre::newrg
         F_render_resource* resource_p = 0;
         ED_resource_state states = ED_resource_state::COMMON;
         u32 subresource_index = resource_barrier_all_subresources;
+        b8 enable_states_optimization = true;
 
         NCPP_FORCE_INLINE b8 is_writable() const noexcept
         {

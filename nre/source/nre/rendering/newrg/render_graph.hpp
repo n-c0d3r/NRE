@@ -9,6 +9,8 @@
 #include <nre/rendering/newrg/render_resource_allocator.hpp>
 #include <nre/rendering/newrg/rhi_placed_resource_pool.hpp>
 #include <nre/rendering/newrg/rhi_frame_buffer_pool.hpp>
+#include <nre/rendering/newrg/render_binder_group_functor.hpp>
+#include <nre/rendering/newrg/render_binder_group_signatures.hpp>
 #include <nre/rendering/newrg/render_pass_execute_range.hpp>
 #include <nre/rendering/newrg/render_fence_state.hpp>
 #include <nre/rendering/newrg/render_resource_state.hpp>
@@ -31,6 +33,7 @@ namespace nre::newrg
 
 
     class F_render_pass;
+    class F_render_binder_group;
     class F_render_resource;
     class F_render_descriptor;
     class F_render_frame_buffer;
@@ -38,6 +41,7 @@ namespace nre::newrg
     class F_external_render_descriptor;
     class F_external_render_frame_buffer;
     class A_render_worker;
+    class A_binder_signature;
 
 
 
@@ -79,6 +83,7 @@ namespace nre::newrg
         F_rhi_frame_buffer_pool rhi_frame_buffer_pool_;
 
         TG_concurrent_owf_stack<F_render_pass*> pass_p_owf_stack_;
+        TG_concurrent_owf_stack<F_render_binder_group*> binder_group_p_owf_stack_;
         TG_concurrent_owf_stack<F_render_resource*> resource_p_owf_stack_;
         TG_concurrent_owf_stack<F_render_descriptor*> descriptor_p_owf_stack_;
         TG_concurrent_owf_stack<F_render_frame_buffer*> frame_buffer_p_owf_stack_;
@@ -147,6 +152,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& rhi_frame_buffer_pool() noexcept { return rhi_frame_buffer_pool_; }
 
         NCPP_FORCE_INLINE auto& pass_p_owf_stack() noexcept { return pass_p_owf_stack_; }
+        NCPP_FORCE_INLINE auto& binder_group_p_owf_stack() noexcept { return binder_group_p_owf_stack_; }
         NCPP_FORCE_INLINE auto& resource_p_owf_stack() noexcept { return resource_p_owf_stack_; }
         NCPP_FORCE_INLINE auto& descriptor_p_owf_stack() noexcept { return descriptor_p_owf_stack_; }
         NCPP_FORCE_INLINE auto& frame_buffer_p_owf_stack() noexcept { return frame_buffer_p_owf_stack_; }
@@ -291,6 +297,14 @@ namespace nre::newrg
             PA_vector3_f32 color
 #endif
         );
+        F_render_binder_group* create_binder_group_internal(
+            const F_render_binder_group_functor_cache& functor_cache,
+            const F_render_binder_group_signatures& signatures
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_render_frame_name& name,
+            PA_vector3_f32 color
+#endif
+        );
 
 
 
@@ -390,6 +404,51 @@ namespace nre::newrg
                     functor_p
                 },
                 flags
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                , name,
+                color
+#endif
+            );
+        }
+        /**
+         *  Thread-safe
+         */
+        F_render_binder_group* create_binder_group(
+            auto&& functor,
+            const F_render_binder_group_signatures& signatures
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_render_frame_name& name = "",
+            PA_vector3_f32 color = F_vector3_f32::one()
+#endif
+        )
+        {
+            using F_functor = std::remove_const_t<std::remove_reference_t<decltype(functor)>>;
+            NCPP_ASSERT(T_is_render_binder_group_functor<F_functor>, "invalid functor type");
+
+            F_functor* functor_p = H_frame_heap::T_create<F_functor>(
+                NCPP_FORWARD(functor)
+            );
+
+            return create_binder_group_internal(
+                {
+                    [](
+                        F_render_binder_group* render_binder_group_p,
+                        TKPA_valid<A_command_list> command_list_p,
+                        void* data_p
+                    )
+                    {
+                        (*((F_functor*)data_p))(
+                            render_binder_group_p,
+                            command_list_p
+                        );
+                    },
+                    [](void* data_p)
+                    {
+                        ((F_functor*)data_p)->~F_functor();
+                    },
+                    functor_p
+                },
+                signatures
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , name,
                 color

@@ -15,6 +15,7 @@ namespace nre::newrg
     class F_render_graph;
     class F_renderer;
     class F_intermediate_descriptor_manager;
+    class F_binder_signature_manager;
 
 
 
@@ -45,6 +46,7 @@ namespace nre::newrg
         TU<F_renderer> renderer_p_;
 
         TU<F_intermediate_descriptor_manager> intermediate_descriptor_manager_p_;
+        TU<F_binder_signature_manager> binder_signature_manager_p_;
 
     public:
         NCPP_FORCE_INLINE auto blit_command_queue_p() const noexcept { return NCPP_FOH_VALID(blit_command_queue_p_); }
