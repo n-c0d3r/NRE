@@ -17,6 +17,9 @@ namespace nre::newrg
         ),
         nsl_macro_name_(nsl_macro_name)
     {
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+            root_signature_p_->set_debug_name(nsl_macro_name.c_str());
+        );
     }
     A_binder_signature::~A_binder_signature()
     {

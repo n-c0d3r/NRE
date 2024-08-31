@@ -6,7 +6,7 @@
 
 namespace nre::newrg
 {
-    class NRE_API A_binder_signature final
+    class NRE_API A_binder_signature
     {
     private:
         TU<A_root_signature> root_signature_p_;

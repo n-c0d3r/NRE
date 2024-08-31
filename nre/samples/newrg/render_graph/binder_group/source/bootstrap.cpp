@@ -6,6 +6,32 @@ using namespace nre::newrg;
 
 
 
+class F_demo_binder_signature : public A_binder_signature
+{
+public:
+	F_demo_binder_signature() :
+		A_binder_signature(
+			{
+				.param_descs = {
+					F_root_param_desc(
+						ED_root_param_type::CONSTANT_BUFFER,
+						F_root_descriptor_desc {
+							0,
+							0
+						},
+						ED_shader_visibility::PIXEL
+					)
+				},
+				.flags = ED_root_signature_flag::ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+			},
+			"demo_binder_signature"
+		)
+	{
+	}
+};
+
+
+
 int main() {
 
 	auto application_p = TU<F_application>()(
@@ -16,6 +42,11 @@ int main() {
 			}
 		}
 	);
+
+
+
+	auto binder_signature_manager_p = F_binder_signature_manager::instance_p();
+	TK_valid<F_demo_binder_signature> binder_signature_p = binder_signature_manager_p->T_register<F_demo_binder_signature>();
 
 
 
@@ -46,10 +77,12 @@ int main() {
 			auto back_rtv_p = NRE_MAIN_SWAPCHAIN()->back_rtv_p();
 
 			F_render_binder_group* rg_demo_binder_group_p = render_graph_p->create_binder_group(
-				[](F_render_binder_group*, TKPA_valid<A_command_list>)
+				[](F_render_binder_group* binder_group_p, TKPA_valid<A_command_list> command_list_p)
 				{
 				},
-				{}
+				{
+					.graphics_signature_p = binder_signature_p.no_requirements()
+				}
 				NRE_OPTIONAL_DEBUG_PARAM(
 					"demo_binder_group",
 					F_vector3_f32::forward()
