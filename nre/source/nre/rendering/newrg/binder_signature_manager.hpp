@@ -44,6 +44,9 @@ namespace nre::newrg
 
 
     public:
+        void install();
+
+    public:
         template<class F_signature__>
         TK_valid<F_signature__> T_register(auto&&... args)
         {

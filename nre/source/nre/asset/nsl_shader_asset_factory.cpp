@@ -47,28 +47,27 @@ namespace nre {
 			return null;
 
 		auto& compiled_result = compiled_result_opt.value();
+
+		if(nsl_modifer)
+			nsl_modifer(compiled_result);
+
 		compiled_result.finalize();
 
-		// will be supported later
-		return null;
+		TG_vector<TU<A_pipeline_state>> pipeline_state_p_vector;
 
-// 		auto shader_asset_p = TS<F_nsl_shader_asset>()(
-// 			abs_path,
-// 			compiled_result,
-// #ifdef NRHI_DRIVER_SUPPORT_ADVANCED_WORK_SUBMISSION
-// 			H_nsl_factory::create_pipeline_states_with_root_signature(
-// 				NRE_MAIN_DEVICE(),
-// 				compiled_result
-// 			)
-// #else
-// 			H_nsl_factory::create_pipeline_states(
-// 				NRE_MAIN_DEVICE(),
-// 				compiled_result
-// 			)
-// #endif
-// 		);
-//
-// 		return std::move(shader_asset_p);
+		if(nsl_create_pipeline_states)
+			pipeline_state_p_vector = nsl_create_pipeline_states(compiled_result);
+		else
+			pipeline_state_p_vector = H_nsl_factory::create_pipeline_states(
+				NRE_MAIN_DEVICE(),
+				compiled_result
+			);
+
+		return TS<F_nsl_shader_asset>()(
+			abs_path,
+			compiled_result,
+			std::move(pipeline_state_p_vector)
+		);
 	}
 
 }
