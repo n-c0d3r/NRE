@@ -2,6 +2,8 @@
 
 #include <nre/prerequisites.hpp>
 
+#include <nre/rendering/newrg/render_graph.hpp>
+
 
 
 namespace nre::newrg
@@ -15,7 +17,11 @@ namespace nre::newrg
     {
     private:
         ED_resource_flag resource_flags_ = ED_resource_flag::NONE;
-        F_render_resource* resource_p_ = 0;
+        F_render_resource* target_resource_p_ = 0;
+
+        F_render_resource* upload_resource_p_ = 0;
+        F_render_pass* upload_pass_p_ = 0;
+        F_render_pass* copy_pass_p_ = 0;
 
         asz resource_size_ = 0;
 
@@ -26,6 +32,13 @@ namespace nre::newrg
         };
         TG_concurrent_owf_stack<F_add_resource_state> add_resource_state_stack_;
 
+        struct F_initial_value
+        {
+            TG_span<u8> data;
+            sz offset = 0;
+        };
+        TG_concurrent_owf_stack<F_initial_value> initial_value_stack_;
+
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(F_debug_name name_);
 
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
@@ -34,7 +47,7 @@ namespace nre::newrg
 
     public:
         NCPP_FORCE_INLINE ED_resource_flag resource_flags() const noexcept { return resource_flags_; }
-        NCPP_FORCE_INLINE F_render_resource* resource_p() const noexcept { return resource_p_; }
+        NCPP_FORCE_INLINE F_render_resource* target_resource_p() const noexcept { return target_resource_p_; }
 
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
             NCPP_FORCE_INLINE const auto& name() const noexcept { return name_; }
@@ -45,7 +58,8 @@ namespace nre::newrg
     public:
         F_gpu_driven_stack(
             ED_resource_flag additional_resource_flags,
-            u32 add_resource_state_stack_capacity
+            u32 add_resource_state_stack_capacity,
+            u32 initial_value_stack_capacity
             NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name)
         );
         ~F_gpu_driven_stack();
@@ -80,5 +94,24 @@ namespace nre::newrg
          *  Return: offset
          */
         void enqueue_resource_state(F_render_pass* pass_p, ED_resource_state states);
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        void enqueue_initial_value(const TG_span<u8>& data, sz offset);
+        /**
+         *  Thread-safe
+         */
+        template<typename F_passed_data__>
+        void T_enqueue_initial_value(F_passed_data__&& data, sz offset)
+        {
+            using F_data = std::remove_const_t<std::remove_reference_t<F_passed_data__>>;
+
+            auto render_graph_p = F_render_graph::instance_p();
+            F_data* cached_data_p = render_graph_p->T_create<F_data>(NCPP_FORWARD(data));
+
+            enqueue_initial_value({ (u8*)cached_data_p, sizeof(F_data) }, offset);
+        }
     };
 }

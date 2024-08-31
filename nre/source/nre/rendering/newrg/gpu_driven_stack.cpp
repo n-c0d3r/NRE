@@ -1,5 +1,4 @@
 #include <nre/rendering/newrg/gpu_driven_stack.hpp>
-#include <nre/rendering/newrg/render_graph.hpp>
 
 
 
@@ -7,7 +6,8 @@ namespace nre::newrg
 {
     F_gpu_driven_stack::F_gpu_driven_stack(
         ED_resource_flag additional_resource_flags,
-        u32 add_resource_state_stack_capacity
+        u32 add_resource_state_stack_capacity,
+        u32 initial_value_stack_capacity
         NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name)
     ) :
         resource_flags_(
@@ -16,7 +16,8 @@ namespace nre::newrg
             | ED_resource_flag::CONSTANT_BUFFER
             | ED_resource_flag::UNORDERED_ACCESS
         ),
-        add_resource_state_stack_(add_resource_state_stack_capacity)
+        add_resource_state_stack_(add_resource_state_stack_capacity),
+        initial_value_stack_(initial_value_stack_capacity)
         NRE_OPTIONAL_DEBUG_PARAM(name_(name))
     {
     }
@@ -33,8 +34,64 @@ namespace nre::newrg
             is_started_register_ = true;
         );
 
-        resource_p_ = 0;
+        //
+        target_resource_p_ = 0;
+        upload_resource_p_ = 0;
+        upload_pass_p_ = 0;
+        copy_pass_p_ = 0;
         resource_size_ = 0;
+
+        //
+        auto render_graph_p = F_render_graph::instance_p();
+        upload_pass_p_ = render_graph_p->create_pass(
+            [this](F_render_pass*, TKPA<A_command_list>)
+            {
+                if(!upload_resource_p_)
+                    return;
+
+                auto upload_resource_rhi_p = upload_resource_p_->rhi_p();
+
+                auto mapped_subresource = upload_resource_rhi_p->map(0);
+
+                auto initial_value_span = initial_value_stack_.item_span();
+                for(auto& initial_value : initial_value_span)
+                {
+                    memcpy(
+                        mapped_subresource.data() + initial_value.offset,
+                        initial_value.data.data(),
+                        initial_value.data.size()
+                    );
+                }
+
+                upload_resource_rhi_p->unmap(0);
+            },
+            flag_combine(
+                E_render_pass_flag::MAIN_RENDER_WORKER,
+                E_render_pass_flag::CPU_SYNC_AFTER,
+                E_render_pass_flag::CPU_ACCESS_ALL
+            )
+            NRE_OPTIONAL_DEBUG_PARAM((name_ + ".upload_pass").c_str())
+        );
+        copy_pass_p_ = render_graph_p->create_pass(
+            [this](F_render_pass*, TKPA<A_command_list> command_list_p)
+            {
+                if(!upload_resource_p_)
+                    return;
+
+                command_list_p->async_copy_resource(
+                    NCPP_FOH_VALID(target_resource_p_->rhi_p()),
+                    NCPP_FOH_VALID(upload_resource_p_->rhi_p())
+                );
+            },
+            flag_combine(
+                E_render_pass_flag::MAIN_RENDER_WORKER,
+                E_render_pass_flag::GPU_ACCESS_COPY
+            )
+            NRE_OPTIONAL_DEBUG_PARAM((name_ + ".copy_pass").c_str())
+        );
+
+        //
+        initial_value_stack_.reset();
     }
     void F_gpu_driven_stack::RG_end_register()
     {
@@ -44,16 +101,56 @@ namespace nre::newrg
         );
 
         auto render_graph_p = F_render_graph::instance_p();
-        render_graph_p->create_resource(
+
+        //
+        target_resource_p_ = render_graph_p->create_resource(
             H_resource_desc::create_buffer_desc(
                 resource_size_,
                 1,
                 resource_flags_
             )
-            NRE_OPTIONAL_DEBUG_PARAM(name_.c_str())
+            NRE_OPTIONAL_DEBUG_PARAM((name_ + ".target_resource").c_str())
         );
 
+        //
+        auto add_resource_state_span = add_resource_state_stack_.item_span();
+        for(auto& add_resource_state : add_resource_state_span)
+        {
+            add_resource_state.pass_p->add_resource_state({
+                .resource_p = target_resource_p_,
+                .states = add_resource_state.states
+            });
+        }
         add_resource_state_stack_.reset();
+
+        //
+        auto initial_value_span = initial_value_stack_.item_span();
+        if(initial_value_span.size())
+        {
+            upload_resource_p_ = render_graph_p->create_resource(
+                H_resource_desc::create_buffer_desc(
+                    resource_size_,
+                    1,
+                    ED_resource_flag::NONE,
+                    ED_resource_heap_type::GREAD_CWRITE,
+                    ED_resource_state::_GENERIC_READ
+                )
+                NRE_OPTIONAL_DEBUG_PARAM((name_ + ".upload_resource").c_str())
+            );
+            upload_pass_p_->add_resource_state({
+                .resource_p = upload_resource_p_,
+                .states = ED_resource_state::_GENERIC_READ
+            });
+            copy_pass_p_->add_resource_state({
+                .resource_p = upload_resource_p_,
+                .states = ED_resource_state::COPY_SOURCE
+            });
+
+            copy_pass_p_->add_resource_state({
+                .resource_p = target_resource_p_,
+                .states = ED_resource_state::COPY_DEST
+            });
+        }
     }
 
     sz F_gpu_driven_stack::push(sz size, sz alignment, sz alignment_offset)
@@ -71,6 +168,14 @@ namespace nre::newrg
         add_resource_state_stack_.push({
             .pass_p = pass_p,
             .states = states
+        });
+    }
+
+    void F_gpu_driven_stack::enqueue_initial_value(const TG_span<u8>& data, sz offset)
+    {
+        initial_value_stack_.push({
+            .data = data,
+            .offset = offset
         });
     }
 }
