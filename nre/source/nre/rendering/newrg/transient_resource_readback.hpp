@@ -162,5 +162,8 @@ namespace nre::newrg
 
             return readback_pass_p;
         }
+
+    public:
+        F_resource_gpu_virtual_address query_gpu_virtual_address(sz offset = 0);
     };
 }

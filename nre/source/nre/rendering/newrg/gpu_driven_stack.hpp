@@ -93,6 +93,13 @@ namespace nre::newrg
          *  Thread-safe
          *  Return: offset
          */
+        sz push(const TG_span<F_indirect_argument_desc>& indirect_argument_descs);
+
+    public:
+        /**
+         *  Thread-safe
+         *  Return: offset
+         */
         void enqueue_resource_state(F_render_pass* pass_p, ED_resource_state states);
 
     public:
@@ -113,5 +120,12 @@ namespace nre::newrg
 
             enqueue_initial_value({ (u8*)cached_data_p, sizeof(F_data) }, offset);
         }
+        /**
+         *  Thread-safe
+         */
+        void enqueue_initial_value(u8 value, sz size, sz offset);
+
+    public:
+        F_resource_gpu_virtual_address query_gpu_virtual_address(sz offset = 0);
     };
 }

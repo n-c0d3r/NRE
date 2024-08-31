@@ -131,4 +131,9 @@ namespace nre::newrg
             .states = states
         });
     }
+
+    F_resource_gpu_virtual_address F_transient_resource_readback::query_gpu_virtual_address(sz offset)
+    {
+        return target_resource_p_->rhi_p()->gpu_virtual_address() + offset;
+    }
 }

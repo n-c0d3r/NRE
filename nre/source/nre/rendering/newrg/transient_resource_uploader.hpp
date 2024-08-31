@@ -100,7 +100,7 @@ namespace nre::newrg
         void enqueue_resource_state(F_render_pass* pass_p, ED_resource_state states);
 
     public:
-        F_resource_gpu_virtual_address query_gpu_virtual_address(sz offset);
+        F_resource_gpu_virtual_address query_gpu_virtual_address(sz offset = 0);
     };
 
 

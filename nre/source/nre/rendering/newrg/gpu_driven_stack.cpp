@@ -163,6 +163,25 @@ namespace nre::newrg
         );
     }
 
+    sz F_gpu_driven_stack::push(const TG_span<F_indirect_argument_desc>& indirect_argument_descs)
+    {
+        sz size = 0;
+        sz alignment = 0;
+
+        for(auto& indirect_argument : indirect_argument_descs)
+        {
+            u32 indirect_argument_size = H_indirect_argument::size(indirect_argument);
+            u32 indirect_argument_alignment = H_indirect_argument::alignment(indirect_argument.type);
+
+            sz offset = align_address(size, indirect_argument_alignment);
+
+            size = offset + indirect_argument_size;
+            alignment = eastl::max<u32>(alignment, indirect_argument_alignment);
+        }
+
+        return push(size, alignment);
+    }
+
     void F_gpu_driven_stack::enqueue_resource_state(F_render_pass* pass_p, ED_resource_state states)
     {
         add_resource_state_stack_.push({
@@ -177,5 +196,19 @@ namespace nre::newrg
             .data = data,
             .offset = offset
         });
+    }
+
+    void F_gpu_driven_stack::enqueue_initial_value(u8 value, sz size, sz offset)
+    {
+        void* cached_data_p = F_single_threaded_reference_render_frame_allocator().allocate(size);
+
+        memset(cached_data_p, value, size);
+
+        enqueue_initial_value({ (u8*)cached_data_p, size }, offset);
+    }
+
+    F_resource_gpu_virtual_address F_gpu_driven_stack::query_gpu_virtual_address(sz offset)
+    {
+        return target_resource_p_->rhi_p()->gpu_virtual_address() + offset;
     }
 }
