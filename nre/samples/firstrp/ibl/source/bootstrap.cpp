@@ -292,7 +292,7 @@ int main() {
 			NRE_RENDER_VIEW_SYSTEM()->T_for_each(
 				[&](const auto& render_view_p) {
 
-					auto casted_render_view_p = render_view_p.T_cast<A_multi_output_render_view>();
+					auto casted_render_view_p = render_view_p.T_cast<A_legacy_multi_output_render_view>();
 
 				  	auto main_frame_buffer_p = casted_render_view_p->main_frame_buffer_p();
 

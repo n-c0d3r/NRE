@@ -119,7 +119,7 @@ namespace nre {
 			for (u32 i = 0; i < render_view_count; ++i)
 			{
 				auto render_view_p = render_view_p_span[i];
-				auto casted_render_view_p = render_view_p.T_cast<A_multi_output_render_view>();
+				auto casted_render_view_p = render_view_p.T_cast<A_legacy_multi_output_render_view>();
 				auto render_view_cb_p = casted_render_view_p->main_constant_buffer_p();
 				auto render_view_frame_buffer_p = casted_render_view_p->main_frame_buffer_p();
 

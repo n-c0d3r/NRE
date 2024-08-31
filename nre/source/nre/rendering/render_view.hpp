@@ -19,8 +19,9 @@ namespace nre
 
 		NONE,
 		GENERAL_TEXTURE_2D,
-		SWAPCHAIN
+		SWAPCHAIN,
 
+		RHI_TEXTURE_2D
 	};
 
 
@@ -97,7 +98,7 @@ namespace nre
 
 
 
-	class NRE_API A_multi_output_render_view : public A_render_view
+	class NRE_API A_legacy_multi_output_render_view : public A_render_view
 	{
 	private:
 		using F_main_constant_buffer_cpu_data = F_view_constant_buffer_cpu_data;
@@ -155,13 +156,13 @@ namespace nre
 
 
 	protected:
-		A_multi_output_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask = 0);
+		A_legacy_multi_output_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask = 0);
 
 	public:
-		virtual ~A_multi_output_render_view();
+		virtual ~A_legacy_multi_output_render_view();
 
 	public:
-		NCPP_OBJECT(A_multi_output_render_view);
+		NCPP_OBJECT(A_legacy_multi_output_render_view);
 
 	private:
 		virtual void setup_resources();

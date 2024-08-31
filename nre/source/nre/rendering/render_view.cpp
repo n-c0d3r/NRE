@@ -35,17 +35,17 @@ namespace nre
 
 
 
-	A_multi_output_render_view::A_multi_output_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
+	A_legacy_multi_output_render_view::A_legacy_multi_output_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
 		A_render_view(actor_p, mask),
 		swapchain_p(NRE_MAIN_SWAPCHAIN().no_requirements())
 	{
-		NRE_ACTOR_COMPONENT_REGISTER(A_multi_output_render_view);
+		NRE_ACTOR_COMPONENT_REGISTER(A_legacy_multi_output_render_view);
 	}
-	A_multi_output_render_view::~A_multi_output_render_view()
+	A_legacy_multi_output_render_view::~A_legacy_multi_output_render_view()
 	{
 	}
 
-	void A_multi_output_render_view::setup_resources() {
+	void A_legacy_multi_output_render_view::setup_resources() {
 
 		if(main_rtv_p_) {
 
@@ -81,7 +81,7 @@ namespace nre
 		}
 	}
 
-	b8 A_multi_output_render_view::update() {
+	b8 A_legacy_multi_output_render_view::update() {
 
 		switch (output_mode)
 		{

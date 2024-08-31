@@ -47,7 +47,7 @@ namespace nre {
 		const F_bind_indices& indices
 	) {
 		auto casted_material_p = material_p().T_cast<A_pbr_mesh_material>();
-		auto casted_render_view_p = render_view_p.T_cast<A_multi_output_render_view>();
+		auto casted_render_view_p = render_view_p.T_cast<A_legacy_multi_output_render_view>();
 
 		F_bind_cb_indices cb_indices = indices.cb_indices;
 		F_bind_resource_indices resource_indices = indices.resource_indices;
