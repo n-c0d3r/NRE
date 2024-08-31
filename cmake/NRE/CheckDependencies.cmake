@@ -110,6 +110,20 @@ if(NOT EXISTS "${NRE_DEPENDENCIES_DIR}/imgui")
     )
 endif()
 
+#####################################################################################
+#   meshoptimizer checking
+#####################################################################################
+if(NOT EXISTS "${NRE_DEPENDENCIES_DIR}/meshoptimizer")
+    file(MAKE_DIRECTORY "${NRE_DEPENDENCIES_DIR}/meshoptimizer")
+    NCPP_GitHelper_Clone(
+        PROJECT_NAME "meshoptimizer"
+        GIT_URL "https://github.com/zeux/meshoptimizer"
+        GIT_COMMIT "0f5df900dd4597cf1526356583cabd535c343eaa"
+        GIT_BRANCH "master"
+        DIRECTORY "${NRE_DEPENDENCIES_DIR}"
+    )
+endif()
+
 
 
 message(STATUS "<NRE::CheckDependencies> Check dependencies done")

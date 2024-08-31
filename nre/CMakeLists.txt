@@ -140,6 +140,7 @@ target_link_libraries(nre
         nrhi
         nts
         FreeImage
+        meshoptimizer
         ${NRE_THIRD_PARTY_TARGETS}
 )
 target_precompile_headers(nre
@@ -171,6 +172,7 @@ add_dependencies(nre
     nrhi
     nts
     FreeImage
+    meshoptimizer
     ${NRE_THIRD_PARTY_TARGETS}
 )
 

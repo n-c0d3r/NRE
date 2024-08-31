@@ -67,6 +67,7 @@ NCoder's Learning Aimed C++ Render Engine.
 + libpng
 + imgui
 + zlib
++ meshoptimizer
 
 ---
 

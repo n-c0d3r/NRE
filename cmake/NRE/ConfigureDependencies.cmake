@@ -55,4 +55,13 @@ endif()
 
 
 
+#####################################################################################
+#   Add meshoptimizer subdirectory
+#####################################################################################
+if(NOT TARGET meshoptimizer)
+    add_subdirectory("${NRE_DEPENDENCIES_DIR}/meshoptimizer" "${NRE_BINARY_DIR}/dependencies/meshoptimizer")
+endif()
+
+
+
 message(STATUS "<NRE::ConfigureDependencies> Configure dependencies done")
