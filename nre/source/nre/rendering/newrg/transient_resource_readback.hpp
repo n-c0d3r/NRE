@@ -82,17 +82,17 @@ namespace nre::newrg
          *  Thread-safe
          *  Return: offset
          */
-        sz enqueue_readback(sz size, sz alignment = 16);
+        sz enqueue_readback(sz size, sz alignment = 256, sz alignment_offset = 0);
         /**
          *  Thread-safe
          *  Return: offset
          */
         template<typename F_passed_data__>
-        sz T_enqueue_readback()
+        sz T_enqueue_readback(sz alignment_offset = 0)
         {
             using F_data = std::remove_const_t<std::remove_reference_t<F_passed_data__>>;
 
-            return enqueue_readback(sizeof(F_data), NCPP_ALIGNOF(F_data));
+            return enqueue_readback(sizeof(F_data), eastl::max(NCPP_ALIGNOF(F_data), 256), alignment_offset);
         }
 
     public:

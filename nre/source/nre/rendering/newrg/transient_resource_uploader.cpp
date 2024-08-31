@@ -148,11 +148,15 @@ namespace nre::newrg
         }
     }
 
-    sz F_transient_resource_uploader::enqueue_upload(const TG_span<u8>& data)
+    sz F_transient_resource_uploader::enqueue_upload(const TG_span<u8>& data, sz alignment, sz alignment_offset)
     {
         NCPP_ASSERT(is_started_rg_register_);
 
-        sz offset = total_upload_heap_size_.fetch_add(data.size(), eastl::memory_order_acq_rel);
+        sz actual_size = data.size() + alignment;
+
+        sz raw_offset = total_upload_heap_size_.fetch_add(actual_size, eastl::memory_order_acq_rel);
+
+        sz offset = align_address(raw_offset + alignment_offset, alignment) - alignment_offset;
 
         upload_queue_.push({
             .data = data,

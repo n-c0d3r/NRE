@@ -79,13 +79,13 @@ namespace nre::newrg
          *  Thread-safe
          *  Return: offset
          */
-        sz enqueue_upload(const TG_span<u8>& data);
+        sz enqueue_upload(const TG_span<u8>& data, sz alignment = 256, sz alignment_offset = 0);
         /**
          *  Thread-safe
          *  Return: offset
          */
         template<typename F_passed_data__>
-        sz T_enqueue_upload(F_passed_data__&& data)
+        sz T_enqueue_upload(F_passed_data__&& data, sz alignment_offset = 0)
         {
             using F_data = std::remove_const_t<std::remove_reference_t<F_passed_data__>>;
 
@@ -93,7 +93,7 @@ namespace nre::newrg
 
             F_data* temp_data_p = render_graph_p->T_create<F_data>(NCPP_FORWARD(data));
 
-            return enqueue_upload({ (u8*)temp_data_p, sizeof(F_data) });
+            return enqueue_upload({ (u8*)temp_data_p, sizeof(F_data) }, eastl::max(NCPP_ALIGNOF(F_data), 256), alignment_offset);
         }
 
     public:

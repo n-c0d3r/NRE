@@ -103,13 +103,13 @@ namespace nre::newrg
         }
     }
 
-    sz F_transient_resource_readback::enqueue_readback(sz size, sz alignment)
+    sz F_transient_resource_readback::enqueue_readback(sz size, sz alignment, sz alignment_offset)
     {
         NCPP_ASSERT(is_started_rg_register_);
 
         sz actual_size = size + alignment;
         sz raw_offset = total_readback_heap_size_.fetch_add(actual_size, eastl::memory_order_acq_rel);
-        sz offset = align_address(raw_offset, alignment);
+        sz offset = align_address(raw_offset + alignment_offset, alignment) - alignment_offset;
 
         readback_queue_.push({
             .size = size,
