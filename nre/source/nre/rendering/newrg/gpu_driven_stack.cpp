@@ -10,7 +10,12 @@ namespace nre::newrg
         u32 add_resource_state_stack_capacity
         NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name)
     ) :
-        resource_flags_(additional_resource_flags | ED_resource_flag::INDIRECT_ARGUMENT_BUFFER),
+        resource_flags_(
+            additional_resource_flags
+            | ED_resource_flag::INDIRECT_ARGUMENT_BUFFER
+            | ED_resource_flag::CONSTANT_BUFFER
+            | ED_resource_flag::UNORDERED_ACCESS
+        ),
         add_resource_state_stack_(add_resource_state_stack_capacity)
         NRE_OPTIONAL_DEBUG_PARAM(name_(name))
     {
