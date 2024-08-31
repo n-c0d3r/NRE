@@ -59,9 +59,9 @@ namespace nre {
 		TK<A_asset_factory> find_asset_factory(const G_string& file_extension);
 
 	public:
-		TS<A_asset> load_asset(const G_string& path);
-		TS<A_asset> load_asset(const G_string& path, const G_string& overrided_file_extension);
-		TS<A_asset> load_asset(const G_string& path, TK_valid<A_asset_factory> asset_factory_p);
+		TS<A_asset> load_asset(const G_string& path, const TG_span<G_string>& external_base_paths = {});
+		TS<A_asset> load_asset(const G_string& path, const G_string& overrided_file_extension, const TG_span<G_string>& external_base_paths = {});
+		TS<A_asset> load_asset(const G_string& path, TK_valid<A_asset_factory> asset_factory_p, const TG_span<G_string>& external_base_paths = {});
 
 	};
 

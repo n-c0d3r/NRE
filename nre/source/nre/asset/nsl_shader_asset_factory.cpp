@@ -3,6 +3,7 @@
 #include <nre/asset/path.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/render_pipeline.hpp>
+#include <nre/rendering/customized_nsl_shader_compiler.hpp>
 
 
 
@@ -35,7 +36,7 @@ namespace nre {
 			output_language = E_nsl_output_language::HLSL_5_1;
 #endif
 
-		auto compiler_p = TU<F_nsl_shader_compiler>()();
+		auto compiler_p = H_customized_nsl_shader_compiler::create();
 		auto compiled_result_opt = compiler_p->compile(
 			raw_src_content,
 			abs_path,

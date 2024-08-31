@@ -33,7 +33,7 @@ namespace nre
 
 		return base_path + "/" + path;
 	}
-	eastl::optional<G_string> H_path::find_absolute_path(const G_string& path)
+	eastl::optional<G_string> H_path::find_absolute_path(const G_string& path, const TG_span<G_string>& external_base_paths)
 	{
 		// cwd path
 		if (is_exists(path))
@@ -54,6 +54,17 @@ namespace nre
 		// NRE resources dir
 		{
 			G_string absolute_path = resolve(path, NRE_RESOURCES_DIR_PATH);
+
+			if (is_exists(absolute_path))
+			{
+				return absolute_path;
+			}
+		}
+
+		//
+		for(auto& external_base_path : external_base_paths)
+		{
+			G_string absolute_path = resolve(path, external_base_path);
 
 			if (is_exists(absolute_path))
 			{
@@ -91,6 +102,23 @@ namespace nre
 	}
 	G_string H_path::file_name(const G_string& path) {
 
-		return path.substr(path.find_last_of("/\\") + 1);
+		auto begin = path.find_last_of("/\\");
+		if(begin != -1)
+		{
+			++begin;
+			return path.substr(begin);
+		}
+
+		return path;
+	}
+	G_string H_path::base_name(const G_string& path) {
+
+		auto end = path.find_last_of("/\\");
+		if(end != -1)
+		{
+			return path.substr(0, end);
+		}
+
+		return G_string();
 	}
 }

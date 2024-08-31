@@ -49,9 +49,9 @@ namespace nre {
 			return it->second;
 	}
 
-	TS<A_asset> F_asset_system::load_asset(const G_string& path)
+	TS<A_asset> F_asset_system::load_asset(const G_string& path, const TG_span<G_string>& external_base_paths)
 	{
-		eastl::optional<G_string> abs_path_opt = H_path::find_absolute_path(path);
+		eastl::optional<G_string> abs_path_opt = H_path::find_absolute_path(path, external_base_paths);
 
 		if(abs_path_opt) {
 
@@ -91,7 +91,7 @@ namespace nre {
 
 		return null;
 	}
-	TS<A_asset> F_asset_system::load_asset(const G_string& path, const G_string& overrided_file_extension)
+	TS<A_asset> F_asset_system::load_asset(const G_string& path, const G_string& overrided_file_extension, const TG_span<G_string>& external_base_paths)
 	{
 		auto asset_factory_p = find_asset_factory(overrided_file_extension);
 
@@ -100,12 +100,13 @@ namespace nre {
 
 		return load_asset(
 			path,
-			NCPP_FOH_VALID(asset_factory_p)
+			NCPP_FOH_VALID(asset_factory_p),
+			external_base_paths
 		);
 	}
-	TS<A_asset> F_asset_system::load_asset(const G_string& path, TK_valid<A_asset_factory> asset_factory_p)
+	TS<A_asset> F_asset_system::load_asset(const G_string& path, TK_valid<A_asset_factory> asset_factory_p, const TG_span<G_string>& external_base_paths)
 	{
-		eastl::optional<G_string> abs_path_opt = H_path::find_absolute_path(path);
+		eastl::optional<G_string> abs_path_opt = H_path::find_absolute_path(path, external_base_paths);
 
 		if(abs_path_opt) {
 

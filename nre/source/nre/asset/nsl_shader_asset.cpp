@@ -24,7 +24,7 @@ namespace nre
 	F_nsl_shader_asset::F_nsl_shader_asset(
 		const G_string& abs_path,
 		const F_nsl_compiled_result& compiled_result,
-		TG_vector <TU<A_pipeline_state>>&& pipeline_state_p_vector
+		TG_vector<TU<A_pipeline_state>>&& pipeline_state_p_vector
 	) :
 		A_cached_pso_shader_asset(abs_path, std::move(pipeline_state_p_vector)),
 		compiled_result_(compiled_result)
