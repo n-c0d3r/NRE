@@ -11,7 +11,7 @@ int main() {
 	auto application_p = TU<F_application>()(
 		F_application_desc {
 			.main_surface_desc = {
-				.title = L"Transient Resource Readback (NewRG)",
+				.title = L"Abytek Geometry (NewRG)",
 				.size = { 1024, 700 }
 			}
 		}
