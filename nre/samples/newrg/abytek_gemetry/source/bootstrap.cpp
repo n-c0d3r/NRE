@@ -19,6 +19,10 @@ int main() {
 
 
 
+	auto render_path_p = TU<abytek_geometry::F_render_path>()();
+
+
+
 	// application events
 	{
 		NRE_APPLICATION_STARTUP(application_p) {
@@ -42,6 +46,9 @@ int main() {
 		NRE_NEWRG_RENDERER_RG_REGISTER()
 		{
 			auto render_graph_p = F_render_graph::instance_p();
+
+			render_path_p->RG_begin_register();
+			render_path_p->RG_end_register();
 		};
 		NRE_NEWRG_RENDERER_UPLOAD()
 		{

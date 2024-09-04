@@ -57,6 +57,7 @@
 #include <nre/rendering/newrg/binder_signature.hpp>
 #include <nre/rendering/newrg/binder.hpp>
 #include <nre/rendering/newrg/gpu_driven_stack.hpp>
+#include <nre/rendering/newrg/cpu_gpu_data_pool.hpp>
 #include <nre/rendering/newrg/abytek_geometry/.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
