@@ -76,6 +76,7 @@ namespace nre::newrg
         F_render_fence_batch cpu_wait_gpu_fence_batch_;
 
         F_render_pass_execute_range_id execute_range_id_ = NCPP_U32_MAX;
+        F_render_pass_id local_list_prev_pass_id_ = NCPP_U32_MAX;
 
         F_render_binder_group* binder_group_p_ = 0;
 
@@ -124,6 +125,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& cpu_wait_cpu_fence_batch() const noexcept { return cpu_wait_cpu_fence_batch_; }
 
         NCPP_FORCE_INLINE F_render_pass_execute_range_id execute_range_id() const noexcept { return execute_range_id_; }
+        NCPP_FORCE_INLINE F_render_pass_id local_list_prev_pass_id() const noexcept { return local_list_prev_pass_id_; }
 
         NCPP_FORCE_INLINE F_render_binder_group* binder_group_p() const noexcept { return binder_group_p_; }
 

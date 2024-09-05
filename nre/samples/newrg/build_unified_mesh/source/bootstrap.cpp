@@ -19,49 +19,49 @@ int main() {
 
 
 
-	auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/rock.obj").T_cast<F_static_mesh_asset>();
-	auto original_mesh_p = original_mesh_asset_p->mesh_p;
-	const auto& original_vertex_channels = original_mesh_p->vertex_channels();
-	const auto& original_positions = eastl::get<0>(original_vertex_channels);
-	const auto& original_normals = eastl::get<1>(original_vertex_channels);
-	const auto& original_tangents = eastl::get<2>(original_vertex_channels);
-	const auto& original_texcoords = eastl::get<3>(original_vertex_channels);
-	const auto& original_indices = original_mesh_p->indices();
-
-	auto raw_unified_mesh_data = H_unified_mesh_builder::build_raw(
-		(TG_vector<F_vector3_f32>&)original_positions,
-		(TG_vector<F_vector3_f32>&)original_normals,
-		(TG_vector<F_vector3_f32>&)original_tangents,
-		(TG_vector<F_vector2_f32>&)original_texcoords,
-		(TG_vector<F_global_vertex_id>&)original_indices
-	);
-	auto positions = H_unified_mesh_builder::build_positions(
-		raw_unified_mesh_data.raw_vertex_datas
-	);
-	auto vertex_cluster_ids = H_unified_mesh_builder::build_vertex_cluster_ids(
-		raw_unified_mesh_data.cluster_headers
-	);
-
-	auto position_buffer_p = H_buffer::create(
-		NRE_MAIN_DEVICE(),
-		{ F_subresource_data { .data_p = positions.data() } },
-		positions.size(),
-		sizeof(F_vector3_f32),
-		ED_resource_flag::INPUT_BUFFER
-	);
-	NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
-		position_buffer_p->set_debug_name("unified_mesh.position_buffer")
-	);
-	auto vertex_cluster_id_buffer_p = H_buffer::create(
-		NRE_MAIN_DEVICE(),
-		{ F_subresource_data { .data_p = vertex_cluster_ids.data() } },
-		vertex_cluster_ids.size(),
-		sizeof(F_cluster_id),
-		ED_resource_flag::INPUT_BUFFER
-	);
-	NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
-		vertex_cluster_id_buffer_p->set_debug_name("unified_mesh.vertex_cluster_id_buffer")
-	);
+	// auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/rock.obj").T_cast<F_static_mesh_asset>();
+	// auto original_mesh_p = original_mesh_asset_p->mesh_p;
+	// const auto& original_vertex_channels = original_mesh_p->vertex_channels();
+	// const auto& original_positions = eastl::get<0>(original_vertex_channels);
+	// const auto& original_normals = eastl::get<1>(original_vertex_channels);
+	// const auto& original_tangents = eastl::get<2>(original_vertex_channels);
+	// const auto& original_texcoords = eastl::get<3>(original_vertex_channels);
+	// const auto& original_indices = original_mesh_p->indices();
+	//
+	// auto raw_unified_mesh_data = H_unified_mesh_builder::build_raw(
+	// 	(TG_vector<F_vector3_f32>&)original_positions,
+	// 	(TG_vector<F_vector3_f32>&)original_normals,
+	// 	(TG_vector<F_vector3_f32>&)original_tangents,
+	// 	(TG_vector<F_vector2_f32>&)original_texcoords,
+	// 	(TG_vector<F_global_vertex_id>&)original_indices
+	// );
+	// auto positions = H_unified_mesh_builder::build_positions(
+	// 	raw_unified_mesh_data.raw_vertex_datas
+	// );
+	// auto vertex_cluster_ids = H_unified_mesh_builder::build_vertex_cluster_ids(
+	// 	raw_unified_mesh_data.cluster_headers
+	// );
+	//
+	// auto position_buffer_p = H_buffer::create(
+	// 	NRE_MAIN_DEVICE(),
+	// 	{ F_subresource_data { .data_p = positions.data() } },
+	// 	positions.size(),
+	// 	sizeof(F_vector3_f32),
+	// 	ED_resource_flag::INPUT_BUFFER
+	// );
+	// NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+	// 	position_buffer_p->set_debug_name("unified_mesh.position_buffer")
+	// );
+	// auto vertex_cluster_id_buffer_p = H_buffer::create(
+	// 	NRE_MAIN_DEVICE(),
+	// 	{ F_subresource_data { .data_p = vertex_cluster_ids.data() } },
+	// 	vertex_cluster_ids.size(),
+	// 	sizeof(F_cluster_id),
+	// 	ED_resource_flag::INPUT_BUFFER
+	// );
+	// NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+	// 	vertex_cluster_id_buffer_p->set_debug_name("unified_mesh.vertex_cluster_id_buffer")
+	// );
 
 
 
@@ -151,31 +151,33 @@ int main() {
 						NRE_OPTIONAL_DEBUG_PARAM("main_frame_buffer")
 					);
 
-					F_render_pass* draw_pass_p = render_graph_p->create_pass(
-						[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
-						{
-							command_list_p->async_clear_rtv_with_descriptor(
-								rg_rtv_p->handle_range().begin_handle.cpu_address,
-								F_vector4_f32::forward()
-							);
-							command_list_p->async_clear_dsv_with_descriptor(
-								rg_dsv_p->handle_range().begin_handle.cpu_address,
-								ED_clear_flag::DEPTH,
-								1.0f,
-								0
-							);
-						},
-						E_render_pass_flag::DEFAULT
-						NRE_OPTIONAL_DEBUG_PARAM("draw_pass")
-					);
-					draw_pass_p->add_resource_state({
-						.resource_p = rg_output_buffer_p,
-						.states = ED_resource_state::RENDER_TARGET
-					});
-					draw_pass_p->add_resource_state({
-						.resource_p = rg_depth_buffer_p,
-						.states = ED_resource_state::DEPTH_WRITE
-					});
+					{
+						F_render_pass* draw_pass_p = render_graph_p->create_pass(
+							[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
+							{
+								command_list_p->async_clear_rtv_with_descriptor(
+									rg_rtv_p->handle_range().begin_handle.cpu_address,
+									F_vector4_f32::forward()
+								);
+								command_list_p->async_clear_dsv_with_descriptor(
+									rg_dsv_p->handle_range().begin_handle.cpu_address,
+									ED_clear_flag::DEPTH,
+									1.0f,
+									0
+								);
+							},
+							E_render_pass_flag::DEFAULT
+							NRE_OPTIONAL_DEBUG_PARAM("draw_pass")
+						);
+						draw_pass_p->add_resource_state({
+							.resource_p = rg_output_buffer_p,
+							.states = ED_resource_state::RENDER_TARGET
+						});
+						draw_pass_p->add_resource_state({
+							.resource_p = rg_depth_buffer_p,
+							.states = ED_resource_state::DEPTH_WRITE
+						});
+					}
 				}
 			);
 		};

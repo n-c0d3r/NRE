@@ -54,7 +54,7 @@ namespace nre::newrg
         virtual void RG_register();
 
     public:
-        void unbind();
+        void unbind_output();
         void bind_output(TSPA<F_general_texture_2d> output_general_texture_2d_p);
         void bind_output(TKPA_valid<A_swapchain> output_swapchain_p);
         void bind_output(KPA_valid_rtv_handle output_managed_rtv_p);

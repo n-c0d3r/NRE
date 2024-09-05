@@ -1457,8 +1457,7 @@ namespace nre::newrg
             ED_resource_state states_before,
             ED_resource_state states_after,
             u32 concurrent_write_range_index_before,
-            u32 concurrent_write_range_index_after,
-            b8 can_be_optimized_after
+            u32 concurrent_write_range_index_after
         )->eastl::optional<F_resource_barrier>
         {
             u32 subresource_index = subresource_index_after;
@@ -1499,7 +1498,7 @@ namespace nre::newrg
                 });
             }
 
-            if(flag_is_has(states_before, states_after) && can_be_optimized_after)
+            if(states_before == states_after)
             {
                 return eastl::nullopt;
             }
@@ -1562,6 +1561,9 @@ namespace nre::newrg
                         auto resource_concurrent_write_range_index = resource_concurrent_write_range_indices[i];
                         auto optimized_states = resource_state_index_to_optimized_states[i];
 
+                        auto& resource_barrier_before = resource_barriers_before[i];
+                        auto& resource_barrier_after = resource_barriers_after[i];
+
                         F_render_resource* resource_p = resource_state.resource_p;
                         auto rhi_p = resource_p->rhi_p();
 
@@ -1594,7 +1596,7 @@ namespace nre::newrg
                             {
                                 if(resource_p->default_states() != optimized_states)
                                 {
-                                    resource_barriers_after[i] = H_resource_barrier::transition(
+                                    resource_barrier_after = H_resource_barrier::transition(
                                         F_resource_transition_barrier {
                                             .resource_p = (TKPA<A_resource>)rhi_p,
                                             .subresource_index = resource_state.subresource_index,
@@ -1617,7 +1619,7 @@ namespace nre::newrg
                         {
                             if(resource_p->default_states() != optimized_states)
                             {
-                                resource_barriers_before[i] = H_resource_barrier::transition(
+                                resource_barrier_before = H_resource_barrier::transition(
                                     F_resource_transition_barrier {
                                         .resource_p = (TKPA<A_resource>)rhi_p,
                                         .subresource_index = resource_state.subresource_index,
@@ -1634,16 +1636,33 @@ namespace nre::newrg
                             auto producer_resource_concurrent_write_range_index = producer_pass_p->resource_concurrent_write_range_indices_[resource_producer_dependency.resource_state_index];
                             auto producer_optimized_states = producer_pass_p->resource_state_index_to_optimized_states_[resource_producer_dependency.resource_state_index];
 
-                            resource_barriers_before[i] = calculate_resource_barrier_before(
+                            resource_barrier_before = calculate_resource_barrier_before(
                                 (TKPA_valid<A_resource>)rhi_p,
                                 producer_resource_state.subresource_index,
                                 resource_state.subresource_index,
                                 producer_optimized_states,
                                 optimized_states,
                                 producer_resource_concurrent_write_range_index,
-                                resource_concurrent_write_range_index,
-                                resource_state.enable_states_optimization
+                                resource_concurrent_write_range_index
                             );
+
+                            if(resource_barrier_before)
+                            {
+                                if(
+                                    // if the producer pass is the prev pass, the 2 barriers can be merged into one resource barrier call
+                                    // -> dont merge their barriers
+                                    (resource_producer_dependency.pass_id != pass_p->local_list_prev_pass_id_)
+                                    // only use split barriers for transition barrier
+                                    && (resource_barrier_before->type == ED_resource_barrier_type::TRANSITION)
+                                )
+                                {
+                                    auto& producer_resource_barrier_after = producer_pass_p->resource_barriers_after_[resource_producer_dependency.resource_state_index];
+                                    producer_resource_barrier_after = resource_barrier_before;
+
+                                    producer_resource_barrier_after->flags = ED_resource_barrier_flag::BEGIN_ONLY;
+                                    resource_barrier_before->flags = ED_resource_barrier_flag::END_ONLY;
+                                }
+                            }
                         }
                     }
                 }
@@ -2156,21 +2175,27 @@ namespace nre::newrg
                 auto& pass_id_lists = execute_range.pass_id_lists;
 
                 F_render_execute_pass_id_list execute_pass_id_list;
+                F_render_pass_id last_pass_id = NCPP_U32_MAX;
                 for(auto pass_id : merged_execute_range_data.pass_ids)
                 {
                     if(execute_pass_id_list.size() >= NRE_RENDER_GRAPH_EXECUTE_PASS_ID_LIST_CAPACITY)
                     {
                         pass_id_lists.push_back(execute_pass_id_list);
                         execute_pass_id_list = {};
+                        last_pass_id = NCPP_U32_MAX;
                     }
 
                     execute_pass_id_list.push_back(pass_id);
+
+                    pass_span[pass_id]->local_list_prev_pass_id_ = last_pass_id;
+                    last_pass_id = pass_id;
                 }
 
                 if(execute_pass_id_list.size())
                 {
                     pass_id_lists.push_back(execute_pass_id_list);
                     execute_pass_id_list = {};
+                    last_pass_id = NCPP_U32_MAX;
                 }
 
                 execute_range_owf_stack_.push(std::move(execute_range));
@@ -2383,6 +2408,17 @@ namespace nre::newrg
                 F_render_binder_group* current_binder_group_p = 0;
                 F_render_binder_group_signatures current_binder_group_signatures;
 
+                //
+                F_render_resource_barrier_batch resource_barrier_batch;
+                auto flush_resource_barrier_batch = [&]()
+                {
+                    if(resource_barrier_batch.size())
+                    {
+                        command_list_p->async_resource_barriers(resource_barrier_batch);
+                        resource_barrier_batch.clear();
+                    }
+                };
+
                 // for each pass in this batch, execute it
                 for(F_render_pass_id pass_id : pass_id_list)
                 {
@@ -2416,6 +2452,10 @@ namespace nre::newrg
 
                         if(current_binder_group_p != pass_binder_group)
                         {
+                            //
+                            flush_resource_barrier_batch();
+
+                            //
                             NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
                                 if(current_binder_group_p)
                                 {
@@ -2441,10 +2481,14 @@ namespace nre::newrg
                     }
 
                     //
-                    if(pass_p->resource_barrier_batch_before_.size())
-                        command_list_p->async_resource_barriers(
-                            pass_p->resource_barrier_batch_before_
-                        );
+                    resource_barrier_batch.insert(
+                        resource_barrier_batch.end(),
+                        pass_p->resource_barrier_batch_before_.begin(),
+                        pass_p->resource_barrier_batch_before_.end()
+                    );
+
+                    //
+                    flush_resource_barrier_batch();
 
                     //
                     NRHI_COMMAND_LIST_BEGIN_EVENT(
@@ -2458,10 +2502,11 @@ namespace nre::newrg
                     );
 
                     //
-                    if(pass_p->resource_barrier_batch_after_.size())
-                        command_list_p->async_resource_barriers(
-                            pass_p->resource_barrier_batch_after_
-                        );
+                    resource_barrier_batch.insert(
+                        resource_barrier_batch.end(),
+                        pass_p->resource_barrier_batch_after_.begin(),
+                        pass_p->resource_barrier_batch_after_.end()
+                    );
 
                     // cpu signal cpu fences
                     for(auto& fence_target : cpu_signal_cpu_fence_batch)
@@ -2472,6 +2517,10 @@ namespace nre::newrg
                     }
                 }
 
+                //
+                flush_resource_barrier_batch();
+
+                //
                 NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
                     if(current_binder_group_p)
                     {

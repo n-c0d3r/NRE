@@ -78,7 +78,7 @@ namespace nre::newrg
     {
     }
 
-    void F_scene_render_view::unbind()
+    void F_scene_render_view::unbind_output()
     {
         output_mode_ = E_render_view_output_mode::NONE;
         output_general_texture_2d_p_ = null;
