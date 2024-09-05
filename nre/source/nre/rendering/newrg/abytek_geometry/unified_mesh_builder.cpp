@@ -12,13 +12,14 @@ namespace nre::newrg::abytek_geometry
         const TG_span<F_global_vertex_id>& indices
     )
     {
-        F_unified_mesh_data result;
-
         //
         TG_vector<F_raw_vertex_data> raw_vertex_datas;
         TG_vector<F_cluster_header> cluster_headers;
+        TG_vector<F_dag_node_header> dag_node_headers;
+        TG_vector<F_dag_node_culling_data> dag_node_culling_datas;
+        F_dag_node_id root_dag_node_id;
 
-        // build clusters
+        // build 0-level clusters
         {
             size_t max_meshlets = meshopt_buildMeshletsBound(
                 indices.size(),
@@ -81,6 +82,20 @@ namespace nre::newrg::abytek_geometry
             }
         }
 
-        return eastl::move(result);
+        // build higher level dag nodes
+        {
+            TG_vector<F_cluster_header> current_level_cluster_headers = cluster_headers;
+            u32 current_level_cluster_count = current_level_cluster_headers.size();
+
+            TG_vector<F_dag_node_header> current_level_dag_node_headers;
+            current_level_dag_node_headers.resize(current_level_cluster_count);
+
+            while(current_level_cluster_count > 1)
+            {
+
+            }
+        }
+
+        return {};
     }
 }
