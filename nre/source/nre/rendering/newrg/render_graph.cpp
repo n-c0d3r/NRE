@@ -1579,17 +1579,17 @@ namespace nre::newrg
                             )
                         )
                         {
+                            b8 is_texture = (
+                                (desc.type == ED_resource_type::TEXTURE_1D)
+                                || (desc.type == ED_resource_type::TEXTURE_1D_ARRAY)
+                                || (desc.type == ED_resource_type::TEXTURE_2D)
+                                || (desc.type == ED_resource_type::TEXTURE_2D_ARRAY)
+                                || (desc.type == ED_resource_type::TEXTURE_3D)
+                            );
+
                             if(
-                                !(
-                                    (
-                                        (desc.type == ED_resource_type::TEXTURE_1D)
-                                        || (desc.type == ED_resource_type::TEXTURE_1D_ARRAY)
-                                        || (desc.type == ED_resource_type::TEXTURE_2D)
-                                        || (desc.type == ED_resource_type::TEXTURE_2D_ARRAY)
-                                        || (desc.type == ED_resource_type::TEXTURE_3D)
-                                    )
-                                    || flag_is_has(desc.flags, ED_resource_flag::SIMULTANEOUS_TEXTURE)
-                                )
+                                is_texture
+                                && !flag_is_has(desc.flags, ED_resource_flag::SIMULTANEOUS_TEXTURE)
                             )
                             {
                                 if(resource_p->default_states() != optimized_states)
