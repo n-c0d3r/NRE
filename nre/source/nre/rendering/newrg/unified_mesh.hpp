@@ -4,6 +4,6 @@
 
 
 
-namespace nre::newrg::abytek_geometry
+namespace nre::newrg
 {
 }

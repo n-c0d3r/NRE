@@ -100,7 +100,7 @@ namespace nre {
 		TKPA_valid<A_frame_buffer> frame_buffer_p
 	) {
 		auto casted_material_p = material_p().T_cast<F_hdri_sky_material>();
-		auto casted_render_view_p = render_view_p.T_cast<A_legacy_standard_render_view>();
+		auto casted_render_view_p = render_view_p.T_cast<A_legacy_scene_render_view>();
 
 		render_command_list_p->ZG_bind_pipeline_state(
 			NCPP_FOH_VALID(main_graphics_pso_p_)

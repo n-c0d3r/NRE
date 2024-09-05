@@ -15,7 +15,12 @@ namespace nre {
 		A_actor_component(actor_p),
 		transform_node_p_(actor_p->template T_component<F_transform_node>()),
 		render_view_p_(
-			actor_p->template T_guarantee_component<A_render_view, F_simple_render_view>()
+			actor_p->template T_guarantee_component<A_render_view>(
+				[](TKPA_valid<F_actor> actor_p)
+				{
+					return NRE_RENDER_PIPELINE()->create_scene_render_view(actor_p);
+				}
+			)
 		)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_camera);

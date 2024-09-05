@@ -1,9 +1,9 @@
-#include <nre/rendering/newrg/abytek_geometry/render_path.hpp>
-#include <nre/rendering/newrg/abytek_geometry/render_actor_data_pool.hpp>
+#include <nre/rendering/newrg/render_path.hpp>
+#include <nre/rendering/newrg/render_actor_data_pool.hpp>
 
 
 
-namespace nre::newrg::abytek_geometry
+namespace nre::newrg
 {
     TK<F_render_path> F_render_path::instance_p_;
 

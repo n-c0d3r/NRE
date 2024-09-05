@@ -4,7 +4,7 @@
 
 
 
-namespace nre::newrg::abytek_geometry
+namespace nre::newrg
 {
     using F_global_vertex_id = u32;
     using F_local_cluster_vertex_id = u8;
@@ -33,7 +33,7 @@ namespace nre::newrg::abytek_geometry
     {
         F_global_vertex_id global_base_vertex_id;
         F_global_vertex_id vertex_count;
-        F_local_cluster_vertex_id local_triangle_vertex_ids[NRE_ABYTEK_GEOMETRY_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3];
+        F_local_cluster_vertex_id local_triangle_vertex_ids[NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3];
     };
 
     using F_dag_node_id = u32;

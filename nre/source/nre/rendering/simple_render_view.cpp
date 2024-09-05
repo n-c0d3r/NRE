@@ -10,7 +10,7 @@ namespace nre
 {
 
 	F_simple_render_view::F_simple_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
-		A_legacy_standard_render_view(actor_p, mask | T_type_hash_code<F_simple_render_view>)
+		A_legacy_scene_render_view(actor_p, mask | T_type_hash_code<F_simple_render_view>)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_simple_render_view);
 	}
@@ -20,7 +20,7 @@ namespace nre
 
 	b8 F_simple_render_view::guarantee_resources() {
 
-		if(!A_legacy_standard_render_view::guarantee_resources()) {
+		if(!A_legacy_scene_render_view::guarantee_resources()) {
 
 			if(main_rtv_p_) {
 

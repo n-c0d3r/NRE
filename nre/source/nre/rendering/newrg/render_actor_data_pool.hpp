@@ -6,7 +6,7 @@
 
 
 
-namespace nre::newrg::abytek_geometry
+namespace nre::newrg
 {
     struct F_render_actor_data
     {

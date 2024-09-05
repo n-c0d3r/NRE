@@ -1,8 +1,10 @@
 #include <nre/rendering/firstrp/render_pipeline.hpp>
 #include <nre/rendering/firstrp/debug_drawer.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/simple_render_view.hpp>
 #include <nre/application/application.hpp>
 #include <nre/ui/imgui.hpp>
+#include <nre/actor/actor.hpp>
 
 
 
@@ -219,4 +221,8 @@ namespace nre::firstrp {
 		main_swapchain_p_->present();
 	}
 
+	TK_valid<A_render_view> F_render_pipeline::create_scene_render_view(TKPA_valid<F_actor> actor_p)
+	{
+		return actor_p->T_add_component<F_simple_render_view>();
+	}
 }

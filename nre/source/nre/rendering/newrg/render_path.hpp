@@ -4,7 +4,7 @@
 
 
 
-namespace nre::newrg::abytek_geometry
+namespace nre::newrg
 {
     class F_render_actor_data_pool;
 

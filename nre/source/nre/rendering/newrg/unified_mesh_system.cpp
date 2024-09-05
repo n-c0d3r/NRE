@@ -1,8 +1,8 @@
-#include <nre/rendering/newrg/abytek_geometry/unified_mesh_system.hpp>
+#include <nre/rendering/newrg/unified_mesh_system.hpp>
 
 
 
-namespace nre::newrg::abytek_geometry
+namespace nre::newrg
 {
     TK<F_unified_mesh_system> F_unified_mesh_system::instance_p_;
 

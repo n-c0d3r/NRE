@@ -2,11 +2,11 @@
 
 #include <nre/prerequisites.hpp>
 
-#include <nre/rendering/newrg/abytek_geometry/unified_mesh_data.hpp>
+#include <nre/rendering/newrg/unified_mesh_data.hpp>
 
 
 
-namespace nre::newrg::abytek_geometry
+namespace nre::newrg
 {
     class NRE_API H_unified_mesh_builder
     {

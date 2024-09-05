@@ -1,9 +1,9 @@
-#include <nre/rendering/newrg/abytek_geometry/unified_mesh_builder.hpp>
+#include <nre/rendering/newrg/unified_mesh_builder.hpp>
 #include <nre/rendering/triangle_utilities.hpp>
 
 
 
-namespace nre::newrg::abytek_geometry
+namespace nre::newrg
 {
     F_raw_unified_mesh_data H_unified_mesh_builder::build_raw(
         const TG_span<F_vector3_f32>& positions,
@@ -20,14 +20,14 @@ namespace nre::newrg::abytek_geometry
         {
             size_t max_meshlets = meshopt_buildMeshletsBound(
                 indices.size(),
-                NRE_ABYTEK_GEOMETRY_MAX_VERTEX_COUNT_PER_CLUSTER,
-                NRE_ABYTEK_GEOMETRY_MAX_TRIANGLE_COUNT_PER_CLUSTER
+                NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER,
+                NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER
             );
             TG_vector<meshopt_Meshlet> meshlets(max_meshlets);
-            TG_vector<unsigned int> meshlet_vertices(max_meshlets * NRE_ABYTEK_GEOMETRY_MAX_VERTEX_COUNT_PER_CLUSTER);
-            TG_vector<unsigned char> meshlet_triangle_vertex_indices(max_meshlets * NRE_ABYTEK_GEOMETRY_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3);
+            TG_vector<unsigned int> meshlet_vertices(max_meshlets * NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER);
+            TG_vector<unsigned char> meshlet_triangle_vertex_indices(max_meshlets * NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3);
 
-            result.raw_vertex_datas.reserve(max_meshlets * NRE_ABYTEK_GEOMETRY_MAX_VERTEX_COUNT_PER_CLUSTER);
+            result.raw_vertex_datas.reserve(max_meshlets * NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER);
 
             size_t meshlet_count = meshopt_buildMeshlets(
                 meshlets.data(),
@@ -38,8 +38,8 @@ namespace nre::newrg::abytek_geometry
                 (const float*)positions.data(),
                 positions.size(),
                 sizeof(F_vector3_f32),
-                NRE_ABYTEK_GEOMETRY_MAX_VERTEX_COUNT_PER_CLUSTER,
-                NRE_ABYTEK_GEOMETRY_MAX_TRIANGLE_COUNT_PER_CLUSTER,
+                NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER,
+                NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER,
                 0.0f
             );
 

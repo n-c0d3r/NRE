@@ -28,17 +28,17 @@ int main() {
 	const auto& original_texcoords = eastl::get<3>(original_vertex_channels);
 	const auto& original_indices = original_mesh_p->indices();
 
-	auto raw_unified_mesh_data = abytek_geometry::H_unified_mesh_builder::build_raw(
+	auto raw_unified_mesh_data = H_unified_mesh_builder::build_raw(
 		(TG_vector<F_vector3_f32>&)original_positions,
 		(TG_vector<F_vector3_f32>&)original_normals,
 		(TG_vector<F_vector3_f32>&)original_tangents,
 		(TG_vector<F_vector2_f32>&)original_texcoords,
-		(TG_vector<abytek_geometry::F_global_vertex_id>&)original_indices
+		(TG_vector<F_global_vertex_id>&)original_indices
 	);
-	auto positions = abytek_geometry::H_unified_mesh_builder::build_positions(
+	auto positions = H_unified_mesh_builder::build_positions(
 		raw_unified_mesh_data.raw_vertex_datas
 	);
-	auto vertex_cluster_ids = abytek_geometry::H_unified_mesh_builder::build_vertex_cluster_ids(
+	auto vertex_cluster_ids = H_unified_mesh_builder::build_vertex_cluster_ids(
 		raw_unified_mesh_data.cluster_headers
 	);
 
@@ -56,12 +56,26 @@ int main() {
 		NRE_MAIN_DEVICE(),
 		{ F_subresource_data { .data_p = vertex_cluster_ids.data() } },
 		vertex_cluster_ids.size(),
-		sizeof(abytek_geometry::F_cluster_id),
+		sizeof(F_cluster_id),
 		ED_resource_flag::INPUT_BUFFER
 	);
 	NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
 		vertex_cluster_id_buffer_p->set_debug_name("unified_mesh.vertex_cluster_id_buffer")
 	);
+
+
+
+	// create level
+	auto level_p = TU<F_level>()();
+
+	// create spectator
+	auto spectator_actor_p = level_p->T_create_actor();
+	auto spectator_transform_node_p = spectator_actor_p->template T_add_component<F_transform_node>();
+	auto spectator_camera_p = spectator_actor_p->template T_add_component<F_camera>();
+	auto spectator_p = spectator_actor_p->template T_add_component<F_spectator>();
+
+	spectator_p->position = F_vector3 { 0.0f, 0.0f, -10.0f };
+	spectator_p->move_speed = 4.0f;
 
 
 
@@ -87,6 +101,7 @@ int main() {
 	{
 		NRE_NEWRG_RENDERER_RG_REGISTER()
 		{
+			H_scene_render_view::RG_register_all();
 		};
 		NRE_NEWRG_RENDERER_UPLOAD()
 		{

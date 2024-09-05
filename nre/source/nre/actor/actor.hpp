@@ -133,6 +133,14 @@ namespace nre {
 				std::forward<F_args__>(args)...
 			);
 		}
+		template<typename F_search_component__>
+		TK_valid<F_search_component__> T_guarantee_component(auto&& create_component_functor)
+		{
+			if(T_is_has_component<F_search_component__>())
+				return T_component<F_search_component__>();
+
+			return create_component_functor(NCPP_KTHIS());
+		}
 
 	public:
 		void set_gameplay_tick(b8 value);

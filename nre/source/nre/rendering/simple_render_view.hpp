@@ -7,7 +7,7 @@
 
 namespace nre
 {
-	class NRE_API F_simple_render_view : public A_legacy_standard_render_view
+	class NRE_API F_simple_render_view : public A_legacy_scene_render_view
 	{
 
 	private:

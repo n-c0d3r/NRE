@@ -4,9 +4,11 @@
 #include <nre/rendering/newrg/renderer.hpp>
 #include <nre/rendering/newrg/intermediate_descriptor_manager.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
+#include <nre/rendering/newrg/scene_render_view.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/application/application.hpp>
 #include <nre/ui/imgui.hpp>
+#include <nre/actor/actor.hpp>
 
 
 
@@ -233,4 +235,8 @@ namespace nre::newrg {
 		end_minimal_frame_internal();
 	}
 
+	TK_valid<A_render_view> F_render_pipeline::create_scene_render_view(TKPA_valid<F_actor> actor_p)
+	{
+		return actor_p->T_add_component<F_scene_render_view>();
+	}
 }

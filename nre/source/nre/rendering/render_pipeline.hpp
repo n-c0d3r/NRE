@@ -4,7 +4,12 @@
 
 
 
-namespace nre {
+namespace nre
+{
+	class A_render_view;
+	class F_actor;
+
+
 
 	class NRE_API A_render_pipeline {
 
@@ -104,6 +109,8 @@ namespace nre {
 		virtual void begin_render();
 		virtual void end_render();
 
+	public:
+		virtual TK_valid<A_render_view> create_scene_render_view(TKPA_valid<F_actor> actor_p) = 0;
 	};
 
 }

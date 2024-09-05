@@ -60,7 +60,7 @@ namespace nre
 
 
 
-	class I_root_render_view {};
+	class I_scene_render_view {};
 
 
 
@@ -107,7 +107,9 @@ namespace nre
 
 
 
-	class NRE_API A_legacy_standard_render_view : public A_render_view
+	class NRE_API A_legacy_scene_render_view :
+		public A_render_view,
+		public I_scene_render_view
 	{
 	private:
 		using F_main_constant_buffer_cpu_data = F_view_constant_buffer_cpu_data;
@@ -147,13 +149,13 @@ namespace nre
 
 
 	protected:
-		A_legacy_standard_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask = 0);
+		A_legacy_scene_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask = 0);
 
 	public:
-		virtual ~A_legacy_standard_render_view();
+		virtual ~A_legacy_scene_render_view();
 
 	public:
-		NCPP_OBJECT(A_legacy_standard_render_view);
+		NCPP_OBJECT(A_legacy_scene_render_view);
 
 	private:
 		void setup_resources_internal();

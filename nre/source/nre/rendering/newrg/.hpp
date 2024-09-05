@@ -58,7 +58,17 @@
 #include <nre/rendering/newrg/binder.hpp>
 #include <nre/rendering/newrg/gpu_driven_stack.hpp>
 #include <nre/rendering/newrg/cpu_gpu_data_pool.hpp>
-#include <nre/rendering/newrg/abytek_geometry/.hpp>
+#include <nre/rendering/newrg/scene_render_view.hpp>
+#include <nre/rendering/newrg/render_path.hpp>
+#include <nre/rendering/newrg/render_actor_data_pool.hpp>
+#include <nre/rendering/newrg/unified_mesh.hpp>
+#include <nre/rendering/newrg/unified_mesh_data.hpp>
+#include <nre/rendering/newrg/unified_mesh_asset.hpp>
+#include <nre/rendering/newrg/unified_mesh_asset_factory.hpp>
+#include <nre/rendering/newrg/unified_mesh_builder.hpp>
+#include <nre/rendering/newrg/unified_mesh_system.hpp>
+#include <nre/rendering/newrg/unified_mesh_drawable.hpp>
+#include <nre/rendering/newrg/unified_mesh_material.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

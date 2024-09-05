@@ -65,6 +65,8 @@ namespace nre::firstrp {
 		virtual void begin_render() override;
 		virtual void end_render() override;
 
+	public:
+		virtual TK_valid<A_render_view> create_scene_render_view(TKPA_valid<F_actor> actor_p) override;
 	};
 
 }
