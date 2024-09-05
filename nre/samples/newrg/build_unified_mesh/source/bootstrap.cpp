@@ -77,6 +77,8 @@ int main() {
 	spectator_p->position = F_vector3 { 0.0f, 0.0f, -10.0f };
 	spectator_p->move_speed = 4.0f;
 
+	spectator_camera_p->render_view_p().T_cast<F_scene_render_view>()->bind_output(NRE_MAIN_SWAPCHAIN());
+
 
 
 	// application events
@@ -110,13 +112,13 @@ int main() {
 				{
 					auto size = scene_render_view_p->size();
 
-					auto back_rtv_p = scene_render_view_p->output_rtv_p;
-					auto back_buffer_p = back_rtv_p->desc().resource_p;
+					auto output_rtv_descriptor_handle = scene_render_view_p->output_rtv_descriptor_handle();
+					auto output_texture_2d_p = scene_render_view_p->output_texture_2d_p();
 
-					F_render_resource* rg_back_buffer_p = render_graph_p->create_permanent_resource(
-						NCPP_FOH_VALID(back_buffer_p),
+					F_render_resource* rg_output_buffer_p = render_graph_p->create_permanent_resource(
+						NCPP_FOH_VALID(output_texture_2d_p),
 						ED_resource_state::COMMON
-						NRE_OPTIONAL_DEBUG_PARAM(back_buffer_p->debug_name().c_str())
+						NRE_OPTIONAL_DEBUG_PARAM(output_texture_2d_p->debug_name().c_str())
 					);
 					F_render_resource* rg_depth_buffer_p = render_graph_p->create_resource(
 						H_resource_desc::create_texture_2d_desc(
@@ -131,8 +133,9 @@ int main() {
 					);
 
 					F_render_descriptor* rg_back_rtv_p = render_graph_p->create_descriptor_from_src(
-						NCPP_AOH_VALID(back_rtv_p)
-						NRE_OPTIONAL_DEBUG_PARAM(back_rtv_p->debug_name().c_str())
+						output_rtv_descriptor_handle,
+						ED_descriptor_heap_type::RENDER_TARGET
+						NRE_OPTIONAL_DEBUG_PARAM("main_rtv")
 					);
 					F_render_descriptor* rg_dsv_p = render_graph_p->create_resource_view(
 						rg_depth_buffer_p,
@@ -145,6 +148,22 @@ int main() {
 						rg_dsv_p
 						NRE_OPTIONAL_DEBUG_PARAM("main_frame_buffer")
 					);
+
+					F_render_pass* draw_pass_p = render_graph_p->create_pass(
+						[](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
+						{
+						},
+						E_render_pass_flag::DEFAULT
+						NRE_OPTIONAL_DEBUG_PARAM("draw_pass")
+					);
+					draw_pass_p->add_resource_state({
+						.resource_p = rg_output_buffer_p,
+						.states = ED_resource_state::RENDER_TARGET
+					});
+					draw_pass_p->add_resource_state({
+						.resource_p = rg_depth_buffer_p,
+						.states = ED_resource_state::DEPTH_WRITE
+					});
 				}
 			);
 		};

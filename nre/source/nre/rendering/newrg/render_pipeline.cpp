@@ -124,6 +124,7 @@ namespace nre::newrg {
 				F_swapchain_desc {
 				}
 			);
+			main_swapchain_p_->update_back_rtv();
 			NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
 				main_swapchain_p_->set_debug_name("nre.newrg.render_pipeline.main_swapchain");
 			);

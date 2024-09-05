@@ -13,8 +13,19 @@ namespace nre::newrg
         public A_render_view,
         public I_scene_render_view
     {
+    private:
+        E_render_view_output_mode output_mode_ = E_render_view_output_mode::NONE;
+        TS<F_general_texture_2d> output_general_texture_2d_p_;
+        TK<A_swapchain> output_swapchain_p_;
+        K_rtv_handle output_managed_rtv_p_;
+        eastl::pair<F_descriptor_handle, K_texture_2d_handle> output_unmanaged_rtv_descriptor_handle_and_texture_2d_p_;
+
     public:
-        K_rtv_handle output_rtv_p;
+        NCPP_FORCE_INLINE auto output_mode() const noexcept { return output_mode_; }
+        NCPP_FORCE_INLINE const auto& output_general_texture_2d_p() const noexcept { return output_general_texture_2d_p_; }
+        NCPP_FORCE_INLINE const auto& output_swapchain_p() const noexcept { return output_swapchain_p_; }
+        NCPP_FORCE_INLINE const auto& output_managed_rtv_p() const noexcept { return output_managed_rtv_p_; }
+        NCPP_FORCE_INLINE const auto& output_unmanaged_rtv_descriptor_handle_and_texture_2d_p() const noexcept { return output_unmanaged_rtv_descriptor_handle_and_texture_2d_p_; }
 
 
 
@@ -32,6 +43,17 @@ namespace nre::newrg
 
     public:
         virtual void RG_register();
+
+    public:
+        F_descriptor_handle output_rtv_descriptor_handle();
+        K_texture_2d_handle output_texture_2d_p();
+
+    public:
+        void unbind();
+        void bind_output(TSPA<F_general_texture_2d> output_general_texture_2d_p);
+        void bind_output(TKPA_valid<A_swapchain> output_swapchain_p);
+        void bind_output(KPA_valid_rtv_handle output_managed_rtv_p);
+        void bind_output(const eastl::pair<F_descriptor_handle, K_texture_2d_handle>& output_unmanaged_rtv_descriptor_handle_and_texture_2d_p);
     };
 
 
