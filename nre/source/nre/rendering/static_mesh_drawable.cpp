@@ -22,6 +22,9 @@ namespace nre {
 		)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_static_mesh_drawable);
+		NRE_ACTOR_COMPONENT_REGISTER(I_has_simple_draw_drawable);
+		NRE_ACTOR_COMPONENT_REGISTER(I_has_input_buffer_drawable);
+		NRE_ACTOR_COMPONENT_REGISTER(I_has_index_buffer_drawable);
 	}
 	F_static_mesh_drawable::F_static_mesh_drawable(TKPA_valid<F_actor> actor_p, TSPA<A_static_mesh> mesh_p, F_drawable_mask mask) :
 		A_drawable(
@@ -36,6 +39,9 @@ namespace nre {
 		mesh_p(mesh_p)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_static_mesh_drawable);
+		NRE_ACTOR_COMPONENT_REGISTER(I_has_simple_draw_drawable);
+		NRE_ACTOR_COMPONENT_REGISTER(I_has_input_buffer_drawable);
+		NRE_ACTOR_COMPONENT_REGISTER(I_has_index_buffer_drawable);
 	}
 	F_static_mesh_drawable::~F_static_mesh_drawable()
 	{

@@ -35,19 +35,24 @@ namespace nre
 
 
 
-	A_legacy_multi_output_render_view::A_legacy_multi_output_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
-		A_render_view(actor_p, mask | T_type_hash_code<A_legacy_multi_output_render_view>),
+	A_legacy_standard_render_view::A_legacy_standard_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
+		A_render_view(
+			actor_p,
+			mask
+			| NRE_RENDER_VIEW_SYSTEM()->T_mask<I_root_render_view>()
+		),
 		swapchain_p(NRE_MAIN_SWAPCHAIN().no_requirements())
 	{
-		NRE_ACTOR_COMPONENT_REGISTER(A_legacy_multi_output_render_view);
+		NRE_ACTOR_COMPONENT_REGISTER(A_legacy_standard_render_view);
+		NRE_ACTOR_COMPONENT_REGISTER(I_root_render_view);
 
 		actor_p->set_render_tick(true);
 	}
-	A_legacy_multi_output_render_view::~A_legacy_multi_output_render_view()
+	A_legacy_standard_render_view::~A_legacy_standard_render_view()
 	{
 	}
 
-	void A_legacy_multi_output_render_view::setup_resources_internal() {
+	void A_legacy_standard_render_view::setup_resources_internal() {
 
 		if(main_rtv_p_) {
 
@@ -83,7 +88,7 @@ namespace nre
 		}
 	}
 
-	void A_legacy_multi_output_render_view::render_tick()
+	void A_legacy_standard_render_view::render_tick()
 	{
 		// update size
 		if(main_rtv_p_)
@@ -104,7 +109,7 @@ namespace nre
 		guarantee_resources();
 	}
 
-	b8 A_legacy_multi_output_render_view::guarantee_resources() {
+	b8 A_legacy_standard_render_view::guarantee_resources() {
 
 		switch (output_mode)
 		{
