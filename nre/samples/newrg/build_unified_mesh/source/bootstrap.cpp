@@ -101,7 +101,52 @@ int main() {
 	{
 		NRE_NEWRG_RENDERER_RG_REGISTER()
 		{
+			auto render_graph_p = F_render_graph::instance_p();
+
 			H_scene_render_view::RG_register_all();
+
+			H_scene_render_view::for_each(
+				[&](TKPA_valid<F_scene_render_view> scene_render_view_p)
+				{
+					auto size = scene_render_view_p->size();
+
+					auto back_rtv_p = scene_render_view_p->output_rtv_p;
+					auto back_buffer_p = back_rtv_p->desc().resource_p;
+
+					F_render_resource* rg_back_buffer_p = render_graph_p->create_permanent_resource(
+						NCPP_FOH_VALID(back_buffer_p),
+						ED_resource_state::COMMON
+						NRE_OPTIONAL_DEBUG_PARAM(back_buffer_p->debug_name().c_str())
+					);
+					F_render_resource* rg_depth_buffer_p = render_graph_p->create_resource(
+						H_resource_desc::create_texture_2d_desc(
+							size.width,
+							size.height,
+							ED_format::D32_FLOAT,
+							1,
+							{},
+							ED_resource_flag::DEPTH_STENCIL
+						)
+						NRE_OPTIONAL_DEBUG_PARAM("main_depth_buffer")
+					);
+
+					F_render_descriptor* rg_back_rtv_p = render_graph_p->create_descriptor_from_src(
+						NCPP_AOH_VALID(back_rtv_p)
+						NRE_OPTIONAL_DEBUG_PARAM(back_rtv_p->debug_name().c_str())
+					);
+					F_render_descriptor* rg_dsv_p = render_graph_p->create_resource_view(
+						rg_depth_buffer_p,
+						ED_resource_view_type::DEPTH_STENCIL
+						NRE_OPTIONAL_DEBUG_PARAM("main_dsv")
+					);
+
+					F_render_frame_buffer* rg_frame_buffer_p = render_graph_p->create_frame_buffer(
+						{ rg_back_rtv_p },
+						rg_dsv_p
+						NRE_OPTIONAL_DEBUG_PARAM("main_frame_buffer")
+					);
+				}
+			);
 		};
 		NRE_NEWRG_RENDERER_UPLOAD()
 		{
