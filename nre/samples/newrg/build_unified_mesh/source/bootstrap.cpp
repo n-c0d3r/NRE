@@ -151,33 +151,31 @@ int main() {
 						NRE_OPTIONAL_DEBUG_PARAM("main_frame_buffer")
 					);
 
-					{
-						F_render_pass* draw_pass_p = render_graph_p->create_pass(
-							[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
-							{
-								command_list_p->async_clear_rtv_with_descriptor(
-									rg_rtv_p->handle_range().begin_handle.cpu_address,
-									F_vector4_f32::forward()
-								);
-								command_list_p->async_clear_dsv_with_descriptor(
-									rg_dsv_p->handle_range().begin_handle.cpu_address,
-									ED_clear_flag::DEPTH,
-									1.0f,
-									0
-								);
-							},
-							E_render_pass_flag::DEFAULT
-							NRE_OPTIONAL_DEBUG_PARAM("draw_pass")
-						);
-						draw_pass_p->add_resource_state({
-							.resource_p = rg_output_buffer_p,
-							.states = ED_resource_state::RENDER_TARGET
-						});
-						draw_pass_p->add_resource_state({
-							.resource_p = rg_depth_buffer_p,
-							.states = ED_resource_state::DEPTH_WRITE
-						});
-					}
+					F_render_pass* draw_pass_p = render_graph_p->create_pass(
+						[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
+						{
+							command_list_p->async_clear_rtv_with_descriptor(
+								rg_rtv_p->handle_range().begin_handle.cpu_address,
+								F_vector4_f32::forward()
+							);
+							command_list_p->async_clear_dsv_with_descriptor(
+								rg_dsv_p->handle_range().begin_handle.cpu_address,
+								ED_clear_flag::DEPTH,
+								1.0f,
+								0
+							);
+						},
+						E_render_pass_flag::DEFAULT
+						NRE_OPTIONAL_DEBUG_PARAM("draw_pass")
+					);
+					draw_pass_p->add_resource_state({
+						.resource_p = rg_output_buffer_p,
+						.states = ED_resource_state::RENDER_TARGET
+					});
+					draw_pass_p->add_resource_state({
+						.resource_p = rg_depth_buffer_p,
+						.states = ED_resource_state::DEPTH_WRITE
+					});
 				}
 			);
 		};
