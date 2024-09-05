@@ -3,7 +3,7 @@
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/render_view_system.hpp>
 #include <nre/rendering/general_texture_2d.hpp>
-
+#include <nre/actor/actor.hpp>
 
 
 namespace nre
@@ -36,16 +36,18 @@ namespace nre
 
 
 	A_legacy_multi_output_render_view::A_legacy_multi_output_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
-		A_render_view(actor_p, mask),
+		A_render_view(actor_p, mask | T_type_hash_code<A_legacy_multi_output_render_view>),
 		swapchain_p(NRE_MAIN_SWAPCHAIN().no_requirements())
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_legacy_multi_output_render_view);
+
+		actor_p->set_render_tick(true);
 	}
 	A_legacy_multi_output_render_view::~A_legacy_multi_output_render_view()
 	{
 	}
 
-	void A_legacy_multi_output_render_view::setup_resources() {
+	void A_legacy_multi_output_render_view::setup_resources_internal() {
 
 		if(main_rtv_p_) {
 
@@ -81,31 +83,52 @@ namespace nre
 		}
 	}
 
-	b8 A_legacy_multi_output_render_view::update() {
+	void A_legacy_multi_output_render_view::render_tick()
+	{
+		// update size
+		if(main_rtv_p_)
+		{
+			const auto& resource_desc = main_rtv_p_->desc().resource_p->desc();
+
+			size_ = F_vector2_u {
+				resource_desc.width,
+				resource_desc.height
+			};
+		}
+
+		// update is_renderable
+		{
+			is_renderable_ = main_frame_buffer_p_;
+		}
+
+		guarantee_resources();
+	}
+
+	b8 A_legacy_multi_output_render_view::guarantee_resources() {
 
 		switch (output_mode)
 		{
 		case E_render_view_output_mode::NONE:
 			main_rtv_p_ = { null };
-			setup_resources();
+			setup_resources_internal();
 			return true;
 		case E_render_view_output_mode::GENERAL_TEXTURE_2D:
 			if(main_rtv_p_ != general_texture_2d_p->rtv_p())
 			{
 				main_rtv_p_ = general_texture_2d_p->rtv_p();
-				setup_resources();
+				setup_resources_internal();
 				return false;
 			}
 		case E_render_view_output_mode::SWAPCHAIN:
 			if(main_rtv_p_ != swapchain_p->back_rtv_p())
 			{
 				main_rtv_p_ = swapchain_p->back_rtv_p().no_requirements();
-				setup_resources();
+				setup_resources_internal();
 				return false;
 			}
 		}
 
-		setup_resources();
+		setup_resources_internal();
 		return main_frame_buffer_p_->is_valid_generation();
 	}
 }

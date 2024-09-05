@@ -28,6 +28,6 @@ namespace nre
 		NCPP_OBJECT(F_simple_render_view);
 
 	public:
-		virtual b8 update() override;
+		virtual b8 guarantee_resources() override;
 	};
 }

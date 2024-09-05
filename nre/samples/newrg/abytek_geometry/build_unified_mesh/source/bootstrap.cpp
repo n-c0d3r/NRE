@@ -28,12 +28,39 @@ int main() {
 	const auto& original_texcoords = eastl::get<3>(original_vertex_channels);
 	const auto& original_indices = original_mesh_p->indices();
 
-	auto unified_mesh_data = abytek_geometry::H_unified_mesh_builder::build(
+	auto raw_unified_mesh_data = abytek_geometry::H_unified_mesh_builder::build_raw(
 		(TG_vector<F_vector3_f32>&)original_positions,
 		(TG_vector<F_vector3_f32>&)original_normals,
 		(TG_vector<F_vector3_f32>&)original_tangents,
 		(TG_vector<F_vector2_f32>&)original_texcoords,
 		(TG_vector<abytek_geometry::F_global_vertex_id>&)original_indices
+	);
+	auto positions = abytek_geometry::H_unified_mesh_builder::build_positions(
+		raw_unified_mesh_data.raw_vertex_datas
+	);
+	auto vertex_cluster_ids = abytek_geometry::H_unified_mesh_builder::build_vertex_cluster_ids(
+		raw_unified_mesh_data.cluster_headers
+	);
+
+	auto position_buffer_p = H_buffer::create(
+		NRE_MAIN_DEVICE(),
+		{ F_subresource_data { .data_p = positions.data() } },
+		positions.size(),
+		sizeof(F_vector3_f32),
+		ED_resource_flag::INPUT_BUFFER
+	);
+	NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+		position_buffer_p->set_debug_name("unified_mesh.position_buffer")
+	);
+	auto vertex_cluster_id_buffer_p = H_buffer::create(
+		NRE_MAIN_DEVICE(),
+		{ F_subresource_data { .data_p = vertex_cluster_ids.data() } },
+		vertex_cluster_ids.size(),
+		sizeof(abytek_geometry::F_cluster_id),
+		ED_resource_flag::INPUT_BUFFER
+	);
+	NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+		vertex_cluster_id_buffer_p->set_debug_name("unified_mesh.vertex_cluster_id_buffer")
 	);
 
 

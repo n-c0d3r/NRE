@@ -49,3 +49,5 @@
 #include <nre/rendering/cpu_gpu_sync_point.hpp>
 
 #include <nre/rendering/customized_nsl_shader_compiler.hpp>
+
+#include <nre/rendering/triangle_utilities.hpp>

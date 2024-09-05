@@ -71,15 +71,23 @@ namespace nre
 		typename TG_list<TK_valid<A_render_view>>::iterator handle_;
 		A_render_view_mask mask_;
 
+	protected:
+		F_vector2_u32 size_ = F_vector2_u32::zero();
+		b8 is_renderable_ = false;
+
 	public:
 		F_matrix4x4 projection_matrix = T_identity<F_matrix4x4>();
 		F_matrix4x4 view_matrix = T_identity<F_matrix4x4>();
 
 	public:
 		NCPP_FORCE_INLINE A_render_view_mask mask() const noexcept { return mask_; }
-		virtual F_vector2_u size() const noexcept = 0;
-		virtual f32 aspect_ratio() const noexcept = 0;
-		virtual b8 is_renderable() const noexcept = 0;
+		NCPP_FORCE_INLINE F_vector2_u size() const noexcept { return size_; }
+		NCPP_FORCE_INLINE f32 aspect_ratio() const noexcept
+		{
+			auto s = size();
+			return f32(s.x) / f32(s.y);
+		}
+		NCPP_FORCE_INLINE b8 is_renderable() const noexcept { return is_renderable_; }
 
 
 
@@ -91,9 +99,6 @@ namespace nre
 
 	public:
 		NCPP_OBJECT(A_render_view);
-
-	public:
-		virtual b8 update() = 0;
 	};
 
 
@@ -132,25 +137,7 @@ namespace nre
 			return main_frame_buffer_p_;
 		}
 		NCPP_FORCE_INLINE K_rtv_handle main_rtv_p() const noexcept { return main_rtv_p_; }
-		NCPP_FORCE_INLINE F_vector2_u size() const noexcept
-		{
-			const auto& resource_desc = main_rtv_p_->desc().resource_p->desc();
 
-			return F_vector2_u {
-				resource_desc.width,
-				resource_desc.height
-			};
-		}
-		NCPP_FORCE_INLINE f32 aspect_ratio() const noexcept
-		{
-			F_vector2 size_ = size();
-
-			return size_.x / size_.y;
-		}
-		NCPP_FORCE_INLINE b8 is_renderable() const noexcept {
-
-			return main_frame_buffer_p_;
-		}
 		NCPP_FORCE_INLINE K_buffer_handle main_constant_buffer_p() const noexcept { return main_constant_buffer_p_; }
 
 
@@ -165,9 +152,12 @@ namespace nre
 		NCPP_OBJECT(A_legacy_multi_output_render_view);
 
 	private:
-		virtual void setup_resources();
+		void setup_resources_internal();
+
+	protected:
+		virtual void render_tick() override;
 
 	public:
-		virtual b8 update();
+		virtual b8 guarantee_resources();
 	};
 }

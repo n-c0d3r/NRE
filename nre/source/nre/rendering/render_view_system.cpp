@@ -14,18 +14,6 @@ namespace nre
 	F_render_view_system::F_render_view_system()
 	{
 		instance_ps = NCPP_KTHIS().no_requirements();
-
-		// pre render tick
-		{
-			NRE_APPLICATION()->T_get_event<F_application_render_tick_event>().T_push_front_listener(
-				[this](auto& e) {
-					for(auto render_view_p : this->render_view_p_list_) {
-
-						render_view_p->update();
-					}
-				}
-			);
-		}
 	}
 	F_render_view_system::~F_render_view_system()
 	{
