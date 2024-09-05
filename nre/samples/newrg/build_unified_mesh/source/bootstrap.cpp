@@ -133,7 +133,7 @@ int main() {
 						NRE_OPTIONAL_DEBUG_PARAM("main_depth_buffer")
 					);
 
-					F_render_descriptor* rg_back_rtv_p = render_graph_p->create_descriptor_from_src(
+					F_render_descriptor* rg_rtv_p = render_graph_p->create_descriptor_from_src(
 						output_rtv_descriptor_handle,
 						ED_descriptor_heap_type::RENDER_TARGET
 						NRE_OPTIONAL_DEBUG_PARAM("main_rtv")
@@ -145,7 +145,7 @@ int main() {
 					);
 
 					F_render_frame_buffer* rg_frame_buffer_p = render_graph_p->create_frame_buffer(
-						{ rg_back_rtv_p },
+						{ rg_rtv_p },
 						rg_dsv_p
 						NRE_OPTIONAL_DEBUG_PARAM("main_frame_buffer")
 					);
@@ -154,8 +154,14 @@ int main() {
 						[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 						{
 							command_list_p->async_clear_rtv_with_descriptor(
-								rg_back_rtv_p->handle_range().begin_handle.cpu_address,
+								rg_rtv_p->handle_range().begin_handle.cpu_address,
 								F_vector4_f32::forward()
+							);
+							command_list_p->async_clear_dsv_with_descriptor(
+								rg_dsv_p->handle_range().begin_handle.cpu_address,
+								ED_clear_flag::DEPTH,
+								1.0f,
+								0
 							);
 						},
 						E_render_pass_flag::DEFAULT
