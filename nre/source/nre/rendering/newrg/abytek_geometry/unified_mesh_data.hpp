@@ -8,7 +8,7 @@ namespace nre::newrg::abytek_geometry
 {
     using F_global_vertex_id = u32;
     using F_local_cluster_vertex_id = u8;
-    struct NCPP_ALIGN(16) F_vertex_data
+    struct NCPP_ALIGN(16) F_compressed_vertex_data
     {
         struct NCPP_ALIGN(2) F_local_component
         {
@@ -19,6 +19,13 @@ namespace nre::newrg::abytek_geometry
         F_local_component normal_components[3];
         F_local_component tangent_components[3];
         F_local_component texcoord_components[2];
+    };
+    struct NCPP_ALIGN(16) F_raw_vertex_data
+    {
+        F_vector3_f32 position;
+        F_vector3_f32 normal;
+        F_vector3_f32 tangent;
+        F_vector2_f32 texcoord;
     };
 
     using F_cluster_id = u32;
@@ -44,9 +51,10 @@ namespace nre::newrg::abytek_geometry
 
     struct F_unified_mesh_data
     {
-        TG_vector<F_vertex_data> vertex_datas;
+        TG_vector<F_compressed_vertex_data> compressed_vertex_datas;
         TG_vector<F_cluster_header> cluster_headers;
         TG_vector<F_dag_node_header> dag_node_headers;
         TG_vector<F_dag_node_culling_data> dag_node_culling_datas;
+        F_dag_node_id root_dag_node_id;
     };
 }

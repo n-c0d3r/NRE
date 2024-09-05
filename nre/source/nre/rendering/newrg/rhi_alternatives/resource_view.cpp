@@ -86,28 +86,40 @@ U_srv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_srv(
     const F_resource_view_desc& desc
 )
 {
-    return { create_intermediate(device_p, desc) };
+    F_resource_view_desc parsed_desc = desc;
+    parsed_desc.type = ED_resource_view_type::SHADER_RESOURCE;
+
+    return { create_intermediate(device_p, parsed_desc) };
 }
 U_uav_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_uav(
     TKPA_valid<A_device> device_p,
     const F_resource_view_desc& desc
 )
 {
-    return { create_intermediate(device_p, desc) };
+    F_resource_view_desc parsed_desc = desc;
+    parsed_desc.type = ED_resource_view_type::UNORDERED_ACCESS;
+
+    return { create_intermediate(device_p, parsed_desc) };
 }
 U_rtv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_rtv(
     TKPA_valid<A_device> device_p,
     const F_resource_view_desc& desc
 )
 {
-    return { create_intermediate(device_p, desc) };
+    F_resource_view_desc parsed_desc = desc;
+    parsed_desc.type = ED_resource_view_type::RENDER_TARGET;
+
+    return { create_intermediate(device_p, parsed_desc) };
 }
 U_dsv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_dsv(
     TKPA_valid<A_device> device_p,
     const F_resource_view_desc& desc
 )
 {
-    return { create_intermediate(device_p, desc) };
+    F_resource_view_desc parsed_desc = desc;
+    parsed_desc.type = ED_resource_view_type::DEPTH_STENCIL;
+
+    return { create_intermediate(device_p, parsed_desc) };
 }
 
 U_srv_handle NRHI_DRIVER_ALTERNATIVE(nrhi, H_resource_view)::create_default_srv(
