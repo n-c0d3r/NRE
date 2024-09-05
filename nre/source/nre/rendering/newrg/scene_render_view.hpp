@@ -20,12 +20,18 @@ namespace nre::newrg
         K_rtv_handle output_managed_rtv_p_;
         eastl::pair<F_descriptor_handle, K_texture_2d_handle> output_unmanaged_rtv_descriptor_handle_and_texture_2d_p_;
 
+        F_descriptor_handle output_rtv_descriptor_handle_;
+        K_texture_2d_handle output_texture_2d_p_;
+
     public:
         NCPP_FORCE_INLINE auto output_mode() const noexcept { return output_mode_; }
         NCPP_FORCE_INLINE const auto& output_general_texture_2d_p() const noexcept { return output_general_texture_2d_p_; }
         NCPP_FORCE_INLINE const auto& output_swapchain_p() const noexcept { return output_swapchain_p_; }
         NCPP_FORCE_INLINE const auto& output_managed_rtv_p() const noexcept { return output_managed_rtv_p_; }
         NCPP_FORCE_INLINE const auto& output_unmanaged_rtv_descriptor_handle_and_texture_2d_p() const noexcept { return output_unmanaged_rtv_descriptor_handle_and_texture_2d_p_; }
+
+        NCPP_FORCE_INLINE const F_descriptor_handle& output_rtv_descriptor_handle() const noexcept { return output_rtv_descriptor_handle_; }
+        NCPP_FORCE_INLINE KPA_texture_2d_handle output_texture_2d_p() const noexcept { return output_texture_2d_p_; }
 
 
 
@@ -43,10 +49,6 @@ namespace nre::newrg
 
     public:
         virtual void RG_register();
-
-    public:
-        F_descriptor_handle output_rtv_descriptor_handle();
-        K_texture_2d_handle output_texture_2d_p();
 
     public:
         void unbind();
