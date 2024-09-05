@@ -25,23 +25,57 @@ namespace nre::newrg
 
     void F_scene_render_view::render_tick()
     {
-        if(output_mode_ != E_render_view_output_mode::NONE)
+    }
+
+    void F_scene_render_view::update_output()
+    {
+        switch (output_mode_)
         {
-            auto texture_2d_p = output_texture_2d_p();
-            auto& resource_desc = texture_2d_p->desc();
-            size_ = F_vector2_u32 { resource_desc.width, resource_desc.height };
-            is_renderable_ = true;
-        }
-        else
-        {
-            size_ = F_vector2_u32::zero();
-            is_renderable_ = false;
+        case E_render_view_output_mode::NONE:
+            {
+                size_ = F_vector2_u32::zero();
+                is_renderable_ = false;
+                break;
+            }
+        case E_render_view_output_mode::GENERAL_TEXTURE_2D:
+            {
+                auto texture_2d_p = output_texture_2d_p();
+                auto& resource_desc = texture_2d_p->desc();
+                size_ = F_vector2_u32 { resource_desc.width, resource_desc.height };
+                is_renderable_ = true;
+                break;
+            }
+        case E_render_view_output_mode::SWAPCHAIN:
+            {
+                auto texture_2d_p = output_texture_2d_p();
+                auto& resource_desc = texture_2d_p->desc();
+                size_ = F_vector2_u32 { resource_desc.width, resource_desc.height };
+                output_rtv_descriptor_handle_ = output_swapchain_p_->back_rtv_p()->descriptor_handle();
+                is_renderable_ = true;
+                break;
+            }
+        case E_render_view_output_mode::MANAGED_RTV:
+            {
+                auto texture_2d_p = output_texture_2d_p();
+                auto& resource_desc = texture_2d_p->desc();
+                size_ = F_vector2_u32 { resource_desc.width, resource_desc.height };
+                output_rtv_descriptor_handle_ = output_managed_rtv_p_->descriptor_handle();
+                is_renderable_ = true;
+                break;
+            }
+        case E_render_view_output_mode::UNMANAGED_RTV_DESCRIPTOR_HANDLE_AND_TEXTURE_2D:
+            {
+                auto texture_2d_p = output_texture_2d_p();
+                auto& resource_desc = texture_2d_p->desc();
+                size_ = F_vector2_u32 { resource_desc.width, resource_desc.height };
+                is_renderable_ = true;
+                break;
+            }
         }
     }
 
     void F_scene_render_view::RG_register()
     {
-        NCPP_ASSERT(is_renderable_);
     }
 
     void F_scene_render_view::unbind()
@@ -91,15 +125,27 @@ namespace nre::newrg
 
 
 
-    void H_scene_render_view::RG_register_all()
+    void H_scene_render_view::update_output_all()
     {
-        NRE_RENDER_VIEW_SYSTEM()->T_for_each<I_scene_render_view>(
+        for_each(
             [](TKPA_valid<A_render_view> render_view_p)
             {
                 auto scene_render_view_p = render_view_p.T_interface<F_scene_render_view>();
 
-                if(scene_render_view_p->is_renderable())
-                    scene_render_view_p->RG_register();
+                scene_render_view_p->update_output();
+            },
+            false
+        );
+    }
+
+    void H_scene_render_view::RG_register_all()
+    {
+        for_each(
+            [](TKPA_valid<A_render_view> render_view_p)
+            {
+                auto scene_render_view_p = render_view_p.T_interface<F_scene_render_view>();
+
+                scene_render_view_p->RG_register();
             }
         );
     }

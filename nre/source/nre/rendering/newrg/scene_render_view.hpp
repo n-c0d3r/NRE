@@ -48,6 +48,9 @@ namespace nre::newrg
         virtual void render_tick() override;
 
     public:
+        virtual void update_output();
+
+    public:
         virtual void RG_register();
 
     public:
@@ -63,7 +66,12 @@ namespace nre::newrg
     class NRE_API H_scene_render_view
     {
     public:
+        static void update_output_all();
+
+    public:
         static void RG_register_all();
+
+    public:
         static void for_each(auto&& functor, b8 require_renderable = true)
         {
             NRE_RENDER_VIEW_SYSTEM()->T_for_each<I_scene_render_view>(
