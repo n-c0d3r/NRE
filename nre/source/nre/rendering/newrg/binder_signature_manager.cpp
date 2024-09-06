@@ -62,6 +62,10 @@ namespace nre::newrg
             {
                 auto& pipeline_state_reflection = pipeline_state_reflections[pipeline_state_index];
 
+                NCPP_ASSERT(pipeline_state_reflection.root_signature < owned_signature_p_vector_.size())
+                    << "not found binder signature at index "
+                    << T_cout_value(pipeline_state_reflection.root_signature);
+
                 auto& binder_signature_p = owned_signature_p_vector_[pipeline_state_reflection.root_signature];
 
                 root_signature_p_vector.push_back(binder_signature_p->root_signature_p());
