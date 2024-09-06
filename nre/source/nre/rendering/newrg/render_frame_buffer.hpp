@@ -38,6 +38,8 @@ namespace nre::newrg
         pac::F_spin_lock export_lock_;
         TS<F_external_render_frame_buffer> external_p_;
 
+        b8 is_permanent_ = false;
+
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
 #endif
@@ -55,19 +57,12 @@ namespace nre::newrg
             if(dsv_descriptor_p_to_create_)
                 return true;
 
-            for(F_render_descriptor* rtv_descriptor_p : rtv_descriptor_p_vector_to_create_)
-            {
-                if(!(rtv_descriptor_p->need_to_create_resource_view()))
-                {
-                    return false;
-                }
-            }
             return (rtv_descriptor_p_vector_to_create_.size() != 0);
         }
-        NCPP_FORCE_INLINE b8 can_be_deallocated() const noexcept
+        NCPP_FORCE_INLINE b8 need_to_destroy() const noexcept
         {
             return (
-                owned_rhi_p_
+                !is_permanent()
                 && !need_to_export()
             );
         }
@@ -76,6 +71,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& export_lock() noexcept { return export_lock_; }
         NCPP_FORCE_INLINE auto& external_p() const noexcept { return external_p_; }
         NCPP_FORCE_INLINE b8 need_to_export() const noexcept { return external_p_; }
+
+        NCPP_FORCE_INLINE b8 is_permanent() const noexcept { return is_permanent_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }

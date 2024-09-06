@@ -15,7 +15,8 @@ namespace nre::newrg
     ) :
         heap_type_(heap_type),
         heap_flags_(heap_flags),
-        page_capacity_(page_capacity)
+        page_capacity_(page_capacity),
+        descriptor_stride_(NRE_MAIN_DEVICE()->descriptor_increment_size(heap_type))
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , name_(name)
 #endif

@@ -102,6 +102,25 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_render_pass_execute_range> execute_range_owf_stack_;
         F_task_counter execute_passes_counter_ = 0;
 
+        struct F_resource_view_initialize
+        {
+            F_render_descriptor* descriptor_p = 0;
+            u32 offset_in_descriptors = 0;
+
+            F_render_resource* resource_p = 0;
+            F_resource_view_desc desc;
+        };
+        TG_concurrent_owf_stack<F_resource_view_initialize> resource_view_initialize_owf_stack_;
+
+        struct F_sampler_state_initialize
+        {
+            F_render_descriptor* descriptor_p = 0;
+            u32 offset_in_descriptors = 0;
+
+            F_sampler_state_desc desc;
+        };
+        TG_concurrent_owf_stack<F_sampler_state_initialize> sampler_state_initialize_owf_stack_;
+
         TG_vector<TU<A_command_allocator>> direct_command_allocator_p_vector_;
         TG_vector<TU<A_command_allocator>> compute_command_allocator_p_vector_;
 
@@ -164,6 +183,9 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& rhi_frame_buffer_to_release_owf_stack() noexcept { return rhi_frame_buffer_to_release_owf_stack_; }
 
         NCPP_FORCE_INLINE const auto& execute_range_owf_stack() noexcept { return execute_range_owf_stack_; }
+
+        NCPP_FORCE_INLINE const auto& resource_view_initialize_owf_stack() noexcept { return resource_view_initialize_owf_stack_; }
+        NCPP_FORCE_INLINE const auto& sampler_state_initialize_owf_stack() noexcept { return sampler_state_initialize_owf_stack_; }
 
         NCPP_FORCE_INLINE const auto& direct_command_allocator_p_vector() noexcept { return direct_command_allocator_p_vector_; }
         NCPP_FORCE_INLINE const auto& compute_command_allocator_p_vector() noexcept { return compute_command_allocator_p_vector_; }
@@ -239,7 +261,6 @@ namespace nre::newrg
         void flush_rhi_frame_buffers_internal();
 
     private:
-        void validate_resource_views_to_create_internal();
         void initialize_resource_views_internal();
         void initialize_sampler_states_internal();
         void copy_src_descriptors_internal();
@@ -669,6 +690,16 @@ namespace nre::newrg
             , const F_render_frame_name& name = ""
 #endif
         );
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        void enqueue_initialize_resource_view(const F_resource_view_initialize& resource_view_initialize);
+        /**
+         *  Thread-safe
+         */
+        void enqueue_initialize_sampler_state(const F_sampler_state_initialize& sampler_state_initialize);
 
     public:
         /**
