@@ -2,5 +2,5 @@
 add_subdirectory(render_graph)
 add_subdirectory(transient_resource_uploader)
 add_subdirectory(transient_resource_readback)
-add_subdirectory(final)
+add_subdirectory(abytek_render_path)
 add_subdirectory(build_unified_mesh)
