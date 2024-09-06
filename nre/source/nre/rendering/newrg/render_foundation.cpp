@@ -2,6 +2,7 @@
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
+#include <nre/rendering/newrg/render_path.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/application/application.hpp>
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
@@ -43,7 +44,15 @@ namespace nre::newrg
         uniform_transient_resource_uploader_p_->RG_begin_register();
 
         if(F_application::instance_p()->is_started())
+        {
+            auto render_path_p = F_render_path::instance_p();
+
+            render_path_p->RG_begin_register();
+
             rg_tick_event_.invoke();
+
+            render_path_p->RG_end_register();
+        }
 
         uniform_transient_resource_uploader_p_->RG_end_register();
 
