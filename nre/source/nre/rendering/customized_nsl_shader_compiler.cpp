@@ -33,7 +33,7 @@ namespace nre
         );
 
         if(base_result_opt)
-            return base_result_opt.value();
+            return base_result_opt;
 
         //
         auto asset_system_p = F_asset_system::instance_p();
@@ -51,7 +51,7 @@ namespace nre
         abs_path = H_path::normalize(abs_path);
 
         // dont load asset if it's already loaded
-        if(abs_path_to_translation_unit_p_.find(abs_path) != abs_path_to_translation_unit_p_.end)
+        if(abs_path_to_translation_unit_p_.find(abs_path) != abs_path_to_translation_unit_p_.end())
             return F_load_src_content_result { .abs_path = abs_path };
 
         // load asset

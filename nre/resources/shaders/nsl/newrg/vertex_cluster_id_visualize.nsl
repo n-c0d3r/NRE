@@ -1,0 +1,15 @@
+import(nrhi)
+
+vertex_shader vs_main
+(
+    in local_position(F_vector4_f32)
+    out clip_position(SV_POSITION)
+)
+{
+    clip_position = local_position;
+}
+
+pipeline_state pso_main
+(
+    vs_main
+)

@@ -22,6 +22,9 @@ namespace nre {
 	public:
 		NCPP_OBJECT(F_nsl_shader_asset_factory);
 
+	private:
+		void log_compile_errors_internal(TKPA_valid<F_nsl_shader_compiler> shader_compiler_p);
+
 	public:
 		virtual TS<A_asset> build_from_memory(const G_string& abs_path, const F_asset_buffer& buffer) override;
 	};

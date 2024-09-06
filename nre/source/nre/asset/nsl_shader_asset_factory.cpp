@@ -16,8 +16,13 @@ namespace nre {
 	F_nsl_shader_asset_factory::~F_nsl_shader_asset_factory() {
 	}
 
-	TS<A_asset> F_nsl_shader_asset_factory::build_from_memory(const G_string& abs_path, const F_asset_buffer& buffer) {
+	void F_nsl_shader_asset_factory::log_compile_errors_internal(TKPA_valid<F_nsl_shader_compiler> shader_compiler_p)
+	{
+		int a = 5;
+	}
 
+	TS<A_asset> F_nsl_shader_asset_factory::build_from_memory(const G_string& abs_path, const F_asset_buffer& buffer)
+	{
 		G_string raw_src_content(buffer.size(), ' ');
 		memcpy(
 			(void*)(raw_src_content.data()),
@@ -45,7 +50,10 @@ namespace nre {
 		);
 
 		if(!compiled_result_opt)
+		{
+			log_compile_errors_internal(NCPP_FOH_VALID(compiler_p));
 			return null;
+		}
 
 		auto& compiled_result = compiled_result_opt.value();
 
