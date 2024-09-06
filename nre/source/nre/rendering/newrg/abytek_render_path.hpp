@@ -8,14 +8,14 @@
 
 namespace nre::newrg
 {
-    class NRE_API F_final_render_path : public F_render_path
+    class NRE_API F_abytek_render_path : public F_render_path
     {
     public:
-        F_final_render_path();
-        virtual ~F_final_render_path();
+        F_abytek_render_path();
+        virtual ~F_abytek_render_path();
 
     public:
-        NCPP_OBJECT(F_final_render_path);
+        NCPP_OBJECT(F_abytek_render_path);
 
 
 
