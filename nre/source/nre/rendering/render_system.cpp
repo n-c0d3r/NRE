@@ -52,7 +52,10 @@ namespace nre {
 #endif // NRE_ENABLE_FIRST_RENDER_PIPELINE
 		}
 
-		// setup imgui renderer
+		//
+		factory_p_ = pipeline_p_->create_factory();
+
+		// setup imgui rendererer
 		F_imgui::instance_p()->init_renderer();
 
 		// create subsystems
@@ -83,6 +86,9 @@ namespace nre {
 
 		//
 		F_imgui::instance_p()->deinit_renderer();
+
+		//
+		factory_p_.reset();
 
 		//
 		pipeline_p_.reset();

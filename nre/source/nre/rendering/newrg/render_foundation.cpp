@@ -1,4 +1,4 @@
-#include <nre/rendering/newrg/renderer.hpp>
+#include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
@@ -9,24 +9,24 @@
 
 namespace nre::newrg
 {
-    TK<F_renderer> F_renderer::instance_p_;
+    TK<F_render_foundation> F_render_foundation::instance_p_;
 
 
 
-    F_renderer::F_renderer()
+    F_render_foundation::F_render_foundation()
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
         uniform_transient_resource_uploader_p_ = TU<F_uniform_transient_resource_uploader>()();
     }
-    F_renderer::~F_renderer()
+    F_render_foundation::~F_render_foundation()
     {
         release_event_.invoke();
     }
 
 
 
-    void F_renderer::begin_render_frame()
+    void F_render_foundation::begin_render_frame()
     {
         auto render_graph_p = F_render_graph::instance_p();
         render_graph_p->begin_register(
@@ -49,12 +49,12 @@ namespace nre::newrg
 
         render_graph_p->execute();
     }
-    b8 F_renderer::is_began_render_frame()
+    b8 F_render_foundation::is_began_render_frame()
     {
         auto render_graph_p = F_render_graph::instance_p();
         return render_graph_p->is_began();
     }
-    b8 F_renderer::is_end_render_frame()
+    b8 F_render_foundation::is_end_render_frame()
     {
         auto render_graph_p = F_render_graph::instance_p();
         return render_graph_p->is_end();

@@ -37,9 +37,9 @@ int main() {
 		};
 	}
 
-	// renderer event
+	// render_foundation event
 	{
-		NRE_NEWRG_RENDERER_RG_REGISTER()
+		NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER()
 		{
 			auto render_graph_p = F_render_graph::instance_p();
 			auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
@@ -63,13 +63,13 @@ int main() {
 				ED_resource_state::INPUT_AND_CONSTANT_BUFFER
 			);
 		};
-		NRE_NEWRG_RENDERER_UPLOAD()
+		NRE_NEWRG_RENDER_FOUNDATION_UPLOAD()
 		{
 		};
-		NRE_NEWRG_RENDERER_READBACK()
+		NRE_NEWRG_RENDER_FOUNDATION_READBACK()
 		{
 		};
-		NRE_NEWRG_RENDERER_RELEASE()
+		NRE_NEWRG_RENDER_FOUNDATION_RELEASE()
 		{
 		};
 	}

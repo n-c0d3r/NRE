@@ -2,6 +2,7 @@
 #include <nre/rendering/render_view.hpp>
 #include <nre/rendering/simple_render_view.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/render_factory.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/application/application.hpp>
 #include <nre/hierarchy/transform_node.hpp>
@@ -18,7 +19,7 @@ namespace nre {
 			actor_p->template T_guarantee_component<A_render_view>(
 				[](TKPA_valid<F_actor> actor_p)
 				{
-					return NRE_RENDER_PIPELINE()->create_scene_render_view(actor_p);
+					return NRE_RENDER_FACTORY()->create_scene_render_view(actor_p);
 				}
 			)
 		)

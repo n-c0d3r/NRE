@@ -7,6 +7,7 @@
 namespace nre {
 
 	class A_render_pipeline;
+	class A_render_factory;
 	class F_render_view_system;
 	class F_drawable_system;
 	class F_light_system;
@@ -35,6 +36,7 @@ namespace nre {
 		TU<A_device> device_p_;
 
 		TU<A_render_pipeline> pipeline_p_;
+		TU<A_render_factory> factory_p_;
 
 		TU<F_render_view_system> render_view_system_p_;
 		TU<F_drawable_system> drawable_system_p_;

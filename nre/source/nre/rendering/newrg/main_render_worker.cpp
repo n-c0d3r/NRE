@@ -1,6 +1,6 @@
 #include <nre/rendering/newrg/main_render_worker.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
-#include <nre/rendering/newrg/renderer.hpp>
+#include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/render_pipeline.hpp>
 
 

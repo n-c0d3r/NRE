@@ -11,6 +11,7 @@
 
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/render_pipeline.hpp>
+#include <nre/rendering/render_factory.hpp>
 #include <nre/rendering/render_view.hpp>
 #include <nre/rendering/simple_render_view.hpp>
 #include <nre/rendering/drawable.hpp>

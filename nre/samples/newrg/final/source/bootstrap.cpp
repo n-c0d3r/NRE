@@ -19,7 +19,7 @@ int main() {
 
 
 
-	auto render_path_p = TU<abytek_geometry::F_render_path>()();
+	auto render_path_p = TU<F_final_render_path>()();
 
 
 
@@ -41,22 +41,22 @@ int main() {
 		};
 	}
 
-	// renderer event
+	// render_foundation event
 	{
-		NRE_NEWRG_RENDERER_RG_REGISTER()
+		NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER()
 		{
 			auto render_graph_p = F_render_graph::instance_p();
 
 			render_path_p->RG_begin_register();
 			render_path_p->RG_end_register();
 		};
-		NRE_NEWRG_RENDERER_UPLOAD()
+		NRE_NEWRG_RENDER_FOUNDATION_UPLOAD()
 		{
 		};
-		NRE_NEWRG_RENDERER_READBACK()
+		NRE_NEWRG_RENDER_FOUNDATION_READBACK()
 		{
 		};
-		NRE_NEWRG_RENDERER_RELEASE()
+		NRE_NEWRG_RENDER_FOUNDATION_RELEASE()
 		{
 		};
 	}

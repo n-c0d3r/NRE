@@ -6,6 +6,7 @@
 
 namespace nre
 {
+	class A_render_factory;
 	class A_render_view;
 	class F_actor;
 
@@ -110,7 +111,7 @@ namespace nre
 		virtual void end_render();
 
 	public:
-		virtual TK_valid<A_render_view> create_scene_render_view(TKPA_valid<F_actor> actor_p) = 0;
+		virtual TU<A_render_factory> create_factory() = 0;
 	};
 
 }

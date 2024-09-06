@@ -37,9 +37,9 @@ int main() {
 		};
 	}
 
-	// renderer event
+	// render_foundation event
 	{
-		NRE_NEWRG_RENDERER_RG_REGISTER()
+		NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER()
 		{
 			auto render_graph_p = F_render_graph::instance_p();
 			auto back_buffer_p = NRE_MAIN_SWAPCHAIN()->back_buffer_p();
@@ -112,13 +112,13 @@ int main() {
 				.states = ED_resource_state::ALL_SHADER_RESOURCE
 			});
 		};
-		NRE_NEWRG_RENDERER_UPLOAD()
+		NRE_NEWRG_RENDER_FOUNDATION_UPLOAD()
 		{
 		};
-		NRE_NEWRG_RENDERER_READBACK()
+		NRE_NEWRG_RENDER_FOUNDATION_READBACK()
 		{
 		};
-		NRE_NEWRG_RENDERER_RELEASE()
+		NRE_NEWRG_RENDER_FOUNDATION_RELEASE()
 		{
 		};
 	}

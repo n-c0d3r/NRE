@@ -1,10 +1,13 @@
 #include <nre/rendering/newrg/render_pipeline.hpp>
+#include <nre/rendering/newrg/delegable_render_factory.hpp>
 #include <nre/rendering/newrg/general_resource_uploader.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
-#include <nre/rendering/newrg/renderer.hpp>
+#include <nre/rendering/newrg/render_foundation.hpp>
+#include <nre/rendering/newrg/render_path.hpp>
 #include <nre/rendering/newrg/intermediate_descriptor_manager.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/scene_render_view.hpp>
+#include <nre/rendering/newrg/render_actor_data_pool.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/application/application.hpp>
 #include <nre/ui/imgui.hpp>
@@ -157,11 +160,13 @@ namespace nre::newrg {
 		intermediate_descriptor_manager_p_ = TU<F_intermediate_descriptor_manager>()();
 		binder_signature_manager_p_ = TU<F_binder_signature_manager>()();
 		render_graph_p_ = TU<F_render_graph>()();
-		renderer_p_ = TU<F_renderer>()();
+		render_foundation_p_ = TU<F_render_foundation>()();
+		render_actor_data_pool_p_ = TU<F_render_actor_data_pool>()();
 	}
 	F_render_pipeline::~F_render_pipeline() {
 
-		renderer_p_.reset();
+		render_actor_data_pool_p_.reset();
+		render_foundation_p_.reset();
 		render_graph_p_.reset();
 	}
 
@@ -186,8 +191,8 @@ namespace nre::newrg {
 	{
 		render_worker_list_.begin_frame();
 
-		auto renderer_p = F_renderer::instance_p();
-		renderer_p->begin_render_frame();
+		auto render_foundation_p = F_render_foundation::instance_p();
+		render_foundation_p->begin_render_frame();
 
 		async_begin_command_lists_internal();
 	}
@@ -195,7 +200,7 @@ namespace nre::newrg {
 	{
 		async_end_command_lists_internal();
 
-		while(!(renderer_p_->is_end_render_frame()));
+		while(!(render_foundation_p_->is_end_render_frame()));
 
 		render_worker_list_.end_frame();
 
@@ -236,8 +241,8 @@ namespace nre::newrg {
 		end_minimal_frame_internal();
 	}
 
-	TK_valid<A_render_view> F_render_pipeline::create_scene_render_view(TKPA_valid<F_actor> actor_p)
+	TU<A_render_factory> F_render_pipeline::create_factory()
 	{
-		return actor_p->T_add_component<F_scene_render_view>();
+		return TU<F_delegable_render_factory>()();
 	}
 }

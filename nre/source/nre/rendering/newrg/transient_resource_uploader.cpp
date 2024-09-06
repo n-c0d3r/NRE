@@ -1,7 +1,7 @@
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/render_pipeline.hpp>
-#include <nre/rendering/newrg/renderer.hpp>
+#include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
 
 

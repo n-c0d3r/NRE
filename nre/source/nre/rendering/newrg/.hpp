@@ -3,9 +3,14 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/newrg/render_pipeline.hpp>
+#include <nre/rendering/newrg/delegable_render_factory.hpp>
+#include <nre/rendering/newrg/delegable_render_factory_proxy.hpp>
 #include <nre/rendering/newrg/render_frame_allocator.hpp>
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
+#include <nre/rendering/newrg/render_path.hpp>
+#include <nre/rendering/newrg/final_render_path.hpp>
+#include <nre/rendering/newrg/final_render_factory_proxy.hpp>
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
@@ -31,8 +36,8 @@
 #include <nre/rendering/newrg/managed_command_list_batch.hpp>
 #include <nre/rendering/newrg/managed_fence_batch.hpp>
 #include <nre/rendering/newrg/managed_render_work.hpp>
-#include <nre/rendering/newrg/renderer_events.hpp>
-#include <nre/rendering/newrg/renderer.hpp>
+#include <nre/rendering/newrg/render_foundation_events.hpp>
+#include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/render_resource_aliasing_state.hpp>
 #include <nre/rendering/newrg/descriptor_allocator.hpp>
 #include <nre/rendering/newrg/descriptor_allocation.hpp>

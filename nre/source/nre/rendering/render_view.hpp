@@ -8,7 +8,6 @@
 
 namespace nre
 {
-
 	class F_general_texture_2d;
 	class A_render_view;
 	class A_render_view_attachment;

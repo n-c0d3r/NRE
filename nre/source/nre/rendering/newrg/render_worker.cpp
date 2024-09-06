@@ -1,7 +1,7 @@
 #include <nre/rendering/newrg/render_worker.hpp>
 #include <nre/rendering/newrg/render_pipeline.hpp>
 #include <nre/rendering/newrg/render_frame_containers.hpp>
-#include <nre/rendering/newrg/renderer.hpp>
+#include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/render_system.hpp>
 
 
@@ -198,8 +198,8 @@ namespace nre::newrg
         if(F_task_system::instance_p()->is_stopped())
             return;
 
-        auto renderer_p = F_renderer::instance_p();
-        while(!(renderer_p->is_began_render_frame()));
+        auto render_foundation_p = F_render_foundation::instance_p();
+        while(!(render_foundation_p->is_began_render_frame()));
     }
     void A_render_worker::end_frame()
     {

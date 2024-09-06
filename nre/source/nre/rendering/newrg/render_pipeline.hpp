@@ -11,11 +11,14 @@
 
 namespace nre::newrg
 {
+    class A_render_path;
+    class F_delegable_render_factory;
     class F_general_resource_uploader;
     class F_render_graph;
-    class F_renderer;
+    class F_render_foundation;
     class F_intermediate_descriptor_manager;
     class F_binder_signature_manager;
+    class F_render_actor_data_pool;
 
 
 
@@ -43,7 +46,8 @@ namespace nre::newrg
         TK_valid<F_async_compute_render_worker> async_compute_render_worker_p_;
 
         TU<F_render_graph> render_graph_p_;
-        TU<F_renderer> renderer_p_;
+        TU<F_render_foundation> render_foundation_p_;
+        TU<F_render_actor_data_pool> render_actor_data_pool_p_;
 
         TU<F_intermediate_descriptor_manager> intermediate_descriptor_manager_p_;
         TU<F_binder_signature_manager> binder_signature_manager_p_;
@@ -88,7 +92,7 @@ namespace nre::newrg
         virtual void end_render() override;
 
     public:
-        virtual TK_valid<A_render_view> create_scene_render_view(TKPA_valid<F_actor> actor_p) override;
+        virtual TU<A_render_factory> create_factory() override;
     };
 
 }

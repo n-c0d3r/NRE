@@ -1,6 +1,6 @@
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #include <nre/rendering/newrg/render_pipeline.hpp>
-#include <nre/rendering/newrg/renderer.hpp>
+#include <nre/rendering/newrg/render_foundation.hpp>
 
 
 
