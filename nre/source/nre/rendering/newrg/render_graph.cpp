@@ -3127,6 +3127,26 @@ namespace nre::newrg
         return render_resource_p;
     }
 
+    F_render_descriptor* F_render_graph::create_descriptor(
+        ED_descriptor_heap_type heap_type,
+        u32 count
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , const F_render_frame_name& name
+#endif
+    )
+    {
+        F_render_descriptor* render_descriptor_p = T_create<F_render_descriptor>(
+            heap_type,
+            count
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , name
+#endif
+        );
+
+        render_descriptor_p->id_ = descriptor_p_owf_stack_.push_and_return_index(render_descriptor_p);
+
+        return render_descriptor_p;
+    }
     F_render_descriptor* F_render_graph::create_resource_view(
         F_render_resource* resource_p,
         const F_resource_view_desc& desc

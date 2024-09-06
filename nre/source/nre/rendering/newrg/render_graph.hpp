@@ -468,6 +468,16 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
+        F_render_descriptor* create_descriptor(
+            ED_descriptor_heap_type heap_type,
+            u32 count = 1
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_render_frame_name& name = ""
+#endif
+        );
+        /**
+         *  Thread-safe
+         */
         F_render_descriptor* create_resource_view(
             F_render_resource* resource_p,
             const F_resource_view_desc& desc

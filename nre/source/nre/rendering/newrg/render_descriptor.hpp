@@ -109,6 +109,13 @@ namespace nre::newrg
 
     public:
         F_render_descriptor(
+            ED_descriptor_heap_type heap_type,
+            u32 count
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_render_frame_name& name
+#endif
+        );
+        F_render_descriptor(
             F_render_resource* resource_to_create_p,
             F_resource_view_desc* desc_to_create_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
