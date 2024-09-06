@@ -976,8 +976,17 @@ namespace nre::newrg
         auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
         {
+            //
+            b8 is_unused = true;
+            for(auto& access_dependency : resource_p->access_dependencies_)
+            {
+                auto pass_p = pass_span[access_dependency.pass_id];
+                if(!(pass_p->is_sentinel()))
+                    is_unused = false;
+            }
+
             // allocate
-            if(resource_p->need_to_create())
+            if(resource_p->need_to_create() && is_unused)
             {
                 const auto& desc = *(resource_p->desc_to_create_p_);
                 auto& allocator = find_resource_allocator(desc.type, desc.flags, desc.heap_type);
@@ -988,7 +997,7 @@ namespace nre::newrg
             }
 
             // deallocate
-            if(resource_p->need_to_deallocate())
+            if(resource_p->need_to_deallocate() && is_unused)
             {
                 auto& allocation = resource_p->allocation();
                 allocation.allocator_p->deallocate(allocation);
