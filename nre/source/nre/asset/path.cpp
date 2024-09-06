@@ -77,7 +77,7 @@ namespace nre
 	G_string H_path::extension(const G_string& path)
 	{
 
-		G_string Result;
+		G_string result;
 
 		for (size_t i = path.size() - 1; i >= 0; --i)
 		{
@@ -95,10 +95,10 @@ namespace nre
 			)
 				break;
 
-			Result = C + Result;
+			result = C + result;
 		}
 
-		return std::move(Result);
+		return std::move(result);
 	}
 	G_string H_path::file_name(const G_string& path) {
 
@@ -120,5 +120,71 @@ namespace nre
 		}
 
 		return G_string();
+	}
+	TG_vector<G_string> H_path::split(const G_string &Path)
+	{
+		TG_vector<G_string> items;
+		G_string current_items = "";
+		for (int32_t i = 0; i < Path.size();) {
+
+			int32_t j = i;
+
+			for (; j < Path.size();) {
+
+				if (Path[j] == '/' || Path[j] == '\\') {
+					while (Path[j] == '/' || Path[j] == '\\') {
+						++j;
+					}
+					break;
+				}
+
+				current_items += Path[j];
+				++j;
+
+			}
+
+			if (current_items.size() != 0) {
+
+				items.push_back(current_items);
+			}
+			current_items = "";
+
+			i = j;
+		}
+
+		return std::move(items);
+	}
+	G_string H_path::normalize(const G_string& Path) {
+	    if (Path.size() == 0)
+	        return "";
+
+	    G_string result;
+
+		auto items = split(Path);
+
+	    int32_t back_count = 0;
+	    for (ptrdiff_t i = items.size() - 1; i >= 0; --i) {
+
+	        const auto &item = items[i];
+
+	        if (item == "..") {
+
+	            ++back_count;
+	        } else {
+
+	            if (!back_count) {
+
+	                if (result.size() == 0)
+	                    result = item;
+	                else
+	                    result = item + '/' + result;
+	            } else --back_count;
+	        }
+	    }
+
+	    if (Path[0] == '/' || Path[0] == '\\')
+	        return '/' + result;
+
+	    return std::move(result);
 	}
 }

@@ -63,6 +63,11 @@ namespace nre {
 		TS<A_asset> load_asset(const G_string& path, const G_string& overrided_file_extension, const TG_span<G_string>& external_base_paths = {});
 		TS<A_asset> load_asset(const G_string& path, TK_valid<A_asset_factory> asset_factory_p, const TG_span<G_string>& external_base_paths = {});
 
+	public:
+		TS<A_asset> load_asset_from_abs_path(const G_string& abs_path);
+		TS<A_asset> load_asset_from_abs_path(const G_string& abs_path, const G_string& overrided_file_extension);
+		TS<A_asset> load_asset_from_abs_path(const G_string& abs_path, TK_valid<A_asset_factory> asset_factory_p);
+
 	};
 
 }

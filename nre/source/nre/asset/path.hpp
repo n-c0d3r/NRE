@@ -13,5 +13,7 @@ namespace nre
 		static G_string extension(const G_string& path);
 		static G_string file_name(const G_string& path);
 		static G_string base_name(const G_string& path);
+		static TG_vector<G_string> split(const G_string& path);
+		static G_string normalize(const G_string& path);
 	};
 }

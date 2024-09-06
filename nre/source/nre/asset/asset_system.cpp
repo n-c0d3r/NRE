@@ -114,7 +114,7 @@ namespace nre {
 
 			if(asset_factory_p->build_mode() == E_asset_build_mode::FROM_FILE)
 			{
-				asset_factory_p->build_from_file(abs_path);
+				return asset_factory_p->build_from_file(abs_path);
 			}
 			else
 			{
@@ -140,4 +140,75 @@ namespace nre {
 		return null;
 	}
 
+	TS<A_asset> F_asset_system::load_asset_from_abs_path(const G_string& abs_path)
+	{
+		auto asset_factory_p = find_asset_factory(
+			H_path::extension(abs_path)
+		);
+
+		if(!asset_factory_p)
+			return null;
+
+		if(asset_factory_p->build_mode() == E_asset_build_mode::FROM_FILE)
+		{
+			return asset_factory_p->build_from_file(abs_path);
+		}
+		else
+		{
+			std::ifstream fstream(abs_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+
+			std::ifstream::pos_type file_size = fstream.tellg();
+			fstream.seekg(0, std::ios::beg);
+
+			if (file_size == -1)
+			 	return {};
+
+			F_asset_buffer asset_buffer;
+			if (file_size)
+			{
+			 	asset_buffer.resize(file_size);
+			 	fstream.read((char*)asset_buffer.data(), file_size);
+			}
+
+			return asset_factory_p->build_from_memory(abs_path, asset_buffer);
+		}
+	}
+	TS<A_asset> F_asset_system::load_asset_from_abs_path(const G_string& abs_path, const G_string& overrided_file_extension)
+	{
+		auto asset_factory_p = find_asset_factory(overrided_file_extension);
+
+		if(!asset_factory_p)
+			return null;
+
+		return load_asset_from_abs_path(
+			abs_path,
+			NCPP_FOH_VALID(asset_factory_p)
+		);
+	}
+	TS<A_asset> F_asset_system::load_asset_from_abs_path(const G_string& abs_path, TK_valid<A_asset_factory> asset_factory_p)
+	{
+		if(asset_factory_p->build_mode() == E_asset_build_mode::FROM_FILE)
+		{
+			return asset_factory_p->build_from_file(abs_path);
+		}
+		else
+		{
+			std::ifstream fstream(abs_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+
+			std::ifstream::pos_type file_size = fstream.tellg();
+			fstream.seekg(0, std::ios::beg);
+
+			if (file_size == -1)
+				return {};
+
+			F_asset_buffer asset_buffer;
+			if (file_size)
+			{
+				asset_buffer.resize(file_size);
+				fstream.read((char*)asset_buffer.data(), file_size);
+			}
+
+			return asset_factory_p->build_from_memory(abs_path, asset_buffer);
+		}
+	}
 }
