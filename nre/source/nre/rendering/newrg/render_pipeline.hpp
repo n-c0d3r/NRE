@@ -11,7 +11,7 @@
 
 namespace nre::newrg
 {
-    class A_render_path;
+    class F_render_path;
     class F_delegable_render_factory;
     class F_general_resource_uploader;
     class F_render_graph;

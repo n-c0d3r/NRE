@@ -8,19 +8,19 @@
 
 namespace nre::newrg
 {
-    class A_delegable_render_factory_proxy;
+    class F_delegable_render_factory_proxy;
 
 
 
     class NRE_API F_delegable_render_factory final : public A_render_factory
     {
     public:
-        friend class A_delegable_render_factory_proxy;
+        friend class F_delegable_render_factory_proxy;
 
 
 
     private:
-        TK<A_delegable_render_factory_proxy> proxy_p_;
+        TK<F_delegable_render_factory_proxy> proxy_p_;
 
 
 

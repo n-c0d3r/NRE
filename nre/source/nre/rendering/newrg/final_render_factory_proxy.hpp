@@ -8,7 +8,7 @@
 
 namespace nre::newrg
 {
-    class NRE_API F_final_render_factory_proxy final : public A_delegable_render_factory_proxy
+    class NRE_API F_final_render_factory_proxy final : public F_delegable_render_factory_proxy
     {
     public:
         F_final_render_factory_proxy();

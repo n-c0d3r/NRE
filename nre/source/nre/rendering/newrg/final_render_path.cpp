@@ -6,7 +6,7 @@
 namespace nre::newrg
 {
     F_final_render_path::F_final_render_path() :
-        A_render_path(TU<F_final_render_factory_proxy>()())
+        F_render_path(TU<F_final_render_factory_proxy>()())
     {
     }
     F_final_render_path::~F_final_render_path()
@@ -17,10 +17,10 @@ namespace nre::newrg
 
     void F_final_render_path::RG_begin_register()
     {
-        A_render_path::RG_begin_register();
+        F_render_path::RG_begin_register();
     }
     void F_final_render_path::RG_end_register()
     {
-        A_render_path::RG_end_register();
+        F_render_path::RG_end_register();
     }
 }

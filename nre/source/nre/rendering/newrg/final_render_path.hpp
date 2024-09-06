@@ -8,7 +8,7 @@
 
 namespace nre::newrg
 {
-    class NRE_API F_final_render_path : public A_render_path
+    class NRE_API F_final_render_path : public F_render_path
     {
     public:
         F_final_render_path();
