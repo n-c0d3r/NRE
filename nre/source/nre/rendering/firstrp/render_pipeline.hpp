@@ -8,6 +8,7 @@
 namespace nre
 {
 	class F_debug_drawer;
+	class A_render_factory;
 }
 
 namespace nre::firstrp {
@@ -66,7 +67,7 @@ namespace nre::firstrp {
 		virtual void end_render() override;
 
 	public:
-		virtual TK_valid<A_render_view> create_scene_render_view(TKPA_valid<F_actor> actor_p) override;
+		virtual TU<A_render_factory> create_factory() override;
 	};
 
 }
