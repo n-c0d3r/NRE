@@ -2806,7 +2806,6 @@ namespace nre::newrg
                 H_task_context::yield(
                     F_wait_for_counter(&execute_ranges_counter)
                 );
-                is_began_.store(true, eastl::memory_order_release);
             },
             {
                 .counter_p = &execute_passes_counter_,
@@ -3145,7 +3144,7 @@ namespace nre::newrg
 
         execute_passes_internal();
     }
-    b8 F_render_graph::is_end()
+    b8 F_render_graph::is_complete()
     {
         return (0 == execute_passes_counter_.load(eastl::memory_order_acquire));
     }

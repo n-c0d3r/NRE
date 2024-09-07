@@ -173,7 +173,6 @@ namespace nre::newrg
         F_render_pass* epilogue_pass_p_ = 0;
 
         ab8 is_in_execution_ = false;
-        ab8 is_began_ = false;
 
         eastl::function<void()> upload_callback_;
         eastl::function<void()> readback_callback_;
@@ -223,7 +222,6 @@ namespace nre::newrg
         NCPP_FORCE_INLINE F_render_pass_id prologue_pass_id() noexcept { return prologue_pass_p_->id_; }
         NCPP_FORCE_INLINE F_render_pass_id epilogue_pass_id() noexcept { return epilogue_pass_p_->id_; }
 
-        NCPP_FORCE_INLINE b8 is_began() const noexcept { return is_began_.load(eastl::memory_order_acquire); }
         NCPP_FORCE_INLINE b8 is_in_execution() const noexcept { return is_in_execution_.load(eastl::memory_order_acquire); }
 
         NCPP_FORCE_INLINE const auto& upload_callback() const noexcept { return upload_callback_; }
@@ -361,7 +359,7 @@ namespace nre::newrg
             const eastl::function<void()>& readback_callback
         );
         void execute();
-        b8 is_end();
+        b8 is_complete();
         void flush();
 
     public:

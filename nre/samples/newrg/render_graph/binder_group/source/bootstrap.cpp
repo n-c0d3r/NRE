@@ -45,6 +45,10 @@ int main() {
 
 
 
+	auto render_path_p = TU<F_render_path>()();
+
+
+
 	auto binder_signature_manager_p = F_binder_signature_manager::instance_p();
 	TK_valid<F_demo_binder_signature> binder_signature_p = binder_signature_manager_p->T_register<F_demo_binder_signature>();
 

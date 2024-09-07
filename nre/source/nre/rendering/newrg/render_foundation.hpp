@@ -51,8 +51,7 @@ namespace nre::newrg
 
     public:
         void begin_render_frame();
-        b8 is_began_render_frame();
-        b8 is_end_render_frame();
+        b8 is_complete();
     };
 }
 

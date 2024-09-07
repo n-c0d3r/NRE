@@ -200,7 +200,7 @@ namespace nre::newrg {
 	{
 		async_end_command_lists_internal();
 
-		while(!(render_foundation_p_->is_end_render_frame()));
+		while(!(render_foundation_p_->is_complete()));
 
 		render_worker_list_.end_frame();
 

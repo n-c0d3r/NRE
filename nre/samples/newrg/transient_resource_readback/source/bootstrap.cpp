@@ -19,6 +19,10 @@ int main() {
 
 
 
+	auto render_path_p = TU<F_render_path>()();
+
+
+
 	auto transient_resource_readback_p = TU<F_transient_resource_readback>()(
 		ED_resource_flag::NONE
 	);

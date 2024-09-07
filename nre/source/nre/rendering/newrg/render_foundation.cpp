@@ -58,14 +58,9 @@ namespace nre::newrg
 
         render_graph_p->execute();
     }
-    b8 F_render_foundation::is_began_render_frame()
+    b8 F_render_foundation::is_complete()
     {
         auto render_graph_p = F_render_graph::instance_p();
-        return render_graph_p->is_began();
-    }
-    b8 F_render_foundation::is_end_render_frame()
-    {
-        auto render_graph_p = F_render_graph::instance_p();
-        return render_graph_p->is_end();
+        return render_graph_p->is_complete();
     }
 }

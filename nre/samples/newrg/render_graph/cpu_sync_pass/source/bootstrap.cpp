@@ -19,6 +19,10 @@ int main() {
 
 
 
+	auto render_path_p = TU<F_render_path>()();
+
+
+
 	// application events
 	{
 		NRE_APPLICATION_STARTUP(application_p) {
