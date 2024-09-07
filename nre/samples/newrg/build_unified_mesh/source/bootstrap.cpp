@@ -152,8 +152,8 @@ int main() {
 					);
 
 					F_render_frame_buffer* rg_frame_buffer_p = render_graph_p->create_frame_buffer(
-						{ rg_rtv_p },
-						rg_dsv_p
+						{ { rg_rtv_p } },
+						{ rg_dsv_p }
 						NRE_OPTIONAL_DEBUG_PARAM("main_frame_buffer")
 					);
 

@@ -4,6 +4,7 @@
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_frame_buffer_id.hpp>
+#include <nre/rendering/newrg/render_descriptor_element.hpp>
 
 #include "render_descriptor.hpp"
 
@@ -32,8 +33,8 @@ namespace nre::newrg
         TU<A_frame_buffer> owned_rhi_p_;
         TK<A_frame_buffer> rhi_p_;
 
-        TG_fixed_vector<F_render_descriptor*, 8, false> rtv_descriptor_p_vector_to_create_;
-        F_render_descriptor* dsv_descriptor_p_to_create_;
+        TG_fixed_vector<F_render_descriptor_element, 8, false> rtv_descriptor_elements_to_create_;
+        F_render_descriptor_element dsv_descriptor_element_to_create_;
 
         pac::F_spin_lock export_lock_;
         TS<F_external_render_frame_buffer> external_p_;
@@ -49,15 +50,15 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE TKPA<A_frame_buffer> rhi_p() const noexcept { return rhi_p_; }
 
-        NCPP_FORCE_INLINE const auto& rtv_descriptor_p_vector_to_create() const noexcept { return rtv_descriptor_p_vector_to_create_; }
-        NCPP_FORCE_INLINE F_render_descriptor* dsv_descriptor_p_to_create() const noexcept { return dsv_descriptor_p_to_create_; }
+        NCPP_FORCE_INLINE const auto& rtv_descriptor_elements_to_create() const noexcept { return rtv_descriptor_elements_to_create_; }
+        NCPP_FORCE_INLINE const auto& dsv_descriptor_element_to_create() const noexcept { return dsv_descriptor_element_to_create_; }
 
         NCPP_FORCE_INLINE b8 need_to_create() const noexcept
         {
-            if(dsv_descriptor_p_to_create_)
+            if(dsv_descriptor_element_to_create_)
                 return true;
 
-            return (rtv_descriptor_p_vector_to_create_.size() != 0);
+            return (rtv_descriptor_elements_to_create_.size() != 0);
         }
         NCPP_FORCE_INLINE b8 need_to_destroy() const noexcept
         {
@@ -82,8 +83,8 @@ namespace nre::newrg
 
     public:
         F_render_frame_buffer(
-            const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptor_p_vector_to_create,
-            F_render_descriptor* dsv_descriptor_p_to_create
+            const TG_fixed_vector<F_render_descriptor_element, 8, false>& rtv_descriptor_elements_to_create,
+            const F_render_descriptor_element& dsv_descriptor_element_to_create
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name
 #endif

@@ -528,8 +528,8 @@ namespace nre::newrg
          *  Thread-safe
          */
         F_render_frame_buffer* create_frame_buffer(
-            const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptor_p_vector,
-            F_render_descriptor* dsv_descriptor_p
+            const TG_fixed_vector<F_render_descriptor_element, 8, false>& rtv_descriptor_elements_to_create,
+            const F_render_descriptor_element& dsv_descriptor_element_to_create
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name = ""
 #endif

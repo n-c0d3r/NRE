@@ -1226,25 +1226,43 @@ namespace nre::newrg
         {
             if(frame_buffer_p->need_to_create())
             {
-                auto& rtv_descriptor_p_vector = frame_buffer_p->rtv_descriptor_p_vector_to_create_;
-                u32 rtv_descriptor_count = rtv_descriptor_p_vector.size();
-                auto& dsv_descriptor_p = frame_buffer_p->dsv_descriptor_p_to_create_;
+                auto& rtv_descriptor_elements = frame_buffer_p->rtv_descriptor_elements_to_create_;
+                u32 rtv_descriptor_count = rtv_descriptor_elements.size();
+                auto& dsv_descriptor_element = frame_buffer_p->dsv_descriptor_element_to_create_;
 
                 // validate rtvs
                 TG_fixed_vector<F_descriptor_cpu_address, 8, false> rtv_descriptor_cpu_addresses(rtv_descriptor_count);
                 for(u32 i = 0; i < rtv_descriptor_count; ++i)
                 {
-                    auto rtv_descriptor_p = rtv_descriptor_p_vector[i];
+                    const auto& rtv_descriptor_element = rtv_descriptor_elements[i];
 
-                    F_descriptor_cpu_address descriptor_cpu_address = rtv_descriptor_p->handle_range_.begin_handle.cpu_address;
+                    F_render_descriptor* rtv_descriptor_p = rtv_descriptor_element.descriptor_p;
+                    u32 rtv_descriptor_index = rtv_descriptor_element.index;
+
+                    auto* allocator_p = rtv_descriptor_p->allocation_.allocator_p;
+
+                    F_descriptor_cpu_address descriptor_cpu_address = (
+                        rtv_descriptor_p->handle_range_.begin_handle.cpu_address
+                        + rtv_descriptor_index * allocator_p->descriptor_stride()
+                    );
                     rtv_descriptor_cpu_addresses[i] = descriptor_cpu_address;
                 }
 
                 // validate dsv
                 F_descriptor_cpu_address dsv_descriptor_cpu_address = 0;
-                if(dsv_descriptor_p)
+                if(dsv_descriptor_element)
                 {
+                    F_render_descriptor* dsv_descriptor_p = dsv_descriptor_element.descriptor_p;
+                    u32 dsv_descriptor_index = dsv_descriptor_element.index;
+
+                    auto* allocator_p = dsv_descriptor_p->allocation_.allocator_p;
+
                     dsv_descriptor_cpu_address = dsv_descriptor_p->handle_range_.begin_handle.cpu_address;
+                    F_descriptor_cpu_address descriptor_cpu_address = (
+                        dsv_descriptor_p->handle_range_.begin_handle.cpu_address
+                        + dsv_descriptor_index * allocator_p->descriptor_stride()
+                    );
+                    dsv_descriptor_cpu_address = descriptor_cpu_address;
                 }
 
                 //
@@ -3256,21 +3274,23 @@ namespace nre::newrg
         return render_descriptor_p;
     }
     F_render_frame_buffer* F_render_graph::create_frame_buffer(
-        const TG_fixed_vector<F_render_descriptor*, 8, false>& rtv_descriptor_p_vector,
-        F_render_descriptor* dsv_descriptor_p
+        const TG_fixed_vector<F_render_descriptor_element, 8, false>& rtv_descriptor_elements_to_create,
+        const F_render_descriptor_element& dsv_descriptor_element_to_create
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , const F_render_frame_name& name
 #endif
     )
     {
 #ifdef NCPP_ENABLE_ASSERT
-        for(auto& rtv_descriptor_p : rtv_descriptor_p_vector)
+        for(auto& rtv_descriptor_p : rtv_descriptor_elements_to_create)
             NCPP_ASSERT(rtv_descriptor_p) << "invalid rtv descriptor";
+
+        NCPP_ASSERT(dsv_descriptor_element_to_create || rtv_descriptor_elements_to_create.size()) << "no valid descriptor provided";
 #endif
 
         F_render_frame_buffer* render_frame_buffer_p = T_create<F_render_frame_buffer>(
-            rtv_descriptor_p_vector,
-            dsv_descriptor_p
+            rtv_descriptor_elements_to_create,
+            dsv_descriptor_element_to_create
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , name
 #endif
