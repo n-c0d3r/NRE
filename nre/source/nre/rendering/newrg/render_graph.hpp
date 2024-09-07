@@ -16,6 +16,7 @@
 #include <nre/rendering/newrg/render_resource_state.hpp>
 #include <nre/rendering/newrg/descriptor_allocator.hpp>
 #include <nre/rendering/newrg/descriptor_handle_range.hpp>
+#include <nre/rendering/newrg/render_descriptor_element.hpp>
 
 
 
@@ -104,8 +105,7 @@ namespace nre::newrg
 
         struct F_resource_view_initialize
         {
-            F_render_descriptor* descriptor_p = 0;
-            u32 offset_in_descriptors = 0;
+            F_render_descriptor_element element;
 
             F_render_resource* resource_p = 0;
             F_resource_view_desc desc;
@@ -114,8 +114,7 @@ namespace nre::newrg
 
         struct F_sampler_state_initialize
         {
-            F_render_descriptor* descriptor_p = 0;
-            u32 offset_in_descriptors = 0;
+            F_render_descriptor_element element;
 
             F_sampler_state_desc desc;
         };

@@ -1275,8 +1275,8 @@ namespace nre::newrg
         auto resource_view_initialize_span = resource_view_initialize_owf_stack_.item_span();
         for(auto& resource_view_initialize : resource_view_initialize_span)
         {
-            F_render_descriptor* descriptor_p = resource_view_initialize.descriptor_p;
-            u32 offset_in_descriptors = resource_view_initialize.offset_in_descriptors;
+            F_render_descriptor* descriptor_p = resource_view_initialize.element.descriptor_p;
+            u32 offset_in_descriptors = resource_view_initialize.element.index;
 
             F_render_resource* resource_p = resource_view_initialize.resource_p;
             auto& desc = resource_view_initialize.desc;
@@ -1303,8 +1303,8 @@ namespace nre::newrg
         auto sampler_state_initialize_span = sampler_state_initialize_owf_stack_.item_span();
         for(auto& sampler_state_initialize : sampler_state_initialize_span)
         {
-            F_render_descriptor* descriptor_p = sampler_state_initialize.descriptor_p;
-            u32 offset_in_descriptors = sampler_state_initialize.offset_in_descriptors;
+            F_render_descriptor* descriptor_p = sampler_state_initialize.element.descriptor_p;
+            u32 offset_in_descriptors = sampler_state_initialize.element.index;
 
             auto& desc = sampler_state_initialize.desc;
 
@@ -3206,7 +3206,7 @@ namespace nre::newrg
         render_descriptor_p->id_ = descriptor_p_owf_stack_.push_and_return_index(render_descriptor_p);
 
         enqueue_initialize_resource_view({
-            .descriptor_p = render_descriptor_p,
+            .element = { render_descriptor_p },
             .resource_p = resource_p,
             .desc = desc
         });
@@ -3249,7 +3249,7 @@ namespace nre::newrg
         render_descriptor_p->id_ = descriptor_p_owf_stack_.push_and_return_index(render_descriptor_p);
 
         enqueue_initialize_sampler_state({
-            .descriptor_p = render_descriptor_p,
+            .element = { render_descriptor_p },
             .desc = desc
         });
 
@@ -3496,13 +3496,15 @@ namespace nre::newrg
 
     void F_render_graph::enqueue_initialize_resource_view(const F_resource_view_initialize& resource_view_initialize)
     {
-        NCPP_ASSERT(resource_view_initialize.descriptor_p) << "invalid descriptor";
+        NCPP_ASSERT(resource_view_initialize.element) << "invalid descriptor element";
         NCPP_ASSERT(resource_view_initialize.resource_p) << "invalid resource";
 
         resource_view_initialize_owf_stack_.push(resource_view_initialize);
     }
     void F_render_graph::enqueue_initialize_sampler_state(const F_sampler_state_initialize& sampler_state_initialize)
     {
+        NCPP_ASSERT(sampler_state_initialize.element) << "invalid descriptor element";
+
         sampler_state_initialize_owf_stack_.push(sampler_state_initialize);
     }
 

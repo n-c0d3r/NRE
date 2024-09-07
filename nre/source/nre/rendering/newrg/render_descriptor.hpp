@@ -4,6 +4,7 @@
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_descriptor_id.hpp>
+#include <nre/rendering/newrg/render_descriptor_element.hpp>
 #include <nre/rendering/newrg/descriptor_allocation.hpp>
 #include <nre/rendering/newrg/descriptor_handle_range.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
@@ -13,6 +14,7 @@ namespace nre::newrg
 {
     class F_render_resource;
     class F_external_render_descriptor;
+    class F_render_descriptor;
 
 
 

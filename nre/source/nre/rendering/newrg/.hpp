@@ -46,6 +46,7 @@
 #include <nre/rendering/newrg/intermediate_descriptor_manager.hpp>
 #include <nre/rendering/newrg/descriptor_handle_range.hpp>
 #include <nre/rendering/newrg/render_descriptor.hpp>
+#include <nre/rendering/newrg/render_descriptor_element.hpp>
 #include <nre/rendering/newrg/render_descriptor_id.hpp>
 #include <nre/rendering/newrg/external_render_descriptor.hpp>
 #include <nre/rendering/newrg/render_frame_buffer.hpp>

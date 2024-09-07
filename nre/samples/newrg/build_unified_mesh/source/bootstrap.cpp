@@ -67,7 +67,7 @@ int main() {
 	// 	vertex_cluster_id_buffer_p->set_debug_name("unified_mesh.vertex_cluster_id_buffer")
 	// );
 
-	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/nsl/newrg/vertex_cluster_id_visualize.nsl");
+	// auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/nsl/newrg/vertex_cluster_id_visualize.nsl");
 
 
 
