@@ -71,6 +71,7 @@ namespace nre::newrg
         u32 index
     )
     {
+        NCPP_ASSERT(index < count());
         NCPP_ASSERT(descriptor_p_);
 
         F_render_graph::instance_p()->enqueue_initialize_resource_view({
@@ -84,6 +85,7 @@ namespace nre::newrg
         u32 index
     )
     {
+        NCPP_ASSERT(index < count());
         NCPP_ASSERT(descriptor_p_);
 
         F_render_graph::instance_p()->enqueue_initialize_sampler_state({
@@ -96,6 +98,7 @@ namespace nre::newrg
         u32 index
     )
     {
+        NCPP_ASSERT(index < count());
         NCPP_ASSERT(descriptor_p_);
 
         F_render_graph::instance_p()->enqueue_copy_permanent_descriptor({
@@ -109,6 +112,7 @@ namespace nre::newrg
         u32 count
     )
     {
+        NCPP_ASSERT((index + count) <= count());
         NCPP_ASSERT(descriptor_p_);
 
         F_render_graph::instance_p()->enqueue_copy_descriptor({

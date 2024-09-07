@@ -72,56 +72,71 @@ namespace nre::newrg
         external_descriptor_p_.reset();
     }
 
-    // void F_external_render_bind_list::enqueue_initialize_resource_view(
-    //     F_render_resource* resource_p,
-    //     const F_resource_view_desc& desc,
-    //     u32 index
-    // )
-    // {
-    //     NCPP_ASSERT(descriptor_p_);
-    //
-    //     F_render_graph::instance_p()->enqueue_initialize_resource_view({
-    //         .element = element(index),
-    //         .resource_p = resource_p,
-    //         .desc = desc
-    //     });
-    // }
-    // void F_external_render_bind_list::enqueue_initialize_sampler_state(
-    //     const F_sampler_state_desc& desc,
-    //     u32 index
-    // )
-    // {
-    //     NCPP_ASSERT(descriptor_p_);
-    //
-    //     F_render_graph::instance_p()->enqueue_initialize_sampler_state({
-    //         .element = element(index),
-    //         .desc = desc
-    //     });
-    // }
-    // void F_external_render_bind_list::enqueue_copy_permanent_descriptor(
-    //     const F_descriptor_handle_range& src_handle_range,
-    //     u32 index
-    // )
-    // {
-    //     NCPP_ASSERT(descriptor_p_);
-    //
-    //     F_render_graph::instance_p()->enqueue_copy_permanent_descriptor({
-    //         .element = element(index),
-    //         .src_handle_range = src_handle_range
-    //     });
-    // }
-    // void F_external_render_bind_list::enqueue_copy_descriptor(
-    //     const F_render_descriptor_element& src_element,
-    //     u32 index,
-    //     u32 count
-    // )
-    // {
-    //     NCPP_ASSERT(descriptor_p_);
-    //
-    //     F_render_graph::instance_p()->enqueue_copy_descriptor({
-    //         .element = element(index),
-    //         .src_element = src_element,
-    //         .count = count
-    //     });
-    // }
+    void F_external_render_bind_list::initialize_resource_view(
+        const F_resource_view_desc& desc,
+        u32 index
+    )
+    {
+        NCPP_ASSERT(index < count());
+        NCPP_ASSERT(H_render_graph::is_available(external_descriptor_p_));
+
+        auto& descriptor_allocation = external_descriptor_p_->allocation();
+        auto& descriptor_handle_range = external_descriptor_p_->handle_range();
+
+        auto* descriptor_allocator_p = descriptor_allocation.allocator_p;
+
+        auto& page = descriptor_allocator_p->pages()[descriptor_allocation.page_index];
+
+        u64 descriptor_stride = external_descriptor_p_->descriptor_stride();
+
+        H_descriptor::initialize_resource_view(
+            NCPP_FOH_VALID(page.heap_p),
+            descriptor_handle_range.begin_handle.cpu_address + index * descriptor_stride,
+            desc
+        );
+    }
+    void F_external_render_bind_list::initialize_sampler_state(
+        const F_sampler_state_desc& desc,
+        u32 index
+    )
+    {
+        NCPP_ASSERT(index < count());
+        NCPP_ASSERT(H_render_graph::is_available(external_descriptor_p_));
+
+        auto& descriptor_allocation = external_descriptor_p_->allocation();
+        auto& descriptor_handle_range = external_descriptor_p_->handle_range();
+
+        auto* descriptor_allocator_p = descriptor_allocation.allocator_p;
+
+        auto& page = descriptor_allocator_p->pages()[descriptor_allocation.page_index];
+
+        u64 descriptor_stride = external_descriptor_p_->descriptor_stride();
+
+        H_descriptor::initialize_sampler_state(
+            NCPP_FOH_VALID(page.heap_p),
+            descriptor_handle_range.begin_handle.cpu_address + index * descriptor_stride,
+            desc
+        );
+    }
+    void F_external_render_bind_list::copy_permanent_descriptor(
+        const F_descriptor_handle_range& src_handle_range,
+        u32 index
+    )
+    {
+        NCPP_ASSERT(index < count());
+        NCPP_ASSERT(H_render_graph::is_available(external_descriptor_p_));
+
+        auto& descriptor_handle_range = external_descriptor_p_->handle_range();
+        auto descriptor_heap_type = external_descriptor_p_->heap_type();
+
+        u64 descriptor_stride = external_descriptor_p_->descriptor_stride();
+
+        H_descriptor::copy_descriptors(
+            NRE_MAIN_DEVICE(),
+            descriptor_handle_range.begin_handle.cpu_address + index * descriptor_stride,
+            src_handle_range.begin_handle.cpu_address + index * descriptor_stride,
+            descriptor_handle_range.count,
+            descriptor_heap_type
+        );
+    }
 }

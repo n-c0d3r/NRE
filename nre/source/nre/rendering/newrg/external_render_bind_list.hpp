@@ -4,6 +4,7 @@
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/external_render_descriptor.hpp>
+#include <nre/rendering/newrg/render_graph.hpp>
 
 
 
@@ -51,48 +52,42 @@ namespace nre::newrg
     public:
         void reset();
 
-    // public:
-    //     void enqueue_initialize_resource_view(
-    //         F_render_resource* resource_p,
-    //         const F_resource_view_desc& desc,
-    //         u32 index = 0
-    //     );
-    //     NCPP_FORCE_INLINE void enqueue_initialize_resource_view(
-    //         F_render_resource* resource_p,
-    //         ED_resource_view_type view_type,
-    //         u32 index = 0
-    //     )
-    //     {
-    //         enqueue_initialize_resource_view(
-    //             resource_p,
-    //             {
-    //                 .type = view_type
-    //             },
-    //             index
-    //         );
-    //     }
-    //     void enqueue_initialize_sampler_state(
-    //         const F_sampler_state_desc& desc,
-    //         u32 index = 0
-    //     );
-    //     void enqueue_copy_permanent_descriptor(
-    //         const F_descriptor_handle_range& src_handle_range,
-    //         u32 index = 0
-    //     );
-    //     void enqueue_copy_descriptor(
-    //         const F_render_descriptor_element& src_element,
-    //         u32 index = 0,
-    //         u32 count = 1
-    //     );
+    public:
+        void initialize_resource_view(
+            const F_resource_view_desc& desc,
+            u32 index = 0
+        );
+        NCPP_FORCE_INLINE void initialize_resource_view(
+            TKPA_valid<A_resource> resource_p,
+            ED_resource_view_type view_type,
+            u32 index = 0
+        )
+        {
+            initialize_resource_view(
+                {
+                    .resource_p = resource_p.no_requirements(),
+                    .type = view_type
+                },
+                index
+            );
+        }
+        void initialize_sampler_state(
+            const F_sampler_state_desc& desc,
+            u32 index = 0
+        );
+        void copy_permanent_descriptor(
+            const F_descriptor_handle_range& src_handle_range,
+            u32 index = 0
+        );
 
     public:
         NCPP_FORCE_INLINE b8 is_valid() const noexcept
         {
-            return external_descriptor_p_;
+            return H_render_graph::is_available(external_descriptor_p_);
         }
         NCPP_FORCE_INLINE b8 is_null() const noexcept
         {
-            return !external_descriptor_p_;
+            return !H_render_graph::is_available(external_descriptor_p_);
         }
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {
