@@ -112,7 +112,7 @@ namespace nre::newrg
         u32 count
     )
     {
-        NCPP_ASSERT((index + count) <= count());
+        NCPP_ASSERT((index + count) <= this->count());
         NCPP_ASSERT(descriptor_p_);
 
         F_render_graph::instance_p()->enqueue_copy_descriptor({

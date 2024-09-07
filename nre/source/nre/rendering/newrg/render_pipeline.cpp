@@ -228,17 +228,22 @@ namespace nre::newrg {
 		end_minimal_frame_internal();
 	}
 
-	void F_render_pipeline::begin_render()
+	void F_render_pipeline::begin_frame()
 	{
 		begin_minimal_frame_internal();
 
 		F_imgui::instance_p()->begin_frame();
 	}
-	void F_render_pipeline::end_render()
+	void F_render_pipeline::end_frame()
 	{
 		F_imgui::instance_p()->end_frame();
 
 		end_minimal_frame_internal();
+	}
+
+	void F_render_pipeline::begin_render() {
+	}
+	void F_render_pipeline::end_render() {
 	}
 
 	TU<A_render_factory> F_render_pipeline::create_factory()

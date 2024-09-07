@@ -63,8 +63,8 @@ namespace nre::firstrp {
 		virtual void end_setup() override;
 
 	public:
-		virtual void begin_render() override;
-		virtual void end_render() override;
+		virtual void begin_frame() override;
+		virtual void end_frame() override;
 
 	public:
 		virtual TU<A_render_factory> create_factory() override;

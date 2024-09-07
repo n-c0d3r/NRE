@@ -65,8 +65,8 @@ namespace nre::newrg
         {
             initialize_resource_view(
                 {
-                    .resource_p = resource_p.no_requirements(),
-                    .type = view_type
+                    .type = view_type,
+                    .resource_p = resource_p.no_requirements()
                 },
                 index
             );

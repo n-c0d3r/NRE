@@ -201,7 +201,7 @@ namespace nre::firstrp {
 		submit_main_command_list();
 	}
 
-	void F_render_pipeline::begin_render() {
+	void F_render_pipeline::begin_frame() {
 
 		begin_infrequent_upload_command_list();
 		begin_infrequent_compute_command_list();
@@ -210,7 +210,7 @@ namespace nre::firstrp {
 
 		F_imgui::instance_p()->begin_frame();
 	}
-	void F_render_pipeline::end_render() {
+	void F_render_pipeline::end_frame() {
 
 		F_imgui::instance_p()->end_frame();
 

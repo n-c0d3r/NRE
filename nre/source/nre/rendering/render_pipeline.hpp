@@ -107,6 +107,10 @@ namespace nre
 		virtual void end_setup();
 
 	public:
+		virtual void begin_frame();
+		virtual void end_frame();
+
+	public:
 		virtual void begin_render();
 		virtual void end_render();
 

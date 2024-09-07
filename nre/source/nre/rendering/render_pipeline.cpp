@@ -76,9 +76,13 @@ namespace nre {
 	void A_render_pipeline::end_setup() {
 	}
 
+	void A_render_pipeline::begin_frame() {
+	}
+	void A_render_pipeline::end_frame() {
+	}
+
 	void A_render_pipeline::begin_render() {
 	}
 	void A_render_pipeline::end_render() {
 	}
-
 }

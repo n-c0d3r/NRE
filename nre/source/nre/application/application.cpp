@@ -89,13 +89,18 @@ namespace nre {
 
 		  	if(main_surface_p_) {
 
-				NRE_RENDER_PIPELINE()->begin_render();
+				NRE_RENDER_PIPELINE()->begin_frame();
 
 				gameplay_tick_event_.invoke();
 
-				render_tick_event_.invoke();
+		  		// render
+		  		{
+					NRE_RENDER_PIPELINE()->begin_render();
+					render_tick_event_.invoke();
+					NRE_RENDER_PIPELINE()->end_render();
+				}
 
-				NRE_RENDER_PIPELINE()->end_render();
+				NRE_RENDER_PIPELINE()->end_frame();
 		  	}
 
 		  	frame_start_ = frame_end_;
