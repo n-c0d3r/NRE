@@ -50,5 +50,11 @@ namespace nre::newrg
 #endif
         );
         ~F_external_render_frame_buffer();
+
+    public:
+        NCPP_OBJECT(F_external_render_frame_buffer);
+
+    public:
+        void reset();
     };
 }

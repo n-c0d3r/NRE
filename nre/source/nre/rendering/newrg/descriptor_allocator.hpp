@@ -21,7 +21,7 @@ namespace nre::newrg
         u32 page_capacity_ = 0;
         TG_vector<F_descriptor_page> pages_;
 
-        u32 descriptor_stride_ = 0;
+        u64 descriptor_stride_ = 0;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_debug_name name_;
@@ -34,7 +34,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE u32 page_capacity() const noexcept { return page_capacity_; }
         NCPP_FORCE_INLINE const auto& pages() const noexcept { return pages_; }
 
-        NCPP_FORCE_INLINE u32 descriptor_stride() const noexcept { return descriptor_stride_; }
+        NCPP_FORCE_INLINE u64 descriptor_stride() const noexcept { return descriptor_stride_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const auto& name() const noexcept { return name_; }

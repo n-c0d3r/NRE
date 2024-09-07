@@ -17,6 +17,9 @@
 #include <nre/rendering/newrg/descriptor_allocator.hpp>
 #include <nre/rendering/newrg/descriptor_handle_range.hpp>
 #include <nre/rendering/newrg/render_descriptor_element.hpp>
+#include <nre/rendering/newrg/external_render_resource.hpp>
+#include <nre/rendering/newrg/external_render_descriptor.hpp>
+#include <nre/rendering/newrg/external_render_frame_buffer.hpp>
 
 
 
@@ -576,6 +579,34 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
+        void export_resource(
+            TS<F_external_render_resource>& out_external_p,
+            F_render_resource* resource_p,
+            ED_resource_state new_states = ED_resource_state::COMMON
+        );
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        void export_descriptor(
+            TS<F_external_render_descriptor>& out_external_p,
+            F_render_descriptor* descriptor_p
+        );
+
+    public:
+        /**
+         *  Thread-safe
+         */
+        void export_frame_buffer(
+            TS<F_external_render_frame_buffer>& out_external_p,
+            F_render_frame_buffer* frame_buffer_p
+        );
+
+    public:
+        /**
+         *  Thread-safe
+         */
         F_render_resource* create_permanent_resource(
             TKPA_valid<A_resource> rhi_p,
             ED_resource_state default_states = ED_resource_state::COMMON
@@ -764,5 +795,29 @@ namespace nre::newrg
                 internal::compute_command_allocator_p_key
             );
         }
+
+    public:
+        static NCPP_FORCE_INLINE b8 is_available(TSPA<F_external_render_resource> external_p)
+        {
+            if(external_p)
+                return !(external_p->need_to_import());
+
+            return false;
+        }
+        static NCPP_FORCE_INLINE b8 is_available(TSPA<F_external_render_descriptor> external_p)
+        {
+            if(external_p)
+                return !(external_p->need_to_import());
+
+            return false;
+        }
+        static NCPP_FORCE_INLINE b8 is_available(TSPA<F_external_render_frame_buffer> external_p)
+        {
+            if(external_p)
+                return !(external_p->need_to_import());
+
+            return false;
+        }
     };
 }
+

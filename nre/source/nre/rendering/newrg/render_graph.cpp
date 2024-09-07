@@ -1307,7 +1307,7 @@ namespace nre::newrg
 
             auto& page = descriptor_allocator_p->pages()[descriptor_allocation.page_index];
 
-            u32 descriptor_stride = descriptor_allocator_p->descriptor_stride();
+            u64 descriptor_stride = descriptor_allocator_p->descriptor_stride();
 
             H_descriptor::initialize_resource_view(
                 NCPP_FOH_VALID(page.heap_p),
@@ -1333,7 +1333,7 @@ namespace nre::newrg
 
             auto& page = descriptor_allocator_p->pages()[descriptor_allocation.page_index];
 
-            u32 descriptor_stride = descriptor_allocator_p->descriptor_stride();
+            u64 descriptor_stride = descriptor_allocator_p->descriptor_stride();
 
             H_descriptor::initialize_sampler_state(
                 NCPP_FOH_VALID(page.heap_p),
@@ -3393,6 +3393,9 @@ namespace nre::newrg
 
             render_descriptor_p->id_ = descriptor_p_owf_stack_.push_and_return_index(render_descriptor_p);
 
+            external_descriptor_p->allocation_ = {};
+            external_descriptor_p->handle_range_ = {};
+
             external_descriptor_p->internal_p_ = render_descriptor_p;
         }
 
@@ -3435,6 +3438,115 @@ namespace nre::newrg
         }
 
         return external_frame_buffer_p->internal_p_;
+    }
+
+
+    void F_render_graph::export_resource(
+        TS<F_external_render_resource>& out_external_p,
+        F_render_resource* resource_p,
+        ED_resource_state new_states
+    )
+    {
+        NCPP_ASSERT((!resource_p->is_permanent())) << "can't export permanent resource";
+
+        NCPP_SCOPED_LOCK(resource_p->export_lock_);
+
+        if(!(resource_p->external_p_))
+        {
+            if(out_external_p)
+            {
+                out_external_p->default_states_ = new_states;
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                out_external_p->name_ = resource_p->name_.c_str();
+#endif
+            }
+            else
+            {
+                out_external_p = TS<F_external_render_resource>()(
+                    new_states
+    #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                    , resource_p->name_.c_str()
+    #endif
+                );
+            }
+
+            resource_p->external_p_ = out_external_p;
+
+            epilogue_resource_state_stack_.push({
+                .resource_p = resource_p,
+                .states = new_states,
+                .enable_states_optimization = false
+            });
+        }
+        else
+        {
+            out_external_p = resource_p->external_p_;
+        }
+    }
+
+    void F_render_graph::export_descriptor(
+        TS<F_external_render_descriptor>& out_external_p,
+        F_render_descriptor* descriptor_p
+    )
+    {
+        NCPP_SCOPED_LOCK(descriptor_p->export_lock_);
+
+        if(!(descriptor_p->external_p_))
+        {
+            if(out_external_p)
+            {
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                out_external_p->name_ = descriptor_p->name_.c_str();
+#endif
+            }
+            else
+            {
+                out_external_p = TS<F_external_render_descriptor>()(
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                    descriptor_p->name_.c_str()
+#endif
+                );
+            }
+
+            descriptor_p->external_p_ = out_external_p;
+        }
+        else
+        {
+            out_external_p = descriptor_p->external_p_;
+        }
+    }
+
+    void F_render_graph::export_frame_buffer(
+        TS<F_external_render_frame_buffer>& out_external_p,
+        F_render_frame_buffer* frame_buffer_p
+    )
+    {
+        NCPP_SCOPED_LOCK(frame_buffer_p->export_lock_);
+        NCPP_ASSERT(frame_buffer_p->need_to_create() || frame_buffer_p->rhi_p()) << "can't export permanent frame buffer";
+
+        if(!(frame_buffer_p->external_p_))
+        {
+            if(out_external_p)
+            {
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                out_external_p->name_ = frame_buffer_p->name_.c_str();
+#endif
+            }
+            else
+            {
+                out_external_p = TS<F_external_render_frame_buffer>()(
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+                    frame_buffer_p->name_.c_str()
+#endif
+                );
+            }
+
+            frame_buffer_p->external_p_ = out_external_p;
+        }
+        else
+        {
+            out_external_p = frame_buffer_p->external_p_;
+        }
     }
 
     F_render_resource* F_render_graph::create_permanent_resource(

@@ -19,6 +19,11 @@ namespace nre::newrg
     }
     F_external_render_resource::~F_external_render_resource()
     {
+        reset();
+    }
+
+    void F_external_render_resource::reset()
+    {
         NCPP_SCOPED_LOCK(import_lock_);
 
         if(rhi_p_)

@@ -8,6 +8,7 @@
 #include <nre/rendering/newrg/descriptor_allocation.hpp>
 #include <nre/rendering/newrg/descriptor_handle_range.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
+#include <nre/rendering/newrg/descriptor_allocator.hpp>
 
 
 namespace nre::newrg
@@ -59,6 +60,22 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& allocation() const noexcept { return allocation_; }
         NCPP_FORCE_INLINE const auto& handle_range() const noexcept { return handle_range_; }
+        NCPP_FORCE_INLINE const auto& handle() const noexcept
+        {
+            return handle_range_.begin_handle;
+        }
+        NCPP_FORCE_INLINE F_descriptor_handle handle(u32 index) const noexcept
+        {
+            u64 descriptor_stride = allocation_.allocator_p->descriptor_stride();
+            return {
+                .cpu_address = handle_range_.begin_handle.cpu_address + descriptor_stride * index,
+                .gpu_address = handle_range_.begin_handle.gpu_address + descriptor_stride * index
+            };
+        }
+        NCPP_FORCE_INLINE u32 handle_count() const noexcept
+        {
+            return handle_range_.count;
+        }
         NCPP_FORCE_INLINE ED_descriptor_heap_type heap_type() const noexcept { return heap_type_; }
 
         NCPP_FORCE_INLINE const auto& src_handle_range() const noexcept { return src_handle_range_; }

@@ -18,6 +18,11 @@ namespace nre::newrg
     }
     F_external_render_descriptor::~F_external_render_descriptor()
     {
+        reset();
+    }
+
+    void F_external_render_descriptor::reset()
+    {
         NCPP_SCOPED_LOCK(import_lock_);
 
         if(allocation_)
