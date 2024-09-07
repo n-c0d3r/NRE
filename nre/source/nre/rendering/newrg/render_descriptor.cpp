@@ -13,7 +13,8 @@ namespace nre::newrg
 #endif
     ) :
         handle_range_({ .count = count }),
-        heap_type_(heap_type)
+        heap_type_(heap_type),
+        descriptor_stride_(NRE_MAIN_DEVICE()->descriptor_increment_size(heap_type))
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , name_(name)
 #endif
@@ -29,7 +30,8 @@ namespace nre::newrg
     ) :
         allocation_(allocation),
         handle_range_(handle_range),
-        heap_type_(heap_type)
+        heap_type_(heap_type),
+        descriptor_stride_(NRE_MAIN_DEVICE()->descriptor_increment_size(heap_type))
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , name_(name)
 #endif
@@ -43,8 +45,8 @@ namespace nre::newrg
 #endif
     ) :
         handle_range_(src_handle_range),
-        is_permanent_(true),
-        heap_type_(heap_type)
+        heap_type_(heap_type),
+        descriptor_stride_(NRE_MAIN_DEVICE()->descriptor_increment_size(heap_type))
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , name_(name)
 #endif

@@ -38,7 +38,7 @@ namespace nre::newrg
         pac::F_spin_lock export_lock_;
         TS<F_external_render_descriptor> external_p_;
 
-        b8 is_permanent_ = false;
+        u64 descriptor_stride_ = 0;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
@@ -55,10 +55,9 @@ namespace nre::newrg
         }
         NCPP_FORCE_INLINE F_descriptor_handle handle(u32 index) const noexcept
         {
-            u64 descriptor_stride = allocation_.allocator_p->descriptor_stride();
             return {
-                .cpu_address = handle_range_.begin_handle.cpu_address + descriptor_stride * index,
-                .gpu_address = handle_range_.begin_handle.gpu_address + descriptor_stride * index
+                .cpu_address = handle_range_.begin_handle.cpu_address + descriptor_stride_ * index,
+                .gpu_address = handle_range_.begin_handle.gpu_address + descriptor_stride_ * index
             };
         }
         NCPP_FORCE_INLINE u32 count() const noexcept
@@ -85,7 +84,9 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto& external_p() const noexcept { return external_p_; }
         NCPP_FORCE_INLINE b8 need_to_export() const noexcept { return external_p_; }
 
-        NCPP_FORCE_INLINE b8 is_permanent() const noexcept { return is_permanent_; }
+        NCPP_FORCE_INLINE b8 is_permanent() const noexcept { return !allocation_; }
+
+        NCPP_FORCE_INLINE u64 descriptor_stride() const noexcept { return descriptor_stride_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }

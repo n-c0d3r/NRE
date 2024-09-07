@@ -1240,11 +1240,9 @@ namespace nre::newrg
                     F_render_descriptor* rtv_descriptor_p = rtv_descriptor_element.descriptor_p;
                     u32 rtv_descriptor_index = rtv_descriptor_element.index;
 
-                    auto* allocator_p = rtv_descriptor_p->allocation_.allocator_p;
-
                     F_descriptor_cpu_address descriptor_cpu_address = (
                         rtv_descriptor_p->handle_range_.begin_handle.cpu_address
-                        + rtv_descriptor_index * allocator_p->descriptor_stride()
+                        + rtv_descriptor_index * rtv_descriptor_p->descriptor_stride()
                     );
                     rtv_descriptor_cpu_addresses[i] = descriptor_cpu_address;
                 }
@@ -1256,12 +1254,10 @@ namespace nre::newrg
                     F_render_descriptor* dsv_descriptor_p = dsv_descriptor_element.descriptor_p;
                     u32 dsv_descriptor_index = dsv_descriptor_element.index;
 
-                    auto* allocator_p = dsv_descriptor_p->allocation_.allocator_p;
-
                     dsv_descriptor_cpu_address = dsv_descriptor_p->handle_range_.begin_handle.cpu_address;
                     F_descriptor_cpu_address descriptor_cpu_address = (
                         dsv_descriptor_p->handle_range_.begin_handle.cpu_address
-                        + dsv_descriptor_index * allocator_p->descriptor_stride()
+                        + dsv_descriptor_index * dsv_descriptor_p->descriptor_stride()
                     );
                     dsv_descriptor_cpu_address = descriptor_cpu_address;
                 }
@@ -1308,7 +1304,7 @@ namespace nre::newrg
 
             auto& page = descriptor_allocator_p->pages()[descriptor_allocation.page_index];
 
-            u64 descriptor_stride = descriptor_allocator_p->descriptor_stride();
+            u64 descriptor_stride = descriptor_p->descriptor_stride();
 
             H_descriptor::initialize_resource_view(
                 NCPP_FOH_VALID(page.heap_p),
@@ -1334,7 +1330,7 @@ namespace nre::newrg
 
             auto& page = descriptor_allocator_p->pages()[descriptor_allocation.page_index];
 
-            u64 descriptor_stride = descriptor_allocator_p->descriptor_stride();
+            u64 descriptor_stride = descriptor_p->descriptor_stride();
 
             H_descriptor::initialize_sampler_state(
                 NCPP_FOH_VALID(page.heap_p),
@@ -1355,13 +1351,10 @@ namespace nre::newrg
 
             auto& src_handle_range = descriptor_copy.src_handle_range;
 
-            auto& descriptor_allocation = descriptor_p->allocation_;
             auto& descriptor_handle_range = descriptor_p->handle_range_;
             auto descriptor_heap_type = descriptor_p->heap_type_;
 
-            auto* descriptor_allocator_p = descriptor_allocation.allocator_p;
-
-            u64 descriptor_stride = descriptor_allocator_p->descriptor_stride();
+            u64 descriptor_stride = descriptor_p->descriptor_stride();
 
             H_descriptor::copy_descriptors(
                 device_p,
