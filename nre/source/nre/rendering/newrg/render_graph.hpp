@@ -67,11 +67,18 @@ namespace nre::newrg
 
         F_sampler_state_desc desc;
     };
-    struct F_descriptor_copy
+    struct F_permanent_descriptor_copy
     {
         F_render_descriptor_element element;
 
         F_descriptor_handle_range src_handle_range;
+    };
+    struct F_descriptor_copy
+    {
+        F_render_descriptor_element element;
+        F_render_descriptor_element src_element;
+
+        u32 count = 0;
     };
 
 
@@ -130,6 +137,7 @@ namespace nre::newrg
 
         TG_concurrent_owf_stack<F_resource_view_initialize> resource_view_initialize_owf_stack_;
         TG_concurrent_owf_stack<F_sampler_state_initialize> sampler_state_initialize_owf_stack_;
+        TG_concurrent_owf_stack<F_permanent_descriptor_copy> permanent_descriptor_copy_owf_stack_;
         TG_concurrent_owf_stack<F_descriptor_copy> descriptor_copy_owf_stack_;
 
         TG_vector<TU<A_command_allocator>> direct_command_allocator_p_vector_;
@@ -197,6 +205,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& resource_view_initialize_owf_stack() noexcept { return resource_view_initialize_owf_stack_; }
         NCPP_FORCE_INLINE const auto& sampler_state_initialize_owf_stack() noexcept { return sampler_state_initialize_owf_stack_; }
+        NCPP_FORCE_INLINE const auto& permanent_descriptor_copy_owf_stack() noexcept { return permanent_descriptor_copy_owf_stack_; }
         NCPP_FORCE_INLINE const auto& descriptor_copy_owf_stack() noexcept { return descriptor_copy_owf_stack_; }
 
         NCPP_FORCE_INLINE const auto& direct_command_allocator_p_vector() noexcept { return direct_command_allocator_p_vector_; }
@@ -275,6 +284,7 @@ namespace nre::newrg
     private:
         void initialize_resource_views_internal();
         void initialize_sampler_states_internal();
+        void copy_permanent_descriptors_internal();
         void copy_descriptors_internal();
 
     private:
@@ -740,6 +750,10 @@ namespace nre::newrg
          *  Thread-safe
          */
         void enqueue_initialize_sampler_state(const F_sampler_state_initialize& sampler_state_initialize);
+        /**
+         *  Thread-safe
+         */
+        void enqueue_copy_permanent_descriptor(const F_permanent_descriptor_copy& permanent_descriptor_copy);
         /**
          *  Thread-safe
          */

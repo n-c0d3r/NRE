@@ -10,8 +10,17 @@
 
 namespace nre::newrg
 {
+    class F_external_render_bind_list;
+
+
+
     class NRE_API F_render_bind_list
     {
+    public:
+        friend class F_external_render_bind_list;
+
+
+
     private:
         F_render_descriptor* descriptor_p_ = 0;
 
@@ -35,6 +44,10 @@ namespace nre::newrg
         F_render_bind_list(F_render_bind_list&& x) noexcept;
         F_render_bind_list& operator = (F_render_bind_list&& x) noexcept;
         ~F_render_bind_list();
+
+    public:
+        F_render_bind_list(F_external_render_bind_list& x) noexcept;
+        F_render_bind_list& operator = (F_external_render_bind_list& x) noexcept;
 
     public:
         void reset();
@@ -63,9 +76,14 @@ namespace nre::newrg
             const F_sampler_state_desc& desc,
             u32 index = 0
         );
-        void enqueue_copy_descriptor(
+        void enqueue_copy_permanent_descriptor(
             const F_descriptor_handle_range& src_handle_range,
             u32 index = 0
+        );
+        void enqueue_copy_descriptor(
+            const F_render_descriptor_element& src_element,
+            u32 index = 0,
+            u32 count = 1
         );
 
     public:

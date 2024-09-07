@@ -6,13 +6,16 @@
 namespace nre::newrg
 {
     F_external_render_descriptor::F_external_render_descriptor(
+        ED_descriptor_heap_type heap_type,
+        u32 count
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        const F_debug_name& name
+        , const F_debug_name& name
 #endif
-    )
+    ) :
+        handle_range_({ .count = count }),
+        heap_type_(heap_type)
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-    :
-        name_(name)
+        , name_(name)
 #endif
     {
     }

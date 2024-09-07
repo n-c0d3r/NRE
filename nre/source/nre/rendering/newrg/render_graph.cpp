@@ -52,6 +52,7 @@ namespace nre::newrg
         epilogue_resource_state_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
         resource_view_initialize_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_INITIALIZE_OWF_STACK_CAPACITY),
         sampler_state_initialize_owf_stack_(NRE_RENDER_GRAPH_SAMPLER_STATE_INITIALIZE_OWF_STACK_CAPACITY),
+        permanent_descriptor_copy_owf_stack_(NRE_RENDER_GRAPH_PERMANENT_DESCRIPTOR_COPY_OWF_STACK_CAPACITY),
         descriptor_copy_owf_stack_(NRE_RENDER_GRAPH_DESCRIPTOR_COPY_OWF_STACK_CAPACITY),
         rhi_frame_buffer_pool_(
             0
@@ -1339,17 +1340,17 @@ namespace nre::newrg
             );
         }
     }
-    void F_render_graph::copy_descriptors_internal()
+    void F_render_graph::copy_permanent_descriptors_internal()
     {
         auto device_p = NRE_MAIN_DEVICE();
 
-        auto descriptor_copy_span = descriptor_copy_owf_stack_.item_span();
-        for(auto& descriptor_copy : descriptor_copy_span)
+        auto permanent_descriptor_copy_span = permanent_descriptor_copy_owf_stack_.item_span();
+        for(auto& permanent_descriptor_copy : permanent_descriptor_copy_span)
         {
-            F_render_descriptor* descriptor_p = descriptor_copy.element.descriptor_p;
-            u32 offset_in_descriptors = descriptor_copy.element.index;
+            F_render_descriptor* descriptor_p = permanent_descriptor_copy.element.descriptor_p;
+            u32 offset_in_descriptors = permanent_descriptor_copy.element.index;
 
-            auto& src_handle_range = descriptor_copy.src_handle_range;
+            auto& src_handle_range = permanent_descriptor_copy.src_handle_range;
 
             auto& descriptor_handle_range = descriptor_p->handle_range_;
             auto descriptor_heap_type = descriptor_p->heap_type_;
@@ -1361,6 +1362,37 @@ namespace nre::newrg
                 descriptor_handle_range.begin_handle.cpu_address + offset_in_descriptors * descriptor_stride,
                 src_handle_range.begin_handle.cpu_address + offset_in_descriptors * descriptor_stride,
                 descriptor_handle_range.count,
+                descriptor_heap_type
+            );
+        }
+    }
+    void F_render_graph::copy_descriptors_internal()
+    {
+        auto device_p = NRE_MAIN_DEVICE();
+
+        auto descriptor_copy_span = descriptor_copy_owf_stack_.item_span();
+        for(auto& descriptor_copy : descriptor_copy_span)
+        {
+            F_render_descriptor* descriptor_p = descriptor_copy.element.descriptor_p;
+            u32 offset_in_descriptors = descriptor_copy.element.index;
+
+            F_render_descriptor* src_descriptor_p = descriptor_copy.src_element.descriptor_p;
+            u32 src_offset_in_descriptors = descriptor_copy.src_element.index;
+
+            u32 count = descriptor_copy.count;
+
+            auto& descriptor_handle_range = src_descriptor_p->handle_range_;
+            auto descriptor_heap_type = src_descriptor_p->heap_type_;
+
+            auto& src_descriptor_handle_range = src_descriptor_p->handle_range_;
+
+            u64 descriptor_stride = descriptor_p->descriptor_stride();
+
+            H_descriptor::copy_descriptors(
+                device_p,
+                descriptor_handle_range.begin_handle.cpu_address + offset_in_descriptors * descriptor_stride,
+                src_descriptor_handle_range.begin_handle.cpu_address + src_offset_in_descriptors * descriptor_stride,
+                count,
                 descriptor_heap_type
             );
         }
@@ -2813,7 +2845,6 @@ namespace nre::newrg
                 auto external_p = descriptor_p->external_p_;
                 external_p->allocation_ = descriptor_p->allocation_;
                 external_p->handle_range_ = descriptor_p->handle_range_;
-                external_p->heap_type_ = descriptor_p->heap_type_;
             }
         }
     }
@@ -2892,6 +2923,7 @@ namespace nre::newrg
 
         resource_view_initialize_owf_stack_.reset();
         sampler_state_initialize_owf_stack_.reset();
+        permanent_descriptor_copy_owf_stack_.reset();
         descriptor_copy_owf_stack_.reset();
         descriptor_p_owf_stack_.reset();
     }
@@ -2955,6 +2987,7 @@ namespace nre::newrg
         allocate_descriptors_internal();
         initialize_resource_views_internal();
         initialize_sampler_states_internal();
+        copy_permanent_descriptors_internal();
         copy_descriptors_internal();
         create_rhi_frame_buffers_internal();
 
@@ -3366,8 +3399,10 @@ namespace nre::newrg
         if(!(descriptor_p->external_p_))
         {
             descriptor_p->external_p_ = TS<F_external_render_descriptor>()(
+                descriptor_p->heap_type_,
+                descriptor_p->handle_range_.count
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-                descriptor_p->name_.c_str()
+                , descriptor_p->name_.c_str()
 #endif
             );
         }
@@ -3501,8 +3536,10 @@ namespace nre::newrg
             else
             {
                 out_external_p = TS<F_external_render_descriptor>()(
+                    descriptor_p->heap_type_,
+                    descriptor_p->handle_range_.count
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-                    descriptor_p->name_.c_str()
+                    , descriptor_p->name_.c_str()
 #endif
                 );
             }
@@ -3638,10 +3675,18 @@ namespace nre::newrg
 
         sampler_state_initialize_owf_stack_.push(sampler_state_initialize);
     }
+    void F_render_graph::enqueue_copy_permanent_descriptor(const F_permanent_descriptor_copy& permanent_descriptor_copy)
+    {
+        NCPP_ASSERT(permanent_descriptor_copy.element) << "invalid descriptor element";
+        NCPP_ASSERT(permanent_descriptor_copy.src_handle_range) << "invalid src handle range";
+
+        permanent_descriptor_copy_owf_stack_.push(permanent_descriptor_copy);
+    }
     void F_render_graph::enqueue_copy_descriptor(const F_descriptor_copy& descriptor_copy)
     {
         NCPP_ASSERT(descriptor_copy.element) << "invalid descriptor element";
-        NCPP_ASSERT(descriptor_copy.src_handle_range) << "invalid src handle range";
+        NCPP_ASSERT(descriptor_copy.src_element) << "invalid src descriptor element";
+        NCPP_ASSERT(descriptor_copy.count != 0) << "invalid count";
 
         descriptor_copy_owf_stack_.push(descriptor_copy);
     }
