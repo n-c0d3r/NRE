@@ -54,6 +54,7 @@ namespace nre::newrg
         sampler_state_initialize_owf_stack_(NRE_RENDER_GRAPH_SAMPLER_STATE_INITIALIZE_OWF_STACK_CAPACITY),
         permanent_descriptor_copy_owf_stack_(NRE_RENDER_GRAPH_PERMANENT_DESCRIPTOR_COPY_OWF_STACK_CAPACITY),
         descriptor_copy_owf_stack_(NRE_RENDER_GRAPH_DESCRIPTOR_COPY_OWF_STACK_CAPACITY),
+        late_setup_functor_cache_owf_stack_(NRE_RENDER_GRAPH_LATE_SETUP_FUNCTOR_CALLER_OWF_STACK_CAPACITY),
         rhi_frame_buffer_pool_(
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.rhi_frame_buffer_pool")
@@ -1395,6 +1396,14 @@ namespace nre::newrg
                 count,
                 descriptor_heap_type
             );
+        }
+    }
+    void F_render_graph::late_setup_internal()
+    {
+        auto late_setup_functor_cache_span = late_setup_functor_cache_owf_stack_.item_span();
+        for(auto& late_setup_functor_cache : late_setup_functor_cache_span)
+        {
+            late_setup_functor_cache.call();
         }
     }
 
@@ -2940,6 +2949,16 @@ namespace nre::newrg
     {
         is_rhi_available_ = false;
     }
+    void F_render_graph::flush_late_setup_internal()
+    {
+        auto late_setup_functor_cache_span = late_setup_functor_cache_owf_stack_.item_span();
+        for(auto& late_setup_functor_cache : late_setup_functor_cache_span)
+        {
+            late_setup_functor_cache.call_destructor();
+        }
+
+        late_setup_functor_cache_owf_stack_.reset();
+    }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
     void F_render_graph::apply_debug_names_internal()
@@ -3050,6 +3069,12 @@ namespace nre::newrg
 
         return render_binder_group_p;
     }
+    void F_render_graph::register_late_setup_internal(
+        const F_render_graph_late_setup_functor_cache& functor_cache
+    )
+    {
+        late_setup_functor_cache_owf_stack_.push_and_return_index(functor_cache);
+    }
 
 
 
@@ -3139,6 +3164,8 @@ namespace nre::newrg
 
         setup_internal();
 
+        late_setup_internal();
+
         if(upload_callback_)
             upload_callback_();
 
@@ -3152,6 +3179,8 @@ namespace nre::newrg
     {
         if(readback_callback_)
             readback_callback_();
+
+        flush_late_setup_internal();
 
         flush_execute_range_owf_stack_internal();
 

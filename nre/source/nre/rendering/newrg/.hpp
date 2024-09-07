@@ -55,6 +55,7 @@
 #include <nre/rendering/newrg/general_resource_uploader.hpp>
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
 #include <nre/rendering/newrg/transient_resource_readback.hpp>
+#include <nre/rendering/newrg/render_graph_late_setup_functor.hpp>
 #include <nre/rendering/newrg/render_binder_group.hpp>
 #include <nre/rendering/newrg/render_binder_group_id.hpp>
 #include <nre/rendering/newrg/render_binder_group_functor.hpp>

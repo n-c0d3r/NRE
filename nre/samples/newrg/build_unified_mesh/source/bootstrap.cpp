@@ -183,6 +183,13 @@ int main() {
 						.resource_p = rg_depth_buffer_p,
 						.states = ED_resource_state::DEPTH_WRITE
 					});
+
+					render_graph_p->register_late_setup(
+						[]()
+						{
+							int a = 5;
+						}
+					);
 				}
 			);
 		};

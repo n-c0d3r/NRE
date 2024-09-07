@@ -20,6 +20,7 @@
 #include <nre/rendering/newrg/external_render_resource.hpp>
 #include <nre/rendering/newrg/external_render_descriptor.hpp>
 #include <nre/rendering/newrg/external_render_frame_buffer.hpp>
+#include <nre/rendering/newrg/render_graph_late_setup_functor.hpp>
 
 
 
@@ -139,6 +140,7 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_sampler_state_initialize> sampler_state_initialize_owf_stack_;
         TG_concurrent_owf_stack<F_permanent_descriptor_copy> permanent_descriptor_copy_owf_stack_;
         TG_concurrent_owf_stack<F_descriptor_copy> descriptor_copy_owf_stack_;
+        TG_concurrent_owf_stack<F_render_graph_late_setup_functor_cache> late_setup_functor_cache_owf_stack_;
 
         TG_vector<TU<A_command_allocator>> direct_command_allocator_p_vector_;
         TG_vector<TU<A_command_allocator>> compute_command_allocator_p_vector_;
@@ -206,6 +208,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& sampler_state_initialize_owf_stack() noexcept { return sampler_state_initialize_owf_stack_; }
         NCPP_FORCE_INLINE const auto& permanent_descriptor_copy_owf_stack() noexcept { return permanent_descriptor_copy_owf_stack_; }
         NCPP_FORCE_INLINE const auto& descriptor_copy_owf_stack() noexcept { return descriptor_copy_owf_stack_; }
+        NCPP_FORCE_INLINE const auto& late_setup_functor_cache_owf_stack() noexcept { return late_setup_functor_cache_owf_stack_; }
 
         NCPP_FORCE_INLINE const auto& direct_command_allocator_p_vector() noexcept { return direct_command_allocator_p_vector_; }
         NCPP_FORCE_INLINE const auto& compute_command_allocator_p_vector() noexcept { return compute_command_allocator_p_vector_; }
@@ -284,6 +287,7 @@ namespace nre::newrg
         void initialize_sampler_states_internal();
         void copy_permanent_descriptors_internal();
         void copy_descriptors_internal();
+        void late_setup_internal();
 
     private:
         void optimize_resource_states_internal();
@@ -320,6 +324,7 @@ namespace nre::newrg
         void flush_descriptors_internal();
         void flush_frame_buffers_internal();
         void flush_states_internal();
+        void flush_late_setup_internal();
 
     private:
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -346,6 +351,9 @@ namespace nre::newrg
             , const F_render_frame_name& name,
             PA_vector3_f32 color
 #endif
+        );
+        void register_late_setup_internal(
+            const F_render_graph_late_setup_functor_cache& functor_cache
         );
 
 
@@ -496,6 +504,30 @@ namespace nre::newrg
                 color
 #endif
             );
+        }
+        /**
+         *  Thread-safe
+         */
+        void register_late_setup(auto&& functor)
+        {
+            using F_functor = std::remove_const_t<std::remove_reference_t<decltype(functor)>>;
+            NCPP_ASSERT(T_is_render_graph_late_setup_functor<F_functor>, "invalid functor type");
+
+            F_functor* functor_p = H_frame_heap::T_create<F_functor>(
+                NCPP_FORWARD(functor)
+            );
+
+            return register_late_setup_internal({
+                [](void* data_p)
+                {
+                    (*((F_functor*)data_p))();
+                },
+                [](void* data_p)
+                {
+                    ((F_functor*)data_p)->~F_functor();
+                },
+                functor_p
+            });
         }
         /**
          *  Thread-safe
