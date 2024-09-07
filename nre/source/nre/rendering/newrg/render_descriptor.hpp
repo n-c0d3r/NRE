@@ -4,7 +4,6 @@
 
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_descriptor_id.hpp>
-#include <nre/rendering/newrg/render_descriptor_element.hpp>
 #include <nre/rendering/newrg/descriptor_allocation.hpp>
 #include <nre/rendering/newrg/descriptor_handle_range.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>
@@ -72,7 +71,7 @@ namespace nre::newrg
                 .gpu_address = handle_range_.begin_handle.gpu_address + descriptor_stride * index
             };
         }
-        NCPP_FORCE_INLINE u32 handle_count() const noexcept
+        NCPP_FORCE_INLINE u32 count() const noexcept
         {
             return handle_range_.count;
         }

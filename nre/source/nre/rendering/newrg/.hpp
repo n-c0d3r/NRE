@@ -62,6 +62,8 @@
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/binder_signature.hpp>
 #include <nre/rendering/newrg/binder.hpp>
+#include <nre/rendering/newrg/render_bind_list.hpp>
+#include <nre/rendering/newrg/external_render_bind_list.hpp>
 #include <nre/rendering/newrg/gpu_driven_stack.hpp>
 #include <nre/rendering/newrg/cpu_gpu_data_pool.hpp>
 #include <nre/rendering/newrg/scene_render_view.hpp>

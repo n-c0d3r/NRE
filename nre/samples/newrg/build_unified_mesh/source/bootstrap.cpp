@@ -145,15 +145,17 @@ int main() {
 						ED_descriptor_heap_type::RENDER_TARGET
 						NRE_OPTIONAL_DEBUG_PARAM("main_rtv")
 					);
-					F_render_descriptor* rg_dsv_p = render_graph_p->create_resource_view(
+
+					F_render_bind_list dsv_bind_list(ED_descriptor_heap_type::DEPTH_STENCIL);
+					dsv_bind_list.enqueue_initialize_resource_view(
 						rg_depth_buffer_p,
 						ED_resource_view_type::DEPTH_STENCIL
-						NRE_OPTIONAL_DEBUG_PARAM("main_dsv")
 					);
+					auto dsv_element = dsv_bind_list[0];
 
 					F_render_frame_buffer* rg_frame_buffer_p = render_graph_p->create_frame_buffer(
 						{ { rg_rtv_p } },
-						{ rg_dsv_p }
+						{ dsv_element }
 						NRE_OPTIONAL_DEBUG_PARAM("main_frame_buffer")
 					);
 
@@ -165,7 +167,7 @@ int main() {
 								F_vector4_f32::forward()
 							);
 							command_list_p->async_clear_dsv_with_descriptor(
-								rg_dsv_p->handle().cpu_address,
+								dsv_element.handle().cpu_address,
 								ED_clear_flag::DEPTH,
 								1.0f,
 								0
