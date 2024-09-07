@@ -102,5 +102,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& handle_range() const noexcept { return external_descriptor_p_->handle_range(); }
         NCPP_FORCE_INLINE const auto& handle() const noexcept { return external_descriptor_p_->handle(); }
         NCPP_FORCE_INLINE F_descriptor_handle handle(u32 index) const noexcept { return external_descriptor_p_->handle(index); }
+
+        NCPP_FORCE_INLINE F_descriptor_handle operator [] (u32 index) const noexcept { return handle(index); }
     };
 }
