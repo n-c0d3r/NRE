@@ -52,6 +52,7 @@ namespace nre::newrg
         epilogue_resource_state_stack_(NRE_RENDER_GRAPH_RESOURCE_OWF_STACK_CAPACITY),
         resource_view_initialize_owf_stack_(NRE_RENDER_GRAPH_RESOURCE_INITIALIZE_OWF_STACK_CAPACITY),
         sampler_state_initialize_owf_stack_(NRE_RENDER_GRAPH_SAMPLER_STATE_INITIALIZE_OWF_STACK_CAPACITY),
+        descriptor_copy_owf_stack_(NRE_RENDER_GRAPH_DESCRIPTOR_COPY_OWF_STACK_CAPACITY),
         rhi_frame_buffer_pool_(
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.rhi_frame_buffer_pool")
@@ -1342,29 +1343,33 @@ namespace nre::newrg
             );
         }
     }
-    void F_render_graph::copy_src_descriptors_internal()
+    void F_render_graph::copy_descriptors_internal()
     {
         auto device_p = NRE_MAIN_DEVICE();
 
-        auto descriptor_span = descriptor_p_owf_stack_.item_span();
-        for(F_render_descriptor* descriptor_p : descriptor_span)
+        auto descriptor_copy_span = descriptor_copy_owf_stack_.item_span();
+        for(auto& descriptor_copy : descriptor_copy_span)
         {
-            if(descriptor_p->need_to_copy())
-            {
-                auto& descriptor_handle_range = descriptor_p->handle_range_;
-                auto& descriptor_src_handle_range = descriptor_p->src_handle_range_;
-                auto descriptor_heap_type = descriptor_p->heap_type_;
+            F_render_descriptor* descriptor_p = descriptor_copy.element.descriptor_p;
+            u32 offset_in_descriptors = descriptor_copy.element.index;
 
-                H_descriptor::copy_descriptors(
-                    device_p,
-                    descriptor_handle_range.begin_handle.cpu_address,
-                    descriptor_src_handle_range.begin_handle.cpu_address,
-                    descriptor_handle_range.count,
-                    descriptor_heap_type
-                );
+            auto& src_handle_range = descriptor_copy.src_handle_range;
 
-                descriptor_p->src_handle_range_ = {};
-            }
+            auto& descriptor_allocation = descriptor_p->allocation_;
+            auto& descriptor_handle_range = descriptor_p->handle_range_;
+            auto descriptor_heap_type = descriptor_p->heap_type_;
+
+            auto* descriptor_allocator_p = descriptor_allocation.allocator_p;
+
+            u64 descriptor_stride = descriptor_allocator_p->descriptor_stride();
+
+            H_descriptor::copy_descriptors(
+                device_p,
+                descriptor_handle_range.begin_handle.cpu_address + offset_in_descriptors * descriptor_stride,
+                src_handle_range.begin_handle.cpu_address + offset_in_descriptors * descriptor_stride,
+                descriptor_handle_range.count,
+                descriptor_heap_type
+            );
         }
     }
 
@@ -2894,6 +2899,7 @@ namespace nre::newrg
 
         resource_view_initialize_owf_stack_.reset();
         sampler_state_initialize_owf_stack_.reset();
+        descriptor_copy_owf_stack_.reset();
         descriptor_p_owf_stack_.reset();
     }
     void F_render_graph::flush_frame_buffers_internal()
@@ -2956,7 +2962,7 @@ namespace nre::newrg
         allocate_descriptors_internal();
         initialize_resource_views_internal();
         initialize_sampler_states_internal();
-        copy_src_descriptors_internal();
+        copy_descriptors_internal();
         create_rhi_frame_buffers_internal();
 
         create_pass_fences_internal();
@@ -3584,7 +3590,7 @@ namespace nre::newrg
         return render_resource_p;
     }
 
-    F_render_descriptor* F_render_graph::create_descriptor_from_src(
+    F_render_descriptor* F_render_graph::create_permanent_descriptor(
         const F_descriptor_handle_range& handle_range,
         ED_descriptor_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -3638,6 +3644,13 @@ namespace nre::newrg
         NCPP_ASSERT(sampler_state_initialize.element) << "invalid descriptor element";
 
         sampler_state_initialize_owf_stack_.push(sampler_state_initialize);
+    }
+    void F_render_graph::enqueue_copy_descriptor(const F_descriptor_copy& descriptor_copy)
+    {
+        NCPP_ASSERT(descriptor_copy.element) << "invalid descriptor element";
+        NCPP_ASSERT(descriptor_copy.src_handle_range) << "invalid src handle range";
+
+        descriptor_copy_owf_stack_.push(descriptor_copy);
     }
 
     void F_render_graph::enqueue_rhi_resource_to_release(F_rhi_resource_to_release&& rhi_resource_to_release)

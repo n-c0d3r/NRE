@@ -31,19 +31,14 @@ namespace nre::newrg
     private:
         F_render_descriptor_id id_ = NCPP_U32_MAX;
 
-        F_render_resource* resource_to_create_p_ = 0;
-        F_resource_view_desc* resource_view_desc_to_create_p_ = 0;
-
-        F_sampler_state_desc* sampler_state_desc_to_create_p_ = 0;
-
         F_descriptor_allocation allocation_;
         F_descriptor_handle_range handle_range_;
         ED_descriptor_heap_type heap_type_;
 
-        F_descriptor_handle_range src_handle_range_;
-
         pac::F_spin_lock export_lock_;
         TS<F_external_render_descriptor> external_p_;
+
+        b8 is_permanent_ = false;
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         F_render_frame_name name_;
@@ -51,11 +46,6 @@ namespace nre::newrg
 
     public:
         NCPP_FORCE_INLINE F_render_descriptor_id id() const noexcept { return id_; }
-
-        NCPP_FORCE_INLINE F_render_resource* resource_to_create_p() const noexcept { return resource_to_create_p_; }
-        NCPP_FORCE_INLINE F_resource_view_desc* resource_view_desc_to_create_p() const noexcept { return resource_view_desc_to_create_p_; }
-
-        NCPP_FORCE_INLINE F_sampler_state_desc* sampler_state_desc_to_create_p() const noexcept { return sampler_state_desc_to_create_p_; }
 
         NCPP_FORCE_INLINE const auto& allocation() const noexcept { return allocation_; }
         NCPP_FORCE_INLINE const auto& handle_range() const noexcept { return handle_range_; }
@@ -77,8 +67,6 @@ namespace nre::newrg
         }
         NCPP_FORCE_INLINE ED_descriptor_heap_type heap_type() const noexcept { return heap_type_; }
 
-        NCPP_FORCE_INLINE const auto& src_handle_range() const noexcept { return src_handle_range_; }
-
         NCPP_FORCE_INLINE b8 need_to_allocate() const noexcept
         {
             return !handle_range_;
@@ -88,18 +76,16 @@ namespace nre::newrg
             return (
                 allocation_
                 && !need_to_export()
-                && !src_handle_range_
+                && !is_permanent()
             );
-        }
-        NCPP_FORCE_INLINE b8 need_to_copy() const noexcept
-        {
-            return src_handle_range_;
         }
 
         NCPP_FORCE_INLINE const auto& export_lock() const noexcept { return export_lock_; }
         NCPP_FORCE_INLINE auto& export_lock() noexcept { return export_lock_; }
         NCPP_FORCE_INLINE auto& external_p() const noexcept { return external_p_; }
         NCPP_FORCE_INLINE b8 need_to_export() const noexcept { return external_p_; }
+
+        NCPP_FORCE_INLINE b8 is_permanent() const noexcept { return is_permanent_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const F_render_frame_name& name() const noexcept { return name_; }

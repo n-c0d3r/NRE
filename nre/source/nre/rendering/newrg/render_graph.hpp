@@ -49,6 +49,33 @@ namespace nre::newrg
 
 
 
+    struct F_rhi_resource_to_release
+    {
+        TU<A_resource> rhi_p;
+        F_render_resource_allocation allocation;
+    };
+    struct F_resource_view_initialize
+    {
+        F_render_descriptor_element element;
+
+        F_render_resource* resource_p = 0;
+        F_resource_view_desc desc;
+    };
+    struct F_sampler_state_initialize
+    {
+        F_render_descriptor_element element;
+
+        F_sampler_state_desc desc;
+    };
+    struct F_descriptor_copy
+    {
+        F_render_descriptor_element element;
+
+        F_descriptor_handle_range src_handle_range;
+    };
+
+
+
     class NRE_API F_render_graph final
     {
     public:
@@ -92,11 +119,6 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_render_descriptor*> descriptor_p_owf_stack_;
         TG_concurrent_owf_stack<F_render_frame_buffer*> frame_buffer_p_owf_stack_;
 
-        struct F_rhi_resource_to_release
-        {
-            TU<A_resource> rhi_p;
-            F_render_resource_allocation allocation;
-        };
         TG_concurrent_owf_stack<F_rhi_resource_to_release> rhi_resource_to_release_owf_stack_;
 
         TG_concurrent_owf_stack<F_descriptor_allocation> descriptor_allocation_to_release_owf_stack_;
@@ -106,22 +128,9 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_render_pass_execute_range> execute_range_owf_stack_;
         F_task_counter execute_passes_counter_ = 0;
 
-        struct F_resource_view_initialize
-        {
-            F_render_descriptor_element element;
-
-            F_render_resource* resource_p = 0;
-            F_resource_view_desc desc;
-        };
         TG_concurrent_owf_stack<F_resource_view_initialize> resource_view_initialize_owf_stack_;
-
-        struct F_sampler_state_initialize
-        {
-            F_render_descriptor_element element;
-
-            F_sampler_state_desc desc;
-        };
         TG_concurrent_owf_stack<F_sampler_state_initialize> sampler_state_initialize_owf_stack_;
+        TG_concurrent_owf_stack<F_descriptor_copy> descriptor_copy_owf_stack_;
 
         TG_vector<TU<A_command_allocator>> direct_command_allocator_p_vector_;
         TG_vector<TU<A_command_allocator>> compute_command_allocator_p_vector_;
@@ -188,6 +197,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& resource_view_initialize_owf_stack() noexcept { return resource_view_initialize_owf_stack_; }
         NCPP_FORCE_INLINE const auto& sampler_state_initialize_owf_stack() noexcept { return sampler_state_initialize_owf_stack_; }
+        NCPP_FORCE_INLINE const auto& descriptor_copy_owf_stack() noexcept { return descriptor_copy_owf_stack_; }
 
         NCPP_FORCE_INLINE const auto& direct_command_allocator_p_vector() noexcept { return direct_command_allocator_p_vector_; }
         NCPP_FORCE_INLINE const auto& compute_command_allocator_p_vector() noexcept { return compute_command_allocator_p_vector_; }
@@ -265,7 +275,7 @@ namespace nre::newrg
     private:
         void initialize_resource_views_internal();
         void initialize_sampler_states_internal();
-        void copy_src_descriptors_internal();
+        void copy_descriptors_internal();
 
     private:
         void optimize_resource_states_internal();
@@ -619,7 +629,7 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        F_render_descriptor* create_descriptor_from_src(
+        F_render_descriptor* create_permanent_descriptor(
             const F_descriptor_handle_range& src_handle_range,
             ED_descriptor_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -631,7 +641,7 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        NCPP_FORCE_INLINE F_render_descriptor* create_descriptor_from_src(
+        NCPP_FORCE_INLINE F_render_descriptor* create_permanent_descriptor(
             const F_descriptor_handle& descriptor_handle,
             ED_descriptor_heap_type heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -639,7 +649,7 @@ namespace nre::newrg
 #endif
         )
         {
-            return create_descriptor_from_src(
+            return create_permanent_descriptor(
                 F_descriptor_handle_range { .begin_handle = descriptor_handle, .count = 1 },
                 heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -652,7 +662,7 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        F_render_descriptor* create_descriptor_from_src(
+        F_render_descriptor* create_permanent_descriptor(
             TKPA_valid<A_resource_view> rhi_resource_view_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name = ""
@@ -681,7 +691,7 @@ namespace nre::newrg
                 )
             );
 
-            return create_descriptor_from_src(
+            return create_permanent_descriptor(
                 F_descriptor_handle_range { .begin_handle = rhi_resource_view_p->descriptor_handle(), .count = 1 },
                 heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -694,14 +704,14 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        F_render_descriptor* create_descriptor_from_src(
+        F_render_descriptor* create_permanent_descriptor(
             TKPA_valid<A_sampler_state> rhi_sampler_state_p
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , const F_render_frame_name& name = ""
 #endif
         )
         {
-            return create_descriptor_from_src(
+            return create_permanent_descriptor(
                 F_descriptor_handle_range { .begin_handle = rhi_sampler_state_p->descriptor_handle(), .count = 1 },
                 ED_descriptor_heap_type::SAMPLER
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
@@ -730,6 +740,10 @@ namespace nre::newrg
          *  Thread-safe
          */
         void enqueue_initialize_sampler_state(const F_sampler_state_initialize& sampler_state_initialize);
+        /**
+         *  Thread-safe
+         */
+        void enqueue_copy_descriptor(const F_descriptor_copy& descriptor_copy);
 
     public:
         /**

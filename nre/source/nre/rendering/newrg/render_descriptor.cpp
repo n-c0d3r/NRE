@@ -43,7 +43,7 @@ namespace nre::newrg
 #endif
     ) :
         handle_range_({ .count = src_handle_range.count }),
-        src_handle_range_(src_handle_range),
+        is_permanent_(true),
         heap_type_(heap_type)
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , name_(name)

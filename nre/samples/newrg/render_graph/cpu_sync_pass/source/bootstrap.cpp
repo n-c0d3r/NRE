@@ -59,7 +59,7 @@ int main() {
 				ED_resource_state::PRESENT
 				NRE_OPTIONAL_DEBUG_PARAM("back_buffer")
 			);
-			F_render_descriptor* rg_back_rtv_p = render_graph_p->create_descriptor_from_src(
+			F_render_descriptor* rg_back_rtv_p = render_graph_p->create_permanent_descriptor(
 				NCPP_AOH_VALID(back_rtv_p)
 				NRE_OPTIONAL_DEBUG_PARAM("back_rtv")
 			);
