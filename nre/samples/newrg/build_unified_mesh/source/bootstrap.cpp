@@ -139,11 +139,11 @@ int main() {
 						NRE_OPTIONAL_DEBUG_PARAM("main_depth_buffer")
 					);
 
-					F_render_descriptor* rg_rtv_p = render_graph_p->create_permanent_descriptor(
-						output_rtv_descriptor_handle,
-						ED_descriptor_heap_type::RENDER_TARGET
-						NRE_OPTIONAL_DEBUG_PARAM("main_rtv")
+					F_render_bind_list rtv_bind_list(ED_descriptor_heap_type::RENDER_TARGET);
+					rtv_bind_list.enqueue_copy_permanent_descriptor(
+						{ output_rtv_descriptor_handle, 1 }
 					);
+					auto rtv_element = rtv_bind_list[0];
 
 					F_render_bind_list dsv_bind_list(ED_descriptor_heap_type::DEPTH_STENCIL);
 					dsv_bind_list.enqueue_initialize_resource_view(
@@ -153,7 +153,7 @@ int main() {
 					auto dsv_element = dsv_bind_list[0];
 
 					F_render_frame_buffer* rg_frame_buffer_p = render_graph_p->create_frame_buffer(
-						{ { rg_rtv_p } },
+						{ rtv_element },
 						{ dsv_element }
 						NRE_OPTIONAL_DEBUG_PARAM("main_frame_buffer")
 					);
@@ -162,7 +162,7 @@ int main() {
 						[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 						{
 							command_list_p->async_clear_rtv_with_descriptor(
-								rg_rtv_p->handle().cpu_address,
+								rtv_element.handle().cpu_address,
 								F_vector4_f32::forward()
 							);
 							command_list_p->async_clear_dsv_with_descriptor(
