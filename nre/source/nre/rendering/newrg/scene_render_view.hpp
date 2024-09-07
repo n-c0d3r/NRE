@@ -66,9 +66,6 @@ namespace nre::newrg
     class NRE_API H_scene_render_view
     {
     public:
-        static void update_output_all();
-
-    public:
         static void RG_register_all();
 
     public:

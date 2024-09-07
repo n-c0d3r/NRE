@@ -112,7 +112,6 @@ int main() {
 		{
 			auto render_graph_p = F_render_graph::instance_p();
 
-			H_scene_render_view::update_output_all();
 			H_scene_render_view::RG_register_all();
 
 			H_scene_render_view::for_each(

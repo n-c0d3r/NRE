@@ -25,6 +25,7 @@ namespace nre::newrg
 
     void F_scene_render_view::render_tick()
     {
+        update_output();
     }
 
     void F_scene_render_view::update_output()
@@ -124,19 +125,6 @@ namespace nre::newrg
     }
 
 
-
-    void H_scene_render_view::update_output_all()
-    {
-        for_each(
-            [](TKPA_valid<A_render_view> render_view_p)
-            {
-                auto scene_render_view_p = render_view_p.T_interface<F_scene_render_view>();
-
-                scene_render_view_p->update_output();
-            },
-            false
-        );
-    }
 
     void H_scene_render_view::RG_register_all()
     {
