@@ -191,16 +191,11 @@ namespace nre::newrg {
 	{
 		render_worker_list_.begin_frame();
 
-		auto render_foundation_p = F_render_foundation::instance_p();
-		render_foundation_p->begin_render_frame();
-
 		async_begin_command_lists_internal();
 	}
 	void F_render_pipeline::end_minimal_frame_internal()
 	{
 		async_end_command_lists_internal();
-
-		while(!(render_foundation_p_->is_complete()));
 
 		render_worker_list_.end_frame();
 
@@ -241,9 +236,15 @@ namespace nre::newrg {
 		end_minimal_frame_internal();
 	}
 
-	void F_render_pipeline::begin_render() {
+	void F_render_pipeline::begin_render()
+	{
 	}
-	void F_render_pipeline::end_render() {
+	void F_render_pipeline::end_render()
+	{
+		auto render_foundation_p = F_render_foundation::instance_p();
+		render_foundation_p->begin_render_frame();
+
+		while(!(render_foundation_p_->is_complete()));
 	}
 
 	TU<A_render_factory> F_render_pipeline::create_factory()
