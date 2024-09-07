@@ -52,8 +52,7 @@ namespace nre::newrg
     {
         NCPP_ASSERT(descriptor_p_);
 
-        F_render_graph::instance_p()->enqueue_initialize_resource_view(
-        {
+        F_render_graph::instance_p()->enqueue_initialize_resource_view({
             .element = element(index),
             .resource_p = resource_p,
             .desc = desc
@@ -66,10 +65,21 @@ namespace nre::newrg
     {
         NCPP_ASSERT(descriptor_p_);
 
-        F_render_graph::instance_p()->enqueue_initialize_sampler_state(
-        {
+        F_render_graph::instance_p()->enqueue_initialize_sampler_state({
             .element = element(index),
             .desc = desc
+        });
+    }
+    void F_render_bind_list::enqueue_copy_descriptor(
+        const F_descriptor_handle_range& src_handle_range,
+        u32 index
+    )
+    {
+        NCPP_ASSERT(descriptor_p_);
+
+        F_render_graph::instance_p()->enqueue_copy_descriptor({
+            .element = element(index),
+            .src_handle_range = src_handle_range
         });
     }
 }

@@ -63,6 +63,10 @@ namespace nre::newrg
             const F_sampler_state_desc& desc,
             u32 index = 0
         );
+        void enqueue_copy_descriptor(
+            const F_descriptor_handle_range& src_handle_range,
+            u32 index = 0
+        );
 
     public:
         NCPP_FORCE_INLINE b8 is_valid() const noexcept
