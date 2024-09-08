@@ -49,7 +49,7 @@ int main() {
 
 
 
-	F_binder_signature_manager::instance_p()->T_register<F_main_binder_signature>();
+	TK_valid<F_main_binder_signature> main_binder_signature_p = F_binder_signature_manager::instance_p()->T_register<F_main_binder_signature>();
 
 
 
@@ -101,7 +101,8 @@ int main() {
 		vertex_cluster_id_buffer_p->set_debug_name("unified_mesh.vertex_cluster_id_buffer")
 	);
 
-	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/nsl/newrg/vertex_cluster_id_visualize.nsl");
+	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/nsl/newrg/vertex_cluster_id_visualize.nsl").T_cast<F_nsl_shader_asset>();
+	auto draw_pso_p = NCPP_FOH_VALID(shader_asset_p->pipeline_state_p_vector()[0]);
 
 
 
@@ -160,6 +161,12 @@ int main() {
 
 					auto output_rtv_descriptor_handle = scene_render_view_p->output_rtv_descriptor_handle();
 					auto output_texture_2d_p = scene_render_view_p->output_texture_2d_p();
+
+					F_render_binder_group* rg_main_binder_group_p = render_graph_p->create_binder_group(
+						[](F_render_binder_group*, TKPA_valid<A_command_list>) {},
+						{ .graphics_signature_p = main_binder_signature_p.no_requirements() }
+						NRE_OPTIONAL_DEBUG_PARAM("main_binder_group")
+					);
 
 					F_render_resource* rg_output_buffer_p = render_graph_p->create_permanent_resource(
 						NCPP_FOH_VALID(output_texture_2d_p),
@@ -221,10 +228,13 @@ int main() {
 								1.0f,
 								0
 							);
+
+							command_list_p->bind_pipeline_state(draw_pso_p);
 						},
 						E_render_pass_flag::DEFAULT
 						NRE_OPTIONAL_DEBUG_PARAM("draw_pass")
 					);
+					draw_pass_p->set_binder_group(rg_main_binder_group_p);
 					draw_pass_p->add_resource_state({
 						.resource_p = rg_output_buffer_p,
 						.states = ED_resource_state::RENDER_TARGET
