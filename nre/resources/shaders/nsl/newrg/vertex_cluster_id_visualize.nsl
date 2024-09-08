@@ -1,6 +1,9 @@
 import(nrhi)
 
 resource cb_main(ConstantBuffer)
+default_constant_buffer(cb_main)
+
+uniform local_to_clip_matrx(float4x4)
 
 semantic VERTEX_POSITION(float4)
 
@@ -16,7 +19,7 @@ vertex_shader vs_main
 pixel_shader ps_main
 (
     in vertex_clip_position(SV_POSITION)
-    out color(float4)
+    out color(SV_TARGET)
 )
 {
     color = float4(1, 1, 1, 1);
