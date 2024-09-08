@@ -70,7 +70,8 @@ namespace nre {
 			raw_src_content,
 			abs_path,
 			output_language,
-			abs_path
+			abs_path,
+			macros
 		);
 
 		if(!compiled_result_opt)
