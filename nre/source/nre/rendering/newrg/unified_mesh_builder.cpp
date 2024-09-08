@@ -55,7 +55,7 @@ namespace nre::newrg
                 F_global_vertex_id global_base_vertex_id = result.raw_vertex_datas.size();
                 cluster_header.global_base_vertex_id = global_base_vertex_id;
                 cluster_header.vertex_count = vertex_count;
-                cluster_header.local_triangle_vertex_id_count = meshlet.triangle_count;
+                cluster_header.local_triangle_vertex_id_count = meshlet.triangle_count * 3;
 
                 u32 begin_local_vertex_index = meshlet.vertex_offset;
                 u32 end_local_vertex_index = meshlet.vertex_offset + vertex_count;
@@ -83,9 +83,15 @@ namespace nre::newrg
                     ++i
                 )
                 {
-                    u32 local_vertex_index = meshlet_triangle_vertex_indices[i];
+                    u32 local_triangle_index = i - meshlet.triangle_offset;
 
-                    cluster_header.local_triangle_vertex_ids[i - meshlet.triangle_offset] = local_vertex_index;
+                    u32 local_vertex_index_0 = meshlet_triangle_vertex_indices[local_triangle_index * 3];
+                    u32 local_vertex_index_1 = meshlet_triangle_vertex_indices[local_triangle_index * 3 + 1];
+                    u32 local_vertex_index_2 = meshlet_triangle_vertex_indices[local_triangle_index * 3 + 2];
+
+                    cluster_header.local_triangle_vertex_ids[local_triangle_index * 3] = local_vertex_index_0;
+                    cluster_header.local_triangle_vertex_ids[local_triangle_index * 3 + 1] = local_vertex_index_1;
+                    cluster_header.local_triangle_vertex_ids[local_triangle_index * 3 + 2] = local_vertex_index_2;
                 }
             }
 

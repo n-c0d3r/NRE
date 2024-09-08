@@ -129,6 +129,9 @@ int main() {
 	// create model actor
 	auto model_actor_p = level_p->T_create_actor();
 	auto model_transform_node_p = model_actor_p->template T_add_component<F_transform_node>();
+	model_transform_node_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(
+		make_scale(F_vector3::one() * 5.0f)
+	);
 
 	// create spectator
 	auto spectator_actor_p = level_p->T_create_actor();
