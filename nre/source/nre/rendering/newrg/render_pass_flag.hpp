@@ -8,6 +8,8 @@ namespace nre::newrg
 {
     enum class E_render_pass_flag
     {
+        NONE = 0x0,
+
         SENTINEL = 0x1, // internal use only
 
         GPU_ACCESS_RASTER = 0x2,

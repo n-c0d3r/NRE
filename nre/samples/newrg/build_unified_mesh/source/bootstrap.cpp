@@ -235,8 +235,7 @@ int main() {
 								uniform_transient_resource_uploader_p->query_gpu_virtual_address(cb_offset)
 							);
 						},
-						rg_main_binder_group_p,
-						E_render_pass_flag::DEFAULT
+						rg_main_binder_group_p
 						NRE_OPTIONAL_DEBUG_PARAM("draw_pass")
 					);
 					draw_pass_p->add_resource_state({
