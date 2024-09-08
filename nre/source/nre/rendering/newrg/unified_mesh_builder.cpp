@@ -55,6 +55,7 @@ namespace nre::newrg
                 F_global_vertex_id global_base_vertex_id = result.raw_vertex_datas.size();
                 cluster_header.global_base_vertex_id = global_base_vertex_id;
                 cluster_header.vertex_count = vertex_count;
+                cluster_header.local_triangle_vertex_id_count = meshlet.triangle_count;
 
                 u32 begin_local_vertex_index = meshlet.vertex_offset;
                 u32 end_local_vertex_index = meshlet.vertex_offset + vertex_count;
@@ -74,7 +75,27 @@ namespace nre::newrg
                         .texcoord = original_texcoord
                     });
                 }
+
+                for(
+                    u32 i = meshlet.triangle_offset,
+                        end = meshlet.triangle_offset + meshlet.triangle_count;
+                    i < end;
+                    ++i
+                )
+                {
+                    u32 local_vertex_index = meshlet_triangle_vertex_indices[i];
+
+                    cluster_header.local_triangle_vertex_ids[i - meshlet.triangle_offset] = local_vertex_index;
+                }
             }
+
+            //
+            result.dag_node_headers.resize(meshlet_count);
+            result.dag_node_culling_datas.resize(meshlet_count);
+            result.dag_level_headers.push_back({
+                .begin = 0,
+                .end = u32(meshlet_count)
+            });
         }
 
         // build higher level dag nodes
@@ -212,8 +233,6 @@ namespace nre::newrg
                     current_level_base_cluster_neighbor_id = cluster_neighbor_ids.size();
                     cluster_neighbor_ids.resize(current_level_base_cluster_neighbor_id + current_level_cluster_neighbor_id_count);
                 }
-
-                int a = 5;
             }
         }
 
@@ -230,6 +249,27 @@ namespace nre::newrg
         for(F_global_vertex_id vertex_id = 0; vertex_id != vertex_count; ++vertex_id)
         {
             result[vertex_id] = raw_vertex_datas[vertex_id].position;
+        }
+
+        return eastl::move(result);
+    }
+    TG_vector<F_global_vertex_id> H_unified_mesh_builder::build_vertex_indices(
+        const TG_span<F_cluster_header>& cluster_headers
+    )
+    {
+        sz vertex_index_count = 0;
+
+        for(auto& cluster_header : cluster_headers)
+        {
+            vertex_index_count += cluster_header.local_triangle_vertex_id_count;
+        }
+
+        TG_vector<F_global_vertex_id> result;
+        result.reserve(vertex_index_count);
+        for(auto& cluster_header : cluster_headers)
+        {
+            for(auto local_triangle_vertex_id : cluster_header.local_triangle_vertex_ids)
+                result.push_back(cluster_header.global_base_vertex_id + local_triangle_vertex_id);
         }
 
         return eastl::move(result);

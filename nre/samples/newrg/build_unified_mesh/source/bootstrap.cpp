@@ -76,6 +76,10 @@ int main() {
 	auto positions = H_unified_mesh_builder::build_positions(
 		raw_unified_mesh_data.raw_vertex_datas
 	);
+	auto vertex_indices = H_unified_mesh_builder::build_vertex_indices({
+		(F_cluster_header*)(raw_unified_mesh_data.cluster_headers.data() + raw_unified_mesh_data.dag_level_headers[0].begin),
+		(raw_unified_mesh_data.dag_level_headers[0].end - raw_unified_mesh_data.dag_level_headers[0].begin)
+	});
 	auto vertex_cluster_ids = H_unified_mesh_builder::build_vertex_cluster_ids(
 		raw_unified_mesh_data.cluster_headers
 	);
@@ -87,8 +91,20 @@ int main() {
 		sizeof(F_vector3_f32),
 		ED_resource_flag::INPUT_BUFFER
 	);
+	auto keyed_position_buffer_p = NCPP_FOH_VALID(position_buffer_p);
 	NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
-		position_buffer_p->set_debug_name("unified_mesh.position_buffer")
+		position_buffer_p->set_debug_name("vertex_cluster_id_visualize.position_buffer")
+	);
+	auto vertex_index_buffer_p = H_buffer::create(
+		NRE_MAIN_DEVICE(),
+		{ F_subresource_data { .data_p = vertex_indices.data() } },
+		vertex_indices.size(),
+		ED_format::R32_UINT,
+		ED_resource_flag::INDEX_BUFFER
+	);
+	auto keyed_vertex_index_buffer_p = NCPP_FOH_VALID(vertex_index_buffer_p);
+	NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+		vertex_index_buffer_p->set_debug_name("vertex_cluster_id_visualize.vertex_index_buffer")
 	);
 	auto vertex_cluster_id_buffer_p = H_buffer::create(
 		NRE_MAIN_DEVICE(),
@@ -97,8 +113,9 @@ int main() {
 		sizeof(F_cluster_id),
 		ED_resource_flag::INPUT_BUFFER
 	);
+	auto keyed_vertex_cluster_id_buffer_p = NCPP_FOH_VALID(vertex_cluster_id_buffer_p);
 	NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
-		vertex_cluster_id_buffer_p->set_debug_name("unified_mesh.vertex_cluster_id_buffer")
+		vertex_cluster_id_buffer_p->set_debug_name("vertex_cluster_id_visualize.vertex_cluster_id_buffer")
 	);
 
 	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/nsl/newrg/vertex_cluster_id_visualize.nsl").T_cast<F_nsl_shader_asset>();
@@ -218,6 +235,13 @@ int main() {
 					F_render_pass* draw_pass_p = H_gpu_render_pass::raster(
 						[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 						{
+							command_list_p->ZRS_bind_viewport({
+								.max_xy = size
+							});
+							command_list_p->ZOM_bind_frame_buffer(
+								NCPP_FOH_VALID(rg_frame_buffer_p->rhi_p())
+							);
+
 							command_list_p->async_clear_rtv_with_descriptor(
 								rtv_element.handle().cpu_address,
 								F_vector4_f32::forward()
@@ -233,6 +257,20 @@ int main() {
 							command_list_p->ZG_bind_root_cbv_with_gpu_virtual_address(
 								0,
 								uniform_transient_resource_uploader_p->query_gpu_virtual_address(cb_offset)
+							);
+							command_list_p->ZIA_bind_index_buffer(
+								keyed_vertex_index_buffer_p,
+								0
+							);
+							command_list_p->ZIA_bind_input_buffer(
+								keyed_position_buffer_p,
+								0,
+								0
+							);
+							command_list_p->async_draw_indexed(
+								vertex_indices.size(),
+								0,
+								0
 							);
 						},
 						rg_main_binder_group_p
