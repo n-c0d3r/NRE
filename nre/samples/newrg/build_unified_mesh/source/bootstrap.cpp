@@ -108,6 +108,10 @@ int main() {
 	// create level
 	auto level_p = TU<F_level>()();
 
+	// create model actor
+	auto model_actor_p = level_p->T_create_actor();
+	auto model_transform_node_p = model_actor_p->template T_add_component<F_transform_node>();
+
 	// create spectator
 	auto spectator_actor_p = level_p->T_create_actor();
 	auto spectator_transform_node_p = spectator_actor_p->template T_add_component<F_transform_node>();
@@ -194,6 +198,14 @@ int main() {
 					);
 
 					F_cb_data cb_data;
+					{
+						F_matrix4x4_f32 local_to_world_matrix = model_transform_node_p->transform;
+
+						auto scene_render_view_p = spectator_camera_p->render_view_p();
+						F_matrix4x4_f32 world_to_clip_matrix = scene_render_view_p->projection_matrix * scene_render_view_p->view_matrix;
+
+						cb_data.local_to_clip_matrix = world_to_clip_matrix * local_to_world_matrix;
+					}
 					sz cb_offset = uniform_transient_resource_uploader_p->T_enqueue_upload(cb_data);
 
 					F_render_pass* draw_pass_p = render_graph_p->create_pass(
