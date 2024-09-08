@@ -1,5 +1,7 @@
 import(nrhi)
 
+resource cb_main(ConstantBuffer)
+
 semantic VERTEX_POSITION(float4)
 
 vertex_shader vs_main
@@ -34,6 +36,6 @@ pixel_shader ps_main
 @primitive_topology(TRIANGLE_LIST)
 pipeline_state pso_main
 (
-    vs_main,
+    vs_main
     ps_main
 )
