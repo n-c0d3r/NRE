@@ -3,7 +3,7 @@ import(nrhi)
 resource cb_main(ConstantBuffer)
 default_constant_buffer(cb_main)
 
-uniform local_to_clip_matrx(float4x4)
+uniform local_to_clip_matrix(float4x4)
 
 semantic VERTEX_POSITION(float4)
 
