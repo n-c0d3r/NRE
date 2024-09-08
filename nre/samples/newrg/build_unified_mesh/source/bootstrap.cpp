@@ -220,7 +220,7 @@ int main() {
 
 							command_list_p->async_clear_rtv_with_descriptor(
 								rtv_element.handle().cpu_address,
-								F_vector4_f32::one() * 0.24f
+								F_vector4_f32::one() * 0.2f
 							);
 							command_list_p->async_clear_dsv_with_descriptor(
 								dsv_element.handle().cpu_address,
