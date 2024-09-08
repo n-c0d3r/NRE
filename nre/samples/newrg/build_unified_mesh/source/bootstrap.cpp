@@ -215,7 +215,7 @@ int main() {
 					}
 					sz cb_offset = uniform_transient_resource_uploader_p->T_enqueue_upload(cb_data);
 
-					F_render_pass* draw_pass_p = render_graph_p->create_pass(
+					F_render_pass* draw_pass_p = H_gpu_render_pass::raster(
 						[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 						{
 							command_list_p->async_clear_rtv_with_descriptor(
@@ -230,11 +230,15 @@ int main() {
 							);
 
 							command_list_p->bind_pipeline_state(draw_pso_p);
+							command_list_p->ZG_bind_root_cbv_with_gpu_virtual_address(
+								0,
+								uniform_transient_resource_uploader_p->query_gpu_virtual_address(cb_offset)
+							);
 						},
+						rg_main_binder_group_p,
 						E_render_pass_flag::DEFAULT
 						NRE_OPTIONAL_DEBUG_PARAM("draw_pass")
 					);
-					draw_pass_p->set_binder_group(rg_main_binder_group_p);
 					draw_pass_p->add_resource_state({
 						.resource_p = rg_output_buffer_p,
 						.states = ED_resource_state::RENDER_TARGET
