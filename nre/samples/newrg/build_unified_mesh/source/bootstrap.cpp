@@ -221,12 +221,9 @@ int main() {
 						.resource_p = rg_depth_buffer_p,
 						.states = ED_resource_state::DEPTH_WRITE
 					});
-
-					render_graph_p->register_late_setup(
-						[]()
-						{
-							int a = 5;
-						}
+					uniform_transient_resource_uploader_p->enqueue_resource_state(
+						draw_pass_p,
+						ED_resource_state::INPUT_AND_CONSTANT_BUFFER
 					);
 				}
 			);
