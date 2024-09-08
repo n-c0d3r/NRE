@@ -78,6 +78,8 @@
 #include <nre/rendering/newrg/unified_mesh_system.hpp>
 #include <nre/rendering/newrg/unified_mesh_drawable.hpp>
 #include <nre/rendering/newrg/unified_mesh_material.hpp>
+#include <nre/rendering/newrg/bind_list.hpp>
+#include <nre/rendering/newrg/rhi_resource_view_bind.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif
