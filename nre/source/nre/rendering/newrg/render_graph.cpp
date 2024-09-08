@@ -246,6 +246,13 @@ namespace nre::newrg
 
             for(auto& descriptor_allocator : descriptor_allocators_)
                 descriptor_allocator.create_page();
+
+            cbv_srv_uav_descriptor_heap_p_ = find_descriptor_allocator(
+                ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS
+            ).pages()[0].heap_p;
+            sampler_descriptor_heap_p_ = find_descriptor_allocator(
+                ED_descriptor_heap_type::SAMPLER
+            ).pages()[0].heap_p;
         }
     }
     F_render_graph::~F_render_graph()
@@ -2479,6 +2486,16 @@ namespace nre::newrg
                 auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
                 auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
 
+                //
+                {
+                    command_list_p->bind_descriptor_heaps(
+                        NCPP_INIL_SPAN(
+                            NCPP_FOH_VALID(cbv_srv_uav_descriptor_heap_p_),
+                            NCPP_FOH_VALID(sampler_descriptor_heap_p_)
+                        )
+                    );
+                }
+
                 // binder groups
                 F_render_binder_group* current_binder_group_p = 0;
                 F_render_binder_group_signatures current_binder_group_signatures;
@@ -3803,19 +3820,19 @@ namespace nre::newrg
             descriptor_heap_type,
             NRHI_ENUM_CASE(
                 ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
-                return descriptor_allocators_[0];
+                return descriptor_allocators_[NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_CBV_SRV_UAV];
             )
             NRHI_ENUM_CASE(
                 ED_descriptor_heap_type::SAMPLER,
-                return descriptor_allocators_[1];
+                return descriptor_allocators_[NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_SAMPLER];
             )
             NRHI_ENUM_CASE(
                 ED_descriptor_heap_type::RENDER_TARGET,
-                return descriptor_allocators_[2];
+                return descriptor_allocators_[NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_RENDER_TARGET];
             )
             NRHI_ENUM_CASE(
                 ED_descriptor_heap_type::DEPTH_STENCIL,
-                return descriptor_allocators_[3];
+                return descriptor_allocators_[NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_DEPTH_STENCIL];
             )
         );
     }

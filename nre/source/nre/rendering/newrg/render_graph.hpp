@@ -168,6 +168,8 @@ namespace nre::newrg
         TG_vector<F_cpu_fence> cpu_fences_;
 
         TG_vector<F_descriptor_allocator> descriptor_allocators_;
+        TK<A_descriptor_heap> cbv_srv_uav_descriptor_heap_p_;
+        TK<A_descriptor_heap> sampler_descriptor_heap_p_;
 
         TG_concurrent_owf_stack<F_render_resource_state> epilogue_resource_state_stack_;
 
@@ -217,6 +219,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& fence_p_vector() noexcept { return fence_p_vector_; }
 
         NCPP_FORCE_INLINE const auto& descriptor_allocators() noexcept { return descriptor_allocators_; }
+        NCPP_FORCE_INLINE auto cbv_srv_uav_descriptor_heap_p() noexcept { return NCPP_FOH_VALID(cbv_srv_uav_descriptor_heap_p_); }
+        NCPP_FORCE_INLINE auto sampler_descriptor_heap_p() noexcept { return NCPP_FOH_VALID(sampler_descriptor_heap_p_); }
 
         NCPP_FORCE_INLINE const auto& epilogue_resource_state_stack() noexcept { return epilogue_resource_state_stack_; }
 
@@ -879,3 +883,9 @@ namespace nre::newrg
     };
 }
 
+
+
+#define NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_CBV_SRV_UAV 0
+#define NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_SAMPLER 1
+#define NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_RENDER_TARGET 2
+#define NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_DEPTH_STENCIL 3
