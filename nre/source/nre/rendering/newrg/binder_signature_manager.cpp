@@ -31,22 +31,18 @@ namespace nre::newrg
         auto nsl_shader_asset_factory_p = asset_system_p->find_asset_factory("nsl").T_cast<F_nsl_shader_asset_factory>();
 
         //
-        G_string compiled_result_customizes;
-
-        //
-        u32 binder_signature_count = owned_signature_p_vector_.size();
-        for(u32 binder_signature_index = 0; binder_signature_index < binder_signature_count; ++binder_signature_index)
+        nsl_shader_asset_factory_p->nsl_modifer = [this](G_string& src_content, TG_vector<eastl::pair<G_string, G_string>>& macros)
         {
-            auto& binder_signature_p = owned_signature_p_vector_[binder_signature_index];
-            compiled_result_customizes += (
-                "#define " + binder_signature_p->nsl_macro_name() + " " + G_to_string(binder_signature_index) + "\n"
-            );
-        }
+            u32 binder_signature_count = owned_signature_p_vector_.size();
 
-        //
-        nsl_shader_asset_factory_p->nsl_modifer = [compiled_result_customizes](F_nsl_compiled_result& compiled_result)
-        {
-            compiled_result.src_content = compiled_result_customizes + compiled_result.src_content;
+            macros.resize(binder_signature_count);
+
+            for(u32 binder_signature_index = 0; binder_signature_index < binder_signature_count; ++binder_signature_index)
+            {
+                auto& binder_signature_p = owned_signature_p_vector_[binder_signature_index];
+
+                macros.push_back({ binder_signature_p->nsl_macro_name(), G_to_string(binder_signature_index) });
+            }
         };
         nsl_shader_asset_factory_p->nsl_create_pipeline_states = [this](F_nsl_compiled_result& compiled_result)
         ->TG_vector<TU<A_pipeline_state>>

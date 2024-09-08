@@ -11,6 +11,7 @@ vertex_shader vs_main
     vertex_clip_position = vertex_position;
 }
 
+@root_signature(MAIN_BINDER_SIGNATURE)
 pipeline_state pso_main
 (
     vs_main

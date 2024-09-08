@@ -6,6 +6,29 @@ using namespace nre::newrg;
 
 
 
+class F_main_binder_signature : public A_binder_signature
+{
+public:
+	F_main_binder_signature() :
+		A_binder_signature(
+			{
+				.param_descs = {
+					F_root_param_desc(
+						ED_root_param_type::CONSTANT_BUFFER,
+						F_root_descriptor_desc{},
+						ED_shader_visibility::ALL
+					)
+				},
+				.flags = ED_root_signature_flag::ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+			},
+			"MAIN_BINDER_SIGNATURE"
+		)
+	{
+	}
+};
+
+
+
 int main() {
 
 	auto application_p = TU<F_application>()(
@@ -16,6 +39,10 @@ int main() {
 			}
 		}
 	);
+
+
+
+	F_binder_signature_manager::instance_p()->T_register<F_main_binder_signature>();
 
 
 
@@ -67,7 +94,7 @@ int main() {
 	// 	vertex_cluster_id_buffer_p->set_debug_name("unified_mesh.vertex_cluster_id_buffer")
 	// );
 
-	// auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/nsl/newrg/vertex_cluster_id_visualize.nsl");
+	auto shader_asset_p = NRE_ASSET_SYSTEM()->load_asset("shaders/nsl/newrg/vertex_cluster_id_visualize.nsl");
 
 
 
