@@ -93,7 +93,7 @@ namespace nre::newrg
 
             F_data* temp_data_p = render_graph_p->T_create<F_data>(NCPP_FORWARD(data));
 
-            return enqueue_upload({ (u8*)temp_data_p, sizeof(F_data) }, eastl::max(NCPP_ALIGNOF(F_data), 256), alignment_offset);
+            return enqueue_upload({ (u8*)temp_data_p, sizeof(F_data) }, eastl::max<u32>(NCPP_ALIGNOF(F_data), 256), alignment_offset);
         }
 
     public:

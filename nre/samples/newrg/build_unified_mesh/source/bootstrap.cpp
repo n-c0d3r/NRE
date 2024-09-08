@@ -6,6 +6,13 @@ using namespace nre::newrg;
 
 
 
+struct F_cb_data
+{
+	F_matrix4x4_f32 local_to_clip_matrix;
+};
+
+
+
 class F_main_binder_signature : public A_binder_signature
 {
 public:
@@ -138,6 +145,7 @@ int main() {
 		NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER()
 		{
 			auto render_graph_p = F_render_graph::instance_p();
+			auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
 
 			H_scene_render_view::RG_register_all();
 
@@ -184,6 +192,9 @@ int main() {
 						dsv_element
 						NRE_OPTIONAL_DEBUG_PARAM("main_frame_buffer")
 					);
+
+					F_cb_data cb_data;
+					sz cb_offset = uniform_transient_resource_uploader_p->T_enqueue_upload(cb_data);
 
 					F_render_pass* draw_pass_p = render_graph_p->create_pass(
 						[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
