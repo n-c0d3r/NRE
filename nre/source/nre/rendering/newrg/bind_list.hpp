@@ -20,6 +20,8 @@ namespace nre::newrg
 
         TG_stack<F_rhi_resource_view_bind> rhi_resource_view_bind_stack_;
 
+        ab8 need_to_update_ = false;
+
     public:
         NCPP_FORCE_INLINE const auto& external() const noexcept { return external_; }
 
@@ -27,6 +29,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE u32 count() const noexcept { return external_.count(); }
 
         NCPP_FORCE_INLINE const auto& rhi_resource_view_bind_stack() const noexcept { return rhi_resource_view_bind_stack_; }
+
+        NCPP_FORCE_INLINE b8 need_to_update() const noexcept { return need_to_update_.load(eastl::memory_order_acquire); }
 
 
 

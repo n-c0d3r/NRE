@@ -51,9 +51,16 @@ namespace nre::newrg
                 rhi_resource_view_bind_stack_.pop();
             }
         }
+
+        need_to_update_.store(false, eastl::memory_order_release);
     }
     void F_bind_list::enqueue_update_internal()
     {
+        if(need_to_update())
+            return;
+
+        need_to_update_.store(true, eastl::memory_order_release);
+
         F_render_graph::instance_p()->register_late_setup(
             [this, bind_list_p = NCPP_KTHIS_UNSAFE()]()
             {
@@ -68,5 +75,6 @@ namespace nre::newrg
         NCPP_ASSERT(rhi_resource_view_bind.index < count());
 
         rhi_resource_view_bind_stack_.push(rhi_resource_view_bind);
+        enqueue_update_internal();
     }
 }
