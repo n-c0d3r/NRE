@@ -62,6 +62,8 @@
 #include <nre/rendering/newrg/render_binder_group_signatures.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/binder_signature.hpp>
+#include <nre/rendering/newrg/binder_signature_all_1cbv.hpp>
+#include <nre/rendering/newrg/binder_signature_vs_1cbv_ps_1cbv.hpp>
 #include <nre/rendering/newrg/binder.hpp>
 #include <nre/rendering/newrg/render_bind_list.hpp>
 #include <nre/rendering/newrg/external_render_bind_list.hpp>

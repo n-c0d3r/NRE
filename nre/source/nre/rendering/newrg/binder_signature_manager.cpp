@@ -3,6 +3,8 @@
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/nsl_shader_asset_factory.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/newrg/binder_signature_all_1cbv.hpp>
+#include <nre/rendering/newrg/binder_signature_vs_1cbv_ps_1cbv.hpp>
 
 
 namespace nre::newrg
@@ -14,6 +16,9 @@ namespace nre::newrg
     F_binder_signature_manager::F_binder_signature_manager()
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
+
+        T_register<F_binder_signature_all_1cbv>();
+        T_register<F_binder_signature_vs_1cbv_ps_1cbv>();
     }
     F_binder_signature_manager::~F_binder_signature_manager()
     {
@@ -35,7 +40,7 @@ namespace nre::newrg
         {
             u32 binder_signature_count = owned_signature_p_vector_.size();
 
-            macros.resize(binder_signature_count);
+            macros.reserve(binder_signature_count);
 
             for(u32 binder_signature_index = 0; binder_signature_index < binder_signature_count; ++binder_signature_index)
             {

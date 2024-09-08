@@ -25,7 +25,7 @@ pixel_shader ps_main
     color = float4(1, 1, 1, 1);
 }
 
-@root_signature(MAIN_BINDER_SIGNATURE)
+@root_signature(NRE_NEWRG_BINDER_SIGNATURE_VS_1CBV_PS_1CBV)
 @color_formats(R8G8B8A8_UNORM)
 @rasterizer
 (

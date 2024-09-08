@@ -13,29 +13,6 @@ struct F_cb_data
 
 
 
-class F_main_binder_signature : public A_binder_signature
-{
-public:
-	F_main_binder_signature() :
-		A_binder_signature(
-			{
-				.param_descs = {
-					F_root_param_desc(
-						ED_root_param_type::CONSTANT_BUFFER,
-						F_root_descriptor_desc{},
-						ED_shader_visibility::ALL
-					)
-				},
-				.flags = ED_root_signature_flag::ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
-			},
-			"MAIN_BINDER_SIGNATURE"
-		)
-	{
-	}
-};
-
-
-
 int main() {
 
 	auto application_p = TU<F_application>()(
@@ -46,10 +23,6 @@ int main() {
 			}
 		}
 	);
-
-
-
-	TK_valid<F_main_binder_signature> main_binder_signature_p = F_binder_signature_manager::instance_p()->T_register<F_main_binder_signature>();
 
 
 
@@ -184,7 +157,7 @@ int main() {
 
 					F_render_binder_group* rg_main_binder_group_p = render_graph_p->create_binder_group(
 						[](F_render_binder_group*, TKPA_valid<A_command_list>) {},
-						{ .graphics_signature_p = main_binder_signature_p.no_requirements() }
+						{ .graphics_signature_p = NRE_NEWRG_BINDER_SIGNATURE_VS_1CBV_PS_1CBV().no_requirements() }
 						NRE_OPTIONAL_DEBUG_PARAM("main_binder_group")
 					);
 
