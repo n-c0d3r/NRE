@@ -37,6 +37,11 @@ namespace nre::newrg
         F_global_vertex_id local_triangle_vertex_id_count = 0;
     };
 
+    struct F_cluster_node_header
+    {
+        F_cluster_id child_ids[2] = { NCPP_U32_MAX, NCPP_U32_MAX };
+    };
+
     using F_dag_node_id = u32;
     struct F_dag_node_header
     {

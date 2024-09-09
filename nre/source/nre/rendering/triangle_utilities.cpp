@@ -1,1 +1,0 @@
-#include <nre/rendering/triangle_utilities.hpp>

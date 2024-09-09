@@ -1,5 +1,5 @@
 #include <nre/rendering/newrg/unified_mesh_builder.hpp>
-#include <nre/rendering/triangle_utilities.hpp>
+#include <nre/rendering/geometry_utilities.hpp>
 
 
 
@@ -106,15 +106,18 @@ namespace nre::newrg
 
         // build higher level dag nodes
         {
-            auto raw_vertex_datas = eastl::move(result.raw_vertex_datas);
+            auto raw_vertex_datas = result.raw_vertex_datas;
             F_global_vertex_id current_level_vertex_count = raw_vertex_datas.size();
             F_global_vertex_id current_level_vertex_offset = 0;
 
             TG_vector<F_cluster_id> vertex_cluster_ids(current_level_vertex_count);
 
-            auto cluster_headers = eastl::move(result.cluster_headers);
+            auto cluster_headers = result.cluster_headers;
             F_cluster_id current_level_cluster_count = cluster_headers.size();
             F_cluster_id current_level_cluster_offset = 0;
+
+            // auto dag_node_headers = result.dag_node_headers;
+            // auto dag_level_headers = result.dag_level_headers;
 
             TG_vector<F_cluster_id> cluster_neighbor_ids;
             eastl::atomic<F_cluster_id> next_cluster_neighbor_id_index = 0;
@@ -167,7 +170,7 @@ namespace nre::newrg
                     }
                 );
 
-                // build currentt level dag nodes
+                // build cluster neighbor ids and cluster neighbor headers
                 {
                     F_adjacency cluster_adjacency(current_level_cluster_count);
 
@@ -217,7 +220,10 @@ namespace nre::newrg
                                         F_cluster_id other_cluster_id = vertex_cluster_ids[other_vertex_id];
                                         F_cluster_id other_current_level_cluster_id = other_cluster_id - current_level_cluster_offset;
 
-                                        cluster_adjacency.link(current_level_cluster_id, other_current_level_cluster_id);
+                                        if(current_level_cluster_id != other_current_level_cluster_id)
+                                        {
+                                            cluster_adjacency.link(current_level_cluster_id, other_current_level_cluster_id);
+                                        }
                                     }
                                 );
                             }
@@ -245,7 +251,10 @@ namespace nre::newrg
                                     F_cluster_id other_current_level_cluster_id
                                 )
                                 {
-                                    ++neighbor_count;
+                                    if(current_level_cluster_id != other_current_level_cluster_id)
+                                    {
+                                        ++neighbor_count;
+                                    }
                                 }
                             );
 
@@ -268,6 +277,9 @@ namespace nre::newrg
                             {
                                 F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
                                 auto& cluster_neighbor_header = cluster_neighbor_headers[cluster_id];
+
+                                if(cluster_neighbor_header.end - cluster_neighbor_header.begin == 0)
+                                    return;
 
                                 F_cluster_id* cluster_neighbor_id_p = &cluster_neighbor_ids[cluster_neighbor_header.begin];
 
@@ -298,13 +310,11 @@ namespace nre::newrg
                             }
                         );
                     }
-
-                    int a = 5;
                 }
 
                 // update
                 int a = 5;
-            } while(current_level_cluster_count > 1);
+            } while(false);//current_level_cluster_count > 1);
         }
 
         return eastl::move(result);

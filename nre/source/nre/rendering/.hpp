@@ -51,4 +51,4 @@
 
 #include <nre/rendering/customized_nsl_shader_compiler.hpp>
 
-#include <nre/rendering/triangle_utilities.hpp>
+#include <nre/rendering/geometry_utilities.hpp>

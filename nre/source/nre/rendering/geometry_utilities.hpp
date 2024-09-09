@@ -93,6 +93,12 @@ namespace nre
 
 
 
+    struct F_geometry_data
+    {
+    };
+
+
+
     struct F_position_hash
     {
         G_hash_table hash_table;
@@ -131,9 +137,6 @@ namespace nre
                 other_position_index = hash_table.next(other_position_index)
             )
             {
-                if(other_position_index == position_index)
-                    continue;
-
                 F_vector3_f32 other_position = index_to_position_functor(other_position_index);
 
                 if(other_position == position)
@@ -234,14 +237,13 @@ namespace nre
                 if(link_index != NCPP_U32_MAX)
                 {
                     for(
-                        u32 i = link_table.hash_table.first(link_index);
+                        u32 i = link_index;
                         link_table.hash_table.is_valid(i);
                         i = link_table.hash_table.next(i)
                     )
                     {
-                        u32 other_element_index = link_table.other_element_indices[link_index];
-                        if(element_index != other_element_index)
-                            functor(element_index, other_element_index);
+                        u32 other_element_index = link_table.other_element_indices[i];
+                        functor(element_index, other_element_index);
                     }
                 }
             }
