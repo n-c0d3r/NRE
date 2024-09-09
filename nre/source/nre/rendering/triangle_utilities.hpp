@@ -131,6 +131,9 @@ namespace nre
                 other_position_index = hash_table.next(other_position_index)
             )
             {
+                if(other_position_index == position_index)
+                    continue;
+
                 F_vector3_f32 other_position = index_to_position_functor(other_position_index);
 
                 if(other_position == position)
@@ -150,7 +153,7 @@ namespace nre
             F_hash_table hash_table;
             TG_vector<u32> other_element_indices;
             TG_vector<u32> duplicate_counts;
-            u32 last_link_index = NCPP_U32_MAX;
+            u32 next_link_index = 0;
         };
         TG_vector<F_link_table> link_tables;
 
@@ -160,10 +163,17 @@ namespace nre
             resize(size);
         }
 
+        /**
+         *  Non-thread-safe
+         */
         void resize(u32 size)
         {
             link_tables.resize(size);
         }
+
+        /**
+         *  Thread-safe
+         */
         void setup_element(u32 element_index, u32 link_capacity)
         {
             auto& link_table = link_tables[element_index];
@@ -175,7 +185,7 @@ namespace nre
                 ),
                 TG_vector<u32>(link_capacity),
                 TG_vector<u32>(link_capacity),
-                NCPP_U32_MAX
+                0
             };
 
             for(auto& duplicate_count : link_table.duplicate_counts)
@@ -183,6 +193,9 @@ namespace nre
                 duplicate_count = 0;
             }
         }
+        /**
+         *  Non-thread-safe
+         */
         void link(u32 element_index, u32 other_element_index)
         {
             auto& link_table = link_tables[element_index];
@@ -201,12 +214,15 @@ namespace nre
                 }
             }
 
-            u32 link_index = link_table.last_link_index++;
+            u32 link_index = link_table.next_link_index++;
 
             link_table.hash_table.add(other_element_index, link_index);
             link_table.other_element_indices[link_index] = other_element_index;
             link_table.duplicate_counts[link_index] = 1;
         }
+        /**
+         *  Thread-safe
+         */
         void for_all_link(u32 element_index, auto&& functor)
         {
             auto& link_table = link_tables[element_index];
@@ -215,22 +231,33 @@ namespace nre
 
             for(u32 link_index : link_indices)
             {
-                for(
-                    u32 i = link_table.hash_table.first(link_index);
-                    link_table.hash_table.is_valid(i);
-                    i = link_table.hash_table.next(i)
-                )
+                if(link_index != NCPP_U32_MAX)
                 {
-                    functor(element_index, link_table.other_element_indices[link_index]);
+                    for(
+                        u32 i = link_table.hash_table.first(link_index);
+                        link_table.hash_table.is_valid(i);
+                        i = link_table.hash_table.next(i)
+                    )
+                    {
+                        u32 other_element_index = link_table.other_element_indices[link_index];
+                        if(element_index != other_element_index)
+                            functor(element_index, other_element_index);
+                    }
                 }
             }
         }
+        /**
+         *  Thread-safe
+         */
         u32 link_count(u32 element_index)
         {
             auto& link_table = link_tables[element_index];
 
-            return link_table.last_link_index;
+            return link_table.next_link_index;
         }
+        /**
+         *  Thread-safe
+         */
         u32 link_duplicate_count(u32 element_index, u32 other_element_index)
         {
             auto& link_table = link_tables[element_index];
@@ -250,6 +277,9 @@ namespace nre
 
             return 0;
         }
+        /**
+         *  Thread-safe
+         */
         TG_vector<u32> export_links(u32 element_link)
         {
             TG_vector<u32> result;

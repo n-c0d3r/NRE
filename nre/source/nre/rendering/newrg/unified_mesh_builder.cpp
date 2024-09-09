@@ -116,6 +116,15 @@ namespace nre::newrg
             F_cluster_id current_level_cluster_count = cluster_headers.size();
             F_cluster_id current_level_cluster_offset = 0;
 
+            TG_vector<F_cluster_id> cluster_neighbor_ids;
+            eastl::atomic<F_cluster_id> next_cluster_neighbor_id_index = 0;
+            struct F_cluster_neighbor_header
+            {
+                F_cluster_id begin = 0;
+                F_cluster_id end = 0;
+            };
+            TG_vector<F_cluster_neighbor_header> cluster_neighbor_headers(current_level_cluster_count);
+
             //
             do
             {
@@ -219,34 +228,78 @@ namespace nre::newrg
                         }
                     );
 
+                    // build cluster_neighbor_headers
+                    NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+                        [&](F_cluster_id current_level_cluster_id)
+                        {
+                            F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
+                            auto& cluster_neighbor_header = cluster_neighbor_headers[cluster_id];
+
+                            u32 neighbor_count = 0;
+
+                            // calculate neighbor count
+                            cluster_adjacency.for_all_link(
+                                current_level_cluster_id,
+                                [&](
+                                    F_cluster_id,
+                                    F_cluster_id other_current_level_cluster_id
+                                )
+                                {
+                                    ++neighbor_count;
+                                }
+                            );
+
+                            // allocate cluster neighbor ids
+                            cluster_neighbor_header.begin = next_cluster_neighbor_id_index.fetch_add(neighbor_count);
+                            cluster_neighbor_header.end = cluster_neighbor_header.begin + neighbor_count;
+                        },
+                        {
+                            .parallel_count = current_level_cluster_count,
+                            .batch_size = eastl::max<u32>(current_level_cluster_count / 128, 32)
+                        }
+                    );
+
+                    // build cluster_neighbor_ids
+                    cluster_neighbor_ids.resize(next_cluster_neighbor_id_index.load());
+                    if(cluster_neighbor_ids.size())
+                    {
+                        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+                            [&](F_cluster_id current_level_cluster_id)
+                            {
+                                F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
+                                auto& cluster_neighbor_header = cluster_neighbor_headers[cluster_id];
+
+                                F_cluster_id* cluster_neighbor_id_p = &cluster_neighbor_ids[cluster_neighbor_header.begin];
+
+                                u32 neighbor_index = 0;
+
+                                // store neighbor ids
+                                cluster_adjacency.for_all_link(
+                                    current_level_cluster_id,
+                                    [&](
+                                        F_cluster_id,
+                                        F_cluster_id other_current_level_cluster_id
+                                    )
+                                    {
+                                        if(other_current_level_cluster_id != current_level_cluster_id)
+                                        {
+                                            F_cluster_id other_cluster_id = current_level_cluster_offset + other_current_level_cluster_id;
+
+                                            cluster_neighbor_id_p[neighbor_index] = other_cluster_id;
+
+                                            ++neighbor_index;
+                                        }
+                                    }
+                                );
+                            },
+                            {
+                                .parallel_count = current_level_cluster_count,
+                                .batch_size = eastl::max<u32>(current_level_cluster_count / 128, 32)
+                            }
+                        );
+                    }
+
                     int a = 5;
-                    // build current_level_cluster_neighbor_id_lists
-                    // struct F_sorted3_cluster_neighbor_id_list
-                    // {
-                    //     F_cluster_id neighbor_ids[3];
-                    // };
-                    // TG_vector<F_sorted3_cluster_neighbor_id_list> current_level_sorted3_cluster_neighbor_id_lists(current_level_cluster_count);
-                    // for(u32 neighbor_index = 0; neighbor_index < 3; ++neighbor_index)
-                    // {
-                    //     for(
-                    //         F_cluster_id current_level_cluster_id = 0;
-                    //         current_level_cluster_id != current_level_cluster_count;
-                    //         ++current_level_cluster_id
-                    //     )
-                    //     {
-                    //         current_level_cluster_neighbor_id_count += cluster_adjacency.link_count(current_level_cluster_id);
-                    //     }
-                    // }
-                    // for(
-                    //     F_cluster_id current_level_cluster_id = 0;
-                    //     current_level_cluster_id != current_level_cluster_count;
-                    //     ++current_level_cluster_id
-                    // )
-                    // {
-                    //     current_level_cluster_neighbor_id_count += cluster_adjacency.link_count(current_level_cluster_id);
-                    // }
-                    // current_level_base_cluster_neighbor_id = cluster_neighbor_ids.size();
-                    // cluster_neighbor_ids.resize(current_level_base_cluster_neighbor_id + current_level_cluster_neighbor_id_count);
                 }
 
                 // update
