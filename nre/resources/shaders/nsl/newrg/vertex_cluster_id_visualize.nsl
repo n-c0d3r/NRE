@@ -53,6 +53,7 @@ pixel_shader ps_main
 @input_assembler
 (
 	VERTEX_POSITION
+    @buffer(1)
 	VERTEX_CLUSTER_ID
 )
 @primitive_topology(TRIANGLE_LIST)
