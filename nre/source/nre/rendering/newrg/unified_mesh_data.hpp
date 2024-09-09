@@ -31,7 +31,7 @@ namespace nre::newrg
     using F_cluster_id = u32;
     struct F_cluster_header
     {
-        F_global_vertex_id global_base_vertex_id = 0;
+        F_global_vertex_id vertex_offset = 0;
         F_global_vertex_id vertex_count = 0;
         F_local_cluster_vertex_id local_triangle_vertex_ids[NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3];
         F_global_vertex_id local_triangle_vertex_id_count = 0;
