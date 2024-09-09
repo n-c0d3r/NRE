@@ -6,23 +6,41 @@ default_constant_buffer(cb_main)
 uniform local_to_clip_matrix(float4x4)
 
 semantic VERTEX_POSITION(float3)
+semantic VERTEX_CLUSTER_ID(uint)
 
 vertex_shader vs_main
 (
     in vertex_position(VERTEX_POSITION)
-    out vertex_clip_position(SV_POSITION)
+    in vertex_cluster_id(VERTEX_CLUSTER_ID)
+    out out_vertex_clip_position(SV_POSITION)
+    out out_vertex_cluster_id(VERTEX_CLUSTER_ID)
 )
 {
-    vertex_clip_position = mul(local_to_clip_matrix, float4(vertex_position, 1.0f));
+    out_vertex_clip_position = mul(local_to_clip_matrix, float4(vertex_position, 1.0f));
+    out_vertex_cluster_id = vertex_cluster_id;
+}
+
+float3 hue2rgb(float hue) {
+    hue = frac(hue);
+    float r = abs(hue * 6 - 3) - 1;
+    float g = 2 - abs(hue * 6 - 2);
+    float b = 2 - abs(hue * 6 - 4);
+    float3 rgb = float3(r,g,b);
+    rgb = saturate(rgb);
+    return rgb;
 }
 
 pixel_shader ps_main
 (
     in vertex_clip_position(SV_POSITION)
-    out color(SV_TARGET)
+    in vertex_cluster_id(VERTEX_CLUSTER_ID)
+    out out_color(SV_TARGET)
 )
 {
-    color = float4(1, 1, 1, 1);
+    out_color = float4(
+        hue2rgb(((float)vertex_cluster_id) * 1.71f),
+        1
+    );
 }
 
 @root_signature(NRE_NEWRG_BINDER_SIGNATURE_VS_1CBV_PS_1CBV)
@@ -35,6 +53,7 @@ pixel_shader ps_main
 @input_assembler
 (
 	VERTEX_POSITION
+	VERTEX_CLUSTER_ID
 )
 @primitive_topology(TRIANGLE_LIST)
 pipeline_state pso_main

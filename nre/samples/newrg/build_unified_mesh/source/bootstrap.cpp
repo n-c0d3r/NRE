@@ -243,6 +243,11 @@ int main() {
 								0,
 								0
 							);
+							command_list_p->ZIA_bind_input_buffer(
+								keyed_vertex_cluster_id_buffer_p,
+								0,
+								1
+							);
 							command_list_p->async_draw_indexed(
 								vertex_indices.size(),
 								0,
