@@ -50,6 +50,10 @@ pixel_shader ps_main
 	cull_mode(NONE)
 	fill_mode(SOLID)
 )
+@depth_stencil
+(
+    enable_depth_test(true)
+)
 @input_assembler
 (
 	VERTEX_POSITION
