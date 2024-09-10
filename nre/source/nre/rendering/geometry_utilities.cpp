@@ -224,6 +224,18 @@ namespace nre::newrg
 
         return eastl::move(result);
     }
+    F_raw_clustered_geometry H_clustered_geometry::simplify_clusters(
+        const F_raw_clustered_geometry& geometry
+    )
+    {
+        return {};
+    }
+    F_raw_clustered_geometry H_clustered_geometry::split_clusters(
+        const F_raw_clustered_geometry& geometry
+    )
+    {
+        return {};
+    }
 
     F_raw_clustered_geometry H_clustered_geometry::build_next_level(
         const F_raw_clustered_geometry& geometry,

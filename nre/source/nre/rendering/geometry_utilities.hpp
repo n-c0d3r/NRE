@@ -147,7 +147,7 @@ namespace nre::newrg
     using F_dag_node_id = u32;
     struct F_dag_node_header
     {
-        F_dag_node_id child_node_ids[4];
+        F_dag_node_id child_node_ids[4]{ NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX };
     };
     struct NCPP_ALIGN(16) F_dag_node_culling_data
     {
@@ -449,6 +449,12 @@ namespace nre::newrg
         static F_cluster_neighbor_graph build_cluster_neighbor_graph(
             const F_adjacency& cluster_adjacency,
             F_cluster_id cluster_count
+        );
+        static F_raw_clustered_geometry simplify_clusters(
+            const F_raw_clustered_geometry& geometry
+        );
+        static F_raw_clustered_geometry split_clusters(
+            const F_raw_clustered_geometry& geometry
         );
 
     public:

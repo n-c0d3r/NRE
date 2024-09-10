@@ -94,7 +94,6 @@ namespace nre::newrg
 
             //
             result.dag_node_headers.resize(meshlet_count);
-            result.dag_node_culling_datas.resize(meshlet_count);
             result.dag_level_headers.push_back({
                 .begin = 0,
                 .end = u32(meshlet_count)
@@ -103,8 +102,14 @@ namespace nre::newrg
 
         // build higher level dag nodes
         {
-            F_cluster_id current_level_cluster_id_count = result.cluster_headers.size();
-            F_cluster_id current_level_cluster_id_base = 0;
+            F_cluster_id current_level_cluster_count = result.cluster_headers.size();
+            F_cluster_id current_level_cluster_offset = 0;
+
+            F_global_vertex_id current_level_vertex_count = result.raw_vertex_datas.size();
+            F_global_vertex_id current_level_vertex_offset = 0;
+
+            F_global_vertex_id current_level_local_cluster_triangle_vertex_id_count = result.local_cluster_triangle_vertex_ids.size();
+            F_global_vertex_id current_level_local_cluster_triangle_vertex_id_offset = 0;
 
             F_raw_clustered_geometry geometry = {
                 .graph = result.cluster_headers,
@@ -114,22 +119,162 @@ namespace nre::newrg
 
             while(true)
             {
+                // group clusters in the current geometry
+                F_raw_clustered_geometry groupped_geometry;
                 TG_vector<F_cluster_group_header> first_cluster_group_headers;
-                F_raw_clustered_geometry second_level_raw_geometry = H_clustered_geometry::build_next_level(
-                    geometry,
-                    first_cluster_group_headers
-                );
-
-                if(second_level_raw_geometry.shape.size() == current_level_cluster_id_count)
-                    break;
-
                 TG_vector<F_cluster_group_header> second_cluster_group_headers;
-                F_raw_clustered_geometry third_level_raw_geometry = H_clustered_geometry::build_next_level(
-                    second_level_raw_geometry,
-                    second_cluster_group_headers
-                );
+                {
+                    F_raw_clustered_geometry second_level_geometry = H_clustered_geometry::build_next_level(
+                        geometry,
+                        first_cluster_group_headers
+                    );
 
-                geometry = third_level_raw_geometry;
+                    if(second_level_geometry.shape.size() == current_level_cluster_count)
+                        break;
+
+                    groupped_geometry = H_clustered_geometry::build_next_level(
+                        second_level_geometry,
+                        second_cluster_group_headers
+                    );
+                }
+
+                // simplify and split groupped_geometry into next_level_geometry
+                F_raw_clustered_geometry next_level_geometry = H_clustered_geometry::simplify_clusters(groupped_geometry);
+                next_level_geometry = H_clustered_geometry::split_clusters(next_level_geometry);
+                next_level_geometry = groupped_geometry;
+
+                // store next level
+                {
+                    F_cluster_id next_level_cluster_count = next_level_geometry.graph.size();
+                    F_cluster_id next_level_cluster_offset = result.cluster_headers.size();
+
+                    F_global_vertex_id next_level_vertex_count = next_level_geometry.graph.size();
+                    F_global_vertex_id next_level_vertex_offset = result.raw_vertex_datas.size();
+
+                    F_global_vertex_id next_level_local_cluster_triangle_vertex_id_count = next_level_geometry.local_cluster_triangle_vertex_ids.size();
+                    F_global_vertex_id next_level_local_cluster_triangle_vertex_id_offset = result.local_cluster_triangle_vertex_ids.size();
+
+                    result.cluster_headers.resize(next_level_cluster_offset + next_level_cluster_count);
+
+                    result.raw_vertex_datas.insert(
+                        result.raw_vertex_datas.end(),
+                        next_level_geometry.shape.begin(),
+                        next_level_geometry.shape.end()
+                    );
+
+                    result.local_cluster_triangle_vertex_ids.insert(
+                        result.local_cluster_triangle_vertex_ids.end(),
+                        next_level_geometry.local_cluster_triangle_vertex_ids.begin(),
+                        next_level_geometry.local_cluster_triangle_vertex_ids.end()
+                    );
+
+                    result.dag_node_headers.resize(next_level_cluster_offset + next_level_cluster_count);
+
+                    //
+                    {
+                        F_global_vertex_id local_vertex_offset = 0;
+                        F_global_vertex_id local_triangle_vertex_id_offset = 0;
+
+                        for(F_cluster_id i = 0; i < next_level_cluster_count; ++i)
+                        {
+                            F_cluster_id next_level_cluster_id = next_level_cluster_offset + i;
+
+                            auto& next_level_cluster_header = result.cluster_headers[next_level_cluster_id];
+                            auto& next_level_dag_node_header = result.dag_node_headers[next_level_cluster_id];
+
+                            // setup
+                            next_level_cluster_header = next_level_geometry.graph[i];
+                            next_level_cluster_header.vertex_offset += next_level_vertex_offset;
+                            next_level_cluster_header.local_triangle_vertex_id_offset += next_level_local_cluster_triangle_vertex_id_offset;
+
+                            // offset local_cluster_triangle_vertex_ids
+                            for(u32 j = 0; j < next_level_cluster_header.local_triangle_vertex_id_count; ++j)
+                            {
+                                result.local_cluster_triangle_vertex_ids[
+                                    next_level_cluster_header.local_triangle_vertex_id_offset
+                                    + j
+                                ] += next_level_vertex_offset;
+                            }
+
+                            // calculate child cluster ids
+                            TG_fixed_vector<F_cluster_id, 4, false> child_cluster_ids;
+                            {
+                                auto& first_cluster_group_header = second_cluster_group_headers[i / 2];
+                                if(first_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
+                                {
+                                    auto& second_cluster_group_header = first_cluster_group_headers[
+                                        first_cluster_group_header.child_ids[0]
+                                    ];
+                                    if(second_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
+                                    {
+                                        child_cluster_ids.push_back(
+                                            current_level_cluster_offset
+                                            + second_cluster_group_header.child_ids[0]
+                                        );
+                                    }
+                                    if(second_cluster_group_header.child_ids[1] != NCPP_U32_MAX)
+                                    {
+                                        child_cluster_ids.push_back(
+                                            current_level_cluster_offset
+                                            + second_cluster_group_header.child_ids[1]
+                                        );
+                                    }
+                                }
+                                if(first_cluster_group_header.child_ids[1] != NCPP_U32_MAX)
+                                {
+                                    auto& second_cluster_group_header = first_cluster_group_headers[
+                                        first_cluster_group_header.child_ids[1]
+                                    ];
+                                    if(second_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
+                                    {
+                                        child_cluster_ids.push_back(
+                                            current_level_cluster_offset
+                                            + second_cluster_group_header.child_ids[0]
+                                        );
+                                    }
+                                    if(second_cluster_group_header.child_ids[1] != NCPP_U32_MAX)
+                                    {
+                                        child_cluster_ids.push_back(
+                                            current_level_cluster_offset
+                                            + second_cluster_group_header.child_ids[1]
+                                        );
+                                    }
+                                }
+                            }
+                            for(u32 child_index = 0; child_index < 4; ++child_index)
+                            {
+                                if(child_index < child_cluster_ids.size())
+                                {
+                                    next_level_dag_node_header.child_node_ids[child_index] = child_cluster_ids[child_index];
+                                }
+                                else
+                                {
+                                    next_level_dag_node_header.child_node_ids[child_index] = NCPP_U32_MAX;
+                                }
+                            }
+
+                            local_vertex_offset += next_level_cluster_header.vertex_count;
+                            local_triangle_vertex_id_offset += next_level_cluster_header.local_triangle_vertex_id_count;
+                        }
+                    }
+
+                    result.dag_level_headers.push_back({
+                        .begin = next_level_cluster_offset,
+                        .end = next_level_cluster_offset + next_level_cluster_count
+                    });
+
+                    current_level_cluster_count = next_level_cluster_count;
+                    current_level_cluster_offset = next_level_cluster_offset;
+
+                    current_level_vertex_count = next_level_vertex_count;
+                    current_level_vertex_offset = next_level_vertex_offset;
+
+                    current_level_local_cluster_triangle_vertex_id_count = next_level_local_cluster_triangle_vertex_id_count;
+                    current_level_local_cluster_triangle_vertex_id_offset = next_level_local_cluster_triangle_vertex_id_offset;
+                }
+
+                break;
+                geometry = next_level_geometry;
             }
         }
 
