@@ -37,7 +37,7 @@ int main() {
 	const auto& original_texcoords = eastl::get<3>(original_vertex_channels);
 	const auto& original_indices = original_mesh_p->indices();
 
-	auto raw_unified_mesh_data = H_unified_mesh_builder::build_raw(
+	auto raw_unified_mesh_data = H_unified_mesh_builder::build(
 		(TG_vector<F_vector3_f32>&)original_positions,
 		(TG_vector<F_vector3_f32>&)original_normals,
 		(TG_vector<F_vector3_f32>&)original_tangents,
@@ -47,10 +47,13 @@ int main() {
 	auto positions = H_unified_mesh_builder::build_positions(
 		raw_unified_mesh_data.raw_vertex_datas
 	);
-	auto vertex_indices = H_unified_mesh_builder::build_vertex_indices({
-		(F_cluster_header*)(raw_unified_mesh_data.cluster_headers.data() + raw_unified_mesh_data.dag_level_headers[0].begin),
-		(raw_unified_mesh_data.dag_level_headers[0].end - raw_unified_mesh_data.dag_level_headers[0].begin)
-	});
+	auto vertex_indices = H_unified_mesh_builder::build_vertex_indices(
+		raw_unified_mesh_data.local_cluster_triangle_vertex_ids,
+		{
+			(F_cluster_header*)(raw_unified_mesh_data.cluster_headers.data() + raw_unified_mesh_data.dag_level_headers[0].begin),
+			(raw_unified_mesh_data.dag_level_headers[0].end - raw_unified_mesh_data.dag_level_headers[0].begin)
+		}
+	);
 	auto vertex_cluster_ids = H_unified_mesh_builder::build_vertex_cluster_ids(
 		raw_unified_mesh_data.cluster_headers
 	);

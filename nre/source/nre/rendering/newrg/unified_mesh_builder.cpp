@@ -5,7 +5,7 @@
 
 namespace nre::newrg
 {
-    F_raw_unified_mesh_data H_unified_mesh_builder::build_raw(
+    F_raw_unified_mesh_data H_unified_mesh_builder::build(
         const TG_span<F_vector3_f32>& positions,
         const TG_span<F_vector3_f32>& normals,
         const TG_span<F_vector3_f32>& tangents,
@@ -27,7 +27,8 @@ namespace nre::newrg
             TG_vector<unsigned int> meshlet_vertices(max_meshlets * NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER);
             TG_vector<unsigned char> meshlet_triangle_vertex_indices(max_meshlets * NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3);
 
-            result.raw_vertex_datas.reserve(max_meshlets * NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER);
+            result.raw_vertex_datas.reserve(meshlet_vertices.size());
+            result.local_cluster_triangle_vertex_ids.reserve(meshlet_triangle_vertex_indices.size());
 
             size_t meshlet_count = meshopt_buildMeshlets(
                 meshlets.data(),
@@ -52,16 +53,19 @@ namespace nre::newrg
 
                 u32 vertex_count = meshlet.vertex_count;
 
-                F_global_vertex_id global_base_vertex_id = result.raw_vertex_datas.size();
-                cluster_header.vertex_offset = global_base_vertex_id;
+                cluster_header.vertex_offset = result.raw_vertex_datas.size();
                 cluster_header.vertex_count = vertex_count;
+                cluster_header.local_triangle_vertex_id_offset = result.local_cluster_triangle_vertex_ids.size();
                 cluster_header.local_triangle_vertex_id_count = meshlet.triangle_count * 3;
 
-                u32 begin_local_vertex_index = meshlet.vertex_offset;
-                u32 end_local_vertex_index = meshlet.vertex_offset + vertex_count;
-                for(u32 local_vertex_index = begin_local_vertex_index; local_vertex_index < end_local_vertex_index; ++local_vertex_index)
+                for(
+                    u32 local_vertex_id_index = meshlet.vertex_offset,
+                        end = meshlet.vertex_offset + vertex_count;
+                    local_vertex_id_index < end;
+                    ++local_vertex_id_index
+                )
                 {
-                    u32 original_vertex_index = meshlet_vertices[local_vertex_index];
+                    u32 original_vertex_index = meshlet_vertices[local_vertex_id_index];
 
                     F_vector3_f32 original_position = positions[original_vertex_index];
                     F_vector3_f32 original_normal = normals[original_vertex_index];
@@ -76,22 +80,15 @@ namespace nre::newrg
                     });
                 }
 
-                for(
-                    u32 i = meshlet.triangle_offset,
-                        end = meshlet.triangle_offset + meshlet.triangle_count;
-                    i < end;
-                    ++i
-                )
+                for(u32 local_triangle_index = 0; local_triangle_index < meshlet.triangle_count; ++local_triangle_index)
                 {
-                    u32 local_triangle_index = i - meshlet.triangle_offset;
+                    F_local_cluster_vertex_id local_vertex_index_0 = meshlet_triangle_vertex_indices[meshlet.triangle_offset + local_triangle_index * 3];
+                    F_local_cluster_vertex_id local_vertex_index_1 = meshlet_triangle_vertex_indices[meshlet.triangle_offset + local_triangle_index * 3 + 1];
+                    F_local_cluster_vertex_id local_vertex_index_2 = meshlet_triangle_vertex_indices[meshlet.triangle_offset + local_triangle_index * 3 + 2];
 
-                    u32 local_vertex_index_0 = meshlet_triangle_vertex_indices[local_triangle_index * 3];
-                    u32 local_vertex_index_1 = meshlet_triangle_vertex_indices[local_triangle_index * 3 + 1];
-                    u32 local_vertex_index_2 = meshlet_triangle_vertex_indices[local_triangle_index * 3 + 2];
-
-                    cluster_header.local_triangle_vertex_ids[local_triangle_index * 3] = local_vertex_index_0;
-                    cluster_header.local_triangle_vertex_ids[local_triangle_index * 3 + 1] = local_vertex_index_1;
-                    cluster_header.local_triangle_vertex_ids[local_triangle_index * 3 + 2] = local_vertex_index_2;
+                    result.local_cluster_triangle_vertex_ids.push_back(local_vertex_index_0);
+                    result.local_cluster_triangle_vertex_ids.push_back(local_vertex_index_1);
+                    result.local_cluster_triangle_vertex_ids.push_back(local_vertex_index_2);
                 }
             }
 
@@ -106,215 +103,222 @@ namespace nre::newrg
 
         // build higher level dag nodes
         {
-            auto raw_vertex_datas = result.raw_vertex_datas;
-            F_global_vertex_id current_level_vertex_count = raw_vertex_datas.size();
-            F_global_vertex_id current_level_vertex_offset = 0;
-
-            TG_vector<F_cluster_id> vertex_cluster_ids(current_level_vertex_count);
-
-            auto cluster_headers = result.cluster_headers;
-            F_cluster_id current_level_cluster_count = cluster_headers.size();
-            F_cluster_id current_level_cluster_offset = 0;
-
-            // auto dag_node_headers = result.dag_node_headers;
-            // auto dag_level_headers = result.dag_level_headers;
-
-            TG_vector<F_cluster_id> cluster_neighbor_ids;
-            eastl::atomic<F_cluster_id> next_cluster_neighbor_id_index = 0;
-            struct F_cluster_neighbor_header
-            {
-                F_cluster_id begin = 0;
-                F_cluster_id end = 0;
+            F_raw_clustered_geometry current_level_raw_geometry = {
+                .graph = result.cluster_headers,
+                .shape = result.raw_vertex_datas
             };
-            TG_vector<F_cluster_neighbor_header> cluster_neighbor_headers(current_level_cluster_count);
 
+            auto next_level_raw_geometry_opt = H_clustered_geometry::build_next_level(current_level_raw_geometry);
+
+            // auto raw_vertex_datas = result.raw_vertex_datas;
+            // F_global_vertex_id current_level_vertex_count = raw_vertex_datas.size();
+            // F_global_vertex_id current_level_vertex_offset = 0;
             //
-            do
-            {
-                // build vertex_cluster_ids for current level
-                for(u32 i = 0; i < current_level_cluster_count; ++i)
-                {
-                    auto& cluster_header = cluster_headers[current_level_cluster_offset + i];
-
-                    for(
-                        F_global_vertex_id vertex_id = cluster_header.vertex_offset,
-                            end_vertex_id = cluster_header.vertex_offset + cluster_header.vertex_count;
-                        vertex_id != end_vertex_id;
-                        ++vertex_id
-                    )
-                    {
-                        vertex_cluster_ids[vertex_id] = current_level_cluster_offset + i;
-                    }
-                }
-
-                //
-                auto current_level_vertex_id_to_position = [&](F_global_vertex_id current_level_vertex_id)
-                {
-                    F_global_vertex_id vertex_id = current_level_vertex_offset + current_level_vertex_id;
-                    return raw_vertex_datas[vertex_id].position;
-                };
-
-                // build current_level_position_hash
-                F_position_hash current_level_position_hash(current_level_vertex_count);
-                NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-                    [&](F_global_vertex_id current_level_vertex_id)
-                    {
-                        current_level_position_hash.add_concurrent(
-                            current_level_vertex_id,
-                            current_level_vertex_id_to_position
-                        );
-                    },
-                    {
-                        .parallel_count = current_level_vertex_count,
-                        .batch_size = eastl::max<u32>(current_level_vertex_count / 128, 32)
-                    }
-                );
-
-                // build cluster neighbor ids and cluster neighbor headers
-                {
-                    F_adjacency cluster_adjacency(current_level_cluster_count);
-
-                    // setup cluster adjacency alements
-                    NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-                        [&](F_cluster_id current_level_cluster_id)
-                        {
-                            F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
-                            auto& cluster_header = cluster_headers[cluster_id];
-
-                            cluster_adjacency.setup_element(
-                                current_level_cluster_id,
-                                cluster_header.vertex_count
-                            );
-                        },
-                        {
-                            .parallel_count = current_level_cluster_count,
-                            .batch_size = eastl::max<u32>(current_level_cluster_count / 128, 32)
-                        }
-                    );
-
-                    // link cluster adjacency alements
-                    NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-                        [&](F_cluster_id current_level_cluster_id)
-                        {
-                            F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
-                            auto& cluster_header = cluster_headers[cluster_id];
-
-                            for(
-                                F_global_vertex_id vertex_id = cluster_header.vertex_offset,
-                                    end_vertex_id = cluster_header.vertex_offset + cluster_header.vertex_count;
-                                vertex_id < end_vertex_id;
-                                ++vertex_id
-                            )
-                            {
-                                F_global_vertex_id current_level_vertex_id = vertex_id - current_level_vertex_offset;
-
-                                current_level_position_hash.for_all_match(
-                                    current_level_vertex_id,
-                                    current_level_vertex_id_to_position,
-                                    [&](
-                                        F_global_vertex_id,
-                                        F_global_vertex_id other_current_level_vertex_id
-                                    )
-                                    {
-                                        F_global_vertex_id other_vertex_id = current_level_vertex_offset + other_current_level_vertex_id;
-                                        F_cluster_id other_cluster_id = vertex_cluster_ids[other_vertex_id];
-                                        F_cluster_id other_current_level_cluster_id = other_cluster_id - current_level_cluster_offset;
-
-                                        if(current_level_cluster_id != other_current_level_cluster_id)
-                                        {
-                                            cluster_adjacency.link(current_level_cluster_id, other_current_level_cluster_id);
-                                        }
-                                    }
-                                );
-                            }
-                        },
-                        {
-                            .parallel_count = current_level_cluster_count,
-                            .batch_size = eastl::max<u32>(current_level_cluster_count / 128, 32)
-                        }
-                    );
-
-                    // build cluster_neighbor_headers
-                    NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-                        [&](F_cluster_id current_level_cluster_id)
-                        {
-                            F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
-                            auto& cluster_neighbor_header = cluster_neighbor_headers[cluster_id];
-
-                            u32 neighbor_count = 0;
-
-                            // calculate neighbor count
-                            cluster_adjacency.for_all_link(
-                                current_level_cluster_id,
-                                [&](
-                                    F_cluster_id,
-                                    F_cluster_id other_current_level_cluster_id
-                                )
-                                {
-                                    if(current_level_cluster_id != other_current_level_cluster_id)
-                                    {
-                                        ++neighbor_count;
-                                    }
-                                }
-                            );
-
-                            // allocate cluster neighbor ids
-                            cluster_neighbor_header.begin = next_cluster_neighbor_id_index.fetch_add(neighbor_count);
-                            cluster_neighbor_header.end = cluster_neighbor_header.begin + neighbor_count;
-                        },
-                        {
-                            .parallel_count = current_level_cluster_count,
-                            .batch_size = eastl::max<u32>(current_level_cluster_count / 128, 32)
-                        }
-                    );
-
-                    // build cluster_neighbor_ids
-                    cluster_neighbor_ids.resize(next_cluster_neighbor_id_index.load());
-                    if(cluster_neighbor_ids.size())
-                    {
-                        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-                            [&](F_cluster_id current_level_cluster_id)
-                            {
-                                F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
-                                auto& cluster_neighbor_header = cluster_neighbor_headers[cluster_id];
-
-                                if(cluster_neighbor_header.end - cluster_neighbor_header.begin == 0)
-                                    return;
-
-                                F_cluster_id* cluster_neighbor_id_p = &cluster_neighbor_ids[cluster_neighbor_header.begin];
-
-                                u32 neighbor_index = 0;
-
-                                // store neighbor ids
-                                cluster_adjacency.for_all_link(
-                                    current_level_cluster_id,
-                                    [&](
-                                        F_cluster_id,
-                                        F_cluster_id other_current_level_cluster_id
-                                    )
-                                    {
-                                        if(other_current_level_cluster_id != current_level_cluster_id)
-                                        {
-                                            F_cluster_id other_cluster_id = current_level_cluster_offset + other_current_level_cluster_id;
-
-                                            cluster_neighbor_id_p[neighbor_index] = other_cluster_id;
-
-                                            ++neighbor_index;
-                                        }
-                                    }
-                                );
-                            },
-                            {
-                                .parallel_count = current_level_cluster_count,
-                                .batch_size = eastl::max<u32>(current_level_cluster_count / 128, 32)
-                            }
-                        );
-                    }
-                }
-
-                // update
-                int a = 5;
-            } while(false);//current_level_cluster_count > 1);
+            // TG_vector<F_cluster_id> vertex_cluster_ids(current_level_vertex_count);
+            //
+            // auto cluster_headers = result.cluster_headers;
+            // F_cluster_id current_level_cluster_count = cluster_headers.size();
+            // F_cluster_id current_level_cluster_offset = 0;
+            //
+            // // auto dag_node_headers = result.dag_node_headers;
+            // // auto dag_level_headers = result.dag_level_headers;
+            //
+            // TG_vector<F_cluster_id> cluster_neighbor_ids;
+            // eastl::atomic<F_cluster_id> next_cluster_neighbor_id_index = 0;
+            // struct F_cluster_neighbor_header
+            // {
+            //     F_cluster_id begin = 0;
+            //     F_cluster_id end = 0;
+            // };
+            // TG_vector<F_cluster_neighbor_header> cluster_neighbor_headers(current_level_cluster_count);
+            //
+            // //
+            // do
+            // {
+            //     // build vertex_cluster_ids for current level
+            //     for(u32 i = 0; i < current_level_cluster_count; ++i)
+            //     {
+            //         auto& cluster_header = cluster_headers[current_level_cluster_offset + i];
+            //
+            //         for(
+            //             F_global_vertex_id vertex_id = cluster_header.vertex_offset,
+            //                 end_vertex_id = cluster_header.vertex_offset + cluster_header.vertex_count;
+            //             vertex_id != end_vertex_id;
+            //             ++vertex_id
+            //         )
+            //         {
+            //             vertex_cluster_ids[vertex_id] = current_level_cluster_offset + i;
+            //         }
+            //     }
+            //
+            //     //
+            //     auto current_level_vertex_id_to_position = [&](F_global_vertex_id current_level_vertex_id)
+            //     {
+            //         F_global_vertex_id vertex_id = current_level_vertex_offset + current_level_vertex_id;
+            //         return raw_vertex_datas[vertex_id].position;
+            //     };
+            //
+            //     // build current_level_position_hash
+            //     F_position_hash current_level_position_hash(current_level_vertex_count);
+            //     NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            //         [&](F_global_vertex_id current_level_vertex_id)
+            //         {
+            //             current_level_position_hash.add_concurrent(
+            //                 current_level_vertex_id,
+            //                 current_level_vertex_id_to_position
+            //             );
+            //         },
+            //         {
+            //             .parallel_count = current_level_vertex_count,
+            //             .batch_size = eastl::max<u32>(current_level_vertex_count / 128, 32)
+            //         }
+            //     );
+            //
+            //     // build cluster neighbor ids and cluster neighbor headers
+            //     {
+            //         F_adjacency cluster_adjacency(current_level_cluster_count);
+            //
+            //         // setup cluster adjacency alements
+            //         NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            //             [&](F_cluster_id current_level_cluster_id)
+            //             {
+            //                 F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
+            //                 auto& cluster_header = cluster_headers[cluster_id];
+            //
+            //                 cluster_adjacency.setup_element(
+            //                     current_level_cluster_id,
+            //                     cluster_header.vertex_count
+            //                 );
+            //             },
+            //             {
+            //                 .parallel_count = current_level_cluster_count,
+            //                 .batch_size = eastl::max<u32>(current_level_cluster_count / 128, 32)
+            //             }
+            //         );
+            //
+            //         // link cluster adjacency alements
+            //         NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            //             [&](F_cluster_id current_level_cluster_id)
+            //             {
+            //                 F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
+            //                 auto& cluster_header = cluster_headers[cluster_id];
+            //
+            //                 for(
+            //                     F_global_vertex_id vertex_id = cluster_header.vertex_offset,
+            //                         end_vertex_id = cluster_header.vertex_offset + cluster_header.vertex_count;
+            //                     vertex_id < end_vertex_id;
+            //                     ++vertex_id
+            //                 )
+            //                 {
+            //                     F_global_vertex_id current_level_vertex_id = vertex_id - current_level_vertex_offset;
+            //
+            //                     current_level_position_hash.for_all_match(
+            //                         current_level_vertex_id,
+            //                         current_level_vertex_id_to_position,
+            //                         [&](
+            //                             F_global_vertex_id,
+            //                             F_global_vertex_id other_current_level_vertex_id
+            //                         )
+            //                         {
+            //                             F_global_vertex_id other_vertex_id = current_level_vertex_offset + other_current_level_vertex_id;
+            //                             F_cluster_id other_cluster_id = vertex_cluster_ids[other_vertex_id];
+            //                             F_cluster_id other_current_level_cluster_id = other_cluster_id - current_level_cluster_offset;
+            //
+            //                             if(current_level_cluster_id != other_current_level_cluster_id)
+            //                             {
+            //                                 cluster_adjacency.link(current_level_cluster_id, other_current_level_cluster_id);
+            //                             }
+            //                         }
+            //                     );
+            //                 }
+            //             },
+            //             {
+            //                 .parallel_count = current_level_cluster_count,
+            //                 .batch_size = eastl::max<u32>(current_level_cluster_count / 128, 32)
+            //             }
+            //         );
+            //
+            //         // build cluster_neighbor_headers
+            //         NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            //             [&](F_cluster_id current_level_cluster_id)
+            //             {
+            //                 F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
+            //                 auto& cluster_neighbor_header = cluster_neighbor_headers[cluster_id];
+            //
+            //                 u32 neighbor_count = 0;
+            //
+            //                 // calculate neighbor count
+            //                 cluster_adjacency.for_all_link(
+            //                     current_level_cluster_id,
+            //                     [&](
+            //                         F_cluster_id,
+            //                         F_cluster_id other_current_level_cluster_id
+            //                     )
+            //                     {
+            //                         if(current_level_cluster_id != other_current_level_cluster_id)
+            //                         {
+            //                             ++neighbor_count;
+            //                         }
+            //                     }
+            //                 );
+            //
+            //                 // allocate cluster neighbor ids
+            //                 cluster_neighbor_header.begin = next_cluster_neighbor_id_index.fetch_add(neighbor_count);
+            //                 cluster_neighbor_header.end = cluster_neighbor_header.begin + neighbor_count;
+            //             },
+            //             {
+            //                 .parallel_count = current_level_cluster_count,
+            //                 .batch_size = eastl::max<u32>(current_level_cluster_count / 128, 32)
+            //             }
+            //         );
+            //
+            //         // build cluster_neighbor_ids
+            //         cluster_neighbor_ids.resize(next_cluster_neighbor_id_index.load());
+            //         if(cluster_neighbor_ids.size())
+            //         {
+            //             NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            //                 [&](F_cluster_id current_level_cluster_id)
+            //                 {
+            //                     F_cluster_id cluster_id = current_level_cluster_offset + current_level_cluster_id;
+            //                     auto& cluster_neighbor_header = cluster_neighbor_headers[cluster_id];
+            //
+            //                     if(cluster_neighbor_header.end - cluster_neighbor_header.begin == 0)
+            //                         return;
+            //
+            //                     F_cluster_id* cluster_neighbor_id_p = &cluster_neighbor_ids[cluster_neighbor_header.begin];
+            //
+            //                     u32 neighbor_index = 0;
+            //
+            //                     // store neighbor ids
+            //                     cluster_adjacency.for_all_link(
+            //                         current_level_cluster_id,
+            //                         [&](
+            //                             F_cluster_id,
+            //                             F_cluster_id other_current_level_cluster_id
+            //                         )
+            //                         {
+            //                             if(other_current_level_cluster_id != current_level_cluster_id)
+            //                             {
+            //                                 F_cluster_id other_cluster_id = current_level_cluster_offset + other_current_level_cluster_id;
+            //
+            //                                 cluster_neighbor_id_p[neighbor_index] = other_cluster_id;
+            //
+            //                                 ++neighbor_index;
+            //                             }
+            //                         }
+            //                     );
+            //                 },
+            //                 {
+            //                     .parallel_count = current_level_cluster_count,
+            //                     .batch_size = eastl::max<u32>(current_level_cluster_count / 128, 32)
+            //                 }
+            //             );
+            //         }
+            //     }
+            //
+            //     // update
+            //     int a = 5;
+            // } while(false);//current_level_cluster_count > 1);
         }
 
         return eastl::move(result);
@@ -335,6 +339,7 @@ namespace nre::newrg
         return eastl::move(result);
     }
     TG_vector<F_global_vertex_id> H_unified_mesh_builder::build_vertex_indices(
+        const TG_span<F_local_cluster_vertex_id>& local_cluster_triangle_vertex_ids,
         const TG_span<F_cluster_header>& cluster_headers
     )
     {
@@ -349,8 +354,18 @@ namespace nre::newrg
         result.reserve(vertex_index_count);
         for(auto& cluster_header : cluster_headers)
         {
-            for(auto local_triangle_vertex_id : cluster_header.local_triangle_vertex_ids)
-                result.push_back(cluster_header.vertex_offset + local_triangle_vertex_id);
+            for(
+                u32 i = cluster_header.local_triangle_vertex_id_offset,
+                    end = cluster_header.local_triangle_vertex_id_offset + cluster_header.local_triangle_vertex_id_count;
+                i != end;
+                ++i
+            )
+            {
+                result.push_back(
+                    cluster_header.vertex_offset
+                    + F_global_vertex_id(local_cluster_triangle_vertex_ids[i])
+                );
+            }
         }
 
         return eastl::move(result);

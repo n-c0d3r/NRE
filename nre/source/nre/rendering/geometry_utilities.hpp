@@ -73,7 +73,7 @@ namespace ncpp::containers
 
 
 
-namespace nre
+namespace nre::newrg
 {
     namespace internal
     {
@@ -93,8 +93,74 @@ namespace nre
 
 
 
-    struct F_geometry_data
+    using F_global_vertex_id = u32;
+    using F_local_cluster_vertex_id = u8;
+    struct NCPP_ALIGN(16) F_compressed_vertex_data
     {
+        struct NCPP_ALIGN(2) F_local_component
+        {
+            u8 bytes[2];
+        };
+
+        F_local_component local_position_components[3];
+        F_local_component normal_components[3];
+        F_local_component tangent_components[3];
+        F_local_component texcoord_components[2];
+    };
+    struct NCPP_ALIGN(16) F_raw_vertex_data
+    {
+        F_vector3_f32 position;
+        F_vector3_f32 normal;
+        F_vector3_f32 tangent;
+        F_vector2_f32 texcoord;
+    };
+
+    using F_cluster_id = u32;
+    struct F_cluster_header
+    {
+        F_global_vertex_id vertex_offset = 0;
+        F_global_vertex_id vertex_count = 0;
+        F_global_vertex_id local_triangle_vertex_id_offset = 0;
+        F_global_vertex_id local_triangle_vertex_id_count = 0;
+    };
+
+    struct F_cluster_node_header
+    {
+        F_cluster_id child_ids[2] = { NCPP_U32_MAX, NCPP_U32_MAX };
+    };
+
+    using F_dag_node_id = u32;
+    struct F_dag_node_header
+    {
+        F_dag_node_id child_node_ids[4];
+    };
+    struct NCPP_ALIGN(16) F_dag_node_culling_data
+    {
+        F_vector4_f32 pivot_and_min_normal_dot;
+        F_vector3_f32 scaled_up;
+        F_vector3_f32 scaled_forward;
+    };
+
+    struct F_dag_level_header
+    {
+        u32 begin = 0;
+        u32 end = 0;
+    };
+
+    using F_clustered_geometry_graph = TG_vector<F_cluster_header>;
+
+    using F_raw_clustered_geometry_shape = TG_vector<F_raw_vertex_data>;
+    using F_compressed_clustered_geometry_shape = TG_vector<F_compressed_vertex_data>;
+
+    struct F_raw_clustered_geometry
+    {
+        F_clustered_geometry_graph graph;
+        F_raw_clustered_geometry_shape shape;
+    };
+    struct F_compressed_clustered_geometry
+    {
+        F_clustered_geometry_graph graph;
+        F_compressed_clustered_geometry_shape shape;
     };
 
 
@@ -103,12 +169,31 @@ namespace nre
     {
         G_hash_table hash_table;
 
+        F_position_hash() = default;
         F_position_hash(u32 size) :
             hash_table(
                 internal::round_up_to_power_of_two_u32(size),
                 internal::round_up_to_power_of_two_u32(size)
             )
         {
+        }
+        F_position_hash(const F_position_hash& x) :
+            hash_table(x.hash_table)
+        {
+        }
+        F_position_hash& operator = (const F_position_hash& x)
+        {
+            hash_table = x.hash_table;
+            return *this;
+        }
+        F_position_hash(F_position_hash&& x) noexcept :
+            hash_table(eastl::move(x.hash_table))
+        {
+        }
+        F_position_hash& operator = (F_position_hash&& x) noexcept
+        {
+            hash_table = eastl::move(x.hash_table);
+            return *this;
         }
 
         void add(u32 position_index, auto&& index_to_position_functor)
@@ -164,6 +249,24 @@ namespace nre
         F_adjacency(u32 size)
         {
             resize(size);
+        }
+        F_adjacency(const F_adjacency& x) :
+            link_tables(x.link_tables)
+        {
+        }
+        F_adjacency& operator = (const F_adjacency& x)
+        {
+            link_tables = x.link_tables;
+            return *this;
+        }
+        F_adjacency(F_adjacency&& x) noexcept :
+            link_tables(eastl::move(x.link_tables))
+        {
+        }
+        F_adjacency& operator = (F_adjacency&& x) noexcept
+        {
+            link_tables = eastl::move(x.link_tables);
+            return *this;
         }
 
         /**
@@ -297,5 +400,20 @@ namespace nre
 
             return eastl::move(result);
         }
+    };
+
+
+
+    class NRE_API H_clustered_geometry
+    {
+    public:
+        static F_position_hash build_position_hash(
+            const F_raw_clustered_geometry_shape& geometry_shape
+        );
+
+    public:
+        static eastl::optional<F_raw_clustered_geometry> build_next_level(
+            const F_raw_clustered_geometry& current_level_geometry
+        );
     };
 }
