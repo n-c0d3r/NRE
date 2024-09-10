@@ -452,7 +452,7 @@ namespace nre::newrg
         );
 
     public:
-        static eastl::optional<F_raw_clustered_geometry> build_next_level(
+        static F_raw_clustered_geometry build_next_level(
             const F_raw_clustered_geometry& geometry,
             TG_vector<F_cluster_group_header>& out_cluster_group_headers
         );
