@@ -135,9 +135,11 @@ namespace nre::newrg
     }
     F_cluster_neighbor_graph H_clustered_geometry::build_cluster_neighbor_graph(
         const F_adjacency& cluster_adjacency,
-        F_cluster_id cluster_count
+        const F_clustered_geometry_graph& geometry_graph
     )
     {
+        F_cluster_id cluster_count = geometry_graph.size();
+
         F_cluster_neighbor_graph result;
         result.ranges.resize(cluster_count);
 
@@ -178,7 +180,7 @@ namespace nre::newrg
 
         // build cluster_neighbor_ids
         result.ids.resize(next_cluster_neighbor_id_index.load());
-        result.shared_vertex_counts.resize(next_cluster_neighbor_id_index.load());
+        result.scores.resize(next_cluster_neighbor_id_index.load());
         if(result.ids.size())
         {
             NTS_AWAIT_BLOCKABLE NTS_ASYNC(
@@ -189,8 +191,10 @@ namespace nre::newrg
                     if(cluster_neighbor_id_range.end - cluster_neighbor_id_range.begin == 0)
                         return;
 
+                    auto& cluster_header = geometry_graph[cluster_id];
+
                     F_cluster_id* cluster_neighbor_id_p = &result.ids[cluster_neighbor_id_range.begin];
-                    u32* shared_vertex_count_p = &result.shared_vertex_counts[cluster_neighbor_id_range.begin];
+                    f32* score_p = &result.scores[cluster_neighbor_id_range.begin];
 
                     u32 neighbor_index = 0;
 
@@ -204,10 +208,31 @@ namespace nre::newrg
                         {
                             if(other_cluster_id != cluster_id)
                             {
+                                auto& other_cluster_header = geometry_graph[other_cluster_id];
+
                                 cluster_neighbor_id_p[neighbor_index] = other_cluster_id;
-                                shared_vertex_count_p[neighbor_index] = cluster_adjacency.link_duplicate_count(
+
+                                u32 shared_vertex_count = cluster_adjacency.link_duplicate_count(
                                     cluster_id,
                                     other_cluster_id
+                                );
+
+                                f32 d = 1.0f;
+                                if(other_cluster_header.vertex_count < cluster_header.vertex_count)
+                                {
+                                    d = f32(cluster_header.vertex_count) / f32(other_cluster_header.vertex_count);
+                                }
+                                else
+                                {
+                                    d = f32(other_cluster_header.vertex_count) / f32(cluster_header.vertex_count);
+                                }
+
+                                score_p[neighbor_index] = (
+                                    d
+                                    * eastl::max(
+                                        f32(shared_vertex_count) / f32(cluster_header.vertex_count),
+                                        f32(shared_vertex_count) / f32(other_cluster_header.vertex_count)
+                                    )
                                 );
 
                                 ++neighbor_index;
@@ -228,13 +253,21 @@ namespace nre::newrg
         const F_raw_clustered_geometry& geometry
     )
     {
-        return {};
+        F_raw_clustered_geometry result = geometry;
+
+
+
+        return eastl::move(result);
     }
     F_raw_clustered_geometry H_clustered_geometry::split_clusters(
         const F_raw_clustered_geometry& geometry
     )
     {
-        return {};
+        F_raw_clustered_geometry result = geometry;
+
+
+
+        return eastl::move(result);
     }
 
     F_raw_clustered_geometry H_clustered_geometry::build_next_level(
@@ -254,7 +287,7 @@ namespace nre::newrg
         );
         F_cluster_neighbor_graph cluster_neighbor_graph = build_cluster_neighbor_graph(
             cluster_adjacency,
-            cluster_count
+            geometry.graph
         );
 
         out_cluster_group_headers.resize(cluster_count);
@@ -269,7 +302,7 @@ namespace nre::newrg
         {
             F_cluster_id id0;
             F_cluster_id id1;
-            u32 shared_vertex_count = 0;
+            f32 score = 0.0f;
         };
         TG_vector<F_cluster_group_check> cluster_group_checks(
             cluster_neighbor_graph.ids.size() + cluster_count
@@ -284,18 +317,18 @@ namespace nre::newrg
                 for(F_cluster_id i = neighbor_index_range.begin; i < neighbor_index_range.end; ++i)
                 {
                     F_cluster_id neighbor_id = cluster_neighbor_graph.ids[i];
-                    u32 neighbor_shared_vertex_count = cluster_neighbor_graph.shared_vertex_counts[i];
+                    f32 neighbor_score = cluster_neighbor_graph.scores[i];
 
                     auto& cluster_group_check = cluster_group_checks[i];
                     cluster_group_check.id0 = cluster_id;
                     cluster_group_check.id1 = neighbor_id;
-                    cluster_group_check.shared_vertex_count = neighbor_shared_vertex_count;
+                    cluster_group_check.score = neighbor_score;
                 }
 
                 cluster_group_checks[cluster_neighbor_graph.ids.size() + cluster_id] = {
                     .id0 = cluster_id,
                     .id1 = NCPP_U32_MAX,
-                    .shared_vertex_count = 0
+                    .score = 0.0f
                 };
             },
             {
@@ -308,7 +341,7 @@ namespace nre::newrg
         {
             auto compare = [&](const F_cluster_group_check& a, const F_cluster_group_check& b)
             {
-                return a.shared_vertex_count > b.shared_vertex_count;
+                return a.score > b.score;
             };
             auto merge = [&](const TG_span<F_cluster_group_check>& part0, const TG_span<F_cluster_group_check>& part1)
             {

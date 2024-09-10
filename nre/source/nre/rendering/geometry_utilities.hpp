@@ -168,7 +168,7 @@ namespace nre::newrg
     struct F_cluster_neighbor_graph
     {
         F_cluster_ids ids;
-        TG_vector<u32> shared_vertex_counts;
+        TG_vector<f32> scores;
         F_cluster_id_ranges ranges;
     };
 
@@ -448,7 +448,7 @@ namespace nre::newrg
         );
         static F_cluster_neighbor_graph build_cluster_neighbor_graph(
             const F_adjacency& cluster_adjacency,
-            F_cluster_id cluster_count
+            const F_clustered_geometry_graph& geometry_graph
         );
         static F_raw_clustered_geometry simplify_clusters(
             const F_raw_clustered_geometry& geometry
