@@ -199,7 +199,7 @@ namespace nre::newrg
                             // calculate child cluster ids
                             TG_fixed_vector<F_cluster_id, 4, false> child_cluster_ids;
                             {
-                                auto& first_cluster_group_header = second_cluster_group_headers[i / 2];
+                                auto& first_cluster_group_header = second_cluster_group_headers[i];
                                 if(first_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
                                 {
                                     auto& second_cluster_group_header = first_cluster_group_headers[

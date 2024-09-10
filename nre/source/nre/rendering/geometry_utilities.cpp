@@ -383,16 +383,16 @@ namespace nre::newrg
             {
                 auto& cluster_group_check = cluster_group_checks[i];
 
-                b8 is_valid0 = (cluster_group_check.id0 != NCPP_U32_MAX);
-                b8 is_valid1 = (cluster_group_check.id1 != NCPP_U32_MAX);
+                b8 is_valid0 = (cluster_group_check.id0 == NCPP_U32_MAX);
+                b8 is_valid1 = (cluster_group_check.id1 == NCPP_U32_MAX);
 
-                if(is_valid0)
+                if(!is_valid0)
                 {
-                    is_valid0 = (cluster_id_to_is_groupable[cluster_group_check.id0] == true);
+                    is_valid0 = cluster_id_to_is_groupable[cluster_group_check.id0];
                 }
-                if(is_valid1)
+                if(!is_valid1)
                 {
-                    is_valid1 = (cluster_id_to_is_groupable[cluster_group_check.id1] == true);
+                    is_valid1 = cluster_id_to_is_groupable[cluster_group_check.id1];
                 }
 
                 if(is_valid0 && is_valid1)
@@ -400,8 +400,10 @@ namespace nre::newrg
                     out_cluster_group_headers[group_count] = {
                         .child_ids = { cluster_group_check.id0, cluster_group_check.id1 }
                     };
-                    cluster_id_to_is_groupable[cluster_group_check.id0] = false;
-                    cluster_id_to_is_groupable[cluster_group_check.id1] = false;
+                    if(cluster_group_check.id0 != NCPP_U32_MAX)
+                        cluster_id_to_is_groupable[cluster_group_check.id0] = false;
+                    if(cluster_group_check.id1 != NCPP_U32_MAX)
+                        cluster_id_to_is_groupable[cluster_group_check.id1] = false;
                     ++group_count;
                 }
             }
