@@ -37,12 +37,6 @@ pixel_shader ps_main
     out out_color(SV_TARGET)
 )
 {
-    if(vertex_cluster_id == 184)
-    {
-        out_color = float4(0, 0, 0, 1);
-        return;
-    }
-
     out_color = float4(
         hue2rgb(((float)vertex_cluster_id) * 1.71f),
         1

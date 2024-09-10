@@ -141,7 +141,6 @@ namespace nre::newrg
                 // simplify and split groupped_geometry into next_level_geometry
                 F_raw_clustered_geometry next_level_geometry = H_clustered_geometry::simplify_clusters(groupped_geometry);
                 next_level_geometry = H_clustered_geometry::split_clusters(next_level_geometry);
-                next_level_geometry = groupped_geometry;
 
                 // store next level
                 {
@@ -186,15 +185,6 @@ namespace nre::newrg
                             next_level_cluster_header = next_level_geometry.graph[i];
                             next_level_cluster_header.vertex_offset += next_level_vertex_offset;
                             next_level_cluster_header.local_triangle_vertex_id_offset += next_level_local_cluster_triangle_vertex_id_offset;
-
-                            // offset local_cluster_triangle_vertex_ids
-                            // for(u32 j = 0; j < next_level_cluster_header.local_triangle_vertex_id_count; ++j)
-                            // {
-                            //     result.local_cluster_triangle_vertex_ids[
-                            //         next_level_cluster_header.local_triangle_vertex_id_offset
-                            //         + j
-                            //     ];
-                            // }
 
                             // calculate child cluster ids
                             TG_fixed_vector<F_cluster_id, 4, false> child_cluster_ids;
