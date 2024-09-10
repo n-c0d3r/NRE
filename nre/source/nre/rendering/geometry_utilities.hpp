@@ -124,7 +124,22 @@ namespace nre::newrg
         F_global_vertex_id local_triangle_vertex_id_count = 0;
     };
 
-    struct F_cluster_node_header
+    struct F_cluster_id_range
+    {
+        F_cluster_id begin = 0;
+        F_cluster_id end = 0;
+
+        NCPP_FORCE_INLINE F_cluster_id size() const noexcept
+        {
+            return end - begin;
+        }
+        NCPP_FORCE_INLINE operator b8 () const noexcept
+        {
+            return end > begin;
+        }
+    };
+
+    struct F_cluster_group_header
     {
         F_cluster_id child_ids[2] = { NCPP_U32_MAX, NCPP_U32_MAX };
     };
@@ -147,7 +162,19 @@ namespace nre::newrg
         u32 end = 0;
     };
 
+    using F_cluster_ids = TG_vector<F_cluster_id>;
+    using F_cluster_id_ranges = TG_vector<F_cluster_id_range>;
+
+    struct F_cluster_neighbor_graph
+    {
+        F_cluster_ids ids;
+        TG_vector<u32> shared_vertex_counts;
+        F_cluster_id_ranges ranges;
+    };
+
     using F_clustered_geometry_graph = TG_vector<F_cluster_header>;
+
+    using F_clustered_geometry_local_cluster_triangle_vertex_ids = TG_vector<F_local_cluster_vertex_id>;
 
     using F_raw_clustered_geometry_shape = TG_vector<F_raw_vertex_data>;
     using F_compressed_clustered_geometry_shape = TG_vector<F_compressed_vertex_data>;
@@ -156,6 +183,7 @@ namespace nre::newrg
     {
         F_clustered_geometry_graph graph;
         F_raw_clustered_geometry_shape shape;
+        F_clustered_geometry_local_cluster_triangle_vertex_ids local_cluster_triangle_vertex_ids;
     };
     struct F_compressed_clustered_geometry
     {
@@ -211,7 +239,7 @@ namespace nre::newrg
             hash_table.add_concurrent(hash_key, position_index);
         }
 
-        void for_all_match(u32 position_index, auto&& index_to_position_functor, auto&& functor)
+        void for_all_match(u32 position_index, auto&& index_to_position_functor, auto&& functor) const
         {
             F_vector3_f32 position = index_to_position_functor(position_index);
             u32 hash_key = TF_hash<F_vector3_f32>()(position);
@@ -329,7 +357,7 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        void for_all_link(u32 element_index, auto&& functor)
+        void for_all_link(u32 element_index, auto&& functor) const
         {
             auto& link_table = link_tables[element_index];
 
@@ -354,7 +382,7 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        u32 link_count(u32 element_index)
+        u32 link_count(u32 element_index) const
         {
             auto& link_table = link_tables[element_index];
 
@@ -363,7 +391,7 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        u32 link_duplicate_count(u32 element_index, u32 other_element_index)
+        u32 link_duplicate_count(u32 element_index, u32 other_element_index) const
         {
             auto& link_table = link_tables[element_index];
 
@@ -385,7 +413,7 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
-        TG_vector<u32> export_links(u32 element_link)
+        TG_vector<u32> export_links(u32 element_link) const
         {
             TG_vector<u32> result;
             result.reserve(link_count(element_link));
@@ -407,13 +435,26 @@ namespace nre::newrg
     class NRE_API H_clustered_geometry
     {
     public:
+        static F_cluster_ids build_vertex_cluster_ids(
+            const F_clustered_geometry_graph& geometry_graph
+        );
         static F_position_hash build_position_hash(
             const F_raw_clustered_geometry_shape& geometry_shape
+        );
+        static F_adjacency build_cluster_adjacency(
+            const F_cluster_ids& vertex_cluster_ids,
+            const F_position_hash& position_hash,
+            const F_raw_clustered_geometry& geometry
+        );
+        static F_cluster_neighbor_graph build_cluster_neighbor_graph(
+            const F_adjacency& cluster_adjacency,
+            F_cluster_id cluster_count
         );
 
     public:
         static eastl::optional<F_raw_clustered_geometry> build_next_level(
-            const F_raw_clustered_geometry& current_level_geometry
+            const F_raw_clustered_geometry& geometry,
+            TG_vector<F_cluster_group_header>& out_cluster_group_headers
         );
     };
 }

@@ -103,12 +103,21 @@ namespace nre::newrg
 
         // build higher level dag nodes
         {
-            F_raw_clustered_geometry current_level_raw_geometry = {
+            F_raw_clustered_geometry geometry = {
                 .graph = result.cluster_headers,
-                .shape = result.raw_vertex_datas
+                .shape = result.raw_vertex_datas,
+                .local_cluster_triangle_vertex_ids = result.local_cluster_triangle_vertex_ids
             };
+            TG_vector<F_cluster_group_header> cluster_group_headers;
 
-            auto next_level_raw_geometry_opt = H_clustered_geometry::build_next_level(current_level_raw_geometry);
+            auto next_level_raw_geometry_opt = H_clustered_geometry::build_next_level(
+                geometry,
+                cluster_group_headers
+            );
+
+            if(next_level_raw_geometry_opt)
+            {
+            }
 
             // auto raw_vertex_datas = result.raw_vertex_datas;
             // F_global_vertex_id current_level_vertex_count = raw_vertex_datas.size();
