@@ -11,7 +11,6 @@ namespace nre::newrg
     struct F_unified_mesh_build_options
     {
         u32 max_level_count = 6;
-        u32 target_lowest_cluster_count = 6;
 
         F_clustered_geometry_simplification_options simplification_options;
     };
