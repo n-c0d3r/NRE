@@ -471,7 +471,8 @@ namespace nre::newrg
             const F_clustered_geometry_simplification_options& options = {}
         );
         static F_raw_clustered_geometry split_clusters(
-            const F_raw_clustered_geometry& geometry
+            const F_raw_clustered_geometry& geometry,
+            TG_vector<F_cluster_id>& out_cluster_group_child_ids
         );
 
     public:

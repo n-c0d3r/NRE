@@ -140,7 +140,12 @@ namespace nre::newrg
 
                 // simplify and split groupped_geometry into next_level_geometry
                 F_raw_clustered_geometry next_level_geometry = H_clustered_geometry::simplify_clusters(groupped_geometry);
-                next_level_geometry = H_clustered_geometry::split_clusters(next_level_geometry);
+
+                TG_vector<F_cluster_id> split_cluster_group_child_ids;
+                next_level_geometry = H_clustered_geometry::split_clusters(
+                    next_level_geometry,
+                    split_cluster_group_child_ids
+                );
 
                 // store next level
                 {
@@ -189,7 +194,9 @@ namespace nre::newrg
                             // calculate child cluster ids
                             TG_fixed_vector<F_cluster_id, 4, false> child_cluster_ids;
                             {
-                                auto& first_cluster_group_header = second_cluster_group_headers[i];
+                                F_cluster_id split_cluster_group_child_id = split_cluster_group_child_ids[i];
+
+                                auto& first_cluster_group_header = second_cluster_group_headers[split_cluster_group_child_id];
                                 if(first_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
                                 {
                                     auto& second_cluster_group_header = first_cluster_group_headers[
