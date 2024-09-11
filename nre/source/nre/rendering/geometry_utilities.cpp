@@ -100,12 +100,7 @@ namespace nre::newrg
                             F_global_vertex_id other_vertex_id
                         )
                         {
-                            F_cluster_id other_cluster_id = vertex_cluster_ids[other_vertex_id];
-
-                            if(cluster_id != other_cluster_id)
-                            {
-                                ++max_link_count;
-                            }
+                            ++max_link_count;
                         }
                     );
                 }

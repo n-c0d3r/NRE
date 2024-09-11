@@ -200,7 +200,7 @@ namespace nre::newrg
     {
         F_clustered_geometry_remove_duplicated_vertices_options remove_duplicated_vertices_options;
 
-        f32 max_error = 0.01f;
+        f32 max_error = 1.0f;
     };
 
 
