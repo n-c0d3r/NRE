@@ -249,13 +249,14 @@ namespace nre::newrg
                                     d = f32(other_cluster_header.vertex_count) / f32(cluster_header.vertex_count);
                                 }
 
-                                score_p[neighbor_index] = (
-                                    d
-                                    * eastl::max(
-                                        f32(shared_vertex_count) / f32(cluster_header.vertex_count),
-                                        f32(shared_vertex_count) / f32(other_cluster_header.vertex_count)
-                                    )
-                                );
+                                // score_p[neighbor_index] = (
+                                //     d
+                                //     * eastl::max(
+                                //         f32(shared_vertex_count) / f32(cluster_header.vertex_count),
+                                //         f32(shared_vertex_count) / f32(other_cluster_header.vertex_count)
+                                //     )
+                                // );
+                                score_p[neighbor_index] = shared_vertex_count;
 
                                 ++neighbor_index;
                             }
