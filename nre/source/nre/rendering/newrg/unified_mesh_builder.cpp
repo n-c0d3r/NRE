@@ -129,7 +129,7 @@ namespace nre::newrg
                         first_cluster_group_headers
                     );
 
-                    if(second_level_geometry.shape.size() == current_level_cluster_count)
+                    if(second_level_geometry.graph.size() <= current_level_cluster_count)
                         break;
 
                     groupped_geometry = H_clustered_geometry::build_next_level(
@@ -270,7 +270,6 @@ namespace nre::newrg
                     current_level_local_cluster_triangle_vertex_id_offset = next_level_local_cluster_triangle_vertex_id_offset;
                 }
 
-                break;
                 geometry = next_level_geometry;
             }
         }
