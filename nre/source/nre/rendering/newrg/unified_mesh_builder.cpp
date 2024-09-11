@@ -114,13 +114,15 @@ namespace nre::newrg
             F_global_vertex_id current_level_local_cluster_triangle_vertex_id_count = result.local_cluster_triangle_vertex_ids.size();
             F_global_vertex_id current_level_local_cluster_triangle_vertex_id_offset = 0;
 
+            F_clustered_geometry_simplification_options simplification_options = options.simplification_options;
+
             F_raw_clustered_geometry geometry = {
                 .graph = result.cluster_headers,
                 .shape = result.raw_vertex_datas,
                 .local_cluster_triangle_vertex_ids = result.local_cluster_triangle_vertex_ids
             };
 
-            for(u32 dag_level_index = 0; dag_level_index < options.max_level_count; ++dag_level_index)
+            for(u32 dag_level_index = 1; dag_level_index < options.max_level_count; ++dag_level_index)
             {
                 // group clusters in the current geometry
                 F_raw_clustered_geometry groupped_geometry;
@@ -132,9 +134,6 @@ namespace nre::newrg
                         first_cluster_group_headers
                     );
 
-                    if(second_level_geometry.graph.size() == current_level_cluster_count)
-                        break;
-
                     groupped_geometry = H_clustered_geometry::build_next_level(
                         second_level_geometry,
                         second_cluster_group_headers
@@ -144,7 +143,7 @@ namespace nre::newrg
                 // simplify and split groupped_geometry into next_level_geometry
                 F_raw_clustered_geometry next_level_geometry = H_clustered_geometry::simplify_clusters(
                     groupped_geometry,
-                    options.simplification_options
+                    simplification_options
                 );
 
                 TG_vector<F_cluster_id> split_cluster_group_child_ids;
@@ -153,7 +152,7 @@ namespace nre::newrg
                     split_cluster_group_child_ids
                 );
 
-                if(next_level_geometry.graph.size() > max_cluster_count)
+                if(next_level_geometry.graph.size() >= max_cluster_count)
                     break;
 
                 // store next level
@@ -282,6 +281,9 @@ namespace nre::newrg
                 max_cluster_count = eastl::min<u32>(max_cluster_count, next_level_geometry.graph.size());
 
                 geometry = next_level_geometry;
+
+                simplification_options.target_ratio *= options.simplification_target_ratio_factor;
+                simplification_options.max_error *= options.simplification_max_error_factor;
             }
         }
 
