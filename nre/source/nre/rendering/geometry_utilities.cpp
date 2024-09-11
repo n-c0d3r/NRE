@@ -83,9 +83,36 @@ namespace nre::newrg
             {
                 auto& cluster_header = geometry.graph[cluster_id];
 
+                u32 max_link_count = 0;
+
+                for(
+                    F_global_vertex_id vertex_id = cluster_header.vertex_offset,
+                        end_vertex_id = cluster_header.vertex_offset + cluster_header.vertex_count;
+                    vertex_id < end_vertex_id;
+                    ++vertex_id
+                )
+                {
+                    position_hash.for_all_match(
+                        vertex_id,
+                        vertex_id_to_position,
+                        [&](
+                            F_global_vertex_id,
+                            F_global_vertex_id other_vertex_id
+                        )
+                        {
+                            F_cluster_id other_cluster_id = vertex_cluster_ids[other_vertex_id];
+
+                            if(cluster_id != other_cluster_id)
+                            {
+                                ++max_link_count;
+                            }
+                        }
+                    );
+                }
+
                 cluster_adjacency.setup_element(
                     cluster_id,
-                    cluster_header.vertex_count
+                    max_link_count
                 );
             },
             {
