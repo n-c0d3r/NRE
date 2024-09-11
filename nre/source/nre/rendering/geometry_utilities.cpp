@@ -596,7 +596,7 @@ namespace nre::newrg
                 {
                     F_cluster_id dst_cluster_id = next_cluster_location.fetch_add(1);
 
-                    auto& meshlet = meshlets[meshlet_index];
+                    auto& meshlet = meshlet_p[meshlet_index];
                     auto& dst_cluster_header = result.graph[dst_cluster_id];
 
                     dst_cluster_header.vertex_count = meshlet.vertex_count;
@@ -625,9 +625,9 @@ namespace nre::newrg
 
                     for(u32 i = 0; i < meshlet.triangle_count; ++i)
                     {
-                        F_local_cluster_vertex_id local_vertex_index_0 = meshlet_index_p[meshlet.triangle_offset + i * 3];
-                        F_local_cluster_vertex_id local_vertex_index_1 = meshlet_index_p[meshlet.triangle_offset + i * 3 + 1];
-                        F_local_cluster_vertex_id local_vertex_index_2 = meshlet_index_p[meshlet.triangle_offset + i * 3 + 2];
+                        F_global_vertex_id local_vertex_index_0 = meshlet_index_p[meshlet.triangle_offset + i * 3];
+                        F_global_vertex_id local_vertex_index_1 = meshlet_index_p[meshlet.triangle_offset + i * 3 + 1];
+                        F_global_vertex_id local_vertex_index_2 = meshlet_index_p[meshlet.triangle_offset + i * 3 + 2];
 
                         result.local_cluster_triangle_vertex_ids[
                             dst_cluster_header.local_triangle_vertex_id_offset
