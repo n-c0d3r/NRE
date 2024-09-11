@@ -398,7 +398,7 @@ namespace nre::newrg
 
                     auto& vertex_data = geometry.shape[vertex_id];
 
-                    result.shape[remapped_vertex_id].position += vertex_data.position;
+                    result.shape[remapped_vertex_id].position = vertex_data.position;
                     result.shape[remapped_vertex_id].normal = normalize(result.shape[remapped_vertex_id].normal + vertex_data.normal);
                     result.shape[remapped_vertex_id].tangent = normalize(result.shape[remapped_vertex_id].tangent + vertex_data.tangent);
                     result.shape[remapped_vertex_id].texcoord += vertex_data.texcoord;
@@ -408,9 +408,6 @@ namespace nre::newrg
                 {
                     F_global_vertex_id remapped_vertex_id = dst_cluster_header.vertex_offset + i;
 
-                    result.shape[remapped_vertex_id].position /= f32(
-                        remapped_vertex_id_to_duplicated_count[remapped_vertex_id]
-                    );
                     result.shape[remapped_vertex_id].texcoord /= f32(
                         remapped_vertex_id_to_duplicated_count[remapped_vertex_id]
                     );
