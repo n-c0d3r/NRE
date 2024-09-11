@@ -94,7 +94,7 @@ namespace nre::newrg
 
 
     using F_global_vertex_id = u32;
-    using F_local_cluster_vertex_id = u8;
+    using F_local_cluster_vertex_id = u16;
     struct NCPP_ALIGN(16) F_compressed_vertex_data
     {
         struct NCPP_ALIGN(2) F_local_component
@@ -189,6 +189,18 @@ namespace nre::newrg
     {
         F_clustered_geometry_graph graph;
         F_compressed_clustered_geometry_shape shape;
+    };
+
+    struct F_clustered_geometry_remove_duplicated_vertices_options
+    {
+        f32 min_normal_dot = 0.2f;
+        f32 max_texcoord_error = 0.05f;
+    };
+    struct F_clustered_geometry_simplification_options
+    {
+        F_clustered_geometry_remove_duplicated_vertices_options remove_duplicated_vertices_options;
+
+        f32 max_error = 0.01f;
     };
 
 
@@ -450,8 +462,13 @@ namespace nre::newrg
             const F_adjacency& cluster_adjacency,
             const F_clustered_geometry_graph& geometry_graph
         );
+        static F_raw_clustered_geometry remove_duplicated_vertices(
+            const F_raw_clustered_geometry& geometry,
+            const F_clustered_geometry_remove_duplicated_vertices_options& options = {}
+        );
         static F_raw_clustered_geometry simplify_clusters(
-            const F_raw_clustered_geometry& geometry
+            const F_raw_clustered_geometry& geometry,
+            const F_clustered_geometry_simplification_options& options = {}
         );
         static F_raw_clustered_geometry split_clusters(
             const F_raw_clustered_geometry& geometry

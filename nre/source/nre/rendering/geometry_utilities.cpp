@@ -56,7 +56,7 @@ namespace nre::newrg
             },
             {
                 .parallel_count = vertex_count,
-                .batch_size = eastl::max<u32>(vertex_count / 128, 32)
+                .batch_size = eastl::max<u32>(ceil(f32(vertex_count) / 128.0f), 32)
             }
         );
 
@@ -90,7 +90,7 @@ namespace nre::newrg
             },
             {
                 .parallel_count = cluster_count,
-                .batch_size = eastl::max<u32>(cluster_count / 128, 32)
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
             }
         );
 
@@ -127,7 +127,7 @@ namespace nre::newrg
             },
             {
                 .parallel_count = cluster_count,
-                .batch_size = eastl::max<u32>(cluster_count / 128, 32)
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
             }
         );
 
@@ -174,7 +174,7 @@ namespace nre::newrg
             },
             {
                 .parallel_count = cluster_count,
-                .batch_size = eastl::max<u32>(cluster_count / 128, 32)
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
             }
         );
 
@@ -242,20 +242,254 @@ namespace nre::newrg
                 },
                 {
                     .parallel_count = cluster_count,
-                    .batch_size = eastl::max<u32>(cluster_count / 128, 32)
+                    .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
                 }
             );
         }
 
         return eastl::move(result);
     }
-    F_raw_clustered_geometry H_clustered_geometry::simplify_clusters(
-        const F_raw_clustered_geometry& geometry
+    F_raw_clustered_geometry H_clustered_geometry::remove_duplicated_vertices(
+        const F_raw_clustered_geometry& geometry,
+        const F_clustered_geometry_remove_duplicated_vertices_options& options
     )
     {
         F_raw_clustered_geometry result = geometry;
 
+        F_cluster_id cluster_count = geometry.graph.size();
+        F_global_vertex_id vertex_count = geometry.shape.size();
 
+        F_cluster_ids vertex_cluster_ids = build_vertex_cluster_ids(geometry.graph);
+        F_position_hash position_hash = build_position_hash(geometry.shape);
+
+        auto vertex_id_to_position = [&](F_global_vertex_id vertex_id)
+        {
+            return geometry.shape[vertex_id].position;
+        };
+        auto can_be_merged = [&](F_global_vertex_id a, F_global_vertex_id b)
+        {
+            return (
+                (vertex_cluster_ids[a] == vertex_cluster_ids[b])
+                && (
+                    dot(geometry.shape[a].normal, geometry.shape[b].normal)
+                    >= options.min_normal_dot
+                )
+                && (
+                    length(geometry.shape[a].texcoord - geometry.shape[b].texcoord)
+                    <= options.max_texcoord_error
+                )
+            );
+        };
+
+        TG_vector<F_global_vertex_id> forward(vertex_count);
+        TG_vector<F_global_vertex_id> vertex_id_to_min_duplicated_vertex_id(vertex_count);
+        TG_vector<u32> remapped_vertex_id_to_duplicated_count(vertex_count);
+        result.shape.resize(vertex_count);
+
+        eastl::atomic<F_global_vertex_id> next_vertex_offset = 0;
+
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_cluster_id cluster_id)
+            {
+                auto& src_cluster_header = geometry.graph[cluster_id];
+                auto& dst_cluster_header = result.graph[cluster_id];
+
+                F_global_vertex_id local_remapped_vertex_count = 0;
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    F_global_vertex_id min_id = vertex_id;
+
+                    position_hash.for_all_match(
+                        vertex_id,
+                        vertex_id_to_position,
+                        [&](F_global_vertex_id, F_global_vertex_id other_vertex_id)
+                        {
+                            if(can_be_merged(vertex_id, other_vertex_id))
+                            {
+                                min_id = eastl::min(vertex_id, other_vertex_id);
+                            }
+                        }
+                    );
+
+                    vertex_id_to_min_duplicated_vertex_id[vertex_id] = min_id;
+                    if(min_id == vertex_id)
+                    {
+                        ++local_remapped_vertex_count;
+                    }
+                }
+
+                F_global_vertex_id new_vertex_offset = next_vertex_offset.fetch_add(local_remapped_vertex_count);
+                dst_cluster_header.vertex_offset = new_vertex_offset;
+                dst_cluster_header.vertex_count = local_remapped_vertex_count;
+
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    F_global_vertex_id min_id = vertex_id_to_min_duplicated_vertex_id[vertex_id];
+
+                    if(min_id == vertex_id)
+                    {
+                        forward[vertex_id] = new_vertex_offset;
+                        ++new_vertex_offset;
+                    }
+                    else
+                    {
+                        forward[vertex_id] = forward[min_id];
+                    }
+                }
+
+                for(u32 i = 0; i < dst_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id remapped_vertex_id = dst_cluster_header.vertex_offset + i;
+
+                    remapped_vertex_id_to_duplicated_count[remapped_vertex_id] = 0;
+                }
+
+                for(u32 i = 0; i < dst_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id remapped_vertex_id = dst_cluster_header.vertex_offset + i;
+
+                    result.shape[remapped_vertex_id] = {
+                        .position = F_vector3_f32::zero(),
+                        .normal = F_vector3_f32::zero(),
+                        .tangent = F_vector3_f32::zero(),
+                        .texcoord = F_vector2_f32::zero()
+                    };
+                }
+
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+                    F_global_vertex_id remapped_vertex_id = forward[vertex_id];
+
+                    ++remapped_vertex_id_to_duplicated_count[remapped_vertex_id];
+                }
+
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+                    F_global_vertex_id remapped_vertex_id = forward[vertex_id];
+
+                    auto& vertex_data = geometry.shape[vertex_id];
+
+                    result.shape[remapped_vertex_id].position += vertex_data.position;
+                    result.shape[remapped_vertex_id].normal = normalize(result.shape[remapped_vertex_id].normal + vertex_data.normal);
+                    result.shape[remapped_vertex_id].tangent = normalize(result.shape[remapped_vertex_id].tangent + vertex_data.tangent);
+                    result.shape[remapped_vertex_id].texcoord += vertex_data.texcoord;
+                }
+
+                for(u32 i = 0; i < dst_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id remapped_vertex_id = dst_cluster_header.vertex_offset + i;
+
+                    result.shape[remapped_vertex_id].position /= f32(
+                        remapped_vertex_id_to_duplicated_count[remapped_vertex_id]
+                    );
+                    result.shape[remapped_vertex_id].texcoord /= f32(
+                        remapped_vertex_id_to_duplicated_count[remapped_vertex_id]
+                    );
+                }
+
+                for(u32 i = 0; i < dst_cluster_header.local_triangle_vertex_id_count; ++i)
+                {
+                    auto& local_cluster_triangle_vertex_id = result.local_cluster_triangle_vertex_ids[
+                        dst_cluster_header.local_triangle_vertex_id_offset
+                        + i
+                    ];
+
+                    F_global_vertex_id vertex_id = (
+                        src_cluster_header.vertex_offset
+                        + local_cluster_triangle_vertex_id
+                    );
+                    F_global_vertex_id remapped_vertex_id = forward[vertex_id];
+
+                    local_cluster_triangle_vertex_id = remapped_vertex_id - dst_cluster_header.vertex_offset;
+                }
+            },
+            {
+                .parallel_count = cluster_count,
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
+            }
+        );
+
+        result.shape.resize(next_vertex_offset);
+
+        return eastl::move(result);
+    }
+    F_raw_clustered_geometry H_clustered_geometry::simplify_clusters(
+        const F_raw_clustered_geometry& geometry,
+        const F_clustered_geometry_simplification_options& options
+    )
+    {
+        F_raw_clustered_geometry result = remove_duplicated_vertices(geometry, options.remove_duplicated_vertices_options);
+
+        F_cluster_id cluster_count = result.graph.size();
+        F_global_vertex_id vertex_count = result.shape.size();
+        F_global_vertex_id local_cluster_triangle_vertex_id_count = result.local_cluster_triangle_vertex_ids.size();
+
+        TG_vector<u32> src_indices(local_cluster_triangle_vertex_id_count);
+        TG_vector<u32> dst_indices(local_cluster_triangle_vertex_id_count);
+
+        au32 next_index_location = 0;
+
+        // simplify
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_cluster_id cluster_id)
+            {
+                auto& cluster_header = result.graph[cluster_id];
+
+                // setup src_indices
+                for(u32 i = 0; i < cluster_header.local_triangle_vertex_id_count; ++i)
+                {
+                    src_indices[
+                        cluster_header.local_triangle_vertex_id_offset
+                        + i
+                    ] = result.local_cluster_triangle_vertex_ids[
+                        cluster_header.local_triangle_vertex_id_offset
+                        + i
+                    ];
+                }
+
+                const float threshold = 0.5f;
+                u32 target_index_count = f32(cluster_header.local_triangle_vertex_id_count) * threshold;
+
+                float lod_error = 0.f;
+
+                u32 new_index_count = meshopt_simplify(
+                    dst_indices.data() + cluster_header.local_triangle_vertex_id_offset, // output
+                    src_indices.data() + cluster_header.local_triangle_vertex_id_offset,
+                    cluster_header.local_triangle_vertex_id_count,
+                    (float*)(result.shape.data() + cluster_header.vertex_offset),
+                    cluster_header.vertex_count,
+                    sizeof(F_raw_vertex_data),
+                    target_index_count,
+                    options.max_error,
+                    meshopt_SimplifyLockBorder,
+                    &lod_error
+                );
+
+                cluster_header.local_triangle_vertex_id_count = new_index_count;
+
+                // save back dst_indices
+                for(u32 i = 0; i < cluster_header.local_triangle_vertex_id_count; ++i)
+                {
+                    result.local_cluster_triangle_vertex_ids[
+                        cluster_header.local_triangle_vertex_id_offset
+                        + i
+                    ] = dst_indices[
+                        cluster_header.local_triangle_vertex_id_offset
+                        + i
+                    ];
+                }
+            },
+            {
+                .parallel_count = cluster_count,
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
+            }
+        );
 
         return eastl::move(result);
     }
@@ -333,7 +567,7 @@ namespace nre::newrg
             },
             {
                 .parallel_count = cluster_count,
-                .batch_size = eastl::max<u32>(cluster_count / 128, 32)
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
             }
         );
 
