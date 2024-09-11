@@ -610,7 +610,7 @@ namespace nre::newrg
 
                     for(u32 i = 0; i < dst_cluster_header.vertex_count; ++i)
                     {
-                        u32 original_vertex_index = meshlet_vertex_p[i];
+                        u32 original_vertex_index = meshlet_vertex_p[meshlet.vertex_offset + i];
 
                         auto& original_vertex_data = geometry.shape[
                             cluster_header.vertex_offset
