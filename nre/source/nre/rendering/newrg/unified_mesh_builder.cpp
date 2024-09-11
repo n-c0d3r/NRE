@@ -106,6 +106,8 @@ namespace nre::newrg
             F_cluster_id current_level_cluster_count = result.cluster_headers.size();
             F_cluster_id current_level_cluster_offset = 0;
 
+            F_cluster_id max_cluster_count = current_level_cluster_count;
+
             F_global_vertex_id current_level_vertex_count = result.raw_vertex_datas.size();
             F_global_vertex_id current_level_vertex_offset = 0;
 
@@ -150,6 +152,9 @@ namespace nre::newrg
                     next_level_geometry,
                     split_cluster_group_child_ids
                 );
+
+                if(next_level_geometry.graph.size() > max_cluster_count)
+                    break;
 
                 // store next level
                 {
@@ -274,8 +279,7 @@ namespace nre::newrg
                     current_level_local_cluster_triangle_vertex_id_offset = next_level_local_cluster_triangle_vertex_id_offset;
                 }
 
-                if(next_level_geometry.graph.size() <= options.target_lowest_cluster_count)
-                    break;
+                max_cluster_count = eastl::min<u32>(max_cluster_count, next_level_geometry.graph.size());
 
                 geometry = next_level_geometry;
             }
