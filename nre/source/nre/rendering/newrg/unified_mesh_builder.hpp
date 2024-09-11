@@ -10,7 +10,7 @@ namespace nre::newrg
 {
     struct F_unified_mesh_build_options
     {
-        u32 max_level_count = 14;
+        u32 max_level_count = 20;
 
         f32 simplification_target_ratio_factor = 0.9f;
         f32 simplification_max_error_factor = 2.0f;

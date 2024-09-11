@@ -256,7 +256,6 @@ namespace nre::newrg
                                         f32(shared_vertex_count) / f32(other_cluster_header.vertex_count)
                                     )
                                 );
-                                // score_p[neighbor_index] = shared_vertex_count;
 
                                 ++neighbor_index;
                             }
