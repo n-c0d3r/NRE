@@ -10,7 +10,8 @@ namespace nre::newrg
         const TG_span<F_vector3_f32>& normals,
         const TG_span<F_vector3_f32>& tangents,
         const TG_span<F_vector2_f32>& texcoords,
-        const TG_span<F_global_vertex_id>& indices
+        const TG_span<F_global_vertex_id>& indices,
+        const F_unified_mesh_build_options& options
     )
     {
         //
@@ -117,7 +118,7 @@ namespace nre::newrg
                 .local_cluster_triangle_vertex_ids = result.local_cluster_triangle_vertex_ids
             };
 
-            while(true)
+            for(u32 dag_level_index = 0; dag_level_index < options.max_level_count; ++dag_level_index)
             {
                 // group clusters in the current geometry
                 F_raw_clustered_geometry groupped_geometry;
@@ -129,10 +130,7 @@ namespace nre::newrg
                         first_cluster_group_headers
                     );
 
-                    if(
-                        (second_level_geometry.graph.size() == current_level_cluster_count)
-                        || (second_level_geometry.graph.size() == 1)
-                    )
+                    if(second_level_geometry.graph.size() == current_level_cluster_count)
                         break;
 
                     groupped_geometry = H_clustered_geometry::build_next_level(
@@ -142,7 +140,10 @@ namespace nre::newrg
                 }
 
                 // simplify and split groupped_geometry into next_level_geometry
-                F_raw_clustered_geometry next_level_geometry = H_clustered_geometry::simplify_clusters(groupped_geometry);
+                F_raw_clustered_geometry next_level_geometry = H_clustered_geometry::simplify_clusters(
+                    groupped_geometry,
+                    options.simplification_options
+                );
 
                 TG_vector<F_cluster_id> split_cluster_group_child_ids;
                 next_level_geometry = H_clustered_geometry::split_clusters(
@@ -272,6 +273,9 @@ namespace nre::newrg
                     current_level_local_cluster_triangle_vertex_id_count = next_level_local_cluster_triangle_vertex_id_count;
                     current_level_local_cluster_triangle_vertex_id_offset = next_level_local_cluster_triangle_vertex_id_offset;
                 }
+
+                if(next_level_geometry.graph.size() <= options.target_lowest_cluster_count)
+                    break;
 
                 geometry = next_level_geometry;
             }
