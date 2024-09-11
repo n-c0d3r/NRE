@@ -129,7 +129,10 @@ namespace nre::newrg
                         first_cluster_group_headers
                     );
 
-                    if(second_level_geometry.graph.size() <= current_level_cluster_count)
+                    if(
+                        (second_level_geometry.graph.size() == current_level_cluster_count)
+                        || (second_level_geometry.graph.size() == 1)
+                    )
                         break;
 
                     groupped_geometry = H_clustered_geometry::build_next_level(
