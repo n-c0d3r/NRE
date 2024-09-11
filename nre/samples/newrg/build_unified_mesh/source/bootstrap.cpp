@@ -48,7 +48,7 @@ int main() {
 	auto positions = H_unified_mesh_builder::build_positions(
 		raw_unified_mesh_data.raw_vertex_datas
 	);
-	u32 visual_level_index = 2;
+	u32 visual_level_index = 6;
 	auto vertex_indices = H_unified_mesh_builder::build_vertex_indices(
 		raw_unified_mesh_data.local_cluster_triangle_vertex_ids,
 		{
