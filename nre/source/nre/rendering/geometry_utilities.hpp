@@ -200,16 +200,16 @@ namespace nre::newrg
     {
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
     };
-    struct F_clustered_geometry_merge_edges_by_min_distance_options
+    struct F_clustered_geometry_merge_edge_vertices_options
     {
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
-
-        f32 min_distance = 0.002f;
+        f32 max_distance = 1.f;
+        // f32 max_distance = 0.001f;
     };
     struct F_clustered_geometry_simplification_options
     {
         F_clustered_geometry_remove_duplicated_vertices_options remove_duplicated_vertices_options;
-        F_clustered_geometry_merge_edges_by_min_distance_options merge_edges_by_min_distance_options;
+        F_clustered_geometry_merge_edge_vertices_options merge_edge_vertices_options;
 
         f32 target_ratio = 0.5f;
         f32 max_error = 0.01f;
@@ -478,9 +478,10 @@ namespace nre::newrg
             const F_raw_clustered_geometry& geometry,
             const F_clustered_geometry_remove_duplicated_vertices_options& options = {}
         );
-        static F_raw_clustered_geometry merge_edges_by_min_distance(
+        static F_raw_clustered_geometry merge_edge_vertices(
             const F_raw_clustered_geometry& geometry,
-            const F_clustered_geometry_merge_edges_by_min_distance_options& options = {}
+            const TG_vector<u32>& cluster_id_to_target_index_count,
+            const F_clustered_geometry_merge_edge_vertices_options& options = {}
         );
         static F_raw_clustered_geometry simplify_clusters(
             const F_raw_clustered_geometry& geometry,
@@ -490,6 +491,11 @@ namespace nre::newrg
             const F_raw_clustered_geometry& geometry,
             TG_vector<F_cluster_id>& out_cluster_group_child_ids
         );
+#ifdef NCPP_ENABLE_ASSERT
+        static void validate(
+            const F_raw_clustered_geometry& geometry
+        );
+#endif
 
     public:
         static F_raw_clustered_geometry build_next_level(
