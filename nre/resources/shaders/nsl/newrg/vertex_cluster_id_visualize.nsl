@@ -3,20 +3,29 @@ import(nrhi)
 resource cb_main(ConstantBuffer)
 default_constant_buffer(cb_main)
 
-uniform local_to_clip_matrix(float4x4)
+uniform local_to_world_matrix(float4x4)
+uniform world_to_clip_matrix(float4x4)
 
 semantic VERTEX_POSITION(float3)
+semantic VERTEX_NORMAL(float3)
 semantic VERTEX_CLUSTER_ID(uint)
 
 vertex_shader vs_main
 (
     in vertex_position(VERTEX_POSITION)
+    in vertex_normal(VERTEX_NORMAL)
     in vertex_cluster_id(VERTEX_CLUSTER_ID)
+
     out out_vertex_clip_position(SV_POSITION)
+    out out_vertex_normal(VERTEX_NORMAL)
     out out_vertex_cluster_id(VERTEX_CLUSTER_ID)
 )
 {
-    out_vertex_clip_position = mul(local_to_clip_matrix, float4(vertex_position, 1.0f));
+    float3 world_vertex_position = mul(local_to_world_matrix, float4(vertex_position, 1.0f)).xyz;
+    float3 world_vertex_normal = mul((float3x3)local_to_world_matrix, vertex_normal);
+
+    out_vertex_clip_position = mul(world_to_clip_matrix, float4(world_vertex_position, 1.0f));
+    out_vertex_normal = world_vertex_normal;
     out_vertex_cluster_id = vertex_cluster_id;
 }
 
@@ -33,14 +42,25 @@ float3 hue2rgb(float hue) {
 pixel_shader ps_main
 (
     in vertex_clip_position(SV_POSITION)
+    in vertex_normal(VERTEX_NORMAL)
     in vertex_cluster_id(VERTEX_CLUSTER_ID)
+    
     out out_color(SV_TARGET)
 )
 {
+    float t = saturate(
+        dot(
+            vertex_normal,
+            normalize(float3(0.2f, 1.0f, 0.5f))
+        )
+    );
+
     out_color = float4(
         hue2rgb(((float)vertex_cluster_id) * 1.71f),
         1
     );
+
+    out_color *= lerp(0.2f, 0.66f, t);
 }
 
 @root_signature(NRE_NEWRG_BINDER_SIGNATURE_VS_1CBV_PS_1CBV)
@@ -59,6 +79,8 @@ pixel_shader ps_main
 (
 	VERTEX_POSITION
     @buffer(1)
+    VERTEX_NORMAL
+    @buffer(2)
 	VERTEX_CLUSTER_ID
 )
 @primitive_topology(TRIANGLE_LIST)

@@ -8,7 +8,8 @@ using namespace nre::newrg;
 
 struct F_cb_data
 {
-	F_matrix4x4_f32 local_to_clip_matrix;
+	F_matrix4x4_f32 world_to_clip_matrix;
+	F_matrix4x4_f32 local_to_world_matrix;
 };
 
 
@@ -49,8 +50,13 @@ int main() {
 	auto positions = H_unified_mesh_builder::build_positions(
 		raw_unified_mesh_data.raw_vertex_datas
 	);
+	auto normals = H_unified_mesh_builder::build_normals(
+		raw_unified_mesh_data.raw_vertex_datas
+	);
 	// u32 visual_level_index = 1;
-	u32 visual_level_index = raw_unified_mesh_data.dag_level_headers.size() - 1;
+	u32 visual_level_index = 2;
+	// u32 visual_level_index = raw_unified_mesh_data.dag_level_headers.size() - 1;
+	// u32 visual_level_index = raw_unified_mesh_data.dag_level_headers.size() / 2;
 	auto vertex_indices = H_unified_mesh_builder::build_vertex_indices(
 		raw_unified_mesh_data.local_cluster_triangle_vertex_ids,
 		{
@@ -72,6 +78,17 @@ int main() {
 	auto keyed_position_buffer_p = NCPP_FOH_VALID(position_buffer_p);
 	NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
 		position_buffer_p->set_debug_name("vertex_cluster_id_visualize.position_buffer")
+	);
+	auto normal_buffer_p = H_buffer::create(
+		NRE_MAIN_DEVICE(),
+		{ F_subresource_data { .data_p = normals.data() } },
+		normals.size(),
+		sizeof(F_vector3_f32),
+		ED_resource_flag::INPUT_BUFFER
+	);
+	auto keyed_normal_buffer_p = NCPP_FOH_VALID(normal_buffer_p);
+	NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+		normal_buffer_p->set_debug_name("vertex_cluster_id_visualize.normal_buffer")
 	);
 	auto vertex_index_buffer_p = H_buffer::create(
 		NRE_MAIN_DEVICE(),
@@ -209,7 +226,8 @@ int main() {
 						auto scene_render_view_p = spectator_camera_p->render_view_p();
 						F_matrix4x4_f32 world_to_clip_matrix = scene_render_view_p->projection_matrix * scene_render_view_p->view_matrix;
 
-						cb_data.local_to_clip_matrix = world_to_clip_matrix * local_to_world_matrix;
+						cb_data.local_to_world_matrix = local_to_world_matrix;
+						cb_data.world_to_clip_matrix = world_to_clip_matrix;
 					}
 					sz cb_offset = uniform_transient_resource_uploader_p->T_enqueue_upload(cb_data);
 
@@ -249,9 +267,14 @@ int main() {
 								0
 							);
 							command_list_p->ZIA_bind_input_buffer(
-								keyed_vertex_cluster_id_buffer_p,
+								keyed_normal_buffer_p,
 								0,
 								1
+							);
+							command_list_p->ZIA_bind_input_buffer(
+								keyed_vertex_cluster_id_buffer_p,
+								0,
+								2
 							);
 							command_list_p->async_draw_indexed(
 								vertex_indices.size(),

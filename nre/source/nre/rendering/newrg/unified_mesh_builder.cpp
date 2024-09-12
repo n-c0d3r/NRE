@@ -307,6 +307,21 @@ namespace nre::newrg
 
         return eastl::move(result);
     }
+    TG_vector<F_vector3_f32> H_unified_mesh_builder::build_normals(
+        const TG_span<F_raw_vertex_data>& raw_vertex_datas
+    )
+    {
+        F_global_vertex_id vertex_count = raw_vertex_datas.size();
+
+        TG_vector<F_vector3_f32> result(vertex_count);
+
+        for(F_global_vertex_id vertex_id = 0; vertex_id != vertex_count; ++vertex_id)
+        {
+            result[vertex_id] = raw_vertex_datas[vertex_id].normal;
+        }
+
+        return eastl::move(result);
+    }
     TG_vector<F_global_vertex_id> H_unified_mesh_builder::build_vertex_indices(
         const TG_span<F_local_cluster_vertex_id>& local_cluster_triangle_vertex_ids,
         const TG_span<F_cluster_header>& cluster_headers
