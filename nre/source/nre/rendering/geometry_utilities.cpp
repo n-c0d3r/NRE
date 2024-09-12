@@ -294,11 +294,11 @@ namespace nre::newrg
                 (vertex_cluster_ids[a] == vertex_cluster_ids[b])
                 && (
                     dot(geometry.shape[a].normal, geometry.shape[b].normal)
-                    >= options.min_normal_dot
+                    >= options.merge_vertices_options.min_normal_dot
                 )
                 && (
                     length(geometry.shape[a].texcoord - geometry.shape[b].texcoord)
-                    <= options.max_texcoord_error
+                    <= options.merge_vertices_options.max_texcoord_error
                 )
             );
         };
@@ -438,12 +438,334 @@ namespace nre::newrg
 
         return eastl::move(result);
     }
+    F_raw_clustered_geometry H_clustered_geometry::merge_edges_by_min_distance(
+        const F_raw_clustered_geometry& geometry,
+        const F_clustered_geometry_merge_edges_by_min_distance_options& options
+    )
+    {
+        F_raw_clustered_geometry result = geometry;
+
+        F_cluster_ids vertex_cluster_ids = build_vertex_cluster_ids(geometry.graph);
+        F_position_hash position_hash = build_position_hash(geometry.shape);
+
+        auto vertex_id_to_position = [&](F_global_vertex_id vertex_id)
+        {
+            return geometry.shape[vertex_id].position;
+        };
+        auto can_be_merged = [&](F_global_vertex_id a, F_global_vertex_id b)
+        {
+            return (
+                (vertex_cluster_ids[a] == vertex_cluster_ids[b])
+                && (
+                    abs(length(result.shape[a].position - result.shape[b].position))
+                    <= options.min_distance
+                )
+                && (
+                    dot(result.shape[a].normal, result.shape[b].normal)
+                    >= options.merge_vertices_options.min_normal_dot
+                )
+                && (
+                    length(result.shape[a].texcoord - result.shape[b].texcoord)
+                    <= options.merge_vertices_options.max_texcoord_error
+                )
+            );
+        };
+
+        F_cluster_id cluster_count = geometry.graph.size();
+        F_global_vertex_id vertex_count = geometry.shape.size();
+        F_global_vertex_id local_cluster_triangle_vertex_id_count = geometry.local_cluster_triangle_vertex_ids.size();
+
+        TG_vector<F_global_vertex_id> edge_vertex_ids(geometry.local_cluster_triangle_vertex_ids.size() * 2);
+        TG_vector<b8> edge_id_to_is_cut(geometry.local_cluster_triangle_vertex_ids.size());
+        for(auto& is_cut : edge_id_to_is_cut) is_cut = false;
+        TG_vector<b8> vertex_id_to_is_locked(geometry.shape.size());
+        for(auto& is_locked : vertex_id_to_is_locked) is_locked = false;
+
+        TG_vector<F_global_vertex_id> forward(vertex_count);
+        for(F_global_vertex_id i = 0; i < vertex_count; ++i)
+            forward[i] = i;
+        TG_vector<F_global_vertex_id> second_forward(vertex_count);
+
+        F_raw_clustered_geometry_shape new_shape = result.shape;
+        TG_vector<F_local_cluster_vertex_id> new_local_triangle_vertex_ids = result.local_cluster_triangle_vertex_ids;
+
+        au32 new_vertex_offset = 0;
+        au32 new_local_triangle_vertex_id_offset = 0;
+
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_cluster_id cluster_id)
+            {
+                auto& src_cluster_header = geometry.graph[cluster_id];
+                auto& cluster_header = result.graph[cluster_id];
+
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    second_forward[vertex_id] = i;
+                }
+
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    vertex_id_to_is_locked[vertex_id] = false;
+
+                    position_hash.for_all_match(
+                        vertex_id,
+                        vertex_id_to_position,
+                        [&](F_global_vertex_id, F_global_vertex_id other_vertex_id)
+                        {
+                            if(
+                                !can_be_merged(vertex_id, other_vertex_id)
+                            )
+                            {
+                                vertex_id_to_is_locked[vertex_id] = true;
+                            }
+                        }
+                    );
+                }
+
+                for(u32 i = 0; i < src_cluster_header.local_triangle_vertex_id_count; i += 3)
+                {
+                    u32 edge_id0 = src_cluster_header.local_triangle_vertex_id_offset + i;
+                    u32 edge_id1 = src_cluster_header.local_triangle_vertex_id_offset + i + 1;
+                    u32 edge_id2 = src_cluster_header.local_triangle_vertex_id_offset + i + 2;
+
+                    edge_vertex_ids[edge_id0 * 2] = (
+                        src_cluster_header.vertex_offset
+                        + F_global_vertex_id(
+                            result.local_cluster_triangle_vertex_ids[
+                                src_cluster_header.local_triangle_vertex_id_offset
+                                + i + 0
+                            ]
+                        )
+                    );
+                    edge_vertex_ids[edge_id0 * 2 + 1] = (
+                        src_cluster_header.vertex_offset
+                        + F_global_vertex_id(
+                            result.local_cluster_triangle_vertex_ids[
+                                src_cluster_header.local_triangle_vertex_id_offset
+                                + i + 1
+                            ]
+                        )
+                    );
+                    edge_vertex_ids[edge_id1 * 2] = (
+                        src_cluster_header.vertex_offset
+                        + F_global_vertex_id(
+                            result.local_cluster_triangle_vertex_ids[
+                                src_cluster_header.local_triangle_vertex_id_offset
+                                + i + 1
+                            ]
+                        )
+                    );
+                    edge_vertex_ids[edge_id1 * 2 + 1] = (
+                        src_cluster_header.vertex_offset
+                        + F_global_vertex_id(
+                            result.local_cluster_triangle_vertex_ids[
+                                src_cluster_header.local_triangle_vertex_id_offset
+                                + i + 2
+                            ]
+                        )
+                    );
+                    edge_vertex_ids[edge_id2 * 2] = (
+                        src_cluster_header.vertex_offset
+                        + F_global_vertex_id(
+                            result.local_cluster_triangle_vertex_ids[
+                                src_cluster_header.local_triangle_vertex_id_offset
+                                + i + 2
+                            ]
+                        )
+                    );
+                    edge_vertex_ids[edge_id2 * 2 + 1] = (
+                        src_cluster_header.vertex_offset
+                        + F_global_vertex_id(
+                            result.local_cluster_triangle_vertex_ids[
+                                src_cluster_header.local_triangle_vertex_id_offset
+                                + i + 0
+                            ]
+                        )
+                    );
+                }
+
+                for(u32 i = 0; i < src_cluster_header.local_triangle_vertex_id_count; ++i)
+                {
+                    u32 edge_id = src_cluster_header.local_triangle_vertex_id_offset + i;
+
+                    F_global_vertex_id vertex_id0 = edge_vertex_ids[edge_id * 2];
+                    F_global_vertex_id vertex_id1 = edge_vertex_ids[edge_id * 2 + 1];
+
+                    F_global_vertex_id remapped_vertex_id0 = forward[vertex_id0];
+                    F_global_vertex_id remapped_vertex_id1 = forward[vertex_id1];
+
+                    if(
+                        (
+                            !vertex_id_to_is_locked[remapped_vertex_id0]
+                            || !vertex_id_to_is_locked[remapped_vertex_id1]
+                        )
+                        && can_be_merged(remapped_vertex_id0, remapped_vertex_id1)
+                    )
+                    {
+                        edge_id_to_is_cut[edge_id] = true;
+
+                        F_global_vertex_id new_vertex_id = vertex_id1;
+                        F_global_vertex_id new_remapped_vertex_id = remapped_vertex_id1;
+
+                        F_global_vertex_id null_vertex_id = vertex_id0;
+                        F_global_vertex_id null_remapped_vertex_id = remapped_vertex_id0;
+
+                        if(vertex_id_to_is_locked[vertex_id0])
+                        {
+                            new_vertex_id = vertex_id0;
+                            new_remapped_vertex_id = remapped_vertex_id0;
+
+                            null_vertex_id = vertex_id1;
+                            null_remapped_vertex_id = remapped_vertex_id1;
+                        }
+
+                        b8 is_locked = (
+                            vertex_id_to_is_locked[remapped_vertex_id0]
+                            || vertex_id_to_is_locked[remapped_vertex_id1]
+                        );
+
+                        if(!is_locked)
+                        {
+                            auto& src_vertex_data = result.shape[null_remapped_vertex_id];
+                            auto& dst_vertex_data = result.shape[new_remapped_vertex_id];
+
+                            dst_vertex_data.position = (
+                                dst_vertex_data.position
+                                + src_vertex_data.position
+                            ) / 2.0f;
+                            dst_vertex_data.normal = normalize(
+                                dst_vertex_data.normal
+                                + src_vertex_data.normal
+                            );
+                            dst_vertex_data.tangent = normalize(
+                                dst_vertex_data.tangent
+                                + src_vertex_data.tangent
+                            );
+                            dst_vertex_data.texcoord = (
+                                dst_vertex_data.texcoord
+                                + src_vertex_data.texcoord
+                            ) / 2.0f;
+                        }
+
+                        forward[null_vertex_id] = new_remapped_vertex_id;
+                        vertex_id_to_is_locked[remapped_vertex_id0] = true;
+                        vertex_id_to_is_locked[remapped_vertex_id1] = true;
+                    }
+                }
+
+                F_global_vertex_id new_local_vertex_id = 0;
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+                    F_global_vertex_id remapped_vertex_id = forward[vertex_id];
+
+                    if(remapped_vertex_id == vertex_id)
+                    {
+                        second_forward[remapped_vertex_id] = new_local_vertex_id;
+                        ++new_local_vertex_id;
+                    }
+                }
+                cluster_header.vertex_count = new_local_vertex_id;
+                cluster_header.vertex_offset = new_vertex_offset.fetch_add(cluster_header.vertex_count);
+
+                new_local_vertex_id = 0;
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+                    F_global_vertex_id remapped_vertex_id = forward[vertex_id];
+
+                    if(remapped_vertex_id == vertex_id)
+                    {
+                        new_shape[
+                            cluster_header.vertex_offset + second_forward[remapped_vertex_id]
+                        ] = result.shape[remapped_vertex_id];
+                    }
+                }
+
+                u32 local_triangle_vertex_id_count = 0;
+                for(u32 i = 0, end = src_cluster_header.local_triangle_vertex_id_count; i < end; i += 3)
+                {
+                    u32 base_local_triangle_vertex_id_index = src_cluster_header.local_triangle_vertex_id_offset + i;
+                    u32 base_edge_id = src_cluster_header.local_triangle_vertex_id_offset + i;
+
+                    if(
+                        edge_id_to_is_cut[base_edge_id]
+                        || edge_id_to_is_cut[base_edge_id + 1]
+                        || edge_id_to_is_cut[base_edge_id + 2]
+                    )
+                    {
+                        for(u8 j = 0; j < 3; ++j)
+                        {
+                            F_local_cluster_vertex_id& local_triangle_vertex_id = result.local_cluster_triangle_vertex_ids[
+                                base_local_triangle_vertex_id_index
+                                + j
+                            ];
+                            local_triangle_vertex_id = -1;
+                        }
+                        continue;
+                    }
+
+                    local_triangle_vertex_id_count += 3;
+
+                    for(u8 j = 0; j < 3; ++j)
+                    {
+                        F_local_cluster_vertex_id& local_triangle_vertex_id = result.local_cluster_triangle_vertex_ids[
+                            base_local_triangle_vertex_id_index
+                            + j
+                        ];
+                        F_global_vertex_id remapped_vertex_id = forward[
+                            src_cluster_header.vertex_offset
+                            + F_global_vertex_id(local_triangle_vertex_id)
+                        ];
+                        local_triangle_vertex_id = second_forward[remapped_vertex_id];
+                    }
+                }
+
+                cluster_header.local_triangle_vertex_id_count = local_triangle_vertex_id_count;
+                u32 local_triangle_vertex_id_offset = new_local_triangle_vertex_id_offset.fetch_add(cluster_header.local_triangle_vertex_id_count);
+                cluster_header.local_triangle_vertex_id_offset = local_triangle_vertex_id_offset;
+                for(u32 i = 0; i < src_cluster_header.local_triangle_vertex_id_count; ++i)
+                {
+                    F_local_cluster_vertex_id local_triangle_vertex_id = result.local_cluster_triangle_vertex_ids[
+                        src_cluster_header.local_triangle_vertex_id_offset
+                        + i
+                    ];
+
+                    if(local_triangle_vertex_id == F_local_cluster_vertex_id(-1))
+                        continue;
+
+                    F_local_cluster_vertex_id& dst_local_triangle_vertex_id = new_local_triangle_vertex_ids[
+                        local_triangle_vertex_id_offset
+                    ];
+                    dst_local_triangle_vertex_id = local_triangle_vertex_id;
+
+                    ++local_triangle_vertex_id_offset;
+                }
+            },
+            {
+                .parallel_count = cluster_count,
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
+            }
+        );
+
+        new_shape.resize(new_vertex_offset);
+        new_local_triangle_vertex_ids.resize(new_local_triangle_vertex_id_offset);
+        result.shape = eastl::move(new_shape);
+        result.local_cluster_triangle_vertex_ids = eastl::move(new_local_triangle_vertex_ids);
+
+        return eastl::move(result);
+    }
     F_raw_clustered_geometry H_clustered_geometry::simplify_clusters(
         const F_raw_clustered_geometry& geometry,
         const F_clustered_geometry_simplification_options& options
     )
     {
         F_raw_clustered_geometry result = remove_duplicated_vertices(geometry, options.remove_duplicated_vertices_options);
+        // result = merge_edges_by_min_distance(result, options.merge_edges_by_min_distance_options);
 
         F_cluster_id cluster_count = result.graph.size();
         F_global_vertex_id vertex_count = result.shape.size();

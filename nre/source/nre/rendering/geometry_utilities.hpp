@@ -191,14 +191,25 @@ namespace nre::newrg
         F_compressed_clustered_geometry_shape shape;
     };
 
-    struct F_clustered_geometry_remove_duplicated_vertices_options
+    struct F_clustered_geometry_merge_vertices_options
     {
         f32 min_normal_dot = 0.2f;
         f32 max_texcoord_error = 0.05f;
     };
+    struct F_clustered_geometry_remove_duplicated_vertices_options
+    {
+        F_clustered_geometry_merge_vertices_options merge_vertices_options;
+    };
+    struct F_clustered_geometry_merge_edges_by_min_distance_options
+    {
+        F_clustered_geometry_merge_vertices_options merge_vertices_options;
+
+        f32 min_distance = 0.002f;
+    };
     struct F_clustered_geometry_simplification_options
     {
         F_clustered_geometry_remove_duplicated_vertices_options remove_duplicated_vertices_options;
+        F_clustered_geometry_merge_edges_by_min_distance_options merge_edges_by_min_distance_options;
 
         f32 target_ratio = 0.5f;
         f32 max_error = 0.01f;
@@ -466,6 +477,10 @@ namespace nre::newrg
         static F_raw_clustered_geometry remove_duplicated_vertices(
             const F_raw_clustered_geometry& geometry,
             const F_clustered_geometry_remove_duplicated_vertices_options& options = {}
+        );
+        static F_raw_clustered_geometry merge_edges_by_min_distance(
+            const F_raw_clustered_geometry& geometry,
+            const F_clustered_geometry_merge_edges_by_min_distance_options& options = {}
         );
         static F_raw_clustered_geometry simplify_clusters(
             const F_raw_clustered_geometry& geometry,
