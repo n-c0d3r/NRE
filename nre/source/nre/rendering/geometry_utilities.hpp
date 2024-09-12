@@ -203,8 +203,7 @@ namespace nre::newrg
     struct F_clustered_geometry_merge_edge_vertices_options
     {
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
-        f32 max_distance = 1.f;
-        // f32 max_distance = 0.001f;
+        f32 max_distance = 0.001f;
     };
     struct F_clustered_geometry_simplification_options
     {
