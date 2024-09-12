@@ -62,6 +62,59 @@ namespace nre
 
         return eastl::move(result);
     }
+    TG_vector<F_dag_node_id> H_clustered_geometry::build_dag_sorted_cluster_dag_node_ids(
+        const TG_vector<F_dag_sorted_cluster_id_range>& dag_sorted_cluster_id_ranges
+    )
+    {
+        u32 dag_node_count = dag_sorted_cluster_id_ranges.size();
+
+        u32 cluster_count = 0;
+        for(F_dag_node_id dag_node_id = 0; dag_node_id != dag_node_count; ++dag_node_id)
+        {
+            auto& range = dag_sorted_cluster_id_ranges[dag_node_id];
+            cluster_count += range.end - range.begin;
+        }
+
+        TG_vector<F_dag_node_id> result(cluster_count);
+        for(F_dag_node_id dag_node_id = 0; dag_node_id != dag_node_count; ++dag_node_id)
+        {
+            auto& range = dag_sorted_cluster_id_ranges[dag_node_id];
+            for(F_cluster_id cluster_id = range.begin; cluster_id != range.end;++cluster_id)
+            {
+                result[cluster_id] = dag_node_id;
+            }
+        }
+
+        return eastl::move(result);
+    }
+    F_cluster_node_header_hash H_clustered_geometry::build_cluster_node_header_hash(
+        const TG_vector<F_cluster_node_header>& cluster_node_headers
+    )
+    {
+        u32 cluster_count = cluster_node_headers.size();
+        F_cluster_node_header_hash result(cluster_count);
+
+        auto cluster_id_to_cluster_node_header = [&](F_cluster_id cluster_id)
+        {
+            return cluster_node_headers[cluster_id];
+        };
+
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_cluster_id cluster_id)
+            {
+                result.add_concurrent(
+                    cluster_id,
+                    cluster_id_to_cluster_node_header
+                );
+            },
+            {
+                .parallel_count = cluster_count,
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
+            }
+        );
+
+        return eastl::move(result);
+    }
     F_adjacency H_clustered_geometry::build_cluster_adjacency(
         const F_cluster_ids& vertex_cluster_ids,
         const F_position_hash& position_hash,

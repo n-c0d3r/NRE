@@ -278,6 +278,9 @@ namespace nre::newrg
                     current_level_local_cluster_triangle_vertex_id_offset = next_level_local_cluster_triangle_vertex_id_offset;
                 }
 
+                if(groupped_geometry.graph.size() == 1)
+                    break;
+
                 max_cluster_count = eastl::min<u32>(max_cluster_count, next_level_geometry.graph.size());
 
                 geometry = next_level_geometry;
@@ -290,7 +293,9 @@ namespace nre::newrg
             }
         }
 
-        return build_dag(result);
+        build_dag(result);
+
+        return eastl::move(result);
     }
     TG_vector<F_vector3_f32> H_unified_mesh_builder::build_positions(
         const TG_span<F_raw_vertex_data>& raw_vertex_datas
@@ -384,12 +389,190 @@ namespace nre::newrg
 
         return eastl::move(result);
     }
-    F_raw_unified_mesh_data H_unified_mesh_builder::build_dag(
-        const F_raw_unified_mesh_data& data
+    void H_unified_mesh_builder::build_dag(
+        F_raw_unified_mesh_data& data
     )
     {
-        F_raw_unified_mesh_data result = data;
+        // to group clusters having same child list together
+        F_cluster_node_header_hash cluster_node_header_hash = H_clustered_geometry::build_cluster_node_header_hash(
+            data.cluster_node_headers
+        );
+        auto cluster_id_to_cluster_node_header = [&](F_cluster_id cluster_id)
+        {
+            return data.cluster_node_headers[cluster_id];
+        };
 
-        return eastl::move(result);
+        //
+        F_cluster_id cluster_count = data.cluster_headers.size();
+        u32 level_count = data.cluster_level_headers.size();
+
+        //
+        data.dag_level_headers.resize(level_count);
+
+        //
+        TG_vector<F_cluster_id> dag_sorted_cluster_id_to_cluster_id(cluster_count);
+        TG_vector<F_cluster_id> cluster_id_to_dag_sorted_cluster_id(cluster_count);
+
+        //
+        data.dag_sorted_cluster_headers.resize(cluster_count);
+        data.dag_node_headers.resize(cluster_count);
+        data.dag_sorted_cluster_id_ranges.resize(cluster_count);
+
+        //
+        eastl::atomic<F_cluster_id> next_dag_sorted_cluster_id = 0;
+        eastl::atomic<F_dag_node_id> next_dag_node_id = 0;
+
+        // build dag nodes
+        for(u32 level_index = 0; level_index < level_count; ++level_index)
+        {
+            auto& cluster_level_header = data.cluster_level_headers[level_index];
+            auto& dag_level_header = data.dag_level_headers[level_index];
+
+            //
+            dag_level_header.begin = next_dag_node_id;
+
+            //
+            F_cluster_id local_level_cluster_count = cluster_level_header.end - cluster_level_header.begin;
+            NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+                [&](F_cluster_id local_level_cluster_id)
+                {
+                    F_cluster_id cluster_id = cluster_level_header.begin + local_level_cluster_id;
+
+                    //
+                    F_cluster_id min_cluster_id = cluster_id;
+                    u32 dag_node_size = 1;
+
+                    // calculate dag node size
+                    if(cluster_id_to_cluster_node_header(cluster_id))
+                    {
+                        cluster_node_header_hash.for_all_match(
+                            cluster_id,
+                            cluster_id_to_cluster_node_header,
+                            [&](F_cluster_id, F_cluster_id other_cluster_id)
+                            {
+                                if(cluster_id != other_cluster_id)
+                                {
+                                    min_cluster_id = eastl::min(min_cluster_id, other_cluster_id);
+                                    ++dag_node_size;
+                                }
+                            }
+                        );
+                    }
+
+                    // write back dag nodes, dag sorted cluster ids,...
+                    if(min_cluster_id == cluster_id)
+                    {
+                        F_dag_node_id dag_sorted_cluster_id = next_dag_sorted_cluster_id.fetch_add(dag_node_size);
+                        F_dag_node_id dag_node_id = next_dag_node_id.fetch_add(1);
+
+                        auto& dag_node_header = data.dag_node_headers[dag_node_id];
+                        auto& dag_sorted_cluster_id_range = data.dag_sorted_cluster_id_ranges[dag_node_id];
+
+                        dag_sorted_cluster_id_range.begin = dag_sorted_cluster_id;
+
+                        data.dag_sorted_cluster_headers[dag_sorted_cluster_id] = data.cluster_headers[cluster_id];
+                        dag_sorted_cluster_id_to_cluster_id[dag_sorted_cluster_id] = cluster_id;
+                        cluster_id_to_dag_sorted_cluster_id[cluster_id] = dag_sorted_cluster_id;
+                        ++dag_sorted_cluster_id;
+
+                        if(cluster_id_to_cluster_node_header(cluster_id))
+                        {
+                            cluster_node_header_hash.for_all_match(
+                                cluster_id,
+                                cluster_id_to_cluster_node_header,
+                                [&](F_cluster_id, F_cluster_id other_cluster_id)
+                                {
+                                    if(cluster_id != other_cluster_id)
+                                    {
+                                        data.dag_sorted_cluster_headers[dag_sorted_cluster_id] = data.cluster_headers[other_cluster_id];
+                                        dag_sorted_cluster_id_to_cluster_id[dag_sorted_cluster_id] = other_cluster_id;
+                                        cluster_id_to_dag_sorted_cluster_id[other_cluster_id] = dag_sorted_cluster_id;
+                                        ++dag_sorted_cluster_id;
+                                    }
+                                }
+                            );
+                        }
+
+                        dag_sorted_cluster_id_range.end = dag_sorted_cluster_id;
+                    }
+                },
+                {
+                    .parallel_count = local_level_cluster_count,
+                    .batch_size = eastl::max<u32>(ceil(f32(local_level_cluster_count) / 128.0f), 32)
+                }
+            );
+
+            //
+            dag_level_header.end = next_dag_node_id;
+        }
+
+        //
+        u32 dag_node_count = next_dag_node_id;
+
+        //
+        data.dag_node_headers.resize(dag_node_count);
+        data.dag_sorted_cluster_id_ranges.resize(dag_node_count);
+
+        //
+        auto dag_sorted_cluster_dag_node_ids = H_clustered_geometry::build_dag_sorted_cluster_dag_node_ids(
+            data.dag_sorted_cluster_id_ranges
+        );
+
+        // bind dag node childs
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_dag_node_id dag_node_id)
+            {
+                auto& dag_node_header = data.dag_node_headers[dag_node_id];
+                auto& dag_sorted_cluster_id_range = data.dag_sorted_cluster_id_ranges[dag_node_id];
+
+                //
+                TG_fixed_vector<F_dag_node_id, 4, false> child_node_ids;
+
+                // push back child node ids
+                {
+                    F_cluster_id first_dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
+
+                    F_cluster_id first_cluster_id = dag_sorted_cluster_id_to_cluster_id[first_dag_sorted_cluster_id];
+                    F_cluster_node_header& first_cluster_node_header = data.cluster_node_headers[first_cluster_id];
+
+                    for(u32 local_child_cluster_index = 0; local_child_cluster_index < 4; ++local_child_cluster_index)
+                    {
+                        F_cluster_id child_cluster_id = first_cluster_node_header.child_node_ids[local_child_cluster_index];
+
+                        if(child_cluster_id == NCPP_U32_MAX)
+                            continue;
+
+                        F_cluster_id child_dag_sorted_cluster_id = cluster_id_to_dag_sorted_cluster_id[child_cluster_id];
+
+                        F_dag_node_id child_node_id = dag_sorted_cluster_dag_node_ids[child_dag_sorted_cluster_id];
+
+                        //
+                        b8 need_to_push_back = true;
+                        for(F_dag_node_id other_child_node_id : child_node_ids)
+                        {
+                            if(other_child_node_id == child_node_id)
+                            {
+                                need_to_push_back = false;
+                                break;
+                            }
+                        }
+
+                        //
+                        if(need_to_push_back)
+                            child_node_ids.push_back(child_node_id);
+                    }
+                }
+
+                // store child_node_ids
+                for(u32 local_child_cluster_index = 0; local_child_cluster_index < child_node_ids.size(); ++local_child_cluster_index)
+                {
+                    dag_node_header.child_node_ids[local_child_cluster_index] = child_node_ids[local_child_cluster_index];
+                }
+            },
+            {
+                .parallel_count = dag_node_count,
+                .batch_size = eastl::max<u32>(ceil(f32(dag_node_count) / 128.0f), 32)
+            }
+        );
     }
 }

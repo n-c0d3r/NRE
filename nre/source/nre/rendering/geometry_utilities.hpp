@@ -147,6 +147,29 @@ namespace nre
     struct F_cluster_node_header
     {
         F_cluster_id child_node_ids[4]{ NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX };
+
+        NCPP_FORCE_INLINE b8 is_valid() const noexcept
+        {
+            return (
+                (child_node_ids[0] != NCPP_U32_MAX)
+                || (child_node_ids[1] != NCPP_U32_MAX)
+                || (child_node_ids[2] != NCPP_U32_MAX)
+                || (child_node_ids[3] != NCPP_U32_MAX)
+            );
+        }
+        NCPP_FORCE_INLINE b8 is_null() const noexcept
+        {
+            return (
+                (child_node_ids[0] == NCPP_U32_MAX)
+                && (child_node_ids[1] == NCPP_U32_MAX)
+                && (child_node_ids[2] == NCPP_U32_MAX)
+                && (child_node_ids[3] == NCPP_U32_MAX)
+            );
+        }
+        NCPP_FORCE_INLINE operator b8 () const noexcept
+        {
+            return is_valid();
+        }
     };
 
     constexpr b8 operator == (const F_cluster_node_header& a, const F_cluster_node_header& b) noexcept
@@ -169,6 +192,11 @@ namespace nre
     struct F_dag_node_header
     {
         F_dag_node_id child_node_ids[4]{ NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX };
+    };
+    struct F_dag_sorted_cluster_id_range
+    {
+        F_cluster_id begin = NCPP_U32_MAX;
+        F_cluster_id end = NCPP_U32_MAX;
     };
     struct NCPP_ALIGN(16) F_dag_node_culling_data
     {
@@ -570,6 +598,12 @@ namespace nre
         );
         static F_position_hash build_position_hash(
             const F_raw_clustered_geometry_shape& geometry_shape
+        );
+        static TG_vector<F_dag_node_id> build_dag_sorted_cluster_dag_node_ids(
+            const TG_vector<F_dag_sorted_cluster_id_range>& dag_sorted_cluster_id_ranges
+        );
+        static F_cluster_node_header_hash build_cluster_node_header_hash(
+            const TG_vector<F_cluster_node_header>& cluster_node_headers
         );
         static F_adjacency build_cluster_adjacency(
             const F_cluster_ids& vertex_cluster_ids,
