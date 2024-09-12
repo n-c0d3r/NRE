@@ -94,14 +94,14 @@ namespace nre::newrg
             }
 
             //
-            result.dag_node_headers.resize(meshlet_count);
-            result.dag_level_headers.push_back({
+            result.cluster_node_headers.resize(meshlet_count);
+            result.cluster_level_headers.push_back({
                 .begin = 0,
                 .end = u32(meshlet_count)
             });
         }
 
-        // build higher level dag nodes
+        // build higher level cluster nodes
         {
             F_cluster_id current_level_cluster_count = result.cluster_headers.size();
             F_cluster_id current_level_cluster_offset = 0;
@@ -122,7 +122,7 @@ namespace nre::newrg
                 .local_cluster_triangle_vertex_ids = result.local_cluster_triangle_vertex_ids
             };
 
-            for(u32 dag_level_index = 1; dag_level_index < options.max_level_count; ++dag_level_index)
+            for(u32 cluster_level_index = 1; cluster_level_index < options.max_level_count; ++cluster_level_index)
             {
                 // group clusters in the current geometry
                 F_raw_clustered_geometry groupped_geometry;
@@ -180,7 +180,7 @@ namespace nre::newrg
                         next_level_geometry.local_cluster_triangle_vertex_ids.end()
                     );
 
-                    result.dag_node_headers.resize(next_level_cluster_offset + next_level_cluster_count);
+                    result.cluster_node_headers.resize(next_level_cluster_offset + next_level_cluster_count);
 
                     //
                     {
@@ -192,7 +192,7 @@ namespace nre::newrg
                             F_cluster_id next_level_cluster_id = next_level_cluster_offset + i;
 
                             auto& next_level_cluster_header = result.cluster_headers[next_level_cluster_id];
-                            auto& next_level_dag_node_header = result.dag_node_headers[next_level_cluster_id];
+                            auto& next_level_cluster_node_header = result.cluster_node_headers[next_level_cluster_id];
 
                             // setup
                             next_level_cluster_header = next_level_geometry.graph[i];
@@ -250,11 +250,11 @@ namespace nre::newrg
                             {
                                 if(child_index < child_cluster_ids.size())
                                 {
-                                    next_level_dag_node_header.child_node_ids[child_index] = child_cluster_ids[child_index];
+                                    next_level_cluster_node_header.child_node_ids[child_index] = child_cluster_ids[child_index];
                                 }
                                 else
                                 {
-                                    next_level_dag_node_header.child_node_ids[child_index] = NCPP_U32_MAX;
+                                    next_level_cluster_node_header.child_node_ids[child_index] = NCPP_U32_MAX;
                                 }
                             }
 
@@ -263,7 +263,7 @@ namespace nre::newrg
                         }
                     }
 
-                    result.dag_level_headers.push_back({
+                    result.cluster_level_headers.push_back({
                         .begin = next_level_cluster_offset,
                         .end = next_level_cluster_offset + next_level_cluster_count
                     });
@@ -290,7 +290,7 @@ namespace nre::newrg
             }
         }
 
-        return eastl::move(result);
+        return build_dag(result);
     }
     TG_vector<F_vector3_f32> H_unified_mesh_builder::build_positions(
         const TG_span<F_raw_vertex_data>& raw_vertex_datas
@@ -381,6 +381,14 @@ namespace nre::newrg
                 result[vertex_id] = cluster_id;
             }
         }
+
+        return eastl::move(result);
+    }
+    F_raw_unified_mesh_data H_unified_mesh_builder::build_dag(
+        const F_raw_unified_mesh_data& data
+    )
+    {
+        F_raw_unified_mesh_data result = data;
 
         return eastl::move(result);
     }

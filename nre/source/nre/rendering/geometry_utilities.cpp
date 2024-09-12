@@ -2,7 +2,7 @@
 
 
 
-namespace nre::newrg
+namespace nre
 {
     F_cluster_ids H_clustered_geometry::build_vertex_cluster_ids(
         const F_clustered_geometry_graph& geometry_graph

@@ -73,7 +73,7 @@ namespace ncpp::containers
 
 
 
-namespace nre::newrg
+namespace nre
 {
     namespace internal
     {
@@ -142,6 +142,27 @@ namespace nre::newrg
     struct F_cluster_group_header
     {
         F_cluster_id child_ids[2] = { NCPP_U32_MAX, NCPP_U32_MAX };
+    };
+
+    struct F_cluster_node_header
+    {
+        F_cluster_id child_node_ids[4]{ NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX };
+    };
+
+    constexpr b8 operator == (const F_cluster_node_header& a, const F_cluster_node_header& b) noexcept
+    {
+        return (
+            (a.child_node_ids[0] == b.child_node_ids[0])
+            && (a.child_node_ids[1] == b.child_node_ids[1])
+            && (a.child_node_ids[2] == b.child_node_ids[2])
+            && (a.child_node_ids[3] == b.child_node_ids[3])
+        );
+    }
+
+    struct F_cluster_level_header
+    {
+        u32 begin = 0;
+        u32 end = 0;
     };
 
     using F_dag_node_id = u32;
@@ -213,9 +234,26 @@ namespace nre::newrg
         f32 target_ratio = 0.5f;
         f32 max_error = 0.01f;
     };
+}
 
 
 
+namespace ncpp::containers
+{
+    template<>
+    struct TF_hash<nre::F_cluster_node_header>
+    {
+        NCPP_FORCE_INLINE size_t operator()(const nre::F_cluster_node_header& data) const
+        {
+            return murmur_32({ data.child_node_ids[0], data.child_node_ids[1], data.child_node_ids[2], data.child_node_ids[3] });
+        }
+    };
+}
+
+
+
+namespace nre
+{
     struct F_position_hash
     {
         G_hash_table hash_table;
@@ -278,6 +316,75 @@ namespace nre::newrg
                 if(other_position == position)
                 {
                     functor(position_index, other_position_index);
+                }
+            }
+        }
+    };
+
+
+
+    struct F_cluster_node_header_hash
+    {
+        G_hash_table hash_table;
+
+        F_cluster_node_header_hash() = default;
+        F_cluster_node_header_hash(u32 size) :
+            hash_table(
+                internal::round_up_to_power_of_two_u32(size),
+                internal::round_up_to_power_of_two_u32(size)
+            )
+        {
+        }
+        F_cluster_node_header_hash(const F_cluster_node_header_hash& x) :
+            hash_table(x.hash_table)
+        {
+        }
+        F_cluster_node_header_hash& operator = (const F_cluster_node_header_hash& x)
+        {
+            hash_table = x.hash_table;
+            return *this;
+        }
+        F_cluster_node_header_hash(F_cluster_node_header_hash&& x) noexcept :
+            hash_table(eastl::move(x.hash_table))
+        {
+        }
+        F_cluster_node_header_hash& operator = (F_cluster_node_header_hash&& x) noexcept
+        {
+            hash_table = eastl::move(x.hash_table);
+            return *this;
+        }
+
+        void add(u32 node_header_index, auto&& index_to_node_header_functor)
+        {
+            F_cluster_node_header node_header = index_to_node_header_functor(node_header_index);
+            u32 hash_key = TF_hash<F_cluster_node_header>()(node_header);
+
+            hash_table.add(hash_key, node_header_index);
+        }
+        void add_concurrent(u32 node_header_index, auto&& index_to_node_header_functor)
+        {
+            F_cluster_node_header node_header = index_to_node_header_functor(node_header_index);
+            u32 hash_key = TF_hash<F_cluster_node_header>()(node_header);
+
+            hash_table.add_concurrent(hash_key, node_header_index);
+        }
+
+        void for_all_match(u32 node_header_index, auto&& index_to_node_header_functor, auto&& functor) const
+        {
+            F_cluster_node_header node_header = index_to_node_header_functor(node_header_index);
+            u32 hash_key = TF_hash<F_cluster_node_header>()(node_header);
+
+            for(
+                u32 other_node_header_index = hash_table.first(hash_key);
+                hash_table.is_valid(other_node_header_index);
+                other_node_header_index = hash_table.next(other_node_header_index)
+            )
+            {
+                F_cluster_node_header other_node_header = index_to_node_header_functor(other_node_header_index);
+
+                if(other_node_header == node_header)
+                {
+                    functor(node_header_index, other_node_header_index);
                 }
             }
         }

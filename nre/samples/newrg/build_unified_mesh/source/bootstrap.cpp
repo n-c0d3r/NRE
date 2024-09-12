@@ -55,13 +55,13 @@ int main() {
 	);
 	// u32 visual_level_index = 1;
 	u32 visual_level_index = 2;
-	// u32 visual_level_index = raw_unified_mesh_data.dag_level_headers.size() - 1;
-	// u32 visual_level_index = raw_unified_mesh_data.dag_level_headers.size() / 2;
+	// u32 visual_level_index = raw_unified_mesh_data.cluster_level_headers.size() - 1;
+	// u32 visual_level_index = raw_unified_mesh_data.cluster_level_headers.size() / 2;
 	auto vertex_indices = H_unified_mesh_builder::build_vertex_indices(
 		raw_unified_mesh_data.local_cluster_triangle_vertex_ids,
 		{
-			(F_cluster_header*)(raw_unified_mesh_data.cluster_headers.data() + raw_unified_mesh_data.dag_level_headers[visual_level_index].begin),
-			(raw_unified_mesh_data.dag_level_headers[visual_level_index].end - raw_unified_mesh_data.dag_level_headers[visual_level_index].begin)
+			(F_cluster_header*)(raw_unified_mesh_data.cluster_headers.data() + raw_unified_mesh_data.cluster_level_headers[visual_level_index].begin),
+			(raw_unified_mesh_data.cluster_level_headers[visual_level_index].end - raw_unified_mesh_data.cluster_level_headers[visual_level_index].begin)
 		}
 	);
 	auto vertex_cluster_ids = H_unified_mesh_builder::build_vertex_cluster_ids(
