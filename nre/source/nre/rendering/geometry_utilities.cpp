@@ -621,7 +621,7 @@ namespace nre::newrg
                         {
                             if(can_origin_data_be_merged(vertex_id, other_vertex_id))
                             {
-                                vertex_id_to_is_locked[vertex_id] = (vertex_id != other_vertex_id);
+                                vertex_id_to_is_locked[vertex_id] = vertex_id_to_is_locked[vertex_id] || (vertex_id != other_vertex_id);
                             }
                             else
                             {
@@ -1007,11 +1007,11 @@ namespace nre::newrg
             }
         );
 
-        // result = merge_edge_vertices(
-        //     result,
-        //     cluster_id_to_target_index_count,
-        //     options.merge_edge_vertices_options
-        // );
+        result = merge_edge_vertices(
+            result,
+            cluster_id_to_target_index_count,
+            options.merge_edge_vertices_options
+        );
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(result));
 
