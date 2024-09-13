@@ -15,7 +15,7 @@ namespace nre::newrg
         f32 simplification_target_ratio_factor = 0.9f;
         f32 simplification_max_error_factor = 2.0f;
         f32 simplification_merge_vertices_min_normal_dot_factor = 0.75f;
-        f32 simplification_merge_edge_vertices_max_distance_factor = 2.0f;
+        f32 simplification_merge_edge_vertices_max_distance_factor = 2.5f;
 
         F_clustered_geometry_simplification_options simplification_options;
     };
@@ -47,6 +47,12 @@ namespace nre::newrg
             const TG_span<F_cluster_header>& cluster_headers
         );
         static void build_dag(
+            F_raw_unified_mesh_data& data
+        );
+        static void build_dag_sorted_cluster_culling_datas(
+            F_raw_unified_mesh_data& data
+        );
+        static void build_dag_culling_datas(
             F_raw_unified_mesh_data& data
         );
     };

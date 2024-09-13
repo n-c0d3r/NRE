@@ -123,7 +123,6 @@ namespace nre
         F_global_vertex_id local_triangle_vertex_id_offset = 0;
         F_global_vertex_id local_triangle_vertex_id_count = 0;
     };
-
     struct F_cluster_id_range
     {
         F_cluster_id begin = 0;
@@ -138,12 +137,10 @@ namespace nre
             return end > begin;
         }
     };
-
     struct F_cluster_group_header
     {
         F_cluster_id child_ids[2] = { NCPP_U32_MAX, NCPP_U32_MAX };
     };
-
     struct F_cluster_node_header
     {
         F_cluster_id child_node_ids[4]{ NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX };
@@ -171,7 +168,6 @@ namespace nre
             return is_valid();
         }
     };
-
     constexpr b8 operator == (const F_cluster_node_header& a, const F_cluster_node_header& b) noexcept
     {
         return (
@@ -181,11 +177,16 @@ namespace nre
             && (a.child_node_ids[3] == b.child_node_ids[3])
         );
     }
-
     struct F_cluster_level_header
     {
         u32 begin = 0;
         u32 end = 0;
+    };
+    struct NCPP_ALIGN(16) F_cluster_culling_data
+    {
+        F_vector4_f32 pivot_and_min_forward_dot;
+        F_vector3_f32 scaled_up;
+        F_vector3_f32 scaled_forward;
     };
 
     using F_dag_node_id = u32;

@@ -866,8 +866,7 @@ namespace nre
                         remap[null_remapped_vertex_id] = new_vertex_id;
                         vertex_id_to_is_merged[new_remapped_vertex_id] = true;
 
-                        // 2 triangles on both sides of the edge have 6 indices
-                        potential_reduced_index_count += 6;
+                        potential_reduced_index_count += 1;
                     }
                 }
 
