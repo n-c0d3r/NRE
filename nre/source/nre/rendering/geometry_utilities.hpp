@@ -186,7 +186,41 @@ namespace nre
     {
         F_vector4_f32 pivot_and_min_forward_dot;
         F_vector3_f32 scaled_up;
-        F_vector3_f32 scaled_forward;
+        F_vector4_f32 scaled_forward_and_right_scale_factor;
+
+        NCPP_FORCE_INLINE F_vector3_f32 pivot() const noexcept
+        {
+            return pivot_and_min_forward_dot.xyz();
+        }
+        NCPP_FORCE_INLINE f32 min_forward_dot() const noexcept
+        {
+            return pivot_and_min_forward_dot.w;
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 scaled_right() const noexcept
+        {
+            return normalize(
+                cross(
+                    scaled_up,
+                    scaled_forward()
+                )
+            );
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 scaled_forward() const noexcept
+        {
+            return scaled_forward_and_right_scale_factor.xyz();
+        }
+        NCPP_FORCE_INLINE f32 right_scale_factor() const noexcept
+        {
+            return scaled_forward_and_right_scale_factor.w;
+        }
+        NCPP_FORCE_INLINE f32 up_scale_factor() const noexcept
+        {
+            return length(scaled_up);
+        }
+        NCPP_FORCE_INLINE f32 forward_scale_factor() const noexcept
+        {
+            return length(scaled_forward());
+        }
     };
 
     using F_dag_node_id = u32;
@@ -199,12 +233,7 @@ namespace nre
         F_cluster_id begin = NCPP_U32_MAX;
         F_cluster_id end = NCPP_U32_MAX;
     };
-    struct NCPP_ALIGN(16) F_dag_node_culling_data
-    {
-        F_vector4_f32 pivot_and_min_forward_dot;
-        F_vector3_f32 scaled_up;
-        F_vector3_f32 scaled_forward;
-    };
+    using F_dag_node_culling_data = F_cluster_culling_data;
 
     struct F_dag_level_header
     {
