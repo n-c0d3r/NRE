@@ -201,7 +201,7 @@ namespace nre
     };
     struct NCPP_ALIGN(16) F_dag_node_culling_data
     {
-        F_vector4_f32 pivot_and_min_normal_dot;
+        F_vector4_f32 pivot_and_min_forward_dot;
         F_vector3_f32 scaled_up;
         F_vector3_f32 scaled_forward;
     };
