@@ -94,7 +94,7 @@ namespace nre
 
 
     using F_global_vertex_id = u32;
-    using F_local_cluster_vertex_id = u16;
+    using F_local_cluster_vertex_id = u8;
     struct NCPP_ALIGN(16) F_compressed_vertex_data
     {
         F_f16_data local_position_components[
@@ -109,9 +109,8 @@ namespace nre
             3 // payload
             + 1 // padding
         ];
-        F_f16_data local_texcoord_components[
+        f32 texcoord_components[
             2 // payload
-            + 2 // padding
         ];
     };
     struct NCPP_ALIGN(16) F_raw_vertex_data

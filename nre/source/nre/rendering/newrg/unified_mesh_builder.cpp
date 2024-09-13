@@ -684,6 +684,7 @@ namespace nre::newrg
 
                         forward_scale_factor = eastl::max(distance_to_pivot_in_forward_axis, forward_scale_factor);
                     }
+                    forward_scale_factor = eastl::max(forward_scale_factor, T_default_tolerance<f32>);
                 }
 
                 // calculate up scale factor
@@ -706,6 +707,7 @@ namespace nre::newrg
 
                         up_scale_factor = eastl::max(distance_to_pivot_in_up_axis, up_scale_factor);
                     }
+                    up_scale_factor = eastl::max(up_scale_factor, T_default_tolerance<f32>);
                 }
 
                 // calculate right scale factor
@@ -728,6 +730,7 @@ namespace nre::newrg
 
                         right_scale_factor = eastl::max(distance_to_pivot_in_right_axis, right_scale_factor);
                     }
+                    right_scale_factor = eastl::max(right_scale_factor, T_default_tolerance<f32>);
                 }
 
                 // store back culling data
@@ -1264,5 +1267,75 @@ namespace nre::newrg
                 }
             );
         }
+    }
+
+    F_compressed_unified_mesh_data H_unified_mesh_builder::compress(
+        const F_raw_unified_mesh_data& data
+    )
+    {
+        F_compressed_unified_mesh_data result;
+
+        result.local_cluster_triangle_vertex_ids = data.local_cluster_triangle_vertex_ids;
+
+        result.cluster_headers = data.dag_sorted_cluster_headers;
+        result.cluster_culling_datas = data.dag_sorted_cluster_culling_datas;
+        result.dag_node_headers = data.dag_node_headers;
+        result.dag_cluster_id_ranges = data.dag_sorted_cluster_id_ranges;
+        result.dag_node_culling_datas = data.dag_node_culling_datas;
+        result.dag_level_headers = data.dag_level_headers;
+
+        auto vertex_cluster_ids = H_clustered_geometry::build_vertex_cluster_ids(data.dag_sorted_cluster_headers);
+
+        F_global_vertex_id vertex_count = data.raw_vertex_datas.size();
+
+        result.compressed_vertex_datas.resize(vertex_count);
+
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_global_vertex_id vertex_id)
+            {
+                auto& raw_vertex_data = data.raw_vertex_datas[vertex_id];
+                auto& compressed_vertex_data = result.compressed_vertex_datas[vertex_id];
+
+                F_cluster_id cluster_id = vertex_cluster_ids[vertex_id];
+
+                auto& cluster_culling_data = data.dag_sorted_cluster_culling_datas[cluster_id];
+
+                F_vector3_f32 scaled_right = cluster_culling_data.scaled_right();
+                F_vector3_f32 scaled_up = cluster_culling_data.scaled_up;
+                F_vector3_f32 scaled_forward = cluster_culling_data.scaled_forward();
+
+                F_matrix3x3_f32 scaled_local_to_world_matrix = {
+                    scaled_right,
+                    scaled_up,
+                    scaled_forward
+                };
+                F_matrix3x3_f32 world_to_scaled_local_matrix = invert(scaled_local_to_world_matrix);
+
+                F_vector3_f32 local_position = world_to_scaled_local_matrix * raw_vertex_data.position;
+                F_vector3_f32 local_normal = world_to_scaled_local_matrix * raw_vertex_data.position;
+                F_vector3_f32 local_tangent = world_to_scaled_local_matrix * raw_vertex_data.position;
+
+                compressed_vertex_data.local_position_components[0] = format_encode_f32_to_f16_data(local_position.x);
+                compressed_vertex_data.local_position_components[1] = format_encode_f32_to_f16_data(local_position.y);
+                compressed_vertex_data.local_position_components[2] = format_encode_f32_to_f16_data(local_position.z);
+
+                compressed_vertex_data.local_normal_components[0] = format_encode_f32_to_f16_data(local_normal.x);
+                compressed_vertex_data.local_normal_components[1] = format_encode_f32_to_f16_data(local_normal.y);
+                compressed_vertex_data.local_normal_components[2] = format_encode_f32_to_f16_data(local_normal.z);
+
+                compressed_vertex_data.local_tangent_components[0] = format_encode_f32_to_f16_data(local_tangent.x);
+                compressed_vertex_data.local_tangent_components[1] = format_encode_f32_to_f16_data(local_tangent.y);
+                compressed_vertex_data.local_tangent_components[2] = format_encode_f32_to_f16_data(local_tangent.z);
+
+                compressed_vertex_data.texcoord_components[0] = raw_vertex_data.texcoord.x;
+                compressed_vertex_data.texcoord_components[1] = raw_vertex_data.texcoord.y;
+            },
+            {
+                .parallel_count = vertex_count,
+                .batch_size = eastl::max<u32>(ceil(f32(vertex_count) / 128.0f), 32)
+            }
+        );
+
+        return eastl::move(result);
     }
 }

@@ -55,5 +55,10 @@ namespace nre::newrg
         static void build_dag_culling_datas(
             F_raw_unified_mesh_data& data
         );
+
+    public:
+        static F_compressed_unified_mesh_data compress(
+            const F_raw_unified_mesh_data& data
+        );
     };
 }
