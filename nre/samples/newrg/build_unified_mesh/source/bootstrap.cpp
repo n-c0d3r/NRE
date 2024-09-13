@@ -8,8 +8,8 @@ using namespace nre::newrg;
 
 struct F_cb_data
 {
-	F_matrix4x4_f32 world_to_clip_matrix;
 	F_matrix4x4_f32 local_to_world_matrix;
+	F_matrix4x4_f32 world_to_clip_matrix;
 };
 
 
