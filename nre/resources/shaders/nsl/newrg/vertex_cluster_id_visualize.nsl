@@ -1,6 +1,5 @@
 import(nrhi)
 
-@sort_uniforms(false)
 resource cb_main(ConstantBuffer)
 default_constant_buffer(cb_main)
 
