@@ -29,7 +29,7 @@ int main() {
 
 	auto render_path_p = TU<F_render_path>()();
 
-	auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/hq_cube_1.obj").T_cast<F_static_mesh_asset>();
+	auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/iron_man_helmet.obj").T_cast<F_static_mesh_asset>();
 	// auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/hq_cube.obj").T_cast<F_static_mesh_asset>();
 	// auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/rock.obj").T_cast<F_static_mesh_asset>();
 	auto original_mesh_p = original_mesh_asset_p->mesh_p;
