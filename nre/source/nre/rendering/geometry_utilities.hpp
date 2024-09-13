@@ -228,11 +228,6 @@ namespace nre
     {
         F_dag_node_id child_node_ids[4]{ NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX };
     };
-    struct F_dag_sorted_cluster_id_range
-    {
-        F_cluster_id begin = NCPP_U32_MAX;
-        F_cluster_id end = NCPP_U32_MAX;
-    };
     using F_dag_node_culling_data = F_cluster_culling_data;
 
     struct F_dag_level_header
@@ -630,7 +625,7 @@ namespace nre
             const F_raw_clustered_geometry_shape& geometry_shape
         );
         static TG_vector<F_dag_node_id> build_dag_sorted_cluster_dag_node_ids(
-            const TG_vector<F_dag_sorted_cluster_id_range>& dag_sorted_cluster_id_ranges
+            const TG_vector<F_cluster_id_range>& dag_sorted_cluster_id_ranges
         );
         static F_cluster_node_header_hash build_cluster_node_header_hash(
             const TG_vector<F_cluster_node_header>& cluster_node_headers

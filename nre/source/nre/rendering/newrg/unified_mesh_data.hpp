@@ -20,11 +20,20 @@ namespace nre::newrg
         TG_vector<F_cluster_header> dag_sorted_cluster_headers;
         TG_vector<F_cluster_culling_data> dag_sorted_cluster_culling_datas;
         TG_vector<F_dag_node_header> dag_node_headers;
-        TG_vector<F_dag_sorted_cluster_id_range> dag_sorted_cluster_id_ranges;
+        TG_vector<F_cluster_id_range> dag_sorted_cluster_id_ranges;
         TG_vector<F_dag_node_culling_data> dag_node_culling_datas;
         TG_vector<F_dag_level_header> dag_level_headers;
     };
     struct F_compressed_unified_mesh_data
     {
+        TG_vector<F_compressed_vertex_data> compressed_vertex_datas;
+        TG_vector<F_local_cluster_vertex_id> local_cluster_triangle_vertex_ids;
+
+        TG_vector<F_cluster_header> cluster_headers;
+        TG_vector<F_cluster_culling_data> cluster_culling_datas;
+        TG_vector<F_dag_node_header> dag_node_headers;
+        TG_vector<F_cluster_id_range> dag_cluster_id_ranges;
+        TG_vector<F_dag_node_culling_data> dag_node_culling_datas;
+        TG_vector<F_dag_level_header> dag_level_headers;
     };
 }

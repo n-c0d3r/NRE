@@ -63,7 +63,7 @@ namespace nre
         return eastl::move(result);
     }
     TG_vector<F_dag_node_id> H_clustered_geometry::build_dag_sorted_cluster_dag_node_ids(
-        const TG_vector<F_dag_sorted_cluster_id_range>& dag_sorted_cluster_id_ranges
+        const TG_vector<F_cluster_id_range>& dag_sorted_cluster_id_ranges
     )
     {
         u32 dag_node_count = dag_sorted_cluster_id_ranges.size();
