@@ -64,4 +64,13 @@ endif()
 
 
 
+#####################################################################################
+#   Add nanoflann subdirectory
+#####################################################################################
+if(NOT TARGET nanoflann)
+    add_subdirectory("${NRE_DEPENDENCIES_DIR}/nanoflann" "${NRE_BINARY_DIR}/dependencies/nanoflann")
+endif()
+
+
+
 message(STATUS "<NRE::ConfigureDependencies> Configure dependencies done")

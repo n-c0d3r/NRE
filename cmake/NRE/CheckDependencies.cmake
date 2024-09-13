@@ -124,6 +124,20 @@ if(NOT EXISTS "${NRE_DEPENDENCIES_DIR}/meshoptimizer")
     )
 endif()
 
+#####################################################################################
+#   nanoflann checking
+#####################################################################################
+if(NOT EXISTS "${NRE_DEPENDENCIES_DIR}/nanoflann")
+    file(MAKE_DIRECTORY "${NRE_DEPENDENCIES_DIR}/nanoflann")
+    NCPP_GitHelper_Clone(
+        PROJECT_NAME "nanoflann"
+        GIT_URL "https://github.com/jlblancoc/nanoflann"
+        GIT_COMMIT "d2fdfed6bcb940a07d8b217ed589f1ff89aa7324"
+        GIT_BRANCH "master"
+        DIRECTORY "${NRE_DEPENDENCIES_DIR}"
+    )
+endif()
+
 
 
 message(STATUS "<NRE::CheckDependencies> Check dependencies done")

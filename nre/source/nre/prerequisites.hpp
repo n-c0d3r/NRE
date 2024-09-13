@@ -71,6 +71,7 @@ namespace nre {}
 #include <png.h>
 #include <FreeImage.h>
 #include "meshoptimizer.h"
+#include "nanoflann.hpp"
 #include "imgui.h"
 
 #ifdef EA_PLATFORM_WINDOWS

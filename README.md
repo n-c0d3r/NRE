@@ -63,11 +63,12 @@ NCoder's Learning Aimed C++ Render Engine.
 + [NRHI](https://github.com/n-c0d3r/NRHI)
 + [NTS](https://github.com/n-c0d3r/NTS)
 + OBJ-Loader
-+ FreeImage
++ [FreeImage](https://github.com/danoli3/FreeImage)
 + libpng
-+ imgui
++ [imgui](https://github.com/ocornut/imgui)
 + zlib
-+ meshoptimizer
++ [meshoptimizer](https://github.com/zeux/meshoptimizer)
++ [nanoflann](https://github.com/jlblancoc/nanoflann/tree/master)
 
 ---
 
