@@ -1059,11 +1059,11 @@ namespace nre
             }
         );
 
-        result = merge_edge_vertices(
-            result,
-            cluster_id_to_target_index_count,
-            options.merge_edge_vertices_options
-        );
+        // result = merge_edge_vertices(
+        //     result,
+        //     cluster_id_to_target_index_count,
+        //     options.merge_edge_vertices_options
+        // );
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(result));
 
