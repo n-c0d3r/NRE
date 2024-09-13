@@ -29,9 +29,7 @@ int main() {
 
 	auto render_path_p = TU<F_render_path>()();
 
-	auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/iron_man_helmet.obj").T_cast<F_static_mesh_asset>();
-	// auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/hq_cube.obj").T_cast<F_static_mesh_asset>();
-	// auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/rock.obj").T_cast<F_static_mesh_asset>();
+	auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/rock.obj").T_cast<F_static_mesh_asset>();
 	auto original_mesh_p = original_mesh_asset_p->mesh_p;
 	const auto& original_vertex_channels = original_mesh_p->vertex_channels();
 	const auto& original_positions = eastl::get<0>(original_vertex_channels);
@@ -53,10 +51,7 @@ int main() {
 	auto normals = H_unified_mesh_builder::build_normals(
 		raw_unified_mesh_data.raw_vertex_datas
 	);
-	// u32 visual_level_index = 1;
-	u32 visual_level_index = 2;
-	// u32 visual_level_index = raw_unified_mesh_data.cluster_level_headers.size() - 1;
-	// u32 visual_level_index = raw_unified_mesh_data.cluster_level_headers.size() / 2;
+	u32 visual_level_index = 1;
 	auto vertex_indices = H_unified_mesh_builder::build_vertex_indices(
 		raw_unified_mesh_data.local_cluster_triangle_vertex_ids,
 		{
