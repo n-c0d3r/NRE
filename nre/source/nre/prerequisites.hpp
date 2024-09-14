@@ -73,6 +73,7 @@ namespace nre {}
 #include "meshoptimizer.h"
 #include "nanoflann.hpp"
 #include "imgui.h"
+#include "metis.h"
 
 #ifdef EA_PLATFORM_WINDOWS
 	#include "backends/imgui_impl_win32.h"

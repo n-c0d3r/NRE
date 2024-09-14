@@ -138,6 +138,48 @@ if(NOT EXISTS "${NRE_DEPENDENCIES_DIR}/nanoflann")
     )
 endif()
 
+#####################################################################################
+#   METIS checking
+#####################################################################################
+if(NOT EXISTS "${NRE_DEPENDENCIES_DIR}/METIS")
+    file(MAKE_DIRECTORY "${NRE_DEPENDENCIES_DIR}/METIS")
+    NCPP_GitHelper_Clone(
+        PROJECT_NAME "METIS"
+        GIT_URL "https://github.com/n-c0d3r/METIS"
+        GIT_COMMIT "278e79c8978b94eb86774850e7b1c33e925bd974"
+        GIT_BRANCH "master"
+        DIRECTORY "${NRE_DEPENDENCIES_DIR}"
+    )
+endif()
+
+#####################################################################################
+#   METIS checking
+#####################################################################################
+if(NOT EXISTS "${NRE_DEPENDENCIES_DIR}/METIS")
+    file(MAKE_DIRECTORY "${NRE_DEPENDENCIES_DIR}/METIS")
+    NCPP_GitHelper_Clone(
+        PROJECT_NAME "METIS"
+        GIT_URL "https://github.com/n-c0d3r/METIS"
+        GIT_COMMIT "278e79c8978b94eb86774850e7b1c33e925bd974"
+        GIT_BRANCH "master"
+        DIRECTORY "${NRE_DEPENDENCIES_DIR}"
+    )
+endif()
+
+#####################################################################################
+#   GKlib checking
+#####################################################################################
+if(NOT EXISTS "${NRE_DEPENDENCIES_DIR}/METIS/GKlib")
+    file(MAKE_DIRECTORY "${NRE_DEPENDENCIES_DIR}/METIS/GKlib")
+    NCPP_GitHelper_Clone(
+        PROJECT_NAME "GKlib"
+        GIT_URL "https://github.com/KarypisLab/GKlib"
+        GIT_COMMIT "8bd6bad750b2b0d90800c632cf18e8ee93ad72d7"
+        GIT_BRANCH "master"
+        DIRECTORY "${NRE_DEPENDENCIES_DIR}/METIS"
+    )
+endif()
+
 
 
 message(STATUS "<NRE::CheckDependencies> Check dependencies done")

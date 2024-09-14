@@ -28,7 +28,7 @@ namespace nre::newrg
             TG_vector<unsigned int> meshlet_vertices(max_meshlets * NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER);
             TG_vector<unsigned char> meshlet_triangle_vertex_indices(max_meshlets * NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3);
 
-            result.raw_vertex_datas.reserve(meshlet_vertices.size());
+            result.vertex_datas.reserve(meshlet_vertices.size());
             result.local_cluster_triangle_vertex_ids.reserve(meshlet_triangle_vertex_indices.size());
 
             size_t meshlet_count = meshopt_buildMeshlets(
@@ -54,7 +54,7 @@ namespace nre::newrg
 
                 u32 vertex_count = meshlet.vertex_count;
 
-                cluster_header.vertex_offset = result.raw_vertex_datas.size();
+                cluster_header.vertex_offset = result.vertex_datas.size();
                 cluster_header.vertex_count = vertex_count;
                 cluster_header.local_triangle_vertex_id_offset = result.local_cluster_triangle_vertex_ids.size();
                 cluster_header.local_triangle_vertex_id_count = meshlet.triangle_count * 3;
@@ -73,7 +73,7 @@ namespace nre::newrg
                     F_vector3_f32 original_tangent = tangents[original_vertex_index];
                     F_vector2_f32 original_texcoord = texcoords[original_vertex_index];
 
-                    result.raw_vertex_datas.push_back({
+                    result.vertex_datas.push_back({
                         .position = original_position,
                         .normal = original_normal,
                         .tangent = original_tangent,
@@ -83,9 +83,9 @@ namespace nre::newrg
 
                 for(u32 local_triangle_index = 0; local_triangle_index < meshlet.triangle_count; ++local_triangle_index)
                 {
-                    F_local_cluster_vertex_id local_vertex_index_0 = meshlet_triangle_vertex_indices[meshlet.triangle_offset + local_triangle_index * 3];
-                    F_local_cluster_vertex_id local_vertex_index_1 = meshlet_triangle_vertex_indices[meshlet.triangle_offset + local_triangle_index * 3 + 1];
-                    F_local_cluster_vertex_id local_vertex_index_2 = meshlet_triangle_vertex_indices[meshlet.triangle_offset + local_triangle_index * 3 + 2];
+                    F_raw_local_cluster_vertex_id local_vertex_index_0 = meshlet_triangle_vertex_indices[meshlet.triangle_offset + local_triangle_index * 3];
+                    F_raw_local_cluster_vertex_id local_vertex_index_1 = meshlet_triangle_vertex_indices[meshlet.triangle_offset + local_triangle_index * 3 + 1];
+                    F_raw_local_cluster_vertex_id local_vertex_index_2 = meshlet_triangle_vertex_indices[meshlet.triangle_offset + local_triangle_index * 3 + 2];
 
                     result.local_cluster_triangle_vertex_ids.push_back(local_vertex_index_0);
                     result.local_cluster_triangle_vertex_ids.push_back(local_vertex_index_1);
@@ -108,7 +108,7 @@ namespace nre::newrg
 
             F_cluster_id max_cluster_count = current_level_cluster_count;
 
-            F_global_vertex_id current_level_vertex_count = result.raw_vertex_datas.size();
+            F_global_vertex_id current_level_vertex_count = result.vertex_datas.size();
             F_global_vertex_id current_level_vertex_offset = 0;
 
             F_global_vertex_id current_level_local_cluster_triangle_vertex_id_count = result.local_cluster_triangle_vertex_ids.size();
@@ -118,7 +118,7 @@ namespace nre::newrg
 
             F_raw_clustered_geometry geometry = {
                 .graph = result.cluster_headers,
-                .shape = result.raw_vertex_datas,
+                .shape = result.vertex_datas,
                 .local_cluster_triangle_vertex_ids = result.local_cluster_triangle_vertex_ids
             };
 
@@ -161,15 +161,15 @@ namespace nre::newrg
                     F_cluster_id next_level_cluster_offset = result.cluster_headers.size();
 
                     F_global_vertex_id next_level_vertex_count = next_level_geometry.graph.size();
-                    F_global_vertex_id next_level_vertex_offset = result.raw_vertex_datas.size();
+                    F_global_vertex_id next_level_vertex_offset = result.vertex_datas.size();
 
                     F_global_vertex_id next_level_local_cluster_triangle_vertex_id_count = next_level_geometry.local_cluster_triangle_vertex_ids.size();
                     F_global_vertex_id next_level_local_cluster_triangle_vertex_id_offset = result.local_cluster_triangle_vertex_ids.size();
 
                     result.cluster_headers.resize(next_level_cluster_offset + next_level_cluster_count);
 
-                    result.raw_vertex_datas.insert(
-                        result.raw_vertex_datas.end(),
+                    result.vertex_datas.insert(
+                        result.vertex_datas.end(),
                         next_level_geometry.shape.begin(),
                         next_level_geometry.shape.end()
                     );
@@ -288,9 +288,7 @@ namespace nre::newrg
                 simplification_options.target_ratio *= options.simplification_target_ratio_factor;
                 simplification_options.max_error *= options.simplification_max_error_factor;
                 simplification_options.remove_duplicated_vertices_options.merge_vertices_options.min_normal_dot *= options.simplification_merge_vertices_min_normal_dot_factor;
-                simplification_options.merge_edge_vertices_options.merge_vertices_options.min_normal_dot *= options.simplification_merge_vertices_min_normal_dot_factor;
                 simplification_options.merge_near_vertices_options.merge_vertices_options.min_normal_dot *= options.simplification_merge_vertices_min_normal_dot_factor;
-                simplification_options.merge_edge_vertices_options.max_distance *= options.simplification_merge_edge_vertices_max_distance_factor;
                 simplification_options.merge_near_vertices_options.max_distance *= options.simplification_merge_near_vertices_max_distance_factor;
             }
         }
@@ -302,37 +300,37 @@ namespace nre::newrg
         return eastl::move(result);
     }
     TG_vector<F_vector3_f32> H_unified_mesh_builder::build_positions(
-        const TG_span<F_raw_vertex_data>& raw_vertex_datas
+        const TG_span<F_raw_vertex_data>& vertex_datas
     )
     {
-        F_global_vertex_id vertex_count = raw_vertex_datas.size();
+        F_global_vertex_id vertex_count = vertex_datas.size();
 
         TG_vector<F_vector3_f32> result(vertex_count);
 
         for(F_global_vertex_id vertex_id = 0; vertex_id != vertex_count; ++vertex_id)
         {
-            result[vertex_id] = raw_vertex_datas[vertex_id].position;
+            result[vertex_id] = vertex_datas[vertex_id].position;
         }
 
         return eastl::move(result);
     }
     TG_vector<F_vector3_f32> H_unified_mesh_builder::build_normals(
-        const TG_span<F_raw_vertex_data>& raw_vertex_datas
+        const TG_span<F_raw_vertex_data>& vertex_datas
     )
     {
-        F_global_vertex_id vertex_count = raw_vertex_datas.size();
+        F_global_vertex_id vertex_count = vertex_datas.size();
 
         TG_vector<F_vector3_f32> result(vertex_count);
 
         for(F_global_vertex_id vertex_id = 0; vertex_id != vertex_count; ++vertex_id)
         {
-            result[vertex_id] = raw_vertex_datas[vertex_id].normal;
+            result[vertex_id] = vertex_datas[vertex_id].normal;
         }
 
         return eastl::move(result);
     }
     TG_vector<F_global_vertex_id> H_unified_mesh_builder::build_vertex_indices(
-        const TG_span<F_local_cluster_vertex_id>& local_cluster_triangle_vertex_ids,
+        const TG_span<F_raw_local_cluster_vertex_id>& local_cluster_triangle_vertex_ids,
         const TG_span<F_cluster_header>& cluster_headers
     )
     {
@@ -602,7 +600,7 @@ namespace nre::newrg
                     {
                         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
 
-                        auto& vertex_data = data.raw_vertex_datas[vertex_id];
+                        auto& vertex_data = data.vertex_datas[vertex_id];
 
                         center += vertex_data.position;
                     }
@@ -616,7 +614,7 @@ namespace nre::newrg
                     {
                         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
 
-                        auto& vertex_data = data.raw_vertex_datas[vertex_id];
+                        auto& vertex_data = data.vertex_datas[vertex_id];
 
                         forward += normalize(vertex_data.normal);
                     }
@@ -630,7 +628,7 @@ namespace nre::newrg
                     {
                         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
 
-                        auto& vertex_data = data.raw_vertex_datas[vertex_id];
+                        auto& vertex_data = data.vertex_datas[vertex_id];
 
                         f32 forward_dot = dot(
                             forward,
@@ -655,7 +653,7 @@ namespace nre::newrg
                     {
                         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
 
-                        auto& vertex_data = data.raw_vertex_datas[vertex_id];
+                        auto& vertex_data = data.vertex_datas[vertex_id];
 
                         F_vector3_f32 center_to_vertex_position = vertex_data.position - center;
 
@@ -673,7 +671,7 @@ namespace nre::newrg
                     {
                         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
 
-                        auto& vertex_data = data.raw_vertex_datas[vertex_id];
+                        auto& vertex_data = data.vertex_datas[vertex_id];
 
                         F_vector3_f32 pivot_to_vertex_position = vertex_data.position - pivot;
 
@@ -696,7 +694,7 @@ namespace nre::newrg
                     {
                         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
 
-                        auto& vertex_data = data.raw_vertex_datas[vertex_id];
+                        auto& vertex_data = data.vertex_datas[vertex_id];
 
                         F_vector3_f32 pivot_to_vertex_position = vertex_data.position - pivot;
 
@@ -719,7 +717,7 @@ namespace nre::newrg
                     {
                         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
 
-                        auto& vertex_data = data.raw_vertex_datas[vertex_id];
+                        auto& vertex_data = data.vertex_datas[vertex_id];
 
                         F_vector3_f32 pivot_to_vertex_position = vertex_data.position - pivot;
 
@@ -1277,7 +1275,13 @@ namespace nre::newrg
     {
         F_compressed_unified_mesh_data result;
 
-        result.local_cluster_triangle_vertex_ids = data.local_cluster_triangle_vertex_ids;
+        F_global_vertex_id vertex_count = data.vertex_datas.size();
+        F_global_vertex_id local_cluster_triangle_vertex_id_count = data.local_cluster_triangle_vertex_ids.size();
+
+        for(u32 i = 0; i < local_cluster_triangle_vertex_id_count; ++i)
+        {
+            result.local_cluster_triangle_vertex_ids[i] = data.local_cluster_triangle_vertex_ids[i];
+        }
 
         result.cluster_headers = data.dag_sorted_cluster_headers;
         result.cluster_culling_datas = data.dag_sorted_cluster_culling_datas;
@@ -1288,15 +1292,13 @@ namespace nre::newrg
 
         auto vertex_cluster_ids = H_clustered_geometry::build_vertex_cluster_ids(data.dag_sorted_cluster_headers);
 
-        F_global_vertex_id vertex_count = data.raw_vertex_datas.size();
-
-        result.compressed_vertex_datas.resize(vertex_count);
+        result.vertex_datas.resize(vertex_count);
 
         NTS_AWAIT_BLOCKABLE NTS_ASYNC(
             [&](F_global_vertex_id vertex_id)
             {
-                auto& raw_vertex_data = data.raw_vertex_datas[vertex_id];
-                auto& compressed_vertex_data = result.compressed_vertex_datas[vertex_id];
+                auto& raw_vertex_data = data.vertex_datas[vertex_id];
+                auto& compressed_vertex_data = result.vertex_datas[vertex_id];
 
                 F_cluster_id cluster_id = vertex_cluster_ids[vertex_id];
 

@@ -94,7 +94,8 @@ namespace nre
 
 
     using F_global_vertex_id = u32;
-    using F_local_cluster_vertex_id = u8;
+    using F_raw_local_cluster_vertex_id = u16;
+    using F_compressed_local_cluster_vertex_id = u8;
     struct NCPP_ALIGN(16) F_compressed_vertex_data
     {
         F_f16_data local_position_components[
@@ -254,7 +255,7 @@ namespace nre
 
     using F_clustered_geometry_graph = TG_vector<F_cluster_header>;
 
-    using F_clustered_geometry_local_cluster_triangle_vertex_ids = TG_vector<F_local_cluster_vertex_id>;
+    using F_clustered_geometry_local_cluster_triangle_vertex_ids = TG_vector<F_raw_local_cluster_vertex_id>;
 
     using F_raw_clustered_geometry_shape = TG_vector<F_raw_vertex_data>;
     using F_compressed_clustered_geometry_shape = TG_vector<F_compressed_vertex_data>;
@@ -280,20 +281,14 @@ namespace nre
     {
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
     };
-    struct F_clustered_geometry_merge_edge_vertices_options
-    {
-        F_clustered_geometry_merge_vertices_options merge_vertices_options;
-        f32 max_distance = 0.001f;
-    };
     struct F_clustered_geometry_merge_near_vertices_options
     {
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
-        f32 max_distance = 0.001f;
+        f32 max_distance = 0.0001f;
     };
     struct F_clustered_geometry_simplification_options
     {
         F_clustered_geometry_remove_duplicated_vertices_options remove_duplicated_vertices_options;
-        F_clustered_geometry_merge_edge_vertices_options merge_edge_vertices_options;
         F_clustered_geometry_merge_near_vertices_options merge_near_vertices_options;
 
         f32 target_ratio = 0.5f;
@@ -689,11 +684,6 @@ namespace nre
         static F_raw_clustered_geometry remove_duplicated_vertices(
             const F_raw_clustered_geometry& geometry,
             const F_clustered_geometry_remove_duplicated_vertices_options& options = {}
-        );
-        static F_raw_clustered_geometry merge_edge_vertices(
-            const F_raw_clustered_geometry& geometry,
-            const TG_vector<u32>& cluster_id_to_target_index_count,
-            const F_clustered_geometry_merge_edge_vertices_options& options = {}
         );
         static F_raw_clustered_geometry merge_near_vertices(
             const F_raw_clustered_geometry& geometry,

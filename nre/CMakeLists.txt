@@ -152,6 +152,7 @@ target_link_libraries(nre
         FreeImage
         meshoptimizer
         nanoflann
+        metis
         ${NRE_THIRD_PARTY_TARGETS}
 )
 target_precompile_headers(nre
@@ -185,6 +186,7 @@ add_dependencies(nre
     FreeImage
     meshoptimizer
     nanoflann
+    metis
     ${NRE_THIRD_PARTY_TARGETS}
 )
 

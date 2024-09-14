@@ -15,8 +15,7 @@ namespace nre::newrg
         f32 simplification_target_ratio_factor = 0.9f;
         f32 simplification_max_error_factor = 2.0f;
         f32 simplification_merge_vertices_min_normal_dot_factor = 0.75f;
-        f32 simplification_merge_edge_vertices_max_distance_factor = 2.5f;
-        f32 simplification_merge_near_vertices_max_distance_factor = 2.5f;
+        f32 simplification_merge_near_vertices_max_distance_factor = 2.0f;
 
         F_clustered_geometry_simplification_options simplification_options;
     };
@@ -35,13 +34,13 @@ namespace nre::newrg
             const F_unified_mesh_build_options& options = {}
         );
         static TG_vector<F_vector3_f32> build_positions(
-            const TG_span<F_raw_vertex_data>& raw_vertex_datas
+            const TG_span<F_raw_vertex_data>& vertex_datas
         );
         static TG_vector<F_vector3_f32> build_normals(
-            const TG_span<F_raw_vertex_data>& raw_vertex_datas
+            const TG_span<F_raw_vertex_data>& vertex_datas
         );
         static TG_vector<F_global_vertex_id> build_vertex_indices(
-            const TG_span<F_local_cluster_vertex_id>& local_cluster_triangle_vertex_ids,
+            const TG_span<F_raw_local_cluster_vertex_id>& local_cluster_triangle_vertex_ids,
             const TG_span<F_cluster_header>& cluster_headers
         );
         static TG_vector<F_cluster_id> build_vertex_cluster_ids(

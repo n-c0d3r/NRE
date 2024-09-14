@@ -46,10 +46,10 @@ int main() {
 		(TG_vector<F_global_vertex_id>&)original_indices
 	);
 	auto positions = H_unified_mesh_builder::build_positions(
-		raw_unified_mesh_data.raw_vertex_datas
+		raw_unified_mesh_data.vertex_datas
 	);
 	auto normals = H_unified_mesh_builder::build_normals(
-		raw_unified_mesh_data.raw_vertex_datas
+		raw_unified_mesh_data.vertex_datas
 	);
 	u32 visual_level_index = 1;
 	auto vertex_indices = H_unified_mesh_builder::build_vertex_indices(
