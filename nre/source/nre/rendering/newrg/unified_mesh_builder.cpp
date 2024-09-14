@@ -140,15 +140,21 @@ namespace nre::newrg
                     );
                 }
 
-                // simplify and split groupped_geometry into next_level_geometry
-                F_raw_clustered_geometry next_level_geometry = H_clustered_geometry::simplify_clusters(
+                // simplify
+                F_raw_clustered_geometry simplified_geometry = H_clustered_geometry::simplify_clusters(
                     groupped_geometry,
                     simplification_options
                 );
 
+                // optimize
+                F_raw_clustered_geometry optimized_geometry = H_clustered_geometry::remove_unused_vertices(
+                    simplified_geometry
+                );
+
+                // split
                 TG_vector<F_cluster_id> split_cluster_group_child_ids;
-                next_level_geometry = H_clustered_geometry::split_clusters(
-                    next_level_geometry,
+                F_raw_clustered_geometry next_level_geometry = H_clustered_geometry::split_clusters(
+                    optimized_geometry,
                     split_cluster_group_child_ids
                 );
 

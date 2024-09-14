@@ -862,6 +862,111 @@ namespace nre
 
         return eastl::move(result);
     }
+    F_raw_clustered_geometry H_clustered_geometry::remove_unused_vertices(
+        const F_raw_clustered_geometry& geometry
+    )
+    {
+        F_raw_clustered_geometry result = geometry;
+
+        F_cluster_id cluster_count = geometry.graph.size();
+        F_global_vertex_id vertex_count = geometry.shape.size();
+
+        TG_vector<b8> vertex_id_to_is_used(vertex_count);
+        TG_vector<F_raw_local_cluster_vertex_id> forward(vertex_count);
+
+        eastl::atomic<F_global_vertex_id> next_vertex_location = 0;
+
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_cluster_id cluster_id)
+            {
+                auto& src_cluster_header = geometry.graph[cluster_id];
+                auto& dst_cluster_header = result.graph[cluster_id];
+
+                // setup vertex_id_to_is_used
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    vertex_id_to_is_used[vertex_id] = false;
+                }
+
+                // mark some vertices as used
+                for(u32 i = 0; i < src_cluster_header.local_triangle_vertex_id_count; ++i)
+                {
+                    auto& local_cluster_triangle_vertex_id = result.local_cluster_triangle_vertex_ids[
+                        src_cluster_header.local_triangle_vertex_id_offset
+                        + i
+                    ];
+
+                    F_global_vertex_id vertex_id = (
+                        src_cluster_header.vertex_offset
+                        + F_global_vertex_id(local_cluster_triangle_vertex_id)
+                    );
+                    vertex_id_to_is_used[vertex_id] = true;
+                }
+
+                // setup forward
+                F_raw_local_cluster_vertex_id last_local_vertex_id = 0;
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    if(vertex_id_to_is_used[vertex_id])
+                    {
+                        forward[vertex_id] = last_local_vertex_id;
+                        ++last_local_vertex_id;
+                    }
+                    else
+                    {
+                        forward[vertex_id] = F_raw_local_cluster_vertex_id(-1);
+                    }
+                }
+
+                // store back vertex data forward
+                dst_cluster_header.vertex_count = last_local_vertex_id;
+                dst_cluster_header.vertex_offset = next_vertex_location.fetch_add(dst_cluster_header.vertex_count);
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    if(vertex_id_to_is_used[vertex_id])
+                    {
+                        F_global_vertex_id new_vertex_id = dst_cluster_header.vertex_offset + F_global_vertex_id(forward[vertex_id]);
+
+                        auto& src_vertex_data = geometry.shape[vertex_id];
+                        auto& dst_vertex_data = result.shape[new_vertex_id];
+
+                        dst_vertex_data = src_vertex_data;
+                    }
+                }
+
+                // update local cluster triangle vertex ids
+                for(u32 i = 0; i < src_cluster_header.local_triangle_vertex_id_count; ++i)
+                {
+                    auto& local_cluster_triangle_vertex_id = result.local_cluster_triangle_vertex_ids[
+                        src_cluster_header.local_triangle_vertex_id_offset
+                        + i
+                    ];
+
+                    F_global_vertex_id vertex_id = (
+                        src_cluster_header.vertex_offset
+                        + F_global_vertex_id(local_cluster_triangle_vertex_id)
+                    );
+                    local_cluster_triangle_vertex_id = forward[vertex_id];
+                }
+            },
+            {
+                .parallel_count = cluster_count,
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
+            }
+        );
+
+        result.shape.resize(next_vertex_location);
+
+        NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(result));
+
+        return eastl::move(result);
+    }
     F_raw_clustered_geometry H_clustered_geometry::simplify_clusters(
         const F_raw_clustered_geometry& geometry,
         const F_clustered_geometry_simplification_options& options
