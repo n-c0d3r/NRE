@@ -144,9 +144,50 @@ namespace nre
             return end > begin;
         }
     };
-    struct F_cluster_group_header
+    struct F_cluster_group_graph
     {
-        F_cluster_id child_ids[2] = { NCPP_U32_MAX, NCPP_U32_MAX };
+        TG_vector<F_cluster_id> ids;
+        TG_vector<F_cluster_id_range> ranges;
+
+        void make_empty(u32 size)
+        {
+            ranges.resize(size);
+            for(u32 i = 0; i < size; ++i)
+            {
+                ranges[i] = { 0, 0 };
+            }
+        }
+
+        void add_range(const F_cluster_group_graph& x, u32 id_offset)
+        {
+            u32 last_id_count = ids.size();
+            u32 x_id_count = x.ids.size();
+            u32 last_range_count = ranges.size();
+            u32 x_range_count = x.ranges.size();
+
+            ids.insert(
+                ids.end(),
+                x.ids.begin(),
+                x.ids.end()
+            );
+            ranges.insert(
+                ranges.end(),
+                x.ranges.begin(),
+                x.ranges.end()
+            );
+
+            for(u32 i = last_id_count, end = last_id_count + x_id_count; i < end; ++i)
+            {
+                auto& id = ids[i];
+                id += id_offset;
+            }
+            for(u32 i = last_range_count, end = last_range_count + x_range_count; i < end; ++i)
+            {
+                auto& range = ranges[i];
+                range.begin += last_range_count;
+                range.end += last_range_count;
+            }
+        }
     };
     struct F_cluster_node_header
     {
@@ -284,7 +325,7 @@ namespace nre
     struct F_clustered_geometry_merge_near_vertices_options
     {
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
-        f32 max_distance = 0.0001f;
+        f32 max_distance = 0.001f;
     };
     struct F_clustered_geometry_simplification_options
     {
@@ -689,6 +730,9 @@ namespace nre
             const F_raw_clustered_geometry& geometry,
             const F_clustered_geometry_merge_near_vertices_options& options = {}
         );
+        static F_raw_clustered_geometry remove_unused_vertices(
+            const F_raw_clustered_geometry& geometry
+        );
         static F_raw_clustered_geometry simplify_clusters(
             const F_raw_clustered_geometry& geometry,
             const F_clustered_geometry_simplification_options& options = {}
@@ -706,7 +750,7 @@ namespace nre
     public:
         static F_raw_clustered_geometry build_next_level(
             const F_raw_clustered_geometry& geometry,
-            TG_vector<F_cluster_group_header>& out_cluster_group_headers
+            F_cluster_group_graph& out_cluster_group_graph
         );
     };
 }

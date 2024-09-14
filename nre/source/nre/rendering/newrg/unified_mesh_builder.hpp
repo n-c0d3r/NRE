@@ -46,19 +46,19 @@ namespace nre::newrg
         static TG_vector<F_cluster_id> build_vertex_cluster_ids(
             const TG_span<F_cluster_header>& cluster_headers
         );
-        static void build_dag(
-            F_raw_unified_mesh_data& data
-        );
-        static void build_dag_sorted_cluster_culling_datas(
-            F_raw_unified_mesh_data& data
-        );
-        static void build_dag_culling_datas(
-            F_raw_unified_mesh_data& data
-        );
-
-    public:
-        static F_compressed_unified_mesh_data compress(
-            const F_raw_unified_mesh_data& data
-        );
+    //     static void build_dag(
+    //         F_raw_unified_mesh_data& data
+    //     );
+    //     static void build_dag_sorted_cluster_culling_datas(
+    //         F_raw_unified_mesh_data& data
+    //     );
+    //     static void build_dag_culling_datas(
+    //         F_raw_unified_mesh_data& data
+    //     );
+    //
+    // public:
+    //     static F_compressed_unified_mesh_data compress(
+    //         const F_raw_unified_mesh_data& data
+    //     );
     };
 }
