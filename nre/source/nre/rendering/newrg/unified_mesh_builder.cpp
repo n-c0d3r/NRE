@@ -289,7 +289,9 @@ namespace nre::newrg
                 simplification_options.max_error *= options.simplification_max_error_factor;
                 simplification_options.remove_duplicated_vertices_options.merge_vertices_options.min_normal_dot *= options.simplification_merge_vertices_min_normal_dot_factor;
                 simplification_options.merge_edge_vertices_options.merge_vertices_options.min_normal_dot *= options.simplification_merge_vertices_min_normal_dot_factor;
+                simplification_options.merge_near_vertices_options.merge_vertices_options.min_normal_dot *= options.simplification_merge_vertices_min_normal_dot_factor;
                 simplification_options.merge_edge_vertices_options.max_distance *= options.simplification_merge_edge_vertices_max_distance_factor;
+                simplification_options.merge_near_vertices_options.max_distance *= options.simplification_merge_near_vertices_max_distance_factor;
             }
         }
 

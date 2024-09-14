@@ -980,13 +980,325 @@ namespace nre
 
         return eastl::move(result);
     }
+    F_raw_clustered_geometry H_clustered_geometry::merge_near_vertices(
+        const F_raw_clustered_geometry& geometry,
+        const F_clustered_geometry_merge_near_vertices_options& options
+    )
+    {
+        F_raw_clustered_geometry result = geometry;
+
+        F_cluster_ids vertex_cluster_ids = build_vertex_cluster_ids(geometry.graph);
+        F_position_hash position_hash = build_position_hash(geometry.shape);
+
+        auto vertex_id_to_position = [&](F_global_vertex_id vertex_id)
+        {
+            return geometry.shape[vertex_id].position;
+        };
+        auto can_be_merged = [&](F_global_vertex_id a, F_global_vertex_id b)
+        {
+            return (
+                (vertex_cluster_ids[a] == vertex_cluster_ids[b])
+                && (
+                    dot(geometry.shape[a].normal, geometry.shape[b].normal)
+                    >= options.merge_vertices_options.min_normal_dot
+                )
+                && (
+                    length(geometry.shape[a].texcoord - geometry.shape[b].texcoord)
+                    <= options.merge_vertices_options.max_texcoord_error
+                )
+            );
+        };
+
+        F_cluster_id cluster_count = geometry.graph.size();
+        F_global_vertex_id vertex_count = geometry.shape.size();
+        F_global_vertex_id local_cluster_triangle_vertex_id_count = geometry.local_cluster_triangle_vertex_ids.size();
+
+        TG_vector<b8> vertex_id_to_is_locked(vertex_count);
+        TG_vector<b8> vertex_id_to_is_merged(vertex_count);
+
+        TG_vector<F_global_vertex_id> forward(vertex_count);
+        TG_vector<F_local_cluster_vertex_id> second_forward(vertex_count);
+
+        auto is_triangle_cut = [&](F_global_vertex_id vertex_id0, F_global_vertex_id vertex_id1, F_global_vertex_id vertex_id2)
+        {
+            F_global_vertex_id remapped_vertex_id0 = forward[vertex_id0];
+            F_global_vertex_id remapped_vertex_id1 = forward[vertex_id1];
+            F_global_vertex_id remapped_vertex_id2 = forward[vertex_id2];
+
+            return (
+                (remapped_vertex_id0 == remapped_vertex_id1)
+                || (remapped_vertex_id1 == remapped_vertex_id2)
+                || (remapped_vertex_id2 == remapped_vertex_id0)
+            );
+        };
+
+        TG_vector<F_raw_vertex_data> new_vertex_datas(vertex_count);
+        TG_vector<F_local_cluster_vertex_id> new_local_cluster_triangle_vertex_ids(local_cluster_triangle_vertex_id_count);
+
+        eastl::atomic<F_global_vertex_id> next_vertex_location = 0;
+        eastl::atomic<F_global_vertex_id> next_index_location = 0;
+
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_cluster_id cluster_id)
+            {
+                auto& src_cluster_header = geometry.graph[cluster_id];
+                auto& cluster_header = result.graph[cluster_id];
+
+                // mark some vertices as locked
+                u32 locked_vertex_count = 0;
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    vertex_id_to_is_locked[vertex_id] = false;
+                    vertex_id_to_is_merged[vertex_id] = false;
+
+                    forward[vertex_id] = vertex_id;
+                    second_forward[vertex_id] = -1;
+
+                    position_hash.for_all_match(
+                        vertex_id,
+                        vertex_id_to_position,
+                        [&](F_global_vertex_id, F_global_vertex_id other_vertex_id)
+                        {
+                            if(!can_be_merged(vertex_id, other_vertex_id))
+                            {
+                                vertex_id_to_is_locked[vertex_id] = true;
+                            }
+                        }
+                    );
+
+                    if(vertex_id_to_is_locked[vertex_id])
+                    {
+                        ++locked_vertex_count;
+                    }
+                }
+
+                //
+                F_nanoflann_point_index next_point_index = 0;
+
+                // build point cloud
+                u32 non_locked_vertex_count = cluster_header.vertex_count - locked_vertex_count;
+
+                F_nanoflann_point_cloud point_cloud;
+                point_cloud.points.resize(non_locked_vertex_count);
+
+                F_global_vertex_id point_to_vertex_id[NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER * 4];
+
+                next_point_index = 0;
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    if(!vertex_id_to_is_locked[vertex_id])
+                    {
+                        auto& vertex_data = geometry.shape[vertex_id];
+                        point_cloud.points[next_point_index] = vertex_data.position;
+                        point_to_vertex_id[next_point_index] = vertex_id;
+                        ++next_point_index;
+                    }
+                }
+
+                // build kdtree
+                F_nanoflann_kdtree kdtree(
+                    3,
+                    point_cloud,
+                    nanoflann::KDTreeSingleIndexAdaptorParams(10)
+                );
+                kdtree.buildIndex();
+
+                // find near vertices and merge them
+                u32 main_vertex_count = 0;
+                std::vector<nanoflann::ResultItem<u32, f32>> local_vertex_id_and_distance_results(vertex_count);
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    if(vertex_id_to_is_merged[vertex_id])
+                        continue;
+
+                    vertex_id_to_is_merged[vertex_id] = true;
+
+                    ++main_vertex_count;
+
+                    if(vertex_id_to_is_locked[vertex_id])
+                        continue;
+
+                    auto& vertex_data = result.shape[vertex_id];
+                    F_raw_vertex_data temp_vertex_data = vertex_data;
+
+                    nanoflann::SearchParameters params;
+
+                    u32 near_vertex_count = kdtree.radiusSearch(
+                        (f32*)&vertex_data.position,
+                        options.max_distance,
+                        local_vertex_id_and_distance_results,
+                        params
+                    );
+
+                    if(!near_vertex_count)
+                        continue;
+
+                    u32 merge_count = 1;
+
+                    for(u32 j = 0; j < near_vertex_count; ++j)
+                    {
+                        F_global_vertex_id other_vertex_id = point_to_vertex_id[local_vertex_id_and_distance_results[j].first];
+
+                        if(vertex_id == other_vertex_id)
+                            continue;
+
+                        if(vertex_id_to_is_merged[other_vertex_id])
+                            continue;
+
+                        if(vertex_id_to_is_locked[other_vertex_id])
+                            continue;
+
+                        if(can_be_merged(vertex_id, other_vertex_id))
+                        {
+                            auto& other_vertex_data = geometry.shape[other_vertex_id];
+
+                            temp_vertex_data.position += other_vertex_data.position;
+                            temp_vertex_data.normal += other_vertex_data.normal;
+                            temp_vertex_data.tangent += other_vertex_data.tangent;
+                            temp_vertex_data.texcoord += other_vertex_data.texcoord;
+
+                            vertex_id_to_is_merged[other_vertex_id] = true;
+                            forward[other_vertex_id] = vertex_id;
+                            ++merge_count;
+                        }
+                    }
+
+                    vertex_data.position = temp_vertex_data.position / f32(merge_count);
+                    vertex_data.texcoord = temp_vertex_data.texcoord / f32(merge_count);
+                    vertex_data.normal = normalize(temp_vertex_data.normal);
+                    vertex_data.tangent = normalize(temp_vertex_data.tangent);
+                }
+
+                // remap vertices
+                F_global_vertex_id new_vertex_id = next_vertex_location.fetch_add(main_vertex_count);
+                cluster_header.vertex_offset = new_vertex_id;
+                cluster_header.vertex_count = main_vertex_count;
+                for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
+
+                    if(vertex_id == forward[vertex_id])
+                    {
+                        second_forward[vertex_id] = new_vertex_id - cluster_header.vertex_offset;
+
+                        auto& vertex_data = result.shape[vertex_id];
+
+                        auto& new_vertex_data = new_vertex_datas[new_vertex_id];
+
+                        new_vertex_data = vertex_data;
+
+                        ++new_vertex_id;
+                    }
+                }
+
+                // calculate index count
+                u32 new_index_count = 0;
+                for(u32 i = 0; i < src_cluster_header.local_triangle_vertex_id_count; i += 3)
+                {
+                    F_global_vertex_id vertex_id0 = src_cluster_header.vertex_offset + geometry.local_cluster_triangle_vertex_ids[
+                        src_cluster_header.local_triangle_vertex_id_offset
+                        + i
+                    ];
+                    F_global_vertex_id vertex_id1 = src_cluster_header.vertex_offset + geometry.local_cluster_triangle_vertex_ids[
+                        src_cluster_header.local_triangle_vertex_id_offset
+                        + i
+                        + 1
+                    ];
+                    F_global_vertex_id vertex_id2 = src_cluster_header.vertex_offset + geometry.local_cluster_triangle_vertex_ids[
+                        src_cluster_header.local_triangle_vertex_id_offset
+                        + i
+                        + 2
+                    ];
+
+                    if(is_triangle_cut(vertex_id0, vertex_id1, vertex_id2))
+                        continue;
+
+                    new_index_count += 3;
+                }
+
+                // remap indices
+                F_global_vertex_id new_index_location = next_index_location.fetch_add(new_index_count);
+                cluster_header.local_triangle_vertex_id_offset = new_index_location;
+                cluster_header.local_triangle_vertex_id_count = new_index_count;
+                for(u32 i = 0; i < src_cluster_header.local_triangle_vertex_id_count; i += 3)
+                {
+                    F_global_vertex_id vertex_id0 = src_cluster_header.vertex_offset + geometry.local_cluster_triangle_vertex_ids[
+                        src_cluster_header.local_triangle_vertex_id_offset
+                        + i
+                    ];
+                    F_global_vertex_id vertex_id1 = src_cluster_header.vertex_offset + geometry.local_cluster_triangle_vertex_ids[
+                        src_cluster_header.local_triangle_vertex_id_offset
+                        + i
+                        + 1
+                    ];
+                    F_global_vertex_id vertex_id2 = src_cluster_header.vertex_offset + geometry.local_cluster_triangle_vertex_ids[
+                        src_cluster_header.local_triangle_vertex_id_offset
+                        + i
+                        + 2
+                    ];
+
+                    if(is_triangle_cut(vertex_id0, vertex_id1, vertex_id2))
+                        continue;
+
+                    F_global_vertex_id remapped_vertex_id0 = forward[vertex_id0];
+                    F_global_vertex_id remapped_vertex_id1 = forward[vertex_id1];
+                    F_global_vertex_id remapped_vertex_id2 = forward[vertex_id2];
+
+                    F_local_cluster_vertex_id second_remapped_vertex_id0 = second_forward[remapped_vertex_id0];
+                    F_local_cluster_vertex_id second_remapped_vertex_id1 = second_forward[remapped_vertex_id1];
+                    F_local_cluster_vertex_id second_remapped_vertex_id2 = second_forward[remapped_vertex_id2];
+
+                    new_local_cluster_triangle_vertex_ids[new_index_location] = second_remapped_vertex_id0;
+                    ++new_index_location;
+                    new_local_cluster_triangle_vertex_ids[new_index_location] = second_remapped_vertex_id1;
+                    ++new_index_location;
+                    new_local_cluster_triangle_vertex_ids[new_index_location] = second_remapped_vertex_id2;
+                    ++new_index_location;
+                }
+            },
+            {
+                .parallel_count = cluster_count,
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
+            }
+        );
+
+        new_vertex_datas.resize(next_vertex_location);
+        new_local_cluster_triangle_vertex_ids.resize(next_index_location);
+
+        result.shape = eastl::move(new_vertex_datas);
+        result.local_cluster_triangle_vertex_ids = eastl::move(new_local_cluster_triangle_vertex_ids);
+
+        NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(result));
+
+        return eastl::move(result);
+    }
     F_raw_clustered_geometry H_clustered_geometry::simplify_clusters(
         const F_raw_clustered_geometry& geometry,
         const F_clustered_geometry_simplification_options& options
     )
     {
-        F_raw_clustered_geometry result = remove_duplicated_vertices(
-            geometry,
+        F_raw_clustered_geometry result;
+
+        if(options.merge_near_vertices_options.max_distance > T_default_tolerance<f32>)
+        {
+            result = merge_near_vertices(
+                geometry,
+                options.merge_near_vertices_options
+            );
+        }
+        else
+        {
+            result = geometry;
+        }
+
+        result = remove_duplicated_vertices(
+            result,
             options.remove_duplicated_vertices_options
         );
 
@@ -998,6 +1310,8 @@ namespace nre
         TG_vector<u32> dst_indices(local_cluster_triangle_vertex_id_count);
 
         TG_vector<u32> cluster_id_to_target_index_count(cluster_count);
+
+        TG_vector<F_local_cluster_vertex_id> new_local_cluster_triangle_vertex_ids(local_cluster_triangle_vertex_id_count);
 
         au32 next_index_location = 0;
 
@@ -1026,32 +1340,35 @@ namespace nre
 
                 float lod_error = 0.f;
 
-                u32 new_index_count = meshopt_simplify(
-                    dst_indices.data() + cluster_header.local_triangle_vertex_id_offset, // output
-                    src_indices.data() + cluster_header.local_triangle_vertex_id_offset,
-                    cluster_header.local_triangle_vertex_id_count,
-                    (float*)(result.shape.data() + cluster_header.vertex_offset),
-                    cluster_header.vertex_count,
-                    sizeof(F_raw_vertex_data),
-                    target_index_count,
-                    options.max_error,
-                    meshopt_SimplifyLockBorder,
-                    &lod_error
-                );
+                if(cluster_header.local_triangle_vertex_id_count)
+                {
+                    u32 new_index_count = meshopt_simplify(
+                        dst_indices.data() + cluster_header.local_triangle_vertex_id_offset, // output
+                        src_indices.data() + cluster_header.local_triangle_vertex_id_offset,
+                        cluster_header.local_triangle_vertex_id_count,
+                        (float*)(result.shape.data() + cluster_header.vertex_offset),
+                        cluster_header.vertex_count,
+                        sizeof(F_raw_vertex_data),
+                        target_index_count,
+                        options.max_error,
+                        meshopt_SimplifyLockBorder,
+                        &lod_error
+                    );
 
-                cluster_header.local_triangle_vertex_id_count = new_index_count;
+                    cluster_header.local_triangle_vertex_id_count = new_index_count;
+                }
 
                 // save back dst_indices
+                u32 new_index_location = next_index_location.fetch_add(cluster_header.local_triangle_vertex_id_count);
                 for(u32 i = 0; i < cluster_header.local_triangle_vertex_id_count; ++i)
                 {
-                    result.local_cluster_triangle_vertex_ids[
-                        cluster_header.local_triangle_vertex_id_offset
-                        + i
-                    ] = dst_indices[
+                    new_local_cluster_triangle_vertex_ids[new_index_location] = dst_indices[
                         cluster_header.local_triangle_vertex_id_offset
                         + i
                     ];
+                    ++new_index_location;
                 }
+                cluster_header.local_triangle_vertex_id_offset = new_index_location - cluster_header.local_triangle_vertex_id_count;
             },
             {
                 .parallel_count = cluster_count,
@@ -1059,11 +1376,9 @@ namespace nre
             }
         );
 
-        // result = merge_edge_vertices(
-        //     result,
-        //     cluster_id_to_target_index_count,
-        //     options.merge_edge_vertices_options
-        // );
+        new_local_cluster_triangle_vertex_ids.resize(next_index_location);
+
+        result.local_cluster_triangle_vertex_ids = eastl::move(new_local_cluster_triangle_vertex_ids);
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(result));
 
@@ -1092,13 +1407,16 @@ namespace nre
             {
                 auto& cluster_header = geometry.graph[cluster_id];
 
-                max_dst_cluster_count.fetch_add(
-                    meshopt_buildMeshletsBound(
+                if(cluster_header.local_triangle_vertex_id_count)
+                {
+                    F_cluster_id max_meshlet_count = meshopt_buildMeshletsBound(
                         cluster_header.local_triangle_vertex_id_count,
                         NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER,
                         NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER
-                    )
-                );
+                    );
+
+                    max_dst_cluster_count.fetch_add(max_meshlet_count);
+                }
             },
             {
                 .parallel_count = cluster_count,
@@ -1128,6 +1446,9 @@ namespace nre
             [&](F_cluster_id cluster_id)
             {
                 auto& cluster_header = geometry.graph[cluster_id];
+
+                if(!(cluster_header.local_triangle_vertex_id_count))
+                    return;
 
                 F_cluster_id max_meshlet_count = meshopt_buildMeshletsBound(
                     cluster_header.local_triangle_vertex_id_count,
@@ -1241,9 +1562,6 @@ namespace nre
         for(F_cluster_id cluster_id = 0; cluster_id < cluster_count; ++cluster_id)
         {
             auto& cluster_header = geometry.graph[cluster_id];
-
-            NCPP_ASSERT(cluster_header.vertex_count);
-            NCPP_ASSERT(cluster_header.local_triangle_vertex_id_count);
 
             for(u32 i = 0; i < cluster_header.local_triangle_vertex_id_count; ++i)
             {

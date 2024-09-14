@@ -285,14 +285,55 @@ namespace nre
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
         f32 max_distance = 0.001f;
     };
+    struct F_clustered_geometry_merge_near_vertices_options
+    {
+        F_clustered_geometry_merge_vertices_options merge_vertices_options;
+        f32 max_distance = 0.0f;
+    };
     struct F_clustered_geometry_simplification_options
     {
         F_clustered_geometry_remove_duplicated_vertices_options remove_duplicated_vertices_options;
         F_clustered_geometry_merge_edge_vertices_options merge_edge_vertices_options;
+        F_clustered_geometry_merge_near_vertices_options merge_near_vertices_options;
 
         f32 target_ratio = 0.5f;
         f32 max_error = 0.01f;
     };
+
+
+
+    struct F_nanoflann_point_cloud
+    {
+        std::vector<F_vector3_f32> points;
+
+
+
+        NCPP_FORCE_INLINE sz kdtree_get_point_count() const noexcept { return points.size(); }
+
+        f32 kdtree_distance(const f32* p1, const sz idx_p2, sz size) const noexcept
+        {
+            f32 d0 = p1[0] - points[idx_p2][0];
+            f32 d1 = p1[1] - points[idx_p2][1];
+            f32 d2 = p1[2] - points[idx_p2][2];
+            return d0*d0 + d1*d1 + d2*d2;
+        }
+
+        NCPP_FORCE_INLINE f32 kdtree_get_pt(const sz idx, i32 dim) const {
+            return points[idx][dim];
+        }
+
+        // Optional bounding-box computation
+        template <class BBOX>
+        b8 kdtree_get_bbox(BBOX & /*bb*/) const { return false; }
+    };
+
+    using F_nanoflann_point_index = u32;
+
+    using F_nanoflann_kdtree = nanoflann::KDTreeSingleIndexAdaptor<
+        nanoflann::L2_Simple_Adaptor<float, F_nanoflann_point_cloud>,
+        F_nanoflann_point_cloud,
+        3
+    >;
 }
 
 
@@ -653,6 +694,10 @@ namespace nre
             const F_raw_clustered_geometry& geometry,
             const TG_vector<u32>& cluster_id_to_target_index_count,
             const F_clustered_geometry_merge_edge_vertices_options& options = {}
+        );
+        static F_raw_clustered_geometry merge_near_vertices(
+            const F_raw_clustered_geometry& geometry,
+            const F_clustered_geometry_merge_near_vertices_options& options = {}
         );
         static F_raw_clustered_geometry simplify_clusters(
             const F_raw_clustered_geometry& geometry,

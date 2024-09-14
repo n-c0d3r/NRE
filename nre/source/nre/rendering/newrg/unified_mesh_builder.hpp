@@ -16,6 +16,7 @@ namespace nre::newrg
         f32 simplification_max_error_factor = 2.0f;
         f32 simplification_merge_vertices_min_normal_dot_factor = 0.75f;
         f32 simplification_merge_edge_vertices_max_distance_factor = 2.5f;
+        f32 simplification_merge_near_vertices_max_distance_factor = 2.5f;
 
         F_clustered_geometry_simplification_options simplification_options;
     };
