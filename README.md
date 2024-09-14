@@ -69,6 +69,7 @@ NCoder's Learning Aimed C++ Render Engine.
 + zlib
 + [meshoptimizer](https://github.com/zeux/meshoptimizer)
 + [nanoflann](https://github.com/jlblancoc/nanoflann/tree/master)
++ [METIS](https://github.com/n-c0d3r/METIS)
 
 ---
 
