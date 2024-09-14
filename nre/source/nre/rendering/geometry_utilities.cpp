@@ -919,7 +919,7 @@ namespace nre
                     ];
                 }
 
-                const float threshold = 0.5f;
+                const float threshold = options.target_ratio;
                 target_index_count = f32(cluster_header.local_triangle_vertex_id_count) * threshold;
 
                 float lod_error = 0.f;
