@@ -127,8 +127,29 @@ namespace nre
         };
 
         F_cluster_id cluster_count = geometry.graph.size();
+        F_global_vertex_id vertex_count = geometry.shape.size();
 
         F_adjacency cluster_adjacency(cluster_count);
+
+        // build nanoflann to query near vertices
+        F_nanoflann_point_cloud point_cloud;
+        point_cloud.points.resize(vertex_count);
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_global_vertex_id vertex_id)
+            {
+                point_cloud.points[vertex_id] = geometry.shape[vertex_id].position;
+            },
+            {
+                .parallel_count = vertex_count,
+                .batch_size = eastl::max<u32>(ceil(f32(vertex_count) / 128.0f), 32)
+            }
+        );
+        F_nanoflann_kdtree kdtree(
+            3,
+            point_cloud,
+            nanoflann::KDTreeSingleIndexAdaptorParams(10)
+        );
+        kdtree.buildIndex();
 
         // setup cluster adjacency alements
         NTS_AWAIT_BLOCKABLE NTS_ASYNC(
@@ -210,14 +231,19 @@ namespace nre
     }
     F_cluster_neighbor_graph H_clustered_geometry::build_cluster_neighbor_graph(
         const F_adjacency& cluster_adjacency,
-        const F_clustered_geometry_graph& geometry_graph
+        const F_raw_clustered_geometry& geometry,
+        const F_clustered_geometry_build_cluster_neighbor_graph_options& options
     )
     {
+        const F_clustered_geometry_graph& geometry_graph = geometry.graph;
+
         F_cluster_id cluster_count = geometry_graph.size();
+        F_global_vertex_id vertex_count = geometry.shape.size();
 
         F_cluster_neighbor_graph result;
         result.ranges.resize(cluster_count);
 
+        //
         eastl::atomic<F_cluster_id> next_cluster_neighbor_id_index = 0;
 
         // build cluster_neighbor_id_ranges
@@ -969,7 +995,7 @@ namespace nre
     }
     F_raw_clustered_geometry H_clustered_geometry::simplify_clusters(
         const F_raw_clustered_geometry& geometry,
-        const F_clustered_geometry_simplification_options& options
+        const F_clustered_geometry_simplify_clusters_options& options
     )
     {
         F_raw_clustered_geometry result;
@@ -1263,7 +1289,8 @@ namespace nre
 
     F_raw_clustered_geometry H_clustered_geometry::build_next_level(
         const F_raw_clustered_geometry& geometry,
-        TG_vector<F_cluster_group_header>& out_cluster_group_headers
+        TG_vector<F_cluster_group_header>& out_cluster_group_headers,
+        const F_clustered_geometry_build_next_level_options& options
     )
     {
         F_cluster_id cluster_count = geometry.graph.size();
@@ -1278,7 +1305,8 @@ namespace nre
         );
         F_cluster_neighbor_graph cluster_neighbor_graph = build_cluster_neighbor_graph(
             cluster_adjacency,
-            geometry.graph
+            geometry,
+            options.build_cluster_neighbor_graph_options
         );
 
         out_cluster_group_headers.resize(cluster_count);

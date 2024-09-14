@@ -29,7 +29,7 @@ int main() {
 
 	auto render_path_p = TU<F_render_path>()();
 
-	auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/hq_cube_1.obj").T_cast<F_static_mesh_asset>();
+	auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/rock.obj").T_cast<F_static_mesh_asset>();
 	auto original_mesh_p = original_mesh_asset_p->mesh_p;
 	const auto& original_vertex_channels = original_mesh_p->vertex_channels();
 	const auto& original_positions = eastl::get<0>(original_vertex_channels);

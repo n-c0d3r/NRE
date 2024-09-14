@@ -114,7 +114,8 @@ namespace nre::newrg
             F_global_vertex_id current_level_local_cluster_triangle_vertex_id_count = result.local_cluster_triangle_vertex_ids.size();
             F_global_vertex_id current_level_local_cluster_triangle_vertex_id_offset = 0;
 
-            F_clustered_geometry_simplification_options simplification_options = options.simplification_options;
+            F_clustered_geometry_simplify_clusters_options simplify_cluster_options = options.simplify_clusters_options;
+            F_clustered_geometry_build_next_level_options build_next_level_options = options.build_next_level_options;
 
             F_raw_clustered_geometry geometry = {
                 .graph = result.cluster_headers,
@@ -131,19 +132,21 @@ namespace nre::newrg
                 {
                     F_raw_clustered_geometry second_level_geometry = H_clustered_geometry::build_next_level(
                         geometry,
-                        first_cluster_group_headers
+                        first_cluster_group_headers,
+                        build_next_level_options
                     );
 
                     groupped_geometry = H_clustered_geometry::build_next_level(
                         second_level_geometry,
-                        second_cluster_group_headers
+                        second_cluster_group_headers,
+                        build_next_level_options
                     );
                 }
 
                 // simplify
                 F_raw_clustered_geometry simplified_geometry = H_clustered_geometry::simplify_clusters(
                     groupped_geometry,
-                    simplification_options
+                    simplify_cluster_options
                 );
 
                 // optimize
@@ -291,11 +294,13 @@ namespace nre::newrg
 
                 geometry = next_level_geometry;
 
-                simplification_options.target_ratio *= options.simplification_target_ratio_factor;
-                simplification_options.max_error *= options.simplification_max_error_factor;
-                simplification_options.remove_duplicated_vertices_options.merge_vertices_options.min_normal_dot *= options.simplification_merge_vertices_min_normal_dot_factor;
-                simplification_options.merge_near_vertices_options.merge_vertices_options.min_normal_dot *= options.simplification_merge_vertices_min_normal_dot_factor;
-                simplification_options.merge_near_vertices_options.max_distance *= options.simplification_merge_near_vertices_max_distance_factor;
+                simplify_cluster_options.target_ratio *= options.simplify_clusters_recursive_factors.target_ratio;
+                simplify_cluster_options.max_error *= options.simplify_clusters_recursive_factors.max_error;
+                simplify_cluster_options.remove_duplicated_vertices_options.merge_vertices_options.min_normal_dot *= options.simplify_clusters_recursive_factors.merge_vertices_min_normal_dot;
+                simplify_cluster_options.merge_near_vertices_options.merge_vertices_options.min_normal_dot *= options.simplify_clusters_recursive_factors.merge_vertices_min_normal_dot;
+                simplify_cluster_options.merge_near_vertices_options.max_distance *= options.simplify_clusters_recursive_factors.merge_near_vertices_max_distance;
+
+                build_next_level_options.build_cluster_neighbor_graph_options.max_distance *= options.build_next_level_recursive_factors.build_cluster_neighbor_graph_max_distance;
             }
         }
 

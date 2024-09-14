@@ -12,12 +12,22 @@ namespace nre::newrg
     {
         u32 max_level_count = 20;
 
-        f32 simplification_target_ratio_factor = 0.9f;
-        f32 simplification_max_error_factor = 2.0f;
-        f32 simplification_merge_vertices_min_normal_dot_factor = 0.75f;
-        f32 simplification_merge_near_vertices_max_distance_factor = 2.0f;
+        struct F_simplify_clusters_recursive_factors
+        {
+            f32 target_ratio = 0.9f;
+            f32 max_error = 2.0f;
+            f32 merge_vertices_min_normal_dot = 0.75f;
+            f32 merge_near_vertices_max_distance = 2.5f;
+        }
+        simplify_clusters_recursive_factors;
+        F_clustered_geometry_simplify_clusters_options simplify_clusters_options;
 
-        F_clustered_geometry_simplification_options simplification_options;
+        struct F_build_next_level_options_recursive_factors
+        {
+            f32 build_cluster_neighbor_graph_max_distance = 2.5f;
+        }
+        build_next_level_recursive_factors;
+        F_clustered_geometry_build_next_level_options build_next_level_options;
     };
 
 
