@@ -689,6 +689,9 @@ namespace nre
             const F_raw_clustered_geometry& geometry,
             const F_clustered_geometry_merge_near_vertices_options& options = {}
         );
+        static F_raw_clustered_geometry remove_unused_vertices(
+            const F_raw_clustered_geometry& geometry
+        );
         static F_raw_clustered_geometry simplify_clusters(
             const F_raw_clustered_geometry& geometry,
             const F_clustered_geometry_simplification_options& options = {}
