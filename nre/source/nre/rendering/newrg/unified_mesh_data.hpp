@@ -8,17 +8,6 @@
 
 namespace nre::newrg
 {
-    struct F_raw_clustered_mesh_data
-    {
-        TG_vector<F_raw_vertex_data> vertex_datas;
-        TG_vector<F_raw_local_cluster_vertex_id> local_cluster_triangle_vertex_ids;
-
-        TG_vector<F_cluster_header> cluster_headers;
-        TG_vector<F_cluster_level_header> cluster_level_headers;
-
-        F_cluster_group_graph cluster_group_graph;
-    };
-
     struct F_raw_unified_mesh_data
     {
         TG_vector<F_raw_vertex_data> vertex_datas;
