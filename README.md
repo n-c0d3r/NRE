@@ -15,7 +15,7 @@ NCoder's Learning Aimed C++ Render Engine.
     + Render graph
     + Multithreaded rendering
     + Unified Mesh System
-      + Direct Acyclic Graph Generation
+      + Directed Acyclic Graph Generation
       + Mesh Clustering
 + Task system
 + Basic actor system
