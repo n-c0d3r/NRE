@@ -19,6 +19,7 @@ namespace nre::newrg
     class F_intermediate_descriptor_manager;
     class F_binder_signature_manager;
     class F_render_actor_data_pool;
+    class F_unified_mesh_system;
 
 
 
@@ -48,6 +49,7 @@ namespace nre::newrg
         TU<F_render_graph> render_graph_p_;
         TU<F_render_foundation> render_foundation_p_;
         TU<F_render_actor_data_pool> render_actor_data_pool_p_;
+        TU<F_unified_mesh_system> unified_mesh_system_p_;
 
         TU<F_intermediate_descriptor_manager> intermediate_descriptor_manager_p_;
         TU<F_binder_signature_manager> binder_signature_manager_p_;

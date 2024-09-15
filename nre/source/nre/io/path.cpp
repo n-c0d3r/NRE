@@ -109,6 +109,12 @@ namespace nre
 
 		return path;
 	}
+	G_string H_path::remove_extension(const G_string& path)
+	{
+		auto extension = H_path::extension(path);
+
+		return path.substr(0, path.size() - extension.size());
+	}
 	G_string H_path::base_name(const G_string& path) {
 
 		auto end = path.find_last_of("/\\");

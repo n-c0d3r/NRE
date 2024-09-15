@@ -6,6 +6,10 @@
 
 namespace nre::newrg
 {
+    class F_unified_mesh;
+
+
+
     class NRE_API F_unified_mesh_system final
     {
     private:
