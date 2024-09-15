@@ -1,6 +1,6 @@
 #include <nre/asset/hlsl_shader_asset_factory.hpp>
 #include <nre/asset/hlsl_shader_asset.hpp>
-#include <nre/asset/path.hpp>
+#include <nre/io/path.hpp>
 
 
 

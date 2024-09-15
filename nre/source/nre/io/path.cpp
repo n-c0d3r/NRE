@@ -1,12 +1,8 @@
-﻿#include <nre/asset/path.hpp>
+﻿#include <nre/io/path.hpp>
+#include <nre/io/file_system.hpp>
 
 namespace nre
 {
-
-	bool H_path::is_exists(const G_string& path)
-	{
-		return std::ifstream(path.c_str()).good();
-	}
 	G_string H_path::resolve(const G_string& path, const G_string base_path)
 	{
 		if (path.size() == 0)
@@ -35,8 +31,10 @@ namespace nre
 	}
 	eastl::optional<G_string> H_path::find_absolute_path(const G_string& path, const TG_span<G_string>& external_base_paths)
 	{
+		auto file_system_p = A_file_system::instance_p();
+
 		// cwd path
-		if (is_exists(path))
+		if (file_system_p->is_exists(path))
 		{
 			return path;
 		}
@@ -45,7 +43,7 @@ namespace nre
 		{
 			G_string absolute_path = resolve(path, "./resources/");
 
-			if (is_exists(absolute_path))
+			if (file_system_p->is_exists(absolute_path))
 			{
 				return absolute_path;
 			}
@@ -55,7 +53,7 @@ namespace nre
 		{
 			G_string absolute_path = resolve(path, NRE_RESOURCES_DIR_PATH);
 
-			if (is_exists(absolute_path))
+			if (file_system_p->is_exists(absolute_path))
 			{
 				return absolute_path;
 			}
@@ -66,7 +64,7 @@ namespace nre
 		{
 			G_string absolute_path = resolve(path, external_base_path);
 
-			if (is_exists(absolute_path))
+			if (file_system_p->is_exists(absolute_path))
 			{
 				return absolute_path;
 			}

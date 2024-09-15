@@ -1,4 +1,5 @@
 #include <nre/application/application.hpp>
+#include <nre/io/file_system.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/asset/asset_system.hpp>
@@ -29,6 +30,8 @@ namespace nre {
 		)
 	{
 		instance_ps = NCPP_KTHIS().no_requirements();
+
+		file_system_p_ = H_file_system::create_internal();
 
 		FreeImage_Initialise();
 

@@ -4,7 +4,7 @@
 
 namespace nre
 {
-	class H_path
+	class NRE_API H_path
 	{
 	public:
 		static bool is_exists(const G_string& path);

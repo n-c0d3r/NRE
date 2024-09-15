@@ -1,7 +1,7 @@
 #include <nre/rendering/customized_nsl_shader_compiler.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/asset_system.hpp>
-#include <nre/asset/path.hpp>
+#include <nre/io/path.hpp>
 #include <nre/asset/text_asset.hpp>
 
 

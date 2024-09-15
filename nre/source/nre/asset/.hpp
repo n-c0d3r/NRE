@@ -4,7 +4,7 @@
 
 #include <nre/asset/asset_system.hpp>
 
-#include <nre/asset/path.hpp>
+#include <nre/io/path.hpp>
 
 #include <nre/asset/asset.hpp>
 #include <nre/asset/asset_factory.hpp>

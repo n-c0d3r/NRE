@@ -1,6 +1,6 @@
 #include <nre/asset/nsl_shader_asset_factory.hpp>
 #include <nre/asset/nsl_shader_asset.hpp>
-#include <nre/asset/path.hpp>
+#include <nre/io/path.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/customized_nsl_shader_compiler.hpp>

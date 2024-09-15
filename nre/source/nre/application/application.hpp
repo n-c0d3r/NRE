@@ -12,6 +12,7 @@ namespace nre {
 
 	class F_render_system;
 	class F_asset_system;
+	class A_file_system;
 	class F_imgui;
 
 
@@ -43,6 +44,8 @@ namespace nre {
 		F_application_shutdown_event shutdown_event_;
 		F_application_gameplay_tick_event gameplay_tick_event_;
 		F_application_render_tick_event render_tick_event_;
+
+		TU<A_file_system> file_system_p_;
 
 		TU<F_surface_manager> surface_manager_p_;
 		TK<F_surface> main_surface_p_;

@@ -9,3 +9,4 @@
 #include <nre/rendering/.hpp>
 #include <nre/gameplay/.hpp>
 #include <nre/threading/.hpp>
+#include <nre/io/.hpp>

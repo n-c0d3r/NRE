@@ -8,9 +8,9 @@
 #include <nre/asset/png_texture_cube_asset_factory.hpp>
 #include <nre/asset/hlsl_shader_asset_factory.hpp>
 #include <nre/asset/nsl_shader_asset_factory.hpp>
-#include <nre/asset/path.hpp>
 #include <nre/application/application.hpp>
-
+#include <nre/io/path.hpp>
+#include <nre/io/file_system.hpp>
 
 
 namespace nre {
@@ -70,22 +70,14 @@ namespace nre {
 			}
 			else
 			{
-			 	std::ifstream fstream(abs_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+				auto file_system_p = A_file_system::instance_p();
 
-			 	std::ifstream::pos_type file_size = fstream.tellg();
-			 	fstream.seekg(0, std::ios::beg);
+				if(auto asset_buffer_opt = file_system_p->read_file(abs_path))
+				{
+					return asset_factory_p->build_from_memory(abs_path, asset_buffer_opt.value());
+				}
 
-			 	if (file_size == -1)
-			 		return {};
-
-			 	F_asset_buffer asset_buffer;
-			 	if (file_size)
-			 	{
-			 		asset_buffer.resize(file_size);
-			 		fstream.read((char*)asset_buffer.data(), file_size);
-			 	}
-
-			 	return asset_factory_p->build_from_memory(abs_path, asset_buffer);
+				return null;
 			}
 		}
 
@@ -118,22 +110,14 @@ namespace nre {
 			}
 			else
 			{
-				std::ifstream fstream(abs_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+				auto file_system_p = A_file_system::instance_p();
 
-				std::ifstream::pos_type file_size = fstream.tellg();
-				fstream.seekg(0, std::ios::beg);
-
-				if (file_size == -1)
-					return {};
-
-				F_asset_buffer asset_buffer;
-				if (file_size)
+				if(auto asset_buffer_opt = file_system_p->read_file(abs_path))
 				{
-					asset_buffer.resize(file_size);
-					fstream.read((char*)asset_buffer.data(), file_size);
+					return asset_factory_p->build_from_memory(abs_path, asset_buffer_opt.value());
 				}
 
-				return asset_factory_p->build_from_memory(abs_path, asset_buffer);
+				return null;
 			}
 		}
 
@@ -155,22 +139,14 @@ namespace nre {
 		}
 		else
 		{
-			std::ifstream fstream(abs_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+			auto file_system_p = A_file_system::instance_p();
 
-			std::ifstream::pos_type file_size = fstream.tellg();
-			fstream.seekg(0, std::ios::beg);
-
-			if (file_size == -1)
-			 	return {};
-
-			F_asset_buffer asset_buffer;
-			if (file_size)
+			if(auto asset_buffer_opt = file_system_p->read_file(abs_path))
 			{
-			 	asset_buffer.resize(file_size);
-			 	fstream.read((char*)asset_buffer.data(), file_size);
+				return asset_factory_p->build_from_memory(abs_path, asset_buffer_opt.value());
 			}
 
-			return asset_factory_p->build_from_memory(abs_path, asset_buffer);
+			return null;
 		}
 	}
 	TS<A_asset> F_asset_system::load_asset_from_abs_path(const G_string& abs_path, const G_string& overrided_file_extension)
@@ -193,22 +169,14 @@ namespace nre {
 		}
 		else
 		{
-			std::ifstream fstream(abs_path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+			auto file_system_p = A_file_system::instance_p();
 
-			std::ifstream::pos_type file_size = fstream.tellg();
-			fstream.seekg(0, std::ios::beg);
-
-			if (file_size == -1)
-				return {};
-
-			F_asset_buffer asset_buffer;
-			if (file_size)
+			if(auto asset_buffer_opt = file_system_p->read_file(abs_path))
 			{
-				asset_buffer.resize(file_size);
-				fstream.read((char*)asset_buffer.data(), file_size);
+				return asset_factory_p->build_from_memory(abs_path, asset_buffer_opt.value());
 			}
 
-			return asset_factory_p->build_from_memory(abs_path, asset_buffer);
+			return null;
 		}
 	}
 }

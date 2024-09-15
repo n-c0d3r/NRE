@@ -2,7 +2,7 @@
 
 #include <nre/prerequisites.hpp>
 #include <nre/asset/asset_buffer.hpp>
-#include <nre/asset/path.hpp>
+#include <nre/io/path.hpp>
 
 
 

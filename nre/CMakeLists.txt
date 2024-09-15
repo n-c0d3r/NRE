@@ -172,6 +172,13 @@ if(${NRE_DLL})
     )
 endif()
 
+if(WIN32)
+    target_link_libraries(nre
+        PRIVATE
+            shlwapi.lib
+    )
+endif()
+
 
 
 #####################################################################################
