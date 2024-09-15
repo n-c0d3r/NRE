@@ -14,6 +14,9 @@ NCoder's Learning Aimed C++ Render Engine.
     + Support advanced graphics APIs (DirectX 12)
     + Render graph
     + Multithreaded rendering
+    + Unified Mesh System
+      + Direct Acyclic Graph Generation
+      + Mesh Clustering
 + Task system
 + Basic actor system
 + Hierarchy:
