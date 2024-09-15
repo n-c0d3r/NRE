@@ -122,6 +122,13 @@ namespace nre
         const F_clustered_geometry_build_cluster_adjacency_options& options
     )
     {
+        NCPP_INFO()
+            << "global threshold ratio: " << T_cout_value(options.global_threshold_ratio) << std::endl
+            << "local threshold ratio: " << T_cout_value(options.local_threshold_ratio) << std::endl
+            << "max distance: " << T_cout_value(options.max_distance) << std::endl;
+
+        b8 enable_kdtree_search = (geometry.graph.size() <= options.max_cluster_count_using_kdtree_search);
+
         auto vertex_id_to_position = [&](F_global_vertex_id vertex_id)
         {
             return geometry.shape[vertex_id].position;
@@ -133,15 +140,15 @@ namespace nre
         F_adjacency cluster_adjacency(cluster_count);
 
         //
-        f32 near_vertex_max_distance = eastl::min<f32>(
-            estimate_avg_edge_length(geometry) * options.threshold_ratio,
+        f32 global_near_vertex_max_distance = eastl::min<f32>(
+            estimate_avg_edge_length(geometry) * options.global_threshold_ratio,
             options.max_distance
         );
 
         // build nanoflann to query near vertices
         F_nanoflann_point_cloud point_cloud;
         point_cloud.points.resize(vertex_count);
-        if(near_vertex_max_distance > T_default_tolerance<f32>)
+        if(enable_kdtree_search)
         {
             NTS_AWAIT_BLOCKABLE NTS_ASYNC(
                 [&](F_global_vertex_id vertex_id)
@@ -159,7 +166,7 @@ namespace nre
             point_cloud,
             nanoflann::KDTreeSingleIndexAdaptorParams(eastl::max<u32>(10, point_cloud.points.size()))
         );
-        if(near_vertex_max_distance > T_default_tolerance<f32>)
+        if(enable_kdtree_search)
         {
             kdtree.buildIndex();
         }
@@ -194,7 +201,7 @@ namespace nre
                 }
 
                 //
-                if(near_vertex_max_distance > T_default_tolerance<f32>)
+                if(enable_kdtree_search)
                 {
                     max_link_count += cluster_header.vertex_count;
                 }
@@ -232,8 +239,18 @@ namespace nre
                 }
 
                 //
-                if(near_vertex_max_distance > T_default_tolerance<f32>)
+                if(enable_kdtree_search)
                 {
+                    //
+                    f32 local_near_vertex_max_distance = eastl::min<f32>(
+                        estimate_avg_cluster_edge_length(geometry, cluster_id) * options.local_threshold_ratio,
+                        options.max_distance
+                    );
+
+                    //
+                    f32 near_vertex_max_distance = eastl::max(local_near_vertex_max_distance, global_near_vertex_max_distance);
+
+                    //
                     std::vector<nanoflann::ResultItem<u32, f32>> vertex_id_and_distance_results;
                     for(u32 i = 0; i < cluster_header.vertex_count; ++i)
                     {
@@ -416,6 +433,10 @@ namespace nre
         const F_clustered_geometry_remove_duplicated_vertices_options& options
     )
     {
+        NCPP_INFO()
+            << "min normal dot: " << T_cout_value(options.merge_vertices_options.min_normal_dot) << std::endl
+            << "max texcoord error: " << T_cout_value(options.merge_vertices_options.max_texcoord_error) << std::endl;
+
         F_raw_clustered_geometry result = geometry;
 
         F_cluster_id cluster_count = geometry.graph.size();
@@ -663,6 +684,16 @@ namespace nre
         const F_clustered_geometry_merge_near_vertices_options& options
     )
     {
+        NCPP_INFO()
+            << "enable: " << T_cout_value(options.enable) << std::endl
+            << "min normal dot: " << T_cout_value(options.merge_vertices_options.min_normal_dot) << std::endl
+            << "max texcoord error: " << T_cout_value(options.merge_vertices_options.max_texcoord_error) << std::endl
+            << "threshold ratio: " << T_cout_value(options.threshold_ratio) << std::endl
+            << "max distance: " << T_cout_value(options.max_distance) << std::endl;
+
+        if(!options.enable)
+            return geometry;
+
         F_raw_clustered_geometry result = geometry;
 
         //
@@ -1232,12 +1263,13 @@ namespace nre
         const F_clustered_geometry_simplify_clusters_options& options
     )
     {
+        NCPP_INFO()
+            << "target ratio: " << T_cout_value(options.target_ratio) << std::endl
+            << "max error: " << T_cout_value(options.max_error) << std::endl;
+
         F_raw_clustered_geometry result;
 
-        if(
-            (options.merge_near_vertices_options.max_distance > T_default_tolerance<f32>)
-            && (geometry.graph.size() > 1)
-        )
+        if(geometry.graph.size() > 1)
         {
             result = merge_near_vertices(
                 geometry,
@@ -1284,7 +1316,9 @@ namespace nre
 
         TG_vector<u32> cluster_id_to_target_index_count(cluster_count);
 
+#ifdef NCPP_ENABLE_INFO
         TG_vector<b8> vertex_id_to_is_locked(vertex_count);
+#endif
 
         TG_vector<F_raw_local_cluster_vertex_id> new_local_cluster_triangle_vertex_ids(local_cluster_triangle_vertex_id_count);
 
@@ -1298,8 +1332,8 @@ namespace nre
 
                 auto& target_index_count = cluster_id_to_target_index_count[cluster_id];
 
+#ifdef NCPP_ENABLE_INFO
                 // mark some vertices as locked
-                u32 locked_vertex_count = 0;
                 for(u32 i = 0; i < cluster_header.vertex_count; ++i)
                 {
                     F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
@@ -1317,12 +1351,8 @@ namespace nre
                             }
                         }
                     );
-
-                    if(vertex_id_to_is_locked[vertex_id])
-                    {
-                        ++locked_vertex_count;
-                    }
                 }
+#endif
 
                 // setup src_indices
                 for(u32 i = 0; i < cluster_header.local_triangle_vertex_id_count; ++i)
@@ -1388,9 +1418,6 @@ namespace nre
                 if(is_locked) ++locked_vertex_count;
 
             NCPP_INFO()
-                << "target ratio: " << T_cout_value(options.target_ratio) << std::endl
-                << "max error: " << T_cout_value(options.max_error) << std::endl
-                << "min normal dot (vertex merging): " << T_cout_value(options.merge_vertices_options.min_normal_dot) << std::endl
                 << "locked vertices: " << T_cout_value(locked_vertex_count) << std::endl
                 << "original vertices: " << T_cout_value(geometry.shape.size()) << std::endl
                 << "new vertices: " << T_cout_value(result.shape.size()) << std::endl

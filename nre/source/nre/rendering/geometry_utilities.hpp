@@ -283,9 +283,10 @@ namespace nre
     };
     struct F_clustered_geometry_merge_near_vertices_options
     {
+        b8 enable = true;
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
-        f32 threshold_ratio = 0.5f;
-        f32 max_distance = 0.00001f;
+        f32 threshold_ratio = 0.00333f;
+        f32 max_distance = NMATH_F32_INFINITY;
     };
     struct F_clustered_geometry_simplify_clusters_options
     {
@@ -298,8 +299,10 @@ namespace nre
     };
     struct F_clustered_geometry_build_cluster_adjacency_options
     {
-        f32 threshold_ratio = 0.001f;
-        f32 max_distance = 0.0001f;
+        F_cluster_id max_cluster_count_using_kdtree_search = 128;
+        f32 global_threshold_ratio = 0.0033f;
+        f32 local_threshold_ratio = 0.0033f;
+        f32 max_distance = NMATH_F32_INFINITY;
     };
     struct F_clustered_geometry_build_next_level_options
     {
