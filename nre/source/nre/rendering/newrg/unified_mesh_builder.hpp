@@ -12,22 +12,19 @@ namespace nre::newrg
     {
         u32 max_level_count = 20;
 
-        struct F_simplify_clusters_recursive_factors
+        struct F_level
         {
-            f32 target_ratio = 0.9f;
-            f32 max_error = 2.0f;
-            f32 merge_vertices_min_normal_dot = 0.75f;
-            f32 merge_near_vertices_max_distance = 2.5f;
-        }
-        simplify_clusters_recursive_factors;
-        F_clustered_geometry_simplify_clusters_options simplify_clusters_options;
+            F_clustered_geometry_simplify_clusters_options simplify_clusters_options;
+            F_clustered_geometry_build_next_level_options build_next_level_options;
+        };
 
-        struct F_build_next_level_options_recursive_factors
-        {
-            f32 build_cluster_neighbor_graph_max_distance = 2.5f;
-        }
-        build_next_level_recursive_factors;
-        F_clustered_geometry_build_next_level_options build_next_level_options;
+        TG_vector<F_level> levels;
+    };
+
+    class NRE_API H_unified_mesh_build_options
+    {
+    public:
+        static F_unified_mesh_build_options create_default();
     };
 
 
@@ -41,7 +38,7 @@ namespace nre::newrg
             const TG_span<F_vector3_f32>& tangents,
             const TG_span<F_vector2_f32>& texcoords,
             const TG_span<F_global_vertex_id>& indices,
-            const F_unified_mesh_build_options& options = {}
+            const F_unified_mesh_build_options& options = H_unified_mesh_build_options::create_default()
         );
         static TG_vector<F_vector3_f32> build_positions(
             const TG_span<F_raw_vertex_data>& vertex_datas

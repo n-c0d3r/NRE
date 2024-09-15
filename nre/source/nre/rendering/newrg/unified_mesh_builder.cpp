@@ -5,6 +5,34 @@
 
 namespace nre::newrg
 {
+    F_unified_mesh_build_options H_unified_mesh_build_options::create_default()
+    {
+        F_unified_mesh_build_options result;
+
+        result.levels.resize(result.max_level_count);
+
+        F_clustered_geometry_simplify_clusters_options simplify_clusters_options;
+        F_clustered_geometry_build_next_level_options build_next_level_options;
+
+        for(u32 i = 0; i < result.max_level_count; ++i)
+        {
+            result.levels[i].simplify_clusters_options = simplify_clusters_options;
+            result.levels[i].build_next_level_options = build_next_level_options;
+
+            simplify_clusters_options.target_ratio *= 0.9f;
+            simplify_clusters_options.max_error *= 2.0f;
+            simplify_clusters_options.remove_duplicated_vertices_options.merge_vertices_options.min_normal_dot *= 0.75f;
+            simplify_clusters_options.merge_near_vertices_options.merge_vertices_options.min_normal_dot *= 0.75f;
+            simplify_clusters_options.merge_near_vertices_options.max_distance *= 2.5f;
+
+            build_next_level_options.build_cluster_adjacency_options.max_distance *= 2.5f;
+        }
+
+        return eastl::move(result);
+    }
+
+
+
     F_raw_unified_mesh_data H_unified_mesh_builder::build(
         const TG_span<F_vector3_f32>& positions,
         const TG_span<F_vector3_f32>& normals,
@@ -114,8 +142,10 @@ namespace nre::newrg
             F_global_vertex_id current_level_local_cluster_triangle_vertex_id_count = result.local_cluster_triangle_vertex_ids.size();
             F_global_vertex_id current_level_local_cluster_triangle_vertex_id_offset = 0;
 
-            F_clustered_geometry_simplify_clusters_options simplify_cluster_options = options.simplify_clusters_options;
-            F_clustered_geometry_build_next_level_options build_next_level_options = options.build_next_level_options;
+            NCPP_ASSERT(options.levels.size() == options.max_level_count);
+
+            F_clustered_geometry_simplify_clusters_options simplify_clusters_options = options.levels[0].simplify_clusters_options;
+            F_clustered_geometry_build_next_level_options build_next_level_options = options.levels[0].build_next_level_options;
 
             F_raw_clustered_geometry geometry = {
                 .graph = result.cluster_headers,
@@ -146,7 +176,7 @@ namespace nre::newrg
                 // simplify
                 F_raw_clustered_geometry simplified_geometry = H_clustered_geometry::simplify_clusters(
                     groupped_geometry,
-                    simplify_cluster_options
+                    simplify_clusters_options
                 );
 
                 // optimize
@@ -287,20 +317,19 @@ namespace nre::newrg
                     current_level_local_cluster_triangle_vertex_id_offset = next_level_local_cluster_triangle_vertex_id_offset;
                 }
 
+                //
                 if(groupped_geometry.graph.size() == 1)
                     break;
 
+                //
                 max_cluster_count = eastl::min<u32>(max_cluster_count, next_level_geometry.graph.size());
 
+                //
                 geometry = next_level_geometry;
 
-                simplify_cluster_options.target_ratio *= options.simplify_clusters_recursive_factors.target_ratio;
-                simplify_cluster_options.max_error *= options.simplify_clusters_recursive_factors.max_error;
-                simplify_cluster_options.remove_duplicated_vertices_options.merge_vertices_options.min_normal_dot *= options.simplify_clusters_recursive_factors.merge_vertices_min_normal_dot;
-                simplify_cluster_options.merge_near_vertices_options.merge_vertices_options.min_normal_dot *= options.simplify_clusters_recursive_factors.merge_vertices_min_normal_dot;
-                simplify_cluster_options.merge_near_vertices_options.max_distance *= options.simplify_clusters_recursive_factors.merge_near_vertices_max_distance;
-
-                build_next_level_options.build_cluster_neighbor_graph_options.max_distance *= options.build_next_level_recursive_factors.build_cluster_neighbor_graph_max_distance;
+                //
+                simplify_clusters_options = options.levels[cluster_level_index].simplify_clusters_options;
+                build_next_level_options = options.levels[cluster_level_index].build_next_level_options;
             }
         }
 

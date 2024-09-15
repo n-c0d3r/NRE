@@ -294,13 +294,13 @@ namespace nre
         f32 target_ratio = 0.5f;
         f32 max_error = 0.01f;
     };
-    struct F_clustered_geometry_build_cluster_neighbor_graph_options
+    struct F_clustered_geometry_build_cluster_adjacency_options
     {
         f32 max_distance = 0.0001f;
     };
     struct F_clustered_geometry_build_next_level_options
     {
-        F_clustered_geometry_build_cluster_neighbor_graph_options build_cluster_neighbor_graph_options;
+        F_clustered_geometry_build_cluster_adjacency_options build_cluster_adjacency_options;
     };
 
 
@@ -683,12 +683,12 @@ namespace nre
         static F_adjacency build_cluster_adjacency(
             const F_cluster_ids& vertex_cluster_ids,
             const F_position_hash& position_hash,
-            const F_raw_clustered_geometry& geometry
+            const F_raw_clustered_geometry& geometry,
+            const F_clustered_geometry_build_cluster_adjacency_options& options
         );
         static F_cluster_neighbor_graph build_cluster_neighbor_graph(
             const F_adjacency& cluster_adjacency,
-            const F_raw_clustered_geometry& geometry,
-            const F_clustered_geometry_build_cluster_neighbor_graph_options& options
+            const F_raw_clustered_geometry& geometry
         );
         static F_raw_clustered_geometry remove_duplicated_vertices(
             const F_raw_clustered_geometry& geometry,

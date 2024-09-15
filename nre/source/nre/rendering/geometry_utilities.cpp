@@ -118,7 +118,8 @@ namespace nre
     F_adjacency H_clustered_geometry::build_cluster_adjacency(
         const F_cluster_ids& vertex_cluster_ids,
         const F_position_hash& position_hash,
-        const F_raw_clustered_geometry& geometry
+        const F_raw_clustered_geometry& geometry,
+        const F_clustered_geometry_build_cluster_adjacency_options& options
     )
     {
         auto vertex_id_to_position = [&](F_global_vertex_id vertex_id)
@@ -227,12 +228,44 @@ namespace nre
             }
         );
 
+        // // link cluster adjacency alements
+        // NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+        //     [&](F_cluster_id cluster_id)
+        //     {
+        //         auto& cluster_header = geometry.graph[cluster_id];
+        //
+        //         // find near vertices
+        //         std::vector<nanoflann::ResultItem<u32, f32>> vertex_id_and_distance_results(vertex_count);
+        //         for(u32 i = 0; i < cluster_header.vertex_count; ++i)
+        //         {
+        //             F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
+        //
+        //             auto& vertex_data = geometry.shape[vertex_id];
+        //
+        //             nanoflann::SearchParameters params;
+        //
+        //             u32 near_vertex_count = kdtree.radiusSearch(
+        //                 (f32*)&vertex_data.position,
+        //                 options.max_distance,
+        //                 vertex_id_and_distance_results,
+        //                 params
+        //             );
+        //
+        //             if(!near_vertex_count)
+        //                 continue;
+        //         }
+        //     },
+        //     {
+        //         .parallel_count = cluster_count,
+        //         .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
+        //     }
+        // );
+
         return eastl::move(cluster_adjacency);
     }
     F_cluster_neighbor_graph H_clustered_geometry::build_cluster_neighbor_graph(
         const F_adjacency& cluster_adjacency,
-        const F_raw_clustered_geometry& geometry,
-        const F_clustered_geometry_build_cluster_neighbor_graph_options& options
+        const F_raw_clustered_geometry& geometry
     )
     {
         const F_clustered_geometry_graph& geometry_graph = geometry.graph;
@@ -1301,12 +1334,12 @@ namespace nre
         F_adjacency cluster_adjacency = build_cluster_adjacency(
             vertex_cluster_ids,
             position_hash,
-            geometry
+            geometry,
+            options.build_cluster_adjacency_options
         );
         F_cluster_neighbor_graph cluster_neighbor_graph = build_cluster_neighbor_graph(
             cluster_adjacency,
-            geometry,
-            options.build_cluster_neighbor_graph_options
+            geometry
         );
 
         out_cluster_group_headers.resize(cluster_count);
