@@ -299,7 +299,7 @@ namespace nre
     };
     struct F_clustered_geometry_build_cluster_adjacency_options
     {
-        F_cluster_id max_cluster_count_using_kdtree_search = 128;
+        F_cluster_id max_cluster_count_using_kdtree_search = 1024;
         f32 global_threshold_ratio = 0.0033f;
         f32 local_threshold_ratio = 0.0033f;
         f32 max_distance = NMATH_F32_INFINITY;
