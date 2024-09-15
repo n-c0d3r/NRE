@@ -51,7 +51,7 @@ int main() {
 	auto normals = H_unified_mesh_builder::build_normals(
 		raw_unified_mesh_data.vertex_datas
 	);
-	u32 visual_level_index = 1;
+	u32 visual_level_index = raw_unified_mesh_data.cluster_level_headers.size() - 1;
 	auto vertex_indices = H_unified_mesh_builder::build_vertex_indices(
 		raw_unified_mesh_data.local_cluster_triangle_vertex_ids,
 		{

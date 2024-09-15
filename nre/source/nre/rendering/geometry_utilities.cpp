@@ -132,27 +132,39 @@ namespace nre
 
         F_adjacency cluster_adjacency(cluster_count);
 
+        //
+        f32 near_vertex_max_distance = eastl::min<f32>(
+            estimate_avg_edge_length(geometry) * options.threshold_ratio,
+            options.max_distance
+        );
+
         // build nanoflann to query near vertices
         F_nanoflann_point_cloud point_cloud;
         point_cloud.points.resize(vertex_count);
-        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-            [&](F_global_vertex_id vertex_id)
-            {
-                point_cloud.points[vertex_id] = geometry.shape[vertex_id].position;
-            },
-            {
-                .parallel_count = vertex_count,
-                .batch_size = eastl::max<u32>(ceil(f32(vertex_count) / 128.0f), 32)
-            }
-        );
+        if(near_vertex_max_distance > T_default_tolerance<f32>)
+        {
+            NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+                [&](F_global_vertex_id vertex_id)
+                {
+                    point_cloud.points[vertex_id] = geometry.shape[vertex_id].position;
+                },
+                {
+                    .parallel_count = vertex_count,
+                    .batch_size = eastl::max<u32>(ceil(f32(vertex_count) / 128.0f), 32)
+                }
+            );
+        }
         F_nanoflann_kdtree kdtree(
             3,
             point_cloud,
-            nanoflann::KDTreeSingleIndexAdaptorParams(10)
+            nanoflann::KDTreeSingleIndexAdaptorParams(eastl::max<u32>(10, point_cloud.points.size()))
         );
-        kdtree.buildIndex();
+        if(near_vertex_max_distance > T_default_tolerance<f32>)
+        {
+            kdtree.buildIndex();
+        }
 
-        // setup cluster adjacency alements
+        // setup and link cluster adjacency alements
         NTS_AWAIT_BLOCKABLE NTS_ASYNC(
             [&](F_cluster_id cluster_id)
             {
@@ -160,6 +172,7 @@ namespace nre
 
                 u32 max_link_count = 0;
 
+                //
                 for(
                     F_global_vertex_id vertex_id = cluster_header.vertex_offset,
                         end_vertex_id = cluster_header.vertex_offset + cluster_header.vertex_count;
@@ -180,23 +193,19 @@ namespace nre
                     );
                 }
 
+                //
+                if(near_vertex_max_distance > T_default_tolerance<f32>)
+                {
+                    max_link_count += cluster_header.vertex_count;
+                }
+
+                //
                 cluster_adjacency.setup_element(
                     cluster_id,
                     max_link_count
                 );
-            },
-            {
-                .parallel_count = cluster_count,
-                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
-            }
-        );
 
-        // link cluster adjacency alements
-        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-            [&](F_cluster_id cluster_id)
-            {
-                auto& cluster_header = geometry.graph[cluster_id];
-
+                // link clusters through vertices with shared positions
                 for(
                     F_global_vertex_id vertex_id = cluster_header.vertex_offset,
                         end_vertex_id = cluster_header.vertex_offset + cluster_header.vertex_count;
@@ -221,45 +230,62 @@ namespace nre
                         }
                     );
                 }
+
+                //
+                if(near_vertex_max_distance > T_default_tolerance<f32>)
+                {
+                    std::vector<nanoflann::ResultItem<u32, f32>> vertex_id_and_distance_results;
+                    for(u32 i = 0; i < cluster_header.vertex_count; ++i)
+                    {
+                        F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
+
+                        auto& vertex_data = geometry.shape[vertex_id];
+
+                        nanoflann::SearchParameters params;
+
+                        u32 near_vertex_count = kdtree.radiusSearch(
+                            (f32*)&vertex_data.position,
+                            near_vertex_max_distance,
+                            vertex_id_and_distance_results,
+                            params
+                        );
+
+                        // find nearest_vertex_cluster_id
+                        F_cluster_id nearest_vertex_cluster_id = NCPP_U32_MAX;
+                        f32 nearest_vertex_distance = NMATH_F32_INFINITY;
+                        for(u32 j = 0; j < near_vertex_count; ++j)
+                        {
+                            auto& search_result = vertex_id_and_distance_results[j];
+
+                            F_global_vertex_id other_vertex_id = search_result.first;
+                            F_cluster_id other_cluster_id = vertex_cluster_ids[other_vertex_id];
+
+                            if(vertex_id == other_vertex_id)
+                                continue;
+
+                            if(cluster_id != other_cluster_id)
+                            {
+                                if(nearest_vertex_distance < search_result.second)
+                                {
+                                    nearest_vertex_cluster_id = other_cluster_id;
+                                    nearest_vertex_distance = search_result.second;
+                                }
+                            }
+                        }
+
+                        //
+                        if(nearest_vertex_cluster_id != NCPP_U32_MAX)
+                        {
+                            cluster_adjacency.link(cluster_id, nearest_vertex_cluster_id);
+                        }
+                    }
+                }
             },
             {
                 .parallel_count = cluster_count,
                 .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
             }
         );
-
-        // // link cluster adjacency alements
-        // NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-        //     [&](F_cluster_id cluster_id)
-        //     {
-        //         auto& cluster_header = geometry.graph[cluster_id];
-        //
-        //         // find near vertices
-        //         std::vector<nanoflann::ResultItem<u32, f32>> vertex_id_and_distance_results(vertex_count);
-        //         for(u32 i = 0; i < cluster_header.vertex_count; ++i)
-        //         {
-        //             F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
-        //
-        //             auto& vertex_data = geometry.shape[vertex_id];
-        //
-        //             nanoflann::SearchParameters params;
-        //
-        //             u32 near_vertex_count = kdtree.radiusSearch(
-        //                 (f32*)&vertex_data.position,
-        //                 options.max_distance,
-        //                 vertex_id_and_distance_results,
-        //                 params
-        //             );
-        //
-        //             if(!near_vertex_count)
-        //                 continue;
-        //         }
-        //     },
-        //     {
-        //         .parallel_count = cluster_count,
-        //         .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
-        //     }
-        // );
 
         return eastl::move(cluster_adjacency);
     }
@@ -559,6 +585,15 @@ namespace nre
 
         result.shape.resize(next_vertex_offset);
 
+#ifdef NCPP_ENABLE_INFO
+        {
+            NCPP_INFO()
+                << "original vertices: " << T_cout_value(geometry.shape.size()) << std::endl
+                << "new vertices: " << T_cout_value(result.shape.size()) << std::endl
+                << "    [vertex ratio: " << (f32(result.shape.size()) / f32(geometry.shape.size())) << "]";
+        }
+#endif
+
         NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(result));
 
 // #ifdef NCPP_ENABLE_ASSERT
@@ -630,9 +665,11 @@ namespace nre
     {
         F_raw_clustered_geometry result = geometry;
 
+        //
         F_cluster_ids vertex_cluster_ids = build_vertex_cluster_ids(geometry.graph);
         F_position_hash position_hash = build_position_hash(geometry.shape);
 
+        //
         auto vertex_id_to_position = [&](F_global_vertex_id vertex_id)
         {
             return geometry.shape[vertex_id].position;
@@ -652,6 +689,7 @@ namespace nre
             );
         };
 
+        //
         F_cluster_id cluster_count = geometry.graph.size();
         F_global_vertex_id vertex_count = geometry.shape.size();
         F_global_vertex_id local_cluster_triangle_vertex_id_count = geometry.local_cluster_triangle_vertex_ids.size();
@@ -662,6 +700,7 @@ namespace nre
         TG_vector<F_global_vertex_id> forward(vertex_count);
         TG_vector<F_raw_local_cluster_vertex_id> second_forward(vertex_count);
 
+        //
         auto is_triangle_cut = [&](F_global_vertex_id vertex_id0, F_global_vertex_id vertex_id1, F_global_vertex_id vertex_id2)
         {
             F_global_vertex_id remapped_vertex_id0 = forward[vertex_id0];
@@ -675,12 +714,14 @@ namespace nre
             );
         };
 
+        //
         TG_vector<F_raw_vertex_data> new_vertex_datas(vertex_count);
         TG_vector<F_raw_local_cluster_vertex_id> new_local_cluster_triangle_vertex_ids(local_cluster_triangle_vertex_id_count);
 
         eastl::atomic<F_global_vertex_id> next_vertex_location = 0;
         eastl::atomic<F_global_vertex_id> next_index_location = 0;
 
+        //
         NTS_AWAIT_BLOCKABLE NTS_ASYNC(
             [&](F_cluster_id cluster_id)
             {
@@ -746,13 +787,19 @@ namespace nre
                 F_nanoflann_kdtree kdtree(
                     3,
                     point_cloud,
-                    nanoflann::KDTreeSingleIndexAdaptorParams(10)
+                    nanoflann::KDTreeSingleIndexAdaptorParams(eastl::max<u32>(10, point_cloud.points.size()))
                 );
                 kdtree.buildIndex();
 
+                //
+                f32 near_vertex_max_distance = eastl::min<f32>(
+                    estimate_avg_cluster_edge_length(geometry, cluster_id) * options.threshold_ratio,
+                    options.max_distance
+                );
+
                 // find near vertices and merge them
                 u32 main_vertex_count = 0;
-                std::vector<nanoflann::ResultItem<u32, f32>> local_vertex_id_and_distance_results(vertex_count);
+                std::vector<nanoflann::ResultItem<u32, f32>> local_vertex_id_and_distance_results;
                 for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)
                 {
                     F_global_vertex_id vertex_id = src_cluster_header.vertex_offset + i;
@@ -774,7 +821,7 @@ namespace nre
 
                     u32 near_vertex_count = kdtree.radiusSearch(
                         (f32*)&vertex_data.position,
-                        options.max_distance,
+                        near_vertex_max_distance,
                         local_vertex_id_and_distance_results,
                         params
                     );
@@ -917,9 +964,154 @@ namespace nre
         result.shape = eastl::move(new_vertex_datas);
         result.local_cluster_triangle_vertex_ids = eastl::move(new_local_cluster_triangle_vertex_ids);
 
+#ifdef NCPP_ENABLE_INFO
+        {
+            NCPP_INFO()
+                << "original vertices: " << T_cout_value(geometry.shape.size()) << std::endl
+                << "new vertices: " << T_cout_value(result.shape.size()) << std::endl
+                << "    [vertex ratio: " << (f32(result.shape.size()) / f32(vertex_count)) << "]";
+        }
+#endif
+
         NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(result));
 
         return eastl::move(result);
+    }
+    f32 H_clustered_geometry::estimate_avg_edge_length(
+        const F_raw_clustered_geometry& geometry
+    )
+    {
+        F_cluster_id cluster_count = geometry.graph.size();
+
+        if(cluster_count == 0)
+            return T_default_tolerance<f32>;
+
+        TG_vector<f32> cluster_id_to_avg_edge_length(cluster_count);
+
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_cluster_id cluster_id)
+            {
+                auto& cluster_header = geometry.graph[cluster_id];
+
+                if(cluster_header.local_triangle_vertex_id_count)
+                {
+                    f32 avg_edge_length = 0.0f;
+                    for(u32 i = 0; i < cluster_header.local_triangle_vertex_id_count; i += 3)
+                    {
+                        auto local_index0 = geometry.local_cluster_triangle_vertex_ids[
+                            cluster_header.local_triangle_vertex_id_offset
+                            + i
+                        ];
+                        auto local_index1 = geometry.local_cluster_triangle_vertex_ids[
+                            cluster_header.local_triangle_vertex_id_offset
+                            + i
+                            + 1
+                        ];
+                        auto local_index2 = geometry.local_cluster_triangle_vertex_ids[
+                            cluster_header.local_triangle_vertex_id_offset
+                            + i
+                            + 2
+                        ];
+
+                        F_global_vertex_id vertex_id0 = (
+                            cluster_header.vertex_offset
+                            + F_global_vertex_id(local_index0)
+                        );
+                        F_global_vertex_id vertex_id1 = (
+                            cluster_header.vertex_offset
+                            + F_global_vertex_id(local_index1)
+                            );
+                        F_global_vertex_id vertex_id2 = (
+                            cluster_header.vertex_offset
+                            + F_global_vertex_id(local_index2)
+                        );
+
+                        auto& vertex_data0 = geometry.shape[vertex_id0];
+                        auto& vertex_data1 = geometry.shape[vertex_id1];
+                        auto& vertex_data2 = geometry.shape[vertex_id2];
+
+                        avg_edge_length += length(vertex_data0.position - vertex_data1.position);
+                        avg_edge_length += length(vertex_data1.position - vertex_data2.position);
+                        avg_edge_length += length(vertex_data2.position - vertex_data0.position);
+                    }
+                    avg_edge_length /= f32(cluster_header.local_triangle_vertex_id_count);
+                    cluster_id_to_avg_edge_length[cluster_id] = avg_edge_length;
+                }
+                else
+                {
+                    cluster_id_to_avg_edge_length[cluster_id] = T_default_tolerance<f32>;
+                }
+            },
+            {
+                .parallel_count = cluster_count,
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
+            }
+        );
+
+        f32 avg_edge_length = 0.0f;
+        for(u32 i = 0; i < cluster_count; ++i)
+        {
+            avg_edge_length += cluster_id_to_avg_edge_length[i];
+        }
+        avg_edge_length /= f32(cluster_count);
+
+        return avg_edge_length;
+    }
+    f32 H_clustered_geometry::estimate_avg_cluster_edge_length(
+        const F_raw_clustered_geometry& geometry,
+        F_cluster_id cluster_id
+    )
+    {
+        auto& cluster_header = geometry.graph[cluster_id];
+
+        if(cluster_header.local_triangle_vertex_id_count)
+        {
+            f32 avg_edge_length = 0.0f;
+            for(u32 i = 0; i < cluster_header.local_triangle_vertex_id_count; i += 3)
+            {
+                auto local_index0 = geometry.local_cluster_triangle_vertex_ids[
+                    cluster_header.local_triangle_vertex_id_offset
+                    + i
+                ];
+                auto local_index1 = geometry.local_cluster_triangle_vertex_ids[
+                    cluster_header.local_triangle_vertex_id_offset
+                    + i
+                    + 1
+                ];
+                auto local_index2 = geometry.local_cluster_triangle_vertex_ids[
+                    cluster_header.local_triangle_vertex_id_offset
+                    + i
+                    + 2
+                ];
+
+                F_global_vertex_id vertex_id0 = (
+                    cluster_header.vertex_offset
+                    + F_global_vertex_id(local_index0)
+                );
+                F_global_vertex_id vertex_id1 = (
+                    cluster_header.vertex_offset
+                    + F_global_vertex_id(local_index1)
+                    );
+                F_global_vertex_id vertex_id2 = (
+                    cluster_header.vertex_offset
+                    + F_global_vertex_id(local_index2)
+                );
+
+                auto& vertex_data0 = geometry.shape[vertex_id0];
+                auto& vertex_data1 = geometry.shape[vertex_id1];
+                auto& vertex_data2 = geometry.shape[vertex_id2];
+
+                avg_edge_length += length(vertex_data0.position - vertex_data1.position);
+                avg_edge_length += length(vertex_data1.position - vertex_data2.position);
+                avg_edge_length += length(vertex_data2.position - vertex_data0.position);
+            }
+            avg_edge_length /= f32(cluster_header.local_triangle_vertex_id_count);
+            return avg_edge_length;
+        }
+        else
+        {
+            return T_default_tolerance<f32>;
+        }
     }
     F_raw_clustered_geometry H_clustered_geometry::remove_unused_vertices(
         const F_raw_clustered_geometry& geometry
@@ -1021,6 +1213,15 @@ namespace nre
         );
 
         result.shape.resize(next_vertex_location);
+
+#ifdef NCPP_ENABLE_INFO
+        {
+            NCPP_INFO()
+                << "original vertices: " << T_cout_value(geometry.shape.size()) << std::endl
+                << "new vertices: " << T_cout_value(result.shape.size()) << std::endl
+                << "    [vertex ratio: " << (f32(result.shape.size()) / f32(vertex_count)) << "]";
+        }
+#endif
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(result));
 
@@ -1127,6 +1328,20 @@ namespace nre
         new_local_cluster_triangle_vertex_ids.resize(next_index_location);
 
         result.local_cluster_triangle_vertex_ids = eastl::move(new_local_cluster_triangle_vertex_ids);
+
+#ifdef NCPP_ENABLE_INFO
+        {
+            NCPP_INFO()
+                << "target ratio: " << T_cout_value(options.target_ratio) << std::endl
+                << "max error: " << T_cout_value(options.max_error) << std::endl
+                << "original vertices: " << T_cout_value(geometry.shape.size()) << std::endl
+                << "new vertices: " << T_cout_value(result.shape.size()) << std::endl
+                << "    [vertex ratio: " << (f32(result.shape.size()) / f32(geometry.shape.size())) << "]" << std::endl
+                << "original indices: " << T_cout_value(geometry.local_cluster_triangle_vertex_ids.size()) << std::endl
+                << "new indices: " << T_cout_value(result.local_cluster_triangle_vertex_ids.size()) << std::endl
+                << "    [index ratio: " << (f32(result.local_cluster_triangle_vertex_ids.size()) / f32(geometry.local_cluster_triangle_vertex_ids.size())) << "]";
+        }
+#endif
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(result));
 
@@ -1295,6 +1510,21 @@ namespace nre
         out_cluster_group_child_ids.resize(next_cluster_location);
         result.shape.resize(next_vertex_location);
         result.local_cluster_triangle_vertex_ids.resize(next_local_cluster_triangle_vertex_id_location);
+
+#ifdef NCPP_ENABLE_INFO
+        {
+            NCPP_INFO()
+                << "original clusters: " << T_cout_value(geometry.graph.size()) << std::endl
+                << "new clusters: " << T_cout_value(result.graph.size()) << std::endl
+                << "    [cluster ratio: " << (f32(result.graph.size()) / f32(geometry.graph.size())) << "]" << std::endl
+                << "original vertices: " << T_cout_value(geometry.shape.size()) << std::endl
+                << "new vertices: " << T_cout_value(result.shape.size()) << std::endl
+                << "    [vertex ratio: " << (f32(result.shape.size()) / f32(geometry.shape.size())) << "]" << std::endl
+                << "original indices: " << T_cout_value(geometry.local_cluster_triangle_vertex_ids.size()) << std::endl
+                << "new indices: " << T_cout_value(result.local_cluster_triangle_vertex_ids.size()) << std::endl
+                << "    [index ratio: " << (f32(result.local_cluster_triangle_vertex_ids.size()) / f32(geometry.local_cluster_triangle_vertex_ids.size())) << "]";
+        }
+#endif
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(result));
 
@@ -1572,6 +1802,21 @@ namespace nre
             }
 
             NCPP_ENABLE_IF_ASSERTION_ENABLED(validate(next_level_geometry));
+
+#ifdef NCPP_ENABLE_INFO
+            {
+                NCPP_INFO()
+                    << "original clusters: " << T_cout_value(geometry.graph.size()) << std::endl
+                    << "new clusters: " << T_cout_value(next_level_geometry.graph.size()) << std::endl
+                    << "    [cluster ratio: " << (f32(next_level_geometry.graph.size()) / f32(geometry.graph.size())) << "]" << std::endl
+                    << "original vertices: " << T_cout_value(geometry.shape.size()) << std::endl
+                    << "new vertices: " << T_cout_value(next_level_geometry.shape.size()) << std::endl
+                    << "    [vertex ratio: " << (f32(next_level_geometry.shape.size()) / f32(geometry.shape.size())) << "]" << std::endl
+                    << "original indices: " << T_cout_value(geometry.local_cluster_triangle_vertex_ids.size()) << std::endl
+                    << "new indices: " << T_cout_value(next_level_geometry.local_cluster_triangle_vertex_ids.size()) << std::endl
+                    << "    [index ratio: " << (f32(next_level_geometry.local_cluster_triangle_vertex_ids.size()) / f32(geometry.local_cluster_triangle_vertex_ids.size())) << "]";
+            }
+#endif
 
             return eastl::move(next_level_geometry);
         }

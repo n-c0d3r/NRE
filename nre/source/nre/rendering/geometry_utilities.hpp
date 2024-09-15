@@ -284,7 +284,8 @@ namespace nre
     struct F_clustered_geometry_merge_near_vertices_options
     {
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
-        f32 max_distance = 0.0001f;
+        f32 threshold_ratio = 2.0f;
+        f32 max_distance = 0.001f;
     };
     struct F_clustered_geometry_simplify_clusters_options
     {
@@ -296,6 +297,7 @@ namespace nre
     };
     struct F_clustered_geometry_build_cluster_adjacency_options
     {
+        f32 threshold_ratio = 0.001f;
         f32 max_distance = 0.0001f;
     };
     struct F_clustered_geometry_build_next_level_options
@@ -697,6 +699,13 @@ namespace nre
         static F_raw_clustered_geometry merge_near_vertices(
             const F_raw_clustered_geometry& geometry,
             const F_clustered_geometry_merge_near_vertices_options& options = {}
+        );
+        static f32 estimate_avg_edge_length(
+            const F_raw_clustered_geometry& geometry
+        );
+        static f32 estimate_avg_cluster_edge_length(
+            const F_raw_clustered_geometry& geometry,
+            F_cluster_id cluster_id
         );
         static F_raw_clustered_geometry remove_unused_vertices(
             const F_raw_clustered_geometry& geometry

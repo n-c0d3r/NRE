@@ -23,9 +23,9 @@ namespace nre::newrg
             simplify_clusters_options.max_error *= 2.0f;
             simplify_clusters_options.remove_duplicated_vertices_options.merge_vertices_options.min_normal_dot *= 0.75f;
             simplify_clusters_options.merge_near_vertices_options.merge_vertices_options.min_normal_dot *= 0.75f;
-            simplify_clusters_options.merge_near_vertices_options.max_distance *= 2.5f;
+            simplify_clusters_options.merge_near_vertices_options.max_distance *= 2.0f;
 
-            build_next_level_options.build_cluster_adjacency_options.max_distance *= 2.5f;
+            build_next_level_options.build_cluster_adjacency_options.max_distance *= 2.0f;
         }
 
         return eastl::move(result);
@@ -153,6 +153,15 @@ namespace nre::newrg
                 .local_cluster_triangle_vertex_ids = result.local_cluster_triangle_vertex_ids
             };
 
+            NCPP_INFO()
+                << "loaded LOD[" << T_cout_value(0) << "]"
+                << std::endl
+                << "clusters: " << T_cout_value(geometry.graph.size())
+                << std::endl
+                << "vertices: " << T_cout_value(geometry.shape.size())
+                << std::endl
+                << "indices: " << T_cout_value(geometry.local_cluster_triangle_vertex_ids.size());
+
             for(u32 cluster_level_index = 1; cluster_level_index < options.max_level_count; ++cluster_level_index)
             {
                 // group clusters in the current geometry
@@ -173,16 +182,43 @@ namespace nre::newrg
                     );
                 }
 
+                NCPP_INFO()
+                    << "groupped_geometries[" << T_cout_value(cluster_level_index) << "]"
+                    << std::endl
+                    << "clusters: " << T_cout_value(groupped_geometry.graph.size())
+                    << std::endl
+                    << "vertices: " << T_cout_value(groupped_geometry.shape.size())
+                    << std::endl
+                    << "indices: " << T_cout_value(groupped_geometry.local_cluster_triangle_vertex_ids.size());
+
                 // simplify
                 F_raw_clustered_geometry simplified_geometry = H_clustered_geometry::simplify_clusters(
                     groupped_geometry,
                     simplify_clusters_options
                 );
 
+                NCPP_INFO()
+                    << "simplified_geometries[" << T_cout_value(cluster_level_index) << "]"
+                    << std::endl
+                    << "clusters: " << T_cout_value(simplified_geometry.graph.size())
+                    << std::endl
+                    << "vertices: " << T_cout_value(simplified_geometry.shape.size())
+                    << std::endl
+                    << "indices: " << T_cout_value(simplified_geometry.local_cluster_triangle_vertex_ids.size());
+
                 // optimize
                 F_raw_clustered_geometry optimized_geometry = H_clustered_geometry::remove_unused_vertices(
                     simplified_geometry
                 );
+
+                NCPP_INFO()
+                    << "optimized_geometries[" << T_cout_value(cluster_level_index) << "]"
+                    << std::endl
+                    << "clusters: " << T_cout_value(optimized_geometry.graph.size())
+                    << std::endl
+                    << "vertices: " << T_cout_value(optimized_geometry.shape.size())
+                    << std::endl
+                    << "indices: " << T_cout_value(optimized_geometry.local_cluster_triangle_vertex_ids.size());
 
                 // split
                 TG_vector<F_cluster_id> split_cluster_group_child_ids;
@@ -191,8 +227,21 @@ namespace nre::newrg
                     split_cluster_group_child_ids
                 );
 
+                NCPP_INFO()
+                    << "splitted_geometries[" << T_cout_value(cluster_level_index) << "]"
+                    << std::endl
+                    << "clusters: " << T_cout_value(next_level_geometry.graph.size())
+                    << std::endl
+                    << "vertices: " << T_cout_value(next_level_geometry.shape.size())
+                    << std::endl
+                    << "indices: " << T_cout_value(next_level_geometry.local_cluster_triangle_vertex_ids.size());
+
                 if(next_level_geometry.graph.size() >= max_cluster_count)
+                {
+                    NCPP_WARNING(false)
+                        << "stopped due to non-reduced number of clusters: " << T_cout_value(next_level_geometry.graph.size());
                     break;
+                }
 
                 // store next level
                 {
@@ -317,8 +366,17 @@ namespace nre::newrg
                     current_level_local_cluster_triangle_vertex_id_offset = next_level_local_cluster_triangle_vertex_id_offset;
                 }
 
+                NCPP_INFO()
+                    << "loaded LOD[" << T_cout_value(cluster_level_index) << "]"
+                    << std::endl
+                    << "clusters: " << T_cout_value(next_level_geometry.graph.size())
+                    << std::endl
+                    << "vertices: " << T_cout_value(next_level_geometry.shape.size())
+                    << std::endl
+                    << "indices: " << T_cout_value(next_level_geometry.local_cluster_triangle_vertex_ids.size());
+
                 //
-                if(groupped_geometry.graph.size() == 1)
+                if(next_level_geometry.graph.size() == 1)
                     break;
 
                 //
