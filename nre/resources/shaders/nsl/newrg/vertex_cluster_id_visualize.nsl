@@ -68,8 +68,8 @@ pixel_shader ps_main
 @rasterizer
 (
 	cull_mode(NONE)
-	fill_mode(WIREFRAME)
-	// fill_mode(SOLID)
+	// fill_mode(WIREFRAME)
+	fill_mode(SOLID)
 )
 @depth_stencil
 (

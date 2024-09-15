@@ -274,8 +274,8 @@ namespace nre
 
     struct F_clustered_geometry_merge_vertices_options
     {
-        f32 min_normal_dot = 0.2f;
-        f32 max_texcoord_error = 0.05f;
+        f32 min_normal_dot = 0.75f;
+        f32 max_texcoord_error = 0.002f;
     };
     struct F_clustered_geometry_remove_duplicated_vertices_options
     {
