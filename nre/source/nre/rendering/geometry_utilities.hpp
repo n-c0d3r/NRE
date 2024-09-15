@@ -284,13 +284,14 @@ namespace nre
     struct F_clustered_geometry_merge_near_vertices_options
     {
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
-        f32 threshold_ratio = 2.0f;
-        f32 max_distance = 0.001f;
+        f32 threshold_ratio = 0.5f;
+        f32 max_distance = 0.00001f;
     };
     struct F_clustered_geometry_simplify_clusters_options
     {
         F_clustered_geometry_remove_duplicated_vertices_options remove_duplicated_vertices_options;
         F_clustered_geometry_merge_near_vertices_options merge_near_vertices_options;
+        F_clustered_geometry_merge_vertices_options merge_vertices_options;
 
         f32 target_ratio = 0.5f;
         f32 max_error = 0.01f;

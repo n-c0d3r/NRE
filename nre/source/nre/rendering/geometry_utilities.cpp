@@ -1234,7 +1234,10 @@ namespace nre
     {
         F_raw_clustered_geometry result;
 
-        if(options.merge_near_vertices_options.max_distance > T_default_tolerance<f32>)
+        if(
+            (options.merge_near_vertices_options.max_distance > T_default_tolerance<f32>)
+            && (geometry.graph.size() > 1)
+        )
         {
             result = merge_near_vertices(
                 geometry,
@@ -1251,6 +1254,27 @@ namespace nre
             options.remove_duplicated_vertices_options
         );
 
+        auto vertex_cluster_ids = build_vertex_cluster_ids(result.graph);
+        auto position_hash = build_position_hash(result.shape);
+        auto vertex_id_to_position = [&](F_global_vertex_id vertex_id)
+        {
+            return result.shape[vertex_id].position;
+        };
+        auto can_be_merged = [&](F_global_vertex_id a, F_global_vertex_id b)
+        {
+            return (
+                (vertex_cluster_ids[a] == vertex_cluster_ids[b])
+                && (
+                    dot(result.shape[a].normal, result.shape[b].normal)
+                    >= options.merge_vertices_options.min_normal_dot
+                )
+                && (
+                    length(result.shape[a].texcoord - result.shape[b].texcoord)
+                    <= options.merge_vertices_options.max_texcoord_error
+                )
+            );
+        };
+
         F_cluster_id cluster_count = result.graph.size();
         F_global_vertex_id vertex_count = result.shape.size();
         F_global_vertex_id local_cluster_triangle_vertex_id_count = result.local_cluster_triangle_vertex_ids.size();
@@ -1259,6 +1283,8 @@ namespace nre
         TG_vector<u32> dst_indices(local_cluster_triangle_vertex_id_count);
 
         TG_vector<u32> cluster_id_to_target_index_count(cluster_count);
+
+        TG_vector<b8> vertex_id_to_is_locked(vertex_count);
 
         TG_vector<F_raw_local_cluster_vertex_id> new_local_cluster_triangle_vertex_ids(local_cluster_triangle_vertex_id_count);
 
@@ -1271,6 +1297,32 @@ namespace nre
                 auto& cluster_header = result.graph[cluster_id];
 
                 auto& target_index_count = cluster_id_to_target_index_count[cluster_id];
+
+                // mark some vertices as locked
+                u32 locked_vertex_count = 0;
+                for(u32 i = 0; i < cluster_header.vertex_count; ++i)
+                {
+                    F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
+
+                    vertex_id_to_is_locked[vertex_id] = false;
+
+                    position_hash.for_all_match(
+                        vertex_id,
+                        vertex_id_to_position,
+                        [&](F_global_vertex_id, F_global_vertex_id other_vertex_id)
+                        {
+                            if(!can_be_merged(vertex_id, other_vertex_id))
+                            {
+                                vertex_id_to_is_locked[vertex_id] = true;
+                            }
+                        }
+                    );
+
+                    if(vertex_id_to_is_locked[vertex_id])
+                    {
+                        ++locked_vertex_count;
+                    }
+                }
 
                 // setup src_indices
                 for(u32 i = 0; i < cluster_header.local_triangle_vertex_id_count; ++i)
@@ -1331,9 +1383,15 @@ namespace nre
 
 #ifdef NCPP_ENABLE_INFO
         {
+            u32 locked_vertex_count = 0;
+            for(auto is_locked : vertex_id_to_is_locked)
+                if(is_locked) ++locked_vertex_count;
+
             NCPP_INFO()
                 << "target ratio: " << T_cout_value(options.target_ratio) << std::endl
                 << "max error: " << T_cout_value(options.max_error) << std::endl
+                << "min normal dot (vertex merging): " << T_cout_value(options.merge_vertices_options.min_normal_dot) << std::endl
+                << "locked vertices: " << T_cout_value(locked_vertex_count) << std::endl
                 << "original vertices: " << T_cout_value(geometry.shape.size()) << std::endl
                 << "new vertices: " << T_cout_value(result.shape.size()) << std::endl
                 << "    [vertex ratio: " << (f32(result.shape.size()) / f32(geometry.shape.size())) << "]" << std::endl
