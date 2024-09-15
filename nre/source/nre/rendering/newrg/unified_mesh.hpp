@@ -6,4 +6,7 @@
 
 namespace nre::newrg
 {
+    class NRE_API F_unified_mesh
+    {
+    };
 }
