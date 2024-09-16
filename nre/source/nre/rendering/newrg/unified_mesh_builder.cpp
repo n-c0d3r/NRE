@@ -14,7 +14,7 @@ namespace nre::newrg
         F_clustered_geometry_simplify_clusters_options simplify_clusters_options;
         F_clustered_geometry_build_next_level_options build_next_level_options;
 
-        f32 min_normal_dot_subtract_factor = 5.0f;
+        f32 min_normal_dot_subtract_factor = 1.0f;
 
         f32 min_normal_dot_subtract_0 = simplify_clusters_options.remove_duplicated_vertices_options.merge_vertices_options.min_normal_dot * 2.0f / f32(result.max_level_count);
         f32 min_normal_dot_subtract_1 = simplify_clusters_options.merge_near_vertices_options.merge_vertices_options.min_normal_dot * 2.0f / f32(result.max_level_count);
