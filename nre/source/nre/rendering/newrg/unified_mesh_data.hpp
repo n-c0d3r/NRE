@@ -56,6 +56,7 @@ namespace nre::newrg
         TG_vector<F_compressed_vertex_data> vertex_datas;
         TG_vector<F_compressed_local_cluster_vertex_id> local_cluster_triangle_vertex_ids;
 
+        // each cluster, its vertex offset, local cluster triangle vertex id offset is belong to a subpage
         TG_vector<F_cluster_header> cluster_headers;
         TG_vector<F_cluster_culling_data> cluster_culling_datas;
         TG_vector<F_dag_node_header> dag_node_headers;
