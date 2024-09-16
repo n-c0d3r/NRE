@@ -1560,6 +1560,87 @@ namespace nre::newrg
             }
         );
 
+        //
+        sort(result);
+
         return eastl::move(result);
+    }
+    void H_unified_mesh_builder::sort(
+        F_compressed_unified_mesh_data& data
+    )
+    {
+        u32 level_count = data.dag_level_headers.size();
+        F_dag_node_id dag_node_count = data.dag_node_headers.size();
+        F_cluster_id cluster_count = data.cluster_headers.size();
+        F_global_vertex_id vertex_count = data.vertex_datas.size();
+        F_global_vertex_id local_cluster_triangle_vertex_id_count = data.local_cluster_triangle_vertex_ids.size();
+
+        F_compressed_unified_mesh_data new_data = data;
+
+        F_global_vertex_id next_vertex_offset = 0;
+        F_global_vertex_id next_local_cluster_triangle_vertex_id_offset = 0;
+        F_cluster_id next_cluster_offset = 0;
+
+        for(u32 level_index = 0; level_index < level_count; ++level_index)
+        {
+            auto& dag_level_header = data.dag_level_headers[level_index];
+
+            F_dag_node_id local_level_dag_node_count = dag_level_header.end - dag_level_header.begin;
+            for(F_dag_node_id local_level_dag_node_id = 0; local_level_dag_node_id < local_level_dag_node_count; ++local_level_dag_node_id)
+            {
+                F_dag_node_id dag_node_id = dag_level_header.begin + local_level_dag_node_id;
+
+                auto& src_dag_cluster_id_range = data.dag_cluster_id_ranges[dag_node_id];
+                auto& dst_dag_cluster_id_range = new_data.dag_cluster_id_ranges[dag_node_id];
+
+                F_cluster_id local_dag_cluster_count = src_dag_cluster_id_range.end - src_dag_cluster_id_range.begin;
+
+                dst_dag_cluster_id_range.begin = next_cluster_offset;
+
+                next_cluster_offset += local_dag_cluster_count;
+                dst_dag_cluster_id_range.end = next_cluster_offset;
+
+                for(F_cluster_id local_level_cluster_id = 0; local_level_cluster_id < local_dag_cluster_count; ++local_level_cluster_id)
+                {
+                    F_cluster_id src_cluster_id = src_dag_cluster_id_range.begin + local_level_cluster_id;
+                    F_cluster_id dst_cluster_id = dst_dag_cluster_id_range.begin + local_level_cluster_id;
+
+                    auto& src_cluster_header = data.cluster_headers[src_cluster_id];
+                    auto& dst_cluster_header = new_data.cluster_headers[dst_cluster_id];
+                    dst_cluster_header = src_cluster_header;
+
+                    auto& src_cluster_culling_data = data.cluster_culling_datas[src_cluster_id];
+                    auto& dst_cluster_culling_data = new_data.cluster_culling_datas[dst_cluster_id];
+                    dst_cluster_culling_data = src_cluster_culling_data;
+
+                    //
+                    {
+                        dst_cluster_header.vertex_offset = next_vertex_offset;
+                        dst_cluster_header.vertex_count = src_cluster_header.vertex_count;
+                        next_vertex_offset += src_cluster_header.vertex_count;
+
+                        dst_cluster_header.local_triangle_vertex_id_offset = next_local_cluster_triangle_vertex_id_offset;
+                        dst_cluster_header.local_triangle_vertex_id_count = src_cluster_header.local_triangle_vertex_id_count;
+                        next_local_cluster_triangle_vertex_id_offset += src_cluster_header.local_triangle_vertex_id_count;
+                    }
+
+                    //
+                    {
+                        memcpy(
+                            new_data.vertex_datas.data() + dst_cluster_header.vertex_offset,
+                            data.vertex_datas.data() + src_cluster_header.vertex_offset,
+                            dst_cluster_header.vertex_count * sizeof(F_compressed_vertex_data)
+                        );
+                        memcpy(
+                            new_data.local_cluster_triangle_vertex_ids.data() + dst_cluster_header.local_triangle_vertex_id_offset,
+                            data.local_cluster_triangle_vertex_ids.data() + src_cluster_header.local_triangle_vertex_id_offset,
+                            dst_cluster_header.local_triangle_vertex_id_count * sizeof(F_compressed_local_cluster_vertex_id)
+                        );
+                    }
+                }
+            }
+        }
+
+        data = eastl::move(new_data);
     }
 }

@@ -67,5 +67,8 @@ namespace nre::newrg
         static F_compressed_unified_mesh_data compress(
             const F_raw_unified_mesh_data& data
         );
+        static void sort(
+            F_compressed_unified_mesh_data& data
+        );
     };
 }

@@ -530,6 +530,9 @@ namespace nre
             F_cluster_node_header node_header = index_to_node_header_functor(node_header_index);
             u32 hash_key = TF_hash<F_cluster_node_header>()(node_header);
 
+            if(node_header.is_null())
+                return;
+
             for(
                 u32 other_node_header_index = hash_table.first(hash_key);
                 hash_table.is_valid(other_node_header_index);
