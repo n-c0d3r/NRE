@@ -882,12 +882,16 @@ namespace nre::newrg
         using F_cluster_corner_array = TG_array<F_vector3_f32, 6>;
         TG_vector<F_cluster_corner_array> cluster_corner_arrays(cluster_count);
 
+        //
+        TG_vector<f32> cluster_avg_edge_lengths(cluster_count);
+        for(auto& cluster_avg_edge_length : cluster_avg_edge_lengths) cluster_avg_edge_length = NMATH_F32_INFINITY;
+
         // build cluster_corner_arrays
         NTS_AWAIT_BLOCKABLE NTS_ASYNC(
             [&](F_cluster_id dag_sorted_cluster_id)
             {
                 auto& cluster_corner_array = cluster_corner_arrays[dag_sorted_cluster_id];
-                auto dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
+                auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
                 F_vector3_f32 pivot = dag_sorted_cluster_culling_data.pivot();
                 F_vector3_f32 scaled_right = dag_sorted_cluster_culling_data.scaled_right();
@@ -932,6 +936,68 @@ namespace nre::newrg
                 .parallel_count = cluster_count,
                 .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
             }
+            );
+
+        // build cluster_avg_edge_lengths
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_cluster_id dag_sorted_cluster_id)
+            {
+                auto& cluster_avg_edge_length = cluster_avg_edge_lengths[dag_sorted_cluster_id];
+                auto& cluster_header = data.cluster_headers[dag_sorted_cluster_id];
+
+                if(cluster_header.local_triangle_vertex_id_count)
+                {
+                    f32 avg_edge_length = 0.0f;
+                    for(u32 i = 0; i < cluster_header.local_triangle_vertex_id_count; i += 3)
+                    {
+                        auto local_index0 = data.local_cluster_triangle_vertex_ids[
+                            cluster_header.local_triangle_vertex_id_offset
+                            + i
+                        ];
+                        auto local_index1 = data.local_cluster_triangle_vertex_ids[
+                            cluster_header.local_triangle_vertex_id_offset
+                            + i
+                            + 1
+                        ];
+                        auto local_index2 = data.local_cluster_triangle_vertex_ids[
+                            cluster_header.local_triangle_vertex_id_offset
+                            + i
+                            + 2
+                        ];
+
+                        F_global_vertex_id vertex_id0 = (
+                            cluster_header.vertex_offset
+                            + F_global_vertex_id(local_index0)
+                        );
+                        F_global_vertex_id vertex_id1 = (
+                            cluster_header.vertex_offset
+                            + F_global_vertex_id(local_index1)
+                            );
+                        F_global_vertex_id vertex_id2 = (
+                            cluster_header.vertex_offset
+                            + F_global_vertex_id(local_index2)
+                        );
+
+                        auto& vertex_data0 = data.vertex_datas[vertex_id0];
+                        auto& vertex_data1 = data.vertex_datas[vertex_id1];
+                        auto& vertex_data2 = data.vertex_datas[vertex_id2];
+
+                        avg_edge_length += length(vertex_data0.position - vertex_data1.position);
+                        avg_edge_length += length(vertex_data1.position - vertex_data2.position);
+                        avg_edge_length += length(vertex_data2.position - vertex_data0.position);
+                    }
+                    avg_edge_length /= f32(cluster_header.local_triangle_vertex_id_count);
+                    cluster_avg_edge_length = avg_edge_length;
+                }
+                else
+                {
+                    cluster_avg_edge_length = T_default_tolerance<f32>;
+                }
+            },
+            {
+                .parallel_count = cluster_count,
+                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
+            }
         );
 
         // build dag_node_culling_datas based on clusters
@@ -965,7 +1031,7 @@ namespace nre::newrg
                             ++dag_sorted_cluster_id
                         )
                         {
-                            auto dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
+                            auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
                             center += dag_sorted_cluster_culling_data.pivot_and_min_forward_dot.xyz();
                         }
@@ -981,7 +1047,7 @@ namespace nre::newrg
                             ++dag_sorted_cluster_id
                         )
                         {
-                            auto dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
+                            auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
                             forward += normalize(
                                 dag_sorted_cluster_culling_data.scaled_forward()
@@ -999,7 +1065,7 @@ namespace nre::newrg
                             ++dag_sorted_cluster_id
                         )
                         {
-                            auto dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
+                            auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
                             f32 forward_dot = dot(
                                 forward,
@@ -1133,13 +1199,31 @@ namespace nre::newrg
                         }
                     }
 
+                    // threshold
+                    f32 threshold = 0.0f;
+                    {
+                        for(
+                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
+                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
+                            ++dag_sorted_cluster_id
+                        )
+                        {
+                            auto cluster_avg_edge_length = cluster_avg_edge_lengths[dag_sorted_cluster_id];
+
+                            threshold += cluster_avg_edge_length / f32(dag_sorted_cluster_id_range.end - dag_sorted_cluster_id_range.begin);
+                        }
+                    }
+
                     // store back culling data
                     {
                         dag_node_culling_data.pivot_and_min_forward_dot = {
                             pivot,
                             min_forward_dot
                         };
-                        dag_node_culling_data.scaled_up = up * up_scale_factor;
+                        dag_node_culling_data.scaled_up_and_threshold = {
+                            up * up_scale_factor,
+                            threshold
+                        };
                         dag_node_culling_data.scaled_forward_and_right_scale_factor = {
                             forward * forward_scale_factor,
                             right_scale_factor
@@ -1166,7 +1250,7 @@ namespace nre::newrg
 
                 F_vector3_f32 pivot = dag_node_culling_data.pivot();
                 F_vector3_f32 scaled_right = dag_node_culling_data.scaled_right();
-                F_vector3_f32 scaled_up = dag_node_culling_data.scaled_up;
+                F_vector3_f32 scaled_up = dag_node_culling_data.scaled_up();
                 F_vector3_f32 scaled_forward = dag_node_culling_data.scaled_forward();
 
                 dag_node_corner_array[0] = (
@@ -1209,7 +1293,7 @@ namespace nre::newrg
             }
         );
 
-        // build dag_node_culling_datas based on clusters
+        // build dag_node_culling_datas based on childs
         for(u32 level_index = 0; level_index < level_count; ++level_index)
         {
             auto& dag_level_header = data.dag_level_headers[level_index];
@@ -1237,7 +1321,7 @@ namespace nre::newrg
                     f32 min_forward_dot = dag_node_culling_data.min_forward_dot();
 
                     // calculate up
-                    F_vector3_f32 up = normalize(dag_node_culling_data.scaled_up);
+                    F_vector3_f32 up = normalize(dag_node_culling_data.scaled_up());
 
                     // calculate right
                     F_vector3_f32 right = normalize(dag_node_culling_data.scaled_right());
@@ -1363,13 +1447,33 @@ namespace nre::newrg
                         }
                     }
 
+                    // threshold
+                    f32 threshold = dag_node_culling_data.threshold();
+                    {
+                        for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
+                        {
+                            F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
+
+                            if(dag_child_id == NCPP_U32_MAX)
+                                continue;
+
+                            threshold = eastl::max<f32>(
+                                threshold,
+                                data.dag_node_culling_datas[dag_child_id].threshold()
+                            );
+                        }
+                    }
+
                     // store back culling data
                     {
                         dag_node_culling_data.pivot_and_min_forward_dot = {
                             pivot,
                             min_forward_dot
                         };
-                        dag_node_culling_data.scaled_up = up * up_scale_factor;
+                        dag_node_culling_data.scaled_up_and_threshold = {
+                            up * up_scale_factor,
+                            threshold
+                        };
                         dag_node_culling_data.scaled_forward_and_right_scale_factor = {
                             forward * forward_scale_factor,
                             right_scale_factor
