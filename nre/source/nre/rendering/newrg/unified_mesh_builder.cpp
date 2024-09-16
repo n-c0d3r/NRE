@@ -1661,6 +1661,9 @@ namespace nre::newrg
 
         F_cluster_id cluster_offset = 0;
 
+        F_cluster_id next_vertex_offset = 0;
+        F_cluster_id next_local_cluster_triangle_vertex_id_offset = 0;
+
         for(u32 subpage_index = 0; subpage_index < subpage_count; ++subpage_index)
         {
             auto& subpage_vertex_count = data.subpage_vertex_counts[subpage_index];
@@ -1677,10 +1680,15 @@ namespace nre::newrg
             {
                 auto& cluster_header = data.cluster_headers[cluster_id];
 
+                cluster_header.vertex_offset -= next_vertex_offset;
+                cluster_header.local_triangle_vertex_id_offset -= next_local_cluster_triangle_vertex_id_offset;
+
                 subpage_vertex_count += cluster_header.vertex_count;
                 subpage_local_cluster_triangle_vertex_id_count += cluster_header.local_triangle_vertex_id_count;
             }
 
+            next_vertex_offset += subpage_vertex_count;
+            next_local_cluster_triangle_vertex_id_offset += subpage_local_cluster_triangle_vertex_id_count;
             cluster_offset += NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS;
         }
     }

@@ -12,9 +12,6 @@ namespace nre::newrg
 {
     struct NCPP_ALIGN(16) F_unified_mesh_header
     {
-        u32 subpage_count = 0;
-        u32 subpage_offset = 0;
-
         u32 cluster_count = 0;
         u32 cluster_offset = 0;
 
@@ -23,6 +20,9 @@ namespace nre::newrg
 
         u32 root_dag_node_count = 0;
         u32 root_dag_node_offset = 0;
+
+        u16 subpage_count = 0;
+        u16 subpage_offset = 0;
     };
     struct NCPP_ALIGN(16) F_unified_mesh_subpage_header
     {
