@@ -29,7 +29,7 @@ int main() {
 
 	auto render_path_p = TU<F_render_path>()();
 
-	auto rock_umesh_asset_p = H_unified_mesh_asset::load("models/hq_cube.obj");
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
 
 
 
