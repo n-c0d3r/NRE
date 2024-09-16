@@ -42,9 +42,9 @@ namespace nre {
 	public:
 		template<typename F_asset_factory__>
 		requires T_is_object_down_castable<F_asset_factory__, A_asset_factory>
-		TK_valid<F_asset_factory__> T_registry_asset_factory()
+		TK_valid<F_asset_factory__> T_registry_asset_factory(auto&&... args)
 		{
-			auto asset_factory_p = TU<F_asset_factory__>()();
+			auto asset_factory_p = TU<F_asset_factory__>()(NCPP_FORWARD(args)...);
 			auto keyed_asset_factory_p = NCPP_FOH_VALID(asset_factory_p);
 
 			asset_factory_p_vector_.push_back(

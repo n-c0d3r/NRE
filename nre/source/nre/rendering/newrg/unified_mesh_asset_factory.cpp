@@ -1,5 +1,7 @@
 #include <nre/rendering/newrg/unified_mesh_asset_factory.hpp>
 #include <nre/rendering/newrg/unified_mesh_asset.hpp>
+#include <nre/io/file_system.hpp>
+#include <nre/io/file_loader_system.hpp>
 
 
 
@@ -27,7 +29,11 @@ namespace nre::newrg
 
 	TS<A_asset> F_unified_mesh_asset_factory::build_from_memory(const G_string& abs_path, const F_asset_buffer& asset_buffer)
 	{
-		return null;
+		F_compressed_unified_mesh_data compressed_data;
+		if(!(NRE_FILE_LOADER_SYSTEM()->T_load<F_compressed_unified_mesh_data>(abs_path, compressed_data)))
+			return null;
+
+		return TS<F_unified_mesh_asset>()(abs_path, compressed_data);
 	}
 	E_asset_build_mode F_unified_mesh_asset_factory::build_mode()
 	{

@@ -21,4 +21,8 @@ namespace nre::newrg
     {
         compressed_data_ = new_compressed_data;
     }
+    void F_unified_mesh::release_compressed_data()
+    {
+        compressed_data_ = {};
+    }
 }

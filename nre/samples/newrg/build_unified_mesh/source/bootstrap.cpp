@@ -32,10 +32,10 @@ int main() {
 	auto original_mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/rock.obj").T_cast<F_static_mesh_asset>();
 	auto original_mesh_p = original_mesh_asset_p->mesh_p;
 	const auto& original_vertex_channels = original_mesh_p->vertex_channels();
-	const auto& original_positions = eastl::get<0>(original_vertex_channels);
-	const auto& original_normals = eastl::get<1>(original_vertex_channels);
-	const auto& original_tangents = eastl::get<2>(original_vertex_channels);
-	const auto& original_texcoords = eastl::get<3>(original_vertex_channels);
+	const auto& original_positions = eastl::get<NRE_STATIC_MESH_DEFAULT_VERTEX_CHANNEL_INDEX_POSITION>(original_vertex_channels);
+	const auto& original_normals = eastl::get<NRE_STATIC_MESH_DEFAULT_VERTEX_CHANNEL_INDEX_NORMAL>(original_vertex_channels);
+	const auto& original_tangents = eastl::get<NRE_STATIC_MESH_DEFAULT_VERTEX_CHANNEL_INDEX_TANGENT>(original_vertex_channels);
+	const auto& original_texcoords = eastl::get<NRE_STATIC_MESH_DEFAULT_VERTEX_CHANNEL_INDEX_TEXCOORD>(original_vertex_channels);
 	const auto& original_indices = original_mesh_p->indices();
 
 	auto raw_unified_mesh_data = H_unified_mesh_builder::build(

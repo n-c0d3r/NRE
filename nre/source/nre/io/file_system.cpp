@@ -1,5 +1,7 @@
 #include <nre/io/file_system.hpp>
 #include <nre/io/windows_file_system.hpp>
+#include <nre/io/file_saver_system.hpp>
+#include <nre/io/file_loader_system.hpp>
 
 
 
@@ -12,6 +14,9 @@ namespace nre
     A_file_system::A_file_system()
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
+
+        saver_system_p_ = TU<F_file_saver_system>()();
+        loader_system_p_ = TU<F_file_loader_system>()();
     }
     A_file_system::~A_file_system()
     {

@@ -6,6 +6,11 @@
 
 namespace nre
 {
+    class F_file_saver_system;
+    class F_file_loader_system;
+
+
+
     class NRE_API A_file_system
     {
     private:
@@ -13,6 +18,12 @@ namespace nre
 
     public:
         static NCPP_FORCE_INLINE TKPA_valid<A_file_system> instance_p() { return (TKPA_valid<A_file_system>)instance_p_; }
+
+
+
+    private:
+        TU<F_file_saver_system> saver_system_p_;
+        TU<F_file_loader_system> loader_system_p_;
 
 
 
@@ -56,3 +67,7 @@ namespace nre
         static TU<A_file_system> create_internal();
     };
 }
+
+
+
+#define NRE_FILE_SYSTEM() nre::A_file_system::instance_p()

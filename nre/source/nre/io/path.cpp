@@ -113,7 +113,7 @@ namespace nre
 	{
 		auto extension = H_path::extension(path);
 
-		return path.substr(0, path.size() - extension.size());
+		return path.substr(0, eastl::max<ptrd>(ptrd(path.size() - extension.size()) - 1, 0));
 	}
 	G_string H_path::base_name(const G_string& path) {
 

@@ -3,6 +3,8 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/geometry_utilities.hpp>
+#include <nre/io/file_saver.hpp>
+#include <nre/io/file_loader.hpp>
 
 
 
@@ -35,5 +37,39 @@ namespace nre::newrg
         TG_vector<F_cluster_id_range> dag_cluster_id_ranges;
         TG_vector<F_dag_node_culling_data> dag_node_culling_datas;
         TG_vector<F_dag_level_header> dag_level_headers;
+    };
+
+
+
+    class NRE_API F_compressed_unified_mesh_data_file_saver final : public TA_file_saver<F_compressed_unified_mesh_data>
+    {
+    public:
+        F_compressed_unified_mesh_data_file_saver();
+        ~F_compressed_unified_mesh_data_file_saver() override;
+
+    public:
+        NCPP_OBJECT(F_compressed_unified_mesh_data_file_saver);
+
+
+
+    protected:
+        b8 save(const G_string& abs_path, const F_compressed_unified_mesh_data& data, u32 flags) override;
+    };
+
+
+
+    class NRE_API F_compressed_unified_mesh_data_file_loader final : public TA_file_loader<F_compressed_unified_mesh_data>
+    {
+    public:
+        F_compressed_unified_mesh_data_file_loader();
+        ~F_compressed_unified_mesh_data_file_loader() override;
+
+    public:
+        NCPP_OBJECT(F_compressed_unified_mesh_data_file_loader);
+
+
+
+    protected:
+        b8 load(const G_string& abs_path, F_compressed_unified_mesh_data& data, u32 flags) override;
     };
 }

@@ -1393,6 +1393,7 @@ namespace nre::newrg
         F_global_vertex_id vertex_count = data.vertex_datas.size();
         F_global_vertex_id local_cluster_triangle_vertex_id_count = data.local_cluster_triangle_vertex_ids.size();
 
+        result.local_cluster_triangle_vertex_ids.resize(local_cluster_triangle_vertex_id_count);
         for(u32 i = 0; i < local_cluster_triangle_vertex_id_count; ++i)
         {
             result.local_cluster_triangle_vertex_ids[i] = data.local_cluster_triangle_vertex_ids[i];

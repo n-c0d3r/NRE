@@ -30,5 +30,6 @@ namespace nre::newrg
 
     public:
         void update_compressed_data(const F_compressed_unified_mesh_data& new_compressed_data);
+        void release_compressed_data();
     };
 }

@@ -5,6 +5,7 @@
 #include <nre/asset/static_mesh_asset.hpp>
 #include <nre/rendering/static_mesh.hpp>
 #include <nre/io/path.hpp>
+#include <nre/io/file_saver_system.hpp>
 
 
 namespace nre::newrg
@@ -105,7 +106,13 @@ namespace nre::newrg
 
         F_compressed_unified_mesh_data compressed_data = H_unified_mesh_builder::compress(raw_data);
 
-        return null;
-        // return TS<F_unified_mesh_asset>()(abs_path, compressed_data);
+        G_string new_abs_path = H_path::base_name(original_mesh_asset_p->abs_path()) + "/" + asset_name_without_extension + "." + NRE_NEWRG_UNIFIED_MESH_ASSET_FACTORY_FILE_EXTENSION;
+
+        NRE_FILE_SAVER_SYSTEM()->T_save<F_compressed_unified_mesh_data>(
+            new_abs_path,
+            compressed_data
+        );
+
+        return TS<F_unified_mesh_asset>()(new_abs_path, compressed_data);
     }
 }
