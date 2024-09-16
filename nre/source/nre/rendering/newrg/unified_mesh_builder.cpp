@@ -1563,6 +1563,9 @@ namespace nre::newrg
         //
         sort(result);
 
+        //
+        build_subpages(result);
+
         return eastl::move(result);
     }
     void H_unified_mesh_builder::sort(
@@ -1642,5 +1645,43 @@ namespace nre::newrg
         }
 
         data = eastl::move(new_data);
+    }
+    void H_unified_mesh_builder::build_subpages(
+        F_compressed_unified_mesh_data& data
+    )
+    {
+        F_cluster_id cluster_count = data.cluster_headers.size();
+
+        u32 subpage_count = ceil(
+            f32(cluster_count)
+            / f32(NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS)
+        );
+        data.subpage_vertex_counts.resize(subpage_count);
+        data.subpage_local_cluster_triangle_vertex_id_counts.resize(subpage_count);
+
+        F_cluster_id cluster_offset = 0;
+
+        for(u32 subpage_index = 0; subpage_index < subpage_count; ++subpage_index)
+        {
+            auto& subpage_vertex_count = data.subpage_vertex_counts[subpage_index];
+            auto& subpage_local_cluster_triangle_vertex_id_count = data.subpage_local_cluster_triangle_vertex_id_counts[subpage_index];
+
+            subpage_vertex_count = 0;
+            subpage_local_cluster_triangle_vertex_id_count = 0;
+
+            F_cluster_id end_cluster_id = eastl::min<F_cluster_id>(
+                cluster_count,
+                cluster_offset + NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS
+            );
+            for(F_cluster_id cluster_id = cluster_offset; cluster_id < end_cluster_id; ++cluster_id)
+            {
+                auto& cluster_header = data.cluster_headers[cluster_id];
+
+                subpage_vertex_count += cluster_header.vertex_count;
+                subpage_local_cluster_triangle_vertex_id_count += cluster_header.local_triangle_vertex_id_count;
+            }
+
+            cluster_offset += NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS;
+        }
     }
 }

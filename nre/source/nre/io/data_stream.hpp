@@ -81,6 +81,36 @@ namespace nre
                 span.end()
             };
         }
+        template<typename F_data__, typename F_count__ = sz>
+        TG_span<F_data__> T_read_span()
+        {
+            sz count = T_read_shallow<F_count__>();
+
+            sz data_size = count * sizeof(F_data__);
+
+            offset_ = align_address(offset_, NCPP_ALIGNOF(F_data__));
+
+            NCPP_ASSERT(offset_ + data_size <= size());
+
+            ptrd last_offset = offset_;
+
+            offset_ += data_size;
+
+            return {
+                ((F_data__*)(root_data_p() + last_offset)),
+                count
+            };
+        }
+        template<typename F_data__, typename F_count__ = sz>
+        TG_vector<F_data__> T_read_vector()
+        {
+            auto span = T_read_span<F_data__, F_count__>();
+
+            return {
+                span.begin(),
+                span.end()
+            };
+        }
 
     public:
         template<typename F_data__>
@@ -104,9 +134,14 @@ namespace nre
 
             offset_ += data_size;
         }
-        template<typename F_data__>
-        void T_write_span(const TG_span<F_data__>& data_span)
+        template<typename F_data__, typename F_count__ = sz>
+        void T_write_span(const TG_span<F_data__>& data_span, b8 store_count = true)
         {
+            if(store_count)
+            {
+                T_write_shallow<F_count__>(data_span.size());
+            }
+
             offset_ = align_address(offset_, NCPP_ALIGNOF(F_data__));
 
             sz data_size = data_span.size() * sizeof(F_data__);
@@ -125,9 +160,14 @@ namespace nre
 
             offset_ += data_size;
         }
-        template<typename F_data__>
-        void T_write_vector(const TG_vector<F_data__>& data_vector)
+        template<typename F_data__, typename F_count__ = sz>
+        void T_write_vector(const TG_vector<F_data__>& data_vector, b8 store_count = true)
         {
+            if(store_count)
+            {
+                T_write_shallow<F_count__>(data_vector.size());
+            }
+
             offset_ = align_address(offset_, NCPP_ALIGNOF(F_data__));
 
             sz data_size = data_vector.size() * sizeof(F_data__);

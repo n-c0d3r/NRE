@@ -10,6 +10,31 @@
 
 namespace nre::newrg
 {
+    struct NCPP_ALIGN(16) F_unified_mesh_header
+    {
+        u32 subpage_count = 0;
+        u32 subpage_offset = 0;
+
+        u32 cluster_count = 0;
+        u32 cluster_offset = 0;
+
+        u32 dag_node_count = 0;
+        u32 dag_node_offset = 0;
+
+        u32 root_dag_node_count = 0;
+        u32 root_dag_node_offset = 0;
+    };
+    struct NCPP_ALIGN(16) F_unified_mesh_subpage_header
+    {
+        u32 vertex_count = 0;
+        u32 vertex_offset = 0;
+
+        u32 local_cluster_triangle_vertex_id_count = 0;
+        u32 local_cluster_triangle_vertex_id_offset = 0;
+    };
+
+
+
     struct F_raw_unified_mesh_data
     {
         TG_vector<F_raw_vertex_data> vertex_datas;
@@ -37,6 +62,9 @@ namespace nre::newrg
         TG_vector<F_cluster_id_range> dag_cluster_id_ranges;
         TG_vector<F_dag_node_culling_data> dag_node_culling_datas;
         TG_vector<F_dag_level_header> dag_level_headers;
+
+        TG_vector<u32> subpage_vertex_counts;
+        TG_vector<u32> subpage_local_cluster_triangle_vertex_id_counts;
     };
 
 
