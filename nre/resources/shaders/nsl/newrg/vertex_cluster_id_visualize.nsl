@@ -22,7 +22,7 @@ vertex_shader vs_main
 )
 {
     float3 world_vertex_position = mul(local_to_world_matrix, float4(vertex_position, 1.0f)).xyz;
-    float3 world_vertex_normal = mul((float3x3)local_to_world_matrix, vertex_normal);
+    float3 world_vertex_normal = normalize(mul((float3x3)local_to_world_matrix, vertex_normal));
 
     out_vertex_clip_position = mul(world_to_clip_matrix, float4(world_vertex_position, 1.0f));
     out_vertex_normal = world_vertex_normal;
