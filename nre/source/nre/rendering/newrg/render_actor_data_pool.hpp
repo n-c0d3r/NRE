@@ -24,6 +24,6 @@ namespace nre::newrg
 
     public:
         F_render_actor_data_pool();
-        ~F_render_actor_data_pool();
+        ~F_render_actor_data_pool() override;
     };
 }

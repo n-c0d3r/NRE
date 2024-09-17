@@ -10,14 +10,14 @@ namespace nre::newrg
     }
     F_unified_mesh::F_unified_mesh(const F_compressed_unified_mesh_data& compressed_data) :
         compressed_data_(compressed_data),
-        id_(NRE_NEWRG_UNIFIED_MESH_STREAM()->upload(compressed_data))
+        id_(NRE_NEWRG_UNIFIED_MESH_STREAM()->register_mesh(compressed_data))
     {
     }
     F_unified_mesh::~F_unified_mesh()
     {
         if(is_available())
         {
-            NRE_NEWRG_UNIFIED_MESH_STREAM()->flush(id_);
+            NRE_NEWRG_UNIFIED_MESH_STREAM()->deregister_mesh(id_);
         }
     }
 
@@ -27,18 +27,18 @@ namespace nre::newrg
     {
         if(is_available())
         {
-            NRE_NEWRG_UNIFIED_MESH_STREAM()->flush(id_);
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM()->deregister_mesh(id_);
         }
 
         compressed_data_ = new_compressed_data;
 
-        id_ = NRE_NEWRG_UNIFIED_MESH_STREAM()->upload(new_compressed_data);
+        id_ = NRE_NEWRG_UNIFIED_MESH_SYSTEM()->register_mesh(new_compressed_data);
     }
     void F_unified_mesh::release_compressed_data()
     {
         if(is_available())
         {
-            NRE_NEWRG_UNIFIED_MESH_STREAM()->flush(id_);
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM()->deregister_mesh(id_);
         }
 
         compressed_data_ = {};

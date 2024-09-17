@@ -21,6 +21,24 @@ namespace nre::newrg
 
 
 
+    TK<F_unified_mesh_header_pool> F_unified_mesh_header_pool::instance_p_;
+
+
+
+    F_unified_mesh_header_pool::F_unified_mesh_header_pool() :
+        TF_cpu_gpu_data_pool<F_unified_mesh_header>(
+            ED_resource_flag::SHADER_RESOURCE,
+            NRE_NEWRG_UNIFIED_MESH_HEADER_POOL_PAGE_CAPACITY_IN_ELEMENTS
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_header_pool")
+        )
+    {
+        instance_p_ = NCPP_KTHIS_UNSAFE();
+    }
+    F_unified_mesh_header_pool::~F_unified_mesh_header_pool()
+    {
+    }
+
+
 
     TK<F_unified_mesh_stream> F_unified_mesh_stream::instance_p_;
 
@@ -29,6 +47,8 @@ namespace nre::newrg
     F_unified_mesh_stream::F_unified_mesh_stream()
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
+
+        mesh_header_pool_p_ = TU<F_unified_mesh_header_pool>()();
     }
     F_unified_mesh_stream::~F_unified_mesh_stream()
     {
@@ -36,11 +56,10 @@ namespace nre::newrg
 
 
 
-    F_unified_mesh_id F_unified_mesh_stream::upload(const F_compressed_unified_mesh_data& compressed_data)
+    void F_unified_mesh_stream::RG_begin_register()
     {
-        return NCPP_U32_MAX;
     }
-    void F_unified_mesh_stream::flush(F_unified_mesh_id mesh_id)
+    void F_unified_mesh_stream::RG_end_register()
     {
     }
 }

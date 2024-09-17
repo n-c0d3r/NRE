@@ -27,4 +27,15 @@ namespace nre::newrg
     F_unified_mesh_system::~F_unified_mesh_system()
     {
     }
+
+
+
+    void F_unified_mesh_system::RG_begin_register()
+    {
+        stream_p_->RG_begin_register();
+    }
+    void F_unified_mesh_system::RG_end_register()
+    {
+        stream_p_->RG_end_register();
+    }
 }

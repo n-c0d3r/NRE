@@ -2,6 +2,7 @@
 
 #include <nre/prerequisites.hpp>
 
+#include <nre/rendering/newrg/unified_mesh_data.hpp>
 
 
 namespace nre::newrg
@@ -24,6 +25,20 @@ namespace nre::newrg
     private:
         TU<F_unified_mesh_stream> stream_p_;
 
+        enum class E_command_type
+        {
+            UPLOAD_MESH,
+            FLUSH_MESH
+        };
+        struct F_command
+        {
+            E_command_type type;
+            F_unified_mesh_id mesh_id = NCPP_U32_MAX;
+            F_compressed_unified_mesh_data mesh_data;
+        };
+        TG_queue<F_command> command_queue_;
+        pac::F_spin_lock lock_;
+
 
 
     public:
@@ -32,6 +47,12 @@ namespace nre::newrg
 
     public:
         NCPP_OBJECT(F_unified_mesh_system);
+
+
+
+    public:
+        void RG_begin_register();
+        void RG_end_register();
     };
 }
 

@@ -11,6 +11,7 @@
 namespace nre::newrg
 {
     using F_unified_mesh_id = u32;
+    using F_gpu_unified_mesh_id = u32;
 
     struct NCPP_ALIGN(16) F_unified_mesh_header
     {
