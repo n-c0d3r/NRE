@@ -174,7 +174,7 @@ namespace nre::newrg
             target_buffer_p_ = H_buffer::create_committed(
                 NRE_MAIN_DEVICE(),
                 current_capacity_in_elements,
-                1,
+                element_stride_,
                 resource_flags_
             );
             NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(

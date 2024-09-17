@@ -7,6 +7,7 @@
 namespace nre::newrg
 {
     class F_unified_mesh;
+    class F_unified_mesh_stream;
 
 
 
@@ -20,8 +21,20 @@ namespace nre::newrg
 
 
 
+    private:
+        TU<F_unified_mesh_stream> stream_p_;
+
+
+
     public:
         F_unified_mesh_system();
         ~F_unified_mesh_system();
+
+    public:
+        NCPP_OBJECT(F_unified_mesh_system);
     };
 }
+
+
+
+#define NRE_NEWRG_UNIFIED_MESH_SYSTEM() nre::newrg::F_unified_mesh_system::instance_p()

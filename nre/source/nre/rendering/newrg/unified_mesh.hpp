@@ -12,9 +12,12 @@ namespace nre::newrg
     {
     private:
         F_compressed_unified_mesh_data compressed_data_;
+        F_unified_mesh_id id_ = NCPP_U32_MAX;
 
     public:
         NCPP_FORCE_INLINE const auto& compressed_data() const noexcept { return compressed_data_; }
+        NCPP_FORCE_INLINE F_unified_mesh_id id() const noexcept { return id_; }
+        NCPP_FORCE_INLINE b8 is_available() const noexcept { return id_ != NCPP_U32_MAX; }
 
 
 

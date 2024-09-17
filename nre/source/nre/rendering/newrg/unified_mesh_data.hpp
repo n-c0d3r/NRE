@@ -10,6 +10,8 @@
 
 namespace nre::newrg
 {
+    using F_unified_mesh_id = u32;
+
     struct NCPP_ALIGN(16) F_unified_mesh_header
     {
         u32 cluster_count = 0;
