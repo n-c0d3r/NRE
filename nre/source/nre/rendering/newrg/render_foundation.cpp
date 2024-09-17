@@ -6,6 +6,8 @@
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/application/application.hpp>
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
+#include <nre/rendering/newrg/render_actor_data_pool.hpp>
+#include <nre/rendering/newrg/unified_mesh_system.hpp>
 
 
 namespace nre::newrg
@@ -19,6 +21,8 @@ namespace nre::newrg
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
         uniform_transient_resource_uploader_p_ = TU<F_uniform_transient_resource_uploader>()();
+        render_actor_data_pool_p_ = TU<F_render_actor_data_pool>()();
+        unified_mesh_system_p_ = TU<F_unified_mesh_system>()();
     }
     F_render_foundation::~F_render_foundation()
     {
@@ -43,7 +47,16 @@ namespace nre::newrg
 
         uniform_transient_resource_uploader_p_->RG_begin_register();
 
-        if(F_application::instance_p()->is_started())
+        render_actor_data_pool_p_->RG_begin_register_data();
+        rg_register_render_actor_data_event_.invoke();
+        render_actor_data_pool_p_->RG_end_register_data();
+
+        render_actor_data_pool_p_->RG_begin_register_upload();
+        rg_register_render_actor_data_upload_event_.invoke();
+        render_actor_data_pool_p_->RG_end_register_upload();
+
+        unified_mesh_system_p_->RG_begin_register();
+
         {
             auto render_path_p = F_render_path::instance_p();
 
@@ -53,6 +66,8 @@ namespace nre::newrg
 
             render_path_p->RG_end_register();
         }
+
+        unified_mesh_system_p_->RG_end_register();
 
         uniform_transient_resource_uploader_p_->RG_end_register();
 

@@ -221,7 +221,8 @@ namespace nre::newrg
         }
         else
         {
-            register_rg_target_buffer_internal();
+            if(target_buffer_p_)
+                register_rg_target_buffer_internal();
         }
 
         // create more pages
@@ -263,6 +264,7 @@ namespace nre::newrg
         auto render_graph_p = F_render_graph::instance_p();
 
         // upload passes
+        if(target_buffer_p_)
         {
             sz page_capacity_in_bytes = page_capacity_in_elements_ * element_stride_;
 
@@ -272,6 +274,11 @@ namespace nre::newrg
                 sz page_offset_in_bytes = page_index * element_stride_;
 
                 auto& page = pages_[page_index];
+
+                if(!page.need_to_upload_)
+                    continue;
+
+                page.need_to_upload_ = false;
 
                 F_render_resource* rg_map_resource_p = render_graph_p->create_resource(
                     H_resource_desc::create_buffer_desc(
@@ -371,5 +378,6 @@ namespace nre::newrg
         u32 page_index = this->page_index(index);
 
         pages_[page_index].register_upload(index, src_data_p);
+        pages_[page_index].need_to_upload_ = true;
     }
 }

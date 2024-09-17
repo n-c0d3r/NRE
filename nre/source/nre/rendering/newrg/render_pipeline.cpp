@@ -7,8 +7,6 @@
 #include <nre/rendering/newrg/intermediate_descriptor_manager.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/scene_render_view.hpp>
-#include <nre/rendering/newrg/render_actor_data_pool.hpp>
-#include <nre/rendering/newrg/unified_mesh_system.hpp>
 #include <nre/rendering/render_system.hpp>
 #include <nre/application/application.hpp>
 #include <nre/ui/imgui.hpp>
@@ -162,13 +160,9 @@ namespace nre::newrg {
 		binder_signature_manager_p_ = TU<F_binder_signature_manager>()();
 		render_graph_p_ = TU<F_render_graph>()();
 		render_foundation_p_ = TU<F_render_foundation>()();
-		render_actor_data_pool_p_ = TU<F_render_actor_data_pool>()();
-		unified_mesh_system_p_ = TU<F_unified_mesh_system>()();
 	}
 	F_render_pipeline::~F_render_pipeline() {
 
-		unified_mesh_system_p_.reset();
-		render_actor_data_pool_p_.reset();
 		render_foundation_p_.reset();
 		render_graph_p_.reset();
 	}

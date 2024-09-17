@@ -12,6 +12,20 @@ namespace nre::newrg
 
 
 
+    enum class E_unified_mesh_command_type
+    {
+        UPLOAD_MESH,
+        TRY_FLUSH_MESH
+    };
+    struct F_unified_mesh_command
+    {
+        E_unified_mesh_command_type type;
+        TS<F_unified_mesh> mesh_p;
+        F_compressed_unified_mesh_data compressed_mesh_data;
+    };
+
+
+
     class NRE_API F_unified_mesh_system final
     {
     private:
@@ -25,18 +39,7 @@ namespace nre::newrg
     private:
         TU<F_unified_mesh_stream> stream_p_;
 
-        enum class E_command_type
-        {
-            UPLOAD_MESH,
-            FLUSH_MESH
-        };
-        struct F_command
-        {
-            E_command_type type;
-            F_unified_mesh_id mesh_id = NCPP_U32_MAX;
-            F_compressed_unified_mesh_data mesh_data;
-        };
-        TG_queue<F_command> command_queue_;
+        TG_queue<F_unified_mesh_command> command_queue_;
         pac::F_spin_lock lock_;
 
 
@@ -53,6 +56,15 @@ namespace nre::newrg
     public:
         void RG_begin_register();
         void RG_end_register();
+
+    public:
+        void enqueue_command(const F_unified_mesh_command& command);
+        void enqueue_command(F_unified_mesh_command&& command);
+
+    public:
+        void enqueue_upload(TSPA<F_unified_mesh> mesh_p, const F_compressed_unified_mesh_data& compressed_mesh_data);
+        void enqueue_upload(TSPA<F_unified_mesh> mesh_p, F_compressed_unified_mesh_data&& compressed_mesh_data);
+        void enqueue_try_flush(TSPA<F_unified_mesh> mesh_p);
     };
 }
 

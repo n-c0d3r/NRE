@@ -9,6 +9,8 @@ namespace nre::newrg
 {
     class F_external_render_resource;
     class F_uniform_transient_resource_uploader;
+    class F_render_actor_data_pool;
+    class F_unified_mesh_system;
 
 
 
@@ -24,15 +26,21 @@ namespace nre::newrg
 
     private:
         F_render_foundation_rg_tick_event rg_tick_event_;
+        F_render_foundation_rg_register_actor_data_event rg_register_render_actor_data_event_;
+        F_render_foundation_rg_register_actor_data_upload_event rg_register_render_actor_data_upload_event_;
         F_render_foundation_upload_event upload_event_;
         F_render_foundation_readback_event readback_event_;
         F_render_foundation_release_event release_event_;
 
         TU<F_uniform_transient_resource_uploader> uniform_transient_resource_uploader_p_;
+        TU<F_render_actor_data_pool> render_actor_data_pool_p_;
+        TU<F_unified_mesh_system> unified_mesh_system_p_;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_tick_event_,
+            rg_register_render_actor_data_event_,
+            rg_register_render_actor_data_upload_event_,
             upload_event_,
             readback_event_,
             release_event_
@@ -65,6 +73,28 @@ namespace nre::newrg::internal
         NCPP_FORCE_INLINE void operator = (F__&& functor) {
 
             F_render_foundation::instance_p()->T_get_event<F_render_foundation_rg_tick_event>().T_push_back_listener(
+                std::forward<F__>(functor)
+            );
+        }
+    };
+
+    struct F_render_foundation_rg_register_actor_data_event_caller
+    {
+        template<typename F__>
+        NCPP_FORCE_INLINE void operator = (F__&& functor) {
+
+            F_render_foundation::instance_p()->T_get_event<F_render_foundation_rg_register_actor_data_event>().T_push_back_listener(
+                std::forward<F__>(functor)
+            );
+        }
+    };
+
+    struct F_render_foundation_rg_register_actor_data_upload_event_caller
+    {
+        template<typename F__>
+        NCPP_FORCE_INLINE void operator = (F__&& functor) {
+
+            F_render_foundation::instance_p()->T_get_event<F_render_foundation_rg_register_actor_data_upload_event>().T_push_back_listener(
                 std::forward<F__>(functor)
             );
         }
@@ -104,9 +134,17 @@ namespace nre::newrg::internal
     };
 }
 
+
+
 #define NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER() \
     nre::newrg::internal::F_render_foundation_rg_tick_event_caller NCPP_GLUE(___nre_render_foundation_rg_tick_event___, NCPP_LINE); \
     NCPP_GLUE(___nre_render_foundation_rg_tick_event___, NCPP_LINE) = [&](auto&)
+#define NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER_ACTOR_DATA() \
+    nre::newrg::internal::F_render_foundation_rg_register_actor_data_event_caller NCPP_GLUE(___nre_render_foundation_rg_register_actor_data_event___, NCPP_LINE); \
+    NCPP_GLUE(___nre_render_foundation_rg_register_actor_data_event___, NCPP_LINE) = [&](auto&)
+#define NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER_ACTOR_DATA_UPLOAD() \
+    nre::newrg::internal::F_render_foundation_rg_register_actor_data_upload_event_caller NCPP_GLUE(___nre_render_foundation_rg_register_actor_data_upload_event___, NCPP_LINE); \
+    NCPP_GLUE(___nre_render_foundation_rg_register_actor_data_upload_event___, NCPP_LINE) = [&](auto&)
 #define NRE_NEWRG_RENDER_FOUNDATION_UPLOAD() \
     nre::newrg::internal::F_render_foundation_upload_event_caller NCPP_GLUE(___nre_render_foundation_upload_event___, NCPP_LINE); \
     NCPP_GLUE(___nre_render_foundation_upload_event___, NCPP_LINE) = [&](auto&)

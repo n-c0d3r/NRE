@@ -8,41 +8,33 @@ namespace nre::newrg
     F_unified_mesh::F_unified_mesh()
     {
     }
-    F_unified_mesh::F_unified_mesh(const F_compressed_unified_mesh_data& compressed_data) :
-        compressed_data_(compressed_data),
-        id_(NRE_NEWRG_UNIFIED_MESH_STREAM()->register_mesh(compressed_data))
+    F_unified_mesh::F_unified_mesh(const F_compressed_unified_mesh_data& compressed_data)
     {
+        NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_upload(NCPP_STHIS_UNSAFE(), compressed_data);
+    }
+    F_unified_mesh::F_unified_mesh(F_compressed_unified_mesh_data&& compressed_data)
+    {
+        NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_upload(NCPP_STHIS_UNSAFE(), eastl::move(compressed_data));
     }
     F_unified_mesh::~F_unified_mesh()
     {
-        if(is_available())
-        {
-            NRE_NEWRG_UNIFIED_MESH_STREAM()->deregister_mesh(id_);
-        }
+        NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_try_flush(NCPP_STHIS_UNSAFE());
     }
 
 
 
     void F_unified_mesh::update_compressed_data(const F_compressed_unified_mesh_data& new_compressed_data)
     {
-        if(is_available())
-        {
-            NRE_NEWRG_UNIFIED_MESH_SYSTEM()->deregister_mesh(id_);
-        }
-
-        compressed_data_ = new_compressed_data;
-
-        id_ = NRE_NEWRG_UNIFIED_MESH_SYSTEM()->register_mesh(new_compressed_data);
+        NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_try_flush(NCPP_STHIS_UNSAFE());
+        NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_upload(NCPP_STHIS_UNSAFE(), new_compressed_data);
+    }
+    void F_unified_mesh::update_compressed_data(F_compressed_unified_mesh_data&& new_compressed_data)
+    {
+        NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_try_flush(NCPP_STHIS_UNSAFE());
+        NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_upload(NCPP_STHIS_UNSAFE(), eastl::move(new_compressed_data));
     }
     void F_unified_mesh::release_compressed_data()
     {
-        if(is_available())
-        {
-            NRE_NEWRG_UNIFIED_MESH_SYSTEM()->deregister_mesh(id_);
-        }
-
-        compressed_data_ = {};
-
-        id_ = NCPP_U32_MAX;
+        NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_try_flush(NCPP_STHIS_UNSAFE());
     }
 }

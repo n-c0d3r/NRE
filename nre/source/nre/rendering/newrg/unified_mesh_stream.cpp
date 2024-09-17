@@ -4,23 +4,6 @@
 
 namespace nre::newrg
 {
-    F_unified_mesh_page::F_unified_mesh_page()
-    {
-    }
-    F_unified_mesh_page::~F_unified_mesh_page()
-    {
-    }
-
-    F_unified_mesh_page::F_unified_mesh_page(F_unified_mesh_page&& x)
-    {
-    }
-    F_unified_mesh_page& F_unified_mesh_page::operator=(F_unified_mesh_page&& x)
-    {
-        return *this;
-    }
-
-
-
     TK<F_unified_mesh_header_pool> F_unified_mesh_header_pool::instance_p_;
 
 
@@ -61,5 +44,14 @@ namespace nre::newrg
     }
     void F_unified_mesh_stream::RG_end_register()
     {
+    }
+
+    void F_unified_mesh_stream::upload_mesh(TSPA<F_unified_mesh> mesh_p, const F_compressed_unified_mesh_data& compressed_data)
+    {
+        NCPP_ASSERT(mesh_p);
+    }
+    void F_unified_mesh_stream::try_flush_mesh(TSPA<F_unified_mesh> mesh_p)
+    {
+        NCPP_ASSERT(mesh_p);
     }
 }

@@ -13,18 +13,6 @@ namespace nre::newrg
 
 
 
-    class NRE_API F_unified_mesh_page final
-    {
-    public:
-        F_unified_mesh_page();
-        ~F_unified_mesh_page();
-
-        F_unified_mesh_page(F_unified_mesh_page&& x);
-        F_unified_mesh_page& operator = (F_unified_mesh_page&& x);
-    };
-
-
-
     class NRE_API F_unified_mesh_header_pool final : protected TF_cpu_gpu_data_pool<F_unified_mesh_header>
     {
     private:
@@ -53,11 +41,9 @@ namespace nre::newrg
 
 
     private:
-        TG_vector<F_unified_mesh_page> pages_;
         TU<F_unified_mesh_header_pool> mesh_header_pool_p_;
 
     public:
-        NCPP_FORCE_INLINE const auto& pages() const noexcept { return pages_; }
         NCPP_FORCE_INLINE auto mesh_header_pool_p() const noexcept { return NCPP_FOH_VALID(mesh_header_pool_p_); }
 
 
@@ -74,6 +60,16 @@ namespace nre::newrg
     public:
         void RG_begin_register();
         void RG_end_register();
+
+    public:
+        /**
+         *  Non-thread-safe
+         */
+        void upload_mesh(TSPA<F_unified_mesh> mesh_p, const F_compressed_unified_mesh_data& compressed_data);
+        /**
+         *  Non-thread-safe
+         */
+        void try_flush_mesh(TSPA<F_unified_mesh> mesh_p);
     };
 }
 
