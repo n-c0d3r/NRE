@@ -30,7 +30,7 @@ namespace nre::newrg
         au32 obtained_element_count_ = 0;
         TF_concurrent_ring_buffer<u32> local_element_index_caches_;
 
-        TG_span<u8> data_;
+        TG_vector<u8> data_;
 
     public:
         NCPP_FORCE_INLINE u32 element_stride() const noexcept { return element_stride_; }
@@ -151,6 +151,10 @@ namespace nre::newrg
 
     public:
         void register_upload(u32 index, void* src_data_p);
+
+    public:
+        const void* data_p(u32 index) const;
+        void* data_p(u32 index);
     };
 
 
@@ -177,5 +181,15 @@ namespace nre::newrg
                 NRE_OPTIONAL_DEBUG_PARAM(name)
             )
         {}
+
+    public:
+        NCPP_FORCE_INLINE F_element__& data(u32 index)
+        {
+            *(F_element__*)data_p(index);
+        }
+        NCPP_FORCE_INLINE const F_element__& data(u32 index) const
+        {
+            *(const F_element__*)data_p(index);
+        }
     };
 }

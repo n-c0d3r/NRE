@@ -18,22 +18,10 @@ namespace nre::newrg
         local_element_index_caches_(capacity_in_elements)
     {
         sz data_size = capacity_in_elements * element_stride;
-        data_ = {
-            (u8*)(
-                F_crt_allocator().allocate(
-                    data_size,
-                    element_alignment
-                )
-            ),
-            data_size
-        };
+        data_.resize(data_size);
     }
     F_cpu_gpu_data_pool_page::~F_cpu_gpu_data_pool_page()
     {
-        if(data_.data())
-        {
-            F_crt_allocator().deallocate(data_.data());
-        }
     }
 
     F_cpu_gpu_data_pool_page::F_cpu_gpu_data_pool_page(F_cpu_gpu_data_pool_page&& x) :
@@ -43,7 +31,7 @@ namespace nre::newrg
         need_to_upload_(x.need_to_upload_.load(eastl::memory_order_acquire)),
         obtained_element_count_(x.obtained_element_count_.load(eastl::memory_order_acquire)),
         local_element_index_caches_(std::move(x.local_element_index_caches_)),
-        data_(x.data_)
+        data_(eastl::move(x.data_))
     {
     }
     F_cpu_gpu_data_pool_page& F_cpu_gpu_data_pool_page::operator = (F_cpu_gpu_data_pool_page&& x)
@@ -54,7 +42,7 @@ namespace nre::newrg
         need_to_upload_ = x.need_to_upload_.load(eastl::memory_order_acquire);
         obtained_element_count_ = x.obtained_element_count_.load(eastl::memory_order_acquire);
         local_element_index_caches_ = std::move(x.local_element_index_caches_);
-        data_ = x.data_;
+        data_ = eastl::move(x.data_);
 
         x.element_stride_ = 0;
         x.element_alignment_ = 0;
@@ -173,7 +161,7 @@ namespace nre::newrg
             //
             target_buffer_p_ = H_buffer::create_committed(
                 NRE_MAIN_DEVICE(),
-                current_capacity_in_elements,
+                page_count * element_stride_ * page_capacity_in_elements_,
                 element_stride_,
                 resource_flags_
             );
@@ -368,7 +356,7 @@ namespace nre::newrg
 
         NCPP_ASSERT(page_index < pages_.size());
 
-        pages_[page_index].deregister_data(index);
+        pages_[page_index].deregister_data(index - page_capacity_in_elements_ * page_index);
     }
 
     void F_cpu_gpu_data_pool::register_upload(u32 index, void* src_data_p)
@@ -377,7 +365,24 @@ namespace nre::newrg
 
         u32 page_index = this->page_index(index);
 
-        pages_[page_index].register_upload(index, src_data_p);
+        pages_[page_index].register_upload(index - page_capacity_in_elements_ * page_index, src_data_p);
         pages_[page_index].need_to_upload_ = true;
+    }
+
+    const void* F_cpu_gpu_data_pool::data_p(u32 index) const
+    {
+        NCPP_ASSERT(is_started_register_upload_);
+
+        u32 page_index = this->page_index(index);
+
+        return (const void*)(pages_[page_index].data().data() + element_stride_ * (index - page_index * page_capacity_in_elements_));
+    }
+    void* F_cpu_gpu_data_pool::data_p(u32 index)
+    {
+        NCPP_ASSERT(is_started_register_upload_);
+
+        u32 page_index = this->page_index(index);
+
+        return (void*)(pages_[page_index].data().data() + element_stride_ * (index - page_index * page_capacity_in_elements_));
     }
 }

@@ -69,6 +69,11 @@ namespace nre::newrg
 
         TG_vector<u32> subpage_vertex_counts;
         TG_vector<u32> subpage_local_cluster_triangle_vertex_id_counts;
+
+        NCPP_FORCE_INLINE operator b8 () const noexcept
+        {
+            return (cluster_headers.size() != 0);
+        }
     };
 
 

@@ -13,7 +13,35 @@ namespace nre::newrg
 
 
 
-    class NRE_API F_unified_mesh_header_pool final : protected TF_cpu_gpu_data_pool<F_unified_mesh_header>
+    class NRE_API F_unified_mesh_geometry_stream final
+    {
+    private:
+        static TK<F_unified_mesh_geometry_stream> instance_p_;
+
+    public:
+        static TKPA_valid<F_unified_mesh_geometry_stream> instance_p() { return (TKPA_valid<F_unified_mesh_geometry_stream>)instance_p_; }
+
+
+
+    private:
+        TG_vector<U_buffer_handle> buffer_p_vector_;
+
+    public:
+        NCPP_FORCE_INLINE const auto& buffer_p_vector() const noexcept { return buffer_p_vector_; }
+
+
+
+    public:
+        F_unified_mesh_geometry_stream();
+        ~F_unified_mesh_geometry_stream();
+
+    public:
+        NCPP_OBJECT(F_unified_mesh_geometry_stream);
+    };
+
+
+
+    class NRE_API F_unified_mesh_header_pool final : public TF_cpu_gpu_data_pool<F_unified_mesh_header>
     {
     private:
         static TK<F_unified_mesh_header_pool> instance_p_;
@@ -26,6 +54,9 @@ namespace nre::newrg
     public:
         F_unified_mesh_header_pool();
         ~F_unified_mesh_header_pool() override;
+
+    public:
+        NCPP_OBJECT(F_unified_mesh_header_pool);
     };
 
 
@@ -41,10 +72,12 @@ namespace nre::newrg
 
 
     private:
+        TU<F_unified_mesh_geometry_stream> geometry_stream_p_;
         TU<F_unified_mesh_header_pool> mesh_header_pool_p_;
 
-    public:
-        NCPP_FORCE_INLINE auto mesh_header_pool_p() const noexcept { return NCPP_FOH_VALID(mesh_header_pool_p_); }
+        TG_queue<u32> deregister_mesh_header_queue_;
+        TG_queue<TS<F_unified_mesh>> register_mesh_header_queue_;
+        TG_queue<TS<F_unified_mesh>> upload_mesh_header_queue_;
 
 
 
@@ -65,11 +98,11 @@ namespace nre::newrg
         /**
          *  Non-thread-safe
          */
-        void upload_mesh(TSPA<F_unified_mesh> mesh_p, const F_compressed_unified_mesh_data& compressed_data);
+        void enqueue_upload(TSPA<F_unified_mesh> mesh_p);
         /**
          *  Non-thread-safe
          */
-        void try_flush_mesh(TSPA<F_unified_mesh> mesh_p);
+        void enqueue_flush(u32 mesh_header_id);
     };
 }
 

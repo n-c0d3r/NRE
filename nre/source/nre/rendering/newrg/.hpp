@@ -84,6 +84,7 @@
 #include <nre/rendering/newrg/bind_list.hpp>
 #include <nre/rendering/newrg/rhi_resource_view_bind.hpp>
 #include <nre/rendering/newrg/render_pass_utilities.hpp>
+#include <nre/rendering/newrg/page_resource_stream.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

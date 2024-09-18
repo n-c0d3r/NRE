@@ -12,14 +12,19 @@ namespace nre::newrg
     {
     public:
         friend class F_unified_mesh_system;
+        friend class F_unified_mesh_stream;
 
 
 
     private:
-        F_compressed_unified_mesh_data last_frame_compressed_data_;
+        F_compressed_unified_mesh_data compressed_data_;
+        u32 last_frame_header_id_ = NCPP_U32_MAX;
+        b8 need_to_upload_or_flush_ = false;
+        b8 is_empty_ = true;
 
     public:
-        NCPP_FORCE_INLINE const auto& last_frame_compressed_data() const noexcept { return last_frame_compressed_data_; }
+        NCPP_FORCE_INLINE const auto& compressed_data() const noexcept { return compressed_data_; }
+        NCPP_FORCE_INLINE u32 last_frame_header_id() const noexcept { return last_frame_header_id_; }
 
 
 

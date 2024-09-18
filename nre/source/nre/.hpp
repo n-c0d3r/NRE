@@ -10,3 +10,4 @@
 #include <nre/gameplay/.hpp>
 #include <nre/threading/.hpp>
 #include <nre/io/.hpp>
+#include <nre/utilities/.hpp>

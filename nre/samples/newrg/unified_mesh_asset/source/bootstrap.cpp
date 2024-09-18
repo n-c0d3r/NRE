@@ -38,6 +38,8 @@ int main() {
 		NRE_APPLICATION_STARTUP(application_p) {
 		};
 		NRE_APPLICATION_SHUTDOWN(application_p) {
+
+			unified_mesh_asset_p.reset();
 		};
 		NRE_APPLICATION_GAMEPLAY_TICK(application_p) {
 

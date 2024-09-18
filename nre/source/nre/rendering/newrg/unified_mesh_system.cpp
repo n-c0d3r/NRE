@@ -5,6 +5,7 @@
 #include <nre/io/file_saver_system.hpp>
 #include <nre/io/file_loader_system.hpp>
 
+#include "unified_mesh.hpp"
 
 
 namespace nre::newrg
@@ -34,26 +35,27 @@ namespace nre::newrg
     {
         stream_p_->RG_begin_register();
 
-        // process queue
+        while(flush_queue_.size())
         {
-            NCPP_SCOPED_LOCK(lock_);
+            auto mesh_header_id = flush_queue_.front();
 
-            if(command_queue_.size())
-            {
-                auto command = command_queue_.front();
-                command_queue_.pop();
-
-                switch (command.type)
-                {
-                case E_unified_mesh_command_type::UPLOAD_MESH:
-                    stream_p_->upload_mesh(command.mesh_p, command.compressed_mesh_data);
-                    break;
-                case E_unified_mesh_command_type::TRY_FLUSH_MESH:
-                    stream_p_->try_flush_mesh(command.mesh_p);
-                    break;
-                }
-            }
+            stream_p_->enqueue_flush(mesh_header_id);
         }
+
+        while(update_queue_.size())
+        {
+            auto update = update_queue_.front();
+
+            if(update->last_frame_header_id() != NCPP_U32_MAX)
+                stream_p_->enqueue_flush(update->last_frame_header_id());
+
+            if(update->compressed_data())
+                stream_p_->enqueue_upload(update);
+
+            update_queue_.pop();
+        }
+
+        stream_p_->RG_end_register();
     }
     void F_unified_mesh_system::RG_end_register()
     {
@@ -62,40 +64,16 @@ namespace nre::newrg
 
 
 
-    void F_unified_mesh_system::enqueue_command(const F_unified_mesh_command& command)
+    void F_unified_mesh_system::enqueue_update(TSPA<F_unified_mesh> mesh_p)
     {
         NCPP_SCOPED_LOCK(lock_);
 
-        command_queue_.push(command);
+        update_queue_.push(mesh_p);
     }
-    void F_unified_mesh_system::enqueue_command(F_unified_mesh_command&& command)
+    void F_unified_mesh_system::enqueue_flush(u32 mesh_header_id)
     {
         NCPP_SCOPED_LOCK(lock_);
 
-        command_queue_.push(eastl::move(command));
-    }
-
-    void F_unified_mesh_system::enqueue_upload(TSPA<F_unified_mesh> mesh_p, const F_compressed_unified_mesh_data& compressed_mesh_data)
-    {
-        enqueue_command({
-            .type = E_unified_mesh_command_type::UPLOAD_MESH,
-            .mesh_p = mesh_p,
-            .compressed_mesh_data = compressed_mesh_data
-        });
-    }
-    void F_unified_mesh_system::enqueue_upload(TSPA<F_unified_mesh> mesh_p, F_compressed_unified_mesh_data&& compressed_mesh_data)
-    {
-        enqueue_command({
-            .type = E_unified_mesh_command_type::UPLOAD_MESH,
-            .mesh_p = mesh_p,
-            .compressed_mesh_data = eastl::move(compressed_mesh_data)
-        });
-    }
-    void F_unified_mesh_system::enqueue_try_flush(TSPA<F_unified_mesh> mesh_p)
-    {
-        enqueue_command({
-            .type = E_unified_mesh_command_type::TRY_FLUSH_MESH,
-            .mesh_p = mesh_p
-        });
+        flush_queue_.push(mesh_header_id);
     }
 }
