@@ -232,7 +232,7 @@ namespace nre::newrg
 
     public:
         /**
-         *  Non-thread-safe
+         *  Thread-safe
          */
         template<sz row_index__ = 0>
         NCPP_FORCE_INLINE void T_upload(sz begin_id, const TG_span<typename F_element_targ_list::template TF_at<row_index__>>& data)
