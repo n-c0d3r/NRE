@@ -17,20 +17,20 @@ namespace nre
 
 
     private:
-        sz max_allocation_count_ = 0;
-        eastl::atomic<u64> capacity_ = 0;
+        sz capacity_ = 0;
+        eastl::atomic<u64> next_location_ = 0;
         TG_concurrent_ring_buffer<sz> cached_allocation_ring_buffer_;
 
     public:
-        NCPP_FORCE_INLINE sz max_allocation_count() const noexcept { return max_allocation_count_; }
-        NCPP_FORCE_INLINE u64 capacity() const noexcept { return capacity_.load(); }
+        NCPP_FORCE_INLINE sz capacity() const noexcept { return capacity_; }
+        NCPP_FORCE_INLINE u64 next_location() const noexcept { return next_location_.load(); }
         NCPP_FORCE_INLINE const auto& cached_allocation_ring_buffer() const noexcept { return cached_allocation_ring_buffer_; }
 
 
 
     public:
         F_pool_allocator_estimator();
-        F_pool_allocator_estimator(sz max_allocation_count);
+        F_pool_allocator_estimator(sz capacity);
         ~F_pool_allocator_estimator();
 
         F_pool_allocator_estimator(const F_pool_allocator_estimator& x);
@@ -42,7 +42,7 @@ namespace nre
 
 
     public:
-        F_allocation allocate();
+        eastl::optional<F_allocation> allocate();
         void deallocate(F_allocation allocation);
     };
 }
