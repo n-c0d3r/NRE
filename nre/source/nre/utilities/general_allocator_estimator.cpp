@@ -1,28 +1,28 @@
-#include <nre/utilities/page_allocator_estimator.hpp>
+#include <nre/utilities/general_allocator_estimator.hpp>
 
 
 
 namespace nre
 {
-    F_page_allocator_estimator::F_page_allocator_estimator()
+    F_general_allocator_estimator::F_general_allocator_estimator()
     {
     }
-    F_page_allocator_estimator::F_page_allocator_estimator(sz capacity) :
+    F_general_allocator_estimator::F_general_allocator_estimator(sz capacity) :
         capacity_(capacity),
         free_ranges_({ F_placed_range{ .begin = 0, .end = capacity } })
     {
     }
-    F_page_allocator_estimator::~F_page_allocator_estimator()
+    F_general_allocator_estimator::~F_general_allocator_estimator()
     {
     }
 
-    F_page_allocator_estimator::F_page_allocator_estimator(const F_page_allocator_estimator& x) :
+    F_general_allocator_estimator::F_general_allocator_estimator(const F_general_allocator_estimator& x) :
         capacity_(x.capacity_),
         allocated_ranges_(x.allocated_ranges_),
         free_ranges_(x.free_ranges_)
     {
     }
-    F_page_allocator_estimator& F_page_allocator_estimator::operator = (const F_page_allocator_estimator& x)
+    F_general_allocator_estimator& F_general_allocator_estimator::operator = (const F_general_allocator_estimator& x)
     {
          capacity_ = x.capacity_;
          allocated_ranges_ = x.allocated_ranges_;
@@ -31,13 +31,13 @@ namespace nre
         return *this;
     }
 
-    F_page_allocator_estimator::F_page_allocator_estimator(F_page_allocator_estimator&& x) :
+    F_general_allocator_estimator::F_general_allocator_estimator(F_general_allocator_estimator&& x) :
         capacity_(x.capacity_),
         allocated_ranges_(eastl::move(x.allocated_ranges_)),
         free_ranges_(eastl::move(x.free_ranges_))
     {
     }
-    F_page_allocator_estimator& F_page_allocator_estimator::operator = (F_page_allocator_estimator&& x)
+    F_general_allocator_estimator& F_general_allocator_estimator::operator = (F_general_allocator_estimator&& x)
     {
         capacity_ = x.capacity_;
         allocated_ranges_ = eastl::move(x.allocated_ranges_);
@@ -48,7 +48,7 @@ namespace nre
 
 
 
-    void F_page_allocator_estimator::apply_allocation_on_free_range_internal(
+    void F_general_allocator_estimator::apply_allocation_on_free_range_internal(
         sz free_range_begin,
         sz free_range_end,
         sz allocated_range_begin,
@@ -79,7 +79,7 @@ namespace nre
 
 
 
-    eastl::optional<F_page_allocator_estimator::F_allocation> F_page_allocator_estimator::try_allocate(
+    eastl::optional<F_general_allocator_estimator::F_allocation> F_general_allocator_estimator::try_allocate(
         sz size,
         u64 alignment
     )
@@ -116,7 +116,7 @@ namespace nre
 
         return eastl::nullopt;
     }
-    void F_page_allocator_estimator::deallocate(F_page_allocator_estimator::F_allocation allocation)
+    void F_general_allocator_estimator::deallocate(F_general_allocator_estimator::F_allocation allocation)
     {
         // search for allocated range
         u32 allocated_range_index = NCPP_U32_MAX;

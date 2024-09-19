@@ -6,7 +6,10 @@
 
 namespace nre
 {
-    class NRE_API F_page_allocator_estimator final
+    /**
+     *  Non-thread-safe
+     */
+    class NRE_API F_general_allocator_estimator final
     {
     public:
         struct F_placed_range
@@ -38,15 +41,15 @@ namespace nre
 
 
     public:
-        F_page_allocator_estimator();
-        F_page_allocator_estimator(sz capacity);
-        ~F_page_allocator_estimator();
+        F_general_allocator_estimator();
+        F_general_allocator_estimator(sz capacity);
+        ~F_general_allocator_estimator();
 
-        F_page_allocator_estimator(const F_page_allocator_estimator& x);
-        F_page_allocator_estimator& operator = (const F_page_allocator_estimator& x);
+        F_general_allocator_estimator(const F_general_allocator_estimator& x);
+        F_general_allocator_estimator& operator = (const F_general_allocator_estimator& x);
 
-        F_page_allocator_estimator(F_page_allocator_estimator&& x);
-        F_page_allocator_estimator& operator = (F_page_allocator_estimator&& x);
+        F_general_allocator_estimator(F_general_allocator_estimator&& x);
+        F_general_allocator_estimator& operator = (F_general_allocator_estimator&& x);
 
 
 

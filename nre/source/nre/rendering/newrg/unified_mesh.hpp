@@ -12,7 +12,6 @@ namespace nre::newrg
     {
     public:
         friend class F_unified_mesh_system;
-        friend class F_unified_mesh_stream;
 
 
 

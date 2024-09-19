@@ -1,5 +1,4 @@
 #include <nre/rendering/newrg/unified_mesh.hpp>
-#include <nre/rendering/newrg/unified_mesh_stream.hpp>
 #include <nre/rendering/newrg/unified_mesh_system.hpp>
 
 

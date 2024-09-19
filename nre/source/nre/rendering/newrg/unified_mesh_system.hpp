@@ -8,7 +8,6 @@
 namespace nre::newrg
 {
     class F_unified_mesh;
-    class F_unified_mesh_stream;
 
 
 
@@ -23,8 +22,6 @@ namespace nre::newrg
 
 
     private:
-        TU<F_unified_mesh_stream> stream_p_;
-
         TG_queue<TS<F_unified_mesh>> update_queue_;
         pac::F_spin_lock lock_;
 

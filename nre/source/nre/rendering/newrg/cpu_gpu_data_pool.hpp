@@ -185,11 +185,11 @@ namespace nre::newrg
     public:
         NCPP_FORCE_INLINE F_element__& data(u32 index)
         {
-            *(F_element__*)data_p(index);
+            return *(F_element__*)data_p(index);
         }
         NCPP_FORCE_INLINE const F_element__& data(u32 index) const
         {
-            *(const F_element__*)data_p(index);
+            return *(const F_element__*)data_p(index);
         }
     };
 }

@@ -78,7 +78,6 @@
 #include <nre/rendering/newrg/unified_mesh_asset_factory.hpp>
 #include <nre/rendering/newrg/unified_mesh_builder.hpp>
 #include <nre/rendering/newrg/unified_mesh_system.hpp>
-#include <nre/rendering/newrg/unified_mesh_stream.hpp>
 #include <nre/rendering/newrg/unified_mesh_drawable.hpp>
 #include <nre/rendering/newrg/unified_mesh_material.hpp>
 #include <nre/rendering/newrg/bind_list.hpp>
