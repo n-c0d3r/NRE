@@ -88,6 +88,7 @@
 #include <nre/rendering/newrg/gpu_page_based_uploader.hpp>
 #include <nre/rendering/newrg/gpu_range_based_uploader.hpp>
 #include <nre/rendering/newrg/cacheable_pool_gpu_data_table.hpp>
+#include <nre/rendering/newrg/general_gpu_data_table.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif
