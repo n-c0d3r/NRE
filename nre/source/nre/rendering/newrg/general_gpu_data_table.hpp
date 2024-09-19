@@ -126,7 +126,7 @@ namespace nre::newrg
         {
             if constexpr ((row_index__ + 1) < row_count)
             {
-                T_setup_row<(row_index__ + 1 < row_index__) ? (row_index__ + 1) : 0>(
+                T_setup_row<(row_index__ + 1 < row_count) ? (row_index__ + 1) : 0>(
                     flags,
                     heap_type,
                     initial_state,
@@ -153,7 +153,7 @@ namespace nre::newrg
         {
             if constexpr ((row_index__ + 1) < row_count)
             {
-                T_reset_row<(row_index__ + 1 < row_index__) ? (row_index__ + 1) : 0>();
+                T_reset_row<(row_index__ + 1 < row_count) ? (row_index__ + 1) : 0>();
             }
 
             eastl::get<row_index__>(gpu_large_data_list_tuple_).reset();
@@ -164,7 +164,7 @@ namespace nre::newrg
         {
             if constexpr ((row_index__ + 1) < row_count)
             {
-                T_link_data_lists_to_uploader<(row_index__ + 1 < row_index__) ? (row_index__ + 1) : 0>();
+                T_link_data_lists_to_uploader<(row_index__ + 1 < row_count) ? (row_index__ + 1) : 0>();
             }
 
             using F_element = typename F_element_targ_list::template TF_at<row_index__>;
@@ -179,7 +179,7 @@ namespace nre::newrg
         {
             if constexpr ((row_index__ + 1) < row_count)
             {
-                TRG_end_register<(row_index__ + 1 < row_index__) ? (row_index__ + 1) : 0>();
+                TRG_end_register<(row_index__ + 1 < row_count) ? (row_index__ + 1) : 0>();
             }
 
             eastl::get<row_index__>(gpu_large_data_list_tuple_).RG_begin_register();

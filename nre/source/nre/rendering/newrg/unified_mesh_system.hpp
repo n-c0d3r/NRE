@@ -3,6 +3,8 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/newrg/unified_mesh_data.hpp>
+#include <nre/rendering/newrg/cacheable_pool_gpu_data_table.hpp>
+#include <nre/rendering/newrg/general_gpu_data_table.hpp>
 
 
 namespace nre::newrg
@@ -23,9 +25,34 @@ namespace nre::newrg
 
     private:
         TG_queue<TS<F_unified_mesh>> update_queue_;
-        pac::F_spin_lock lock_;
+        pac::F_spin_lock update_lock_;
 
         TG_queue<u32> flush_queue_;
+        pac::F_spin_lock flush_lock_;
+
+        TF_cacheable_pool_gpu_data_table<F_unified_mesh_header> mesh_header_table_;
+        TG_queue<TS<F_unified_mesh>> register_mesh_header_queue_;
+        TG_queue<TS<F_unified_mesh>> upload_mesh_header_queue_;
+
+        TF_general_gpu_data_table<F_unified_mesh_subpage_header> subpage_header_table_;
+        TG_queue<TS<F_unified_mesh>> register_subpage_header_queue_;
+        TG_queue<TS<F_unified_mesh>> upload_subpage_header_queue_;
+
+        TF_general_gpu_data_table<F_cluster_header, F_cluster_culling_data> cluster_table_;
+        TG_queue<TS<F_unified_mesh>> register_cluster_queue_;
+        TG_queue<TS<F_unified_mesh>> upload_cluster_queue_;
+
+        TF_general_gpu_data_table<
+            F_dag_node_header,
+            F_dag_node_culling_data,
+            F_cluster_id_range
+        > dag_table_;
+        TG_queue<TS<F_unified_mesh>> register_dag_queue_;
+        TG_queue<TS<F_unified_mesh>> upload_dag_queue_;
+
+    public:
+        NCPP_FORCE_INLINE const auto& mesh_header_table() const noexcept { return mesh_header_table_; }
+        NCPP_FORCE_INLINE const auto& subpage_header_table() const noexcept { return subpage_header_table_; }
 
 
 
@@ -35,6 +62,12 @@ namespace nre::newrg
 
     public:
         NCPP_OBJECT(F_unified_mesh_system);
+
+
+
+    private:
+         void update_internal(TSPA<F_unified_mesh> mesh_p);
+         void flush_internal(u32 mesh_header_id);
 
 
 
