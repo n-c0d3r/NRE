@@ -11,7 +11,7 @@ int main() {
 	auto application_p = TU<F_application>()(
 		F_application_desc {
 			.main_surface_desc = {
-				.title = L"GPU Large Data List (NewRG)",
+				.title = L"GPU Range-Based Uploader (NewRG)",
 				.size = { 1024, 700 }
 			}
 		}
@@ -23,7 +23,7 @@ int main() {
 
 
 
-	TF_gpu_large_data_list<F_matrix4x4_f32> gpu_large_data_list(
+	TF_gpu_large_data_list<F_matrix4x4_f32> demo_gpu_large_data_list(
 		ED_resource_flag::NONE,
 		ED_resource_heap_type::DEFAULT,
 		ED_resource_state::COMMON,
@@ -31,6 +31,13 @@ int main() {
 		1024,
 		0
 		NRE_OPTIONAL_DEBUG_PARAM("demo_gpu_large_data_list")
+	);
+	TF_large_data_list<F_matrix4x4_f32> demo_large_data_list(
+		128
+	);
+
+	TF_gpu_range_based_uploader<F_matrix4x4_f32> demo_gpu_range_based_uploader(
+		&demo_gpu_large_data_list
 	);
 
 
@@ -42,7 +49,9 @@ int main() {
 		};
 		NRE_APPLICATION_SHUTDOWN(application_p)
 		{
-			gpu_large_data_list.reset();
+			demo_gpu_range_based_uploader.reset();
+			demo_gpu_large_data_list.reset();
+			demo_large_data_list.reset();
 		};
 		NRE_APPLICATION_GAMEPLAY_TICK(application_p)
 		{
@@ -56,10 +65,23 @@ int main() {
 		};
 	}
 
+	F_matrix4x4_f32 cached_data = T_identity<F_matrix4x4_f32>();
+
 	// render_foundation event
 	{
 		NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER()
 		{
+			{
+				demo_gpu_large_data_list.RG_begin_register();
+				demo_gpu_large_data_list.RG_end_register();
+			}
+
+			{
+				demo_gpu_range_based_uploader.upload(
+					0,
+					{ &cached_data, 1 }
+				);
+			}
 		};
 		NRE_NEWRG_RENDER_FOUNDATION_UPLOAD()
 		{

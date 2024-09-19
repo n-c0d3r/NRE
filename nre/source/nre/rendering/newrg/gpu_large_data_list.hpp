@@ -34,6 +34,7 @@ namespace nre::newrg
     public:
         NCPP_FORCE_INLINE ED_resource_flag flags() const noexcept { return flags_; }
         NCPP_FORCE_INLINE ED_resource_heap_type heap_type() const noexcept { return heap_type_; }
+        NCPP_FORCE_INLINE sz element_count() const noexcept { return element_count_; }
         NCPP_FORCE_INLINE sz page_capacity_in_elements() const noexcept { return page_capacity_in_elements_; }
         NCPP_FORCE_INLINE const auto& page_p_vector() const noexcept { return page_p_vector_; }
         NCPP_FORCE_INLINE const auto& rg_page_p_vector() const noexcept { return rg_page_p_vector_; }
@@ -150,9 +151,21 @@ namespace nre::newrg
 
 
     public:
+        NCPP_FORCE_INLINE sz page_index(sz element_index) const noexcept
+        {
+            return (element_index / page_capacity_in_elements_);
+        }
+        NCPP_FORCE_INLINE sz local_element_index(sz element_index) const noexcept
+        {
+            return (element_index % page_capacity_in_elements_);
+        }
         NCPP_FORCE_INLINE K_valid_buffer_handle page_p(sz page_index) const noexcept
         {
             return NCPP_FOH_VALID(page_p_vector_[page_index]);
+        }
+        NCPP_FORCE_INLINE F_render_resource* rg_page_p(sz page_index) const noexcept
+        {
+            return rg_page_p_vector_[page_index];
         }
 
     public:

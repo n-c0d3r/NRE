@@ -11,7 +11,7 @@
 namespace nre::newrg
 {
     template<typename F_element__>
-    class NRE_API TF_gpu_paged_uploader final
+    class NRE_API TF_gpu_page_based_uploader final
     {
     public:
         using F_element = F_element__;
@@ -39,8 +39,8 @@ namespace nre::newrg
 
 
     public:
-        TF_gpu_paged_uploader() = default;
-        TF_gpu_paged_uploader(
+        TF_gpu_page_based_uploader() = default;
+        TF_gpu_page_based_uploader(
             F_gpu_large_data_list* gpu_large_data_list_p,
             F_cpu_large_data_list* cpu_large_data_list_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name = "")
@@ -50,18 +50,18 @@ namespace nre::newrg
             NRE_OPTIONAL_DEBUG_PARAM(name_(name))
         {
         }
-        ~TF_gpu_paged_uploader()
+        ~TF_gpu_page_based_uploader()
         {
             reset();
         }
 
-        TF_gpu_paged_uploader(const TF_gpu_paged_uploader& x) :
+        TF_gpu_page_based_uploader(const TF_gpu_page_based_uploader& x) :
             gpu_large_data_list_p_(x.gpu_large_data_list_p_),
             cpu_large_data_list_p_(x.cpu_large_data_list_p_)
         {
             NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(name_ = x.name_);
         }
-        TF_gpu_paged_uploader& operator = (const TF_gpu_paged_uploader& x)
+        TF_gpu_page_based_uploader& operator = (const TF_gpu_page_based_uploader& x)
         {
             gpu_large_data_list_p_ = x.gpu_large_data_list_p_;
             cpu_large_data_list_p_ = x.cpu_large_data_list_p_;
@@ -71,7 +71,7 @@ namespace nre::newrg
             return *this;
         }
 
-        TF_gpu_paged_uploader(TF_gpu_paged_uploader&& x) :
+        TF_gpu_page_based_uploader(TF_gpu_page_based_uploader&& x) :
             gpu_large_data_list_p_(x.gpu_large_data_list_p_),
             cpu_large_data_list_p_(x.cpu_large_data_list_p_)
         {
@@ -79,7 +79,7 @@ namespace nre::newrg
 
             x.reset();
         }
-        TF_gpu_paged_uploader& operator = (TF_gpu_paged_uploader&& x)
+        TF_gpu_page_based_uploader& operator = (TF_gpu_page_based_uploader&& x)
         {
             gpu_large_data_list_p_ = x.gpu_large_data_list_p_;
             cpu_large_data_list_p_ = x.cpu_large_data_list_p_;
@@ -113,12 +113,14 @@ namespace nre::newrg
         }
         void RG_end_register()
         {
+            auto& rg_page_p_vector = gpu_large_data_list_p_->rg_page_p_vector();
+
             sz usuable_page_count = page_id_to_need_to_upload_.size();
             for(sz page_index = 0; page_index < usuable_page_count; ++page_index)
             {
                 if(page_id_to_need_to_upload_[page_index])
                 {
-                    auto rg_page_p = gpu_large_data_list_p_->rg_page_p_vector();
+                    auto rg_page_p = rg_page_p_vector[page_index];
                     auto& src_data_page = cpu_large_data_list_p_->page(page_index);
 
                     TG_span<u8> data_span = { (u8*)(src_data_page.data()), sizeof(F_element__) * gpu_large_data_list_p_->page_capacity_in_elements() };
