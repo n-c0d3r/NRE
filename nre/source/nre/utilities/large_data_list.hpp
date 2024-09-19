@@ -61,9 +61,6 @@ namespace nre
             page_capacity_in_elements_ = x.page_capacity_in_elements_;
             pages_ = x.pages_;
 
-            x.element_count_ = 0;
-            x.page_capacity_in_elements_ = 0;
-
             return *this;
         }
 

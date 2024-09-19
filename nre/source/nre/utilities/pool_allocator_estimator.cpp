@@ -48,7 +48,7 @@ namespace nre
 
 
 
-    eastl::optional<F_pool_allocator_estimator::F_allocation> F_pool_allocator_estimator::allocate()
+    eastl::optional<F_pool_allocator_estimator::F_allocation> F_pool_allocator_estimator::try_allocate()
     {
         F_allocation allocation;
         if(cached_allocation_ring_buffer_.try_pop(allocation))
@@ -58,12 +58,16 @@ namespace nre
 
         F_allocation result = next_location_.fetch_add(1);
         if(result < capacity_)
+        {
+            size_.fetch_add(1);
             return result;
+        }
 
         return eastl::nullopt;
     }
     void F_pool_allocator_estimator::deallocate(F_pool_allocator_estimator::F_allocation allocation)
     {
+        size_.fetch_sub(1);
         cached_allocation_ring_buffer_.push(allocation);
     }
 }
