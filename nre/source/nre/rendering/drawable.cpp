@@ -18,11 +18,11 @@ namespace nre {
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_drawable);
 
-		F_drawable_system::instance_p()->registry(NCPP_KTHIS());
+		F_drawable_system::instance_p()->_register(NCPP_KTHIS());
 	}
 	A_drawable::~A_drawable()
 	{
-		F_drawable_system::instance_p()->deregistry(NCPP_KTHIS());
+		F_drawable_system::instance_p()->deregister(NCPP_KTHIS());
 	}
 
 }

@@ -19,12 +19,12 @@ namespace nre
 	{
 	}
 
-	void F_render_view_system::registry(TKPA_valid<A_render_view> render_view_p)
+	void F_render_view_system::_register(TKPA_valid<A_render_view> render_view_p)
 	{
 		render_view_p_list_.push_back(render_view_p);
 		render_view_p->handle_ = --(render_view_p_list_.end());
 	}
-	void F_render_view_system::deregistry(TKPA_valid<A_render_view> render_view_p)
+	void F_render_view_system::deregister(TKPA_valid<A_render_view> render_view_p)
 	{
 		render_view_p_list_.erase(render_view_p->handle_);
 		render_view_p->handle_ = render_view_p_list_.end();

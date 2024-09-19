@@ -30,11 +30,11 @@ namespace nre {
 
 		mask_ |= proxy_p_->mask();
 
-		F_light_system::instance_p()->registry(NCPP_KTHIS());
+		F_light_system::instance_p()->_register(NCPP_KTHIS());
 	}
 	A_light::~A_light() {
 
-		F_light_system::instance_p()->deregistry(NCPP_KTHIS());
+		F_light_system::instance_p()->deregister(NCPP_KTHIS());
 	}
 
 	void A_light::ready() {

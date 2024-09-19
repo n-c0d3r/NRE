@@ -26,11 +26,11 @@ namespace nre
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_render_view);
 
-		F_render_view_system::instance_p()->registry(NCPP_KTHIS());
+		F_render_view_system::instance_p()->_register(NCPP_KTHIS());
 	}
 	A_render_view::~A_render_view()
 	{
-		F_render_view_system::instance_p()->deregistry(NCPP_KTHIS());
+		F_render_view_system::instance_p()->deregister(NCPP_KTHIS());
 	}
 
 

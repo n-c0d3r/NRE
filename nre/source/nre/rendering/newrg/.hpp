@@ -85,10 +85,9 @@
 #include <nre/rendering/newrg/render_pass_utilities.hpp>
 #include <nre/rendering/newrg/page_resource_stream.hpp>
 #include <nre/rendering/newrg/gpu_large_data_list.hpp>
-#include <nre/rendering/newrg/cpu_gpu_data_registry.hpp>
-#include <nre/rendering/newrg/gpu_data_registry.hpp>
 #include <nre/rendering/newrg/gpu_page_based_uploader.hpp>
 #include <nre/rendering/newrg/gpu_range_based_uploader.hpp>
+#include <nre/rendering/newrg/cacheable_pool_gpu_data_table.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

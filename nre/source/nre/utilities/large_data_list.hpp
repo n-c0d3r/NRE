@@ -25,6 +25,13 @@ namespace nre
         NCPP_FORCE_INLINE sz page_capacity_in_elements() const noexcept { return page_capacity_in_elements_; }
         NCPP_FORCE_INLINE const auto& pages() const noexcept { return pages_; }
         NCPP_FORCE_INLINE sz page_count() const noexcept { return pages_.size(); }
+        NCPP_FORCE_INLINE sz usuable_page_count() const noexcept
+        {
+            return (
+                (element_count_ / page_capacity_in_elements_)
+                + (element_count_ % page_capacity_in_elements_) ? 1 : 0
+            );
+        }
 
 
 
@@ -145,7 +152,7 @@ namespace nre
             element_count_ = new_element_count;
 
             sz new_page_count = eastl::max<sz>(
-                (element_count_ / page_capacity_in_elements_) + ((element_count_ % page_capacity_in_elements_) ? 1 : 0),
+                usuable_page_count(),
                 page_count()
             );
 

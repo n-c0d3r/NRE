@@ -16,12 +16,12 @@ namespace nre
 	{
 	}
 
-	void F_light_system::registry(TKPA_valid<A_light> light_p)
+	void F_light_system::_register(TKPA_valid<A_light> light_p)
 	{
 		light_p_list_.push_back(light_p);
 		light_p->handle_ = --(light_p_list_.end());
 	}
-	void F_light_system::deregistry(TKPA_valid<A_light> light_p)
+	void F_light_system::deregister(TKPA_valid<A_light> light_p)
 	{
 		light_p_list_.erase(light_p->handle_);
 		light_p->handle_ = light_p_list_.end();

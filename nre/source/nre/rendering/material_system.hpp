@@ -51,8 +51,8 @@ namespace nre {
 		NCPP_OBJECT(F_material_system);
 
 	private:
-		void registry(TKPA_valid<A_material> material_p);
-		void deregistry(TKPA_valid<A_material> material_p);
+		void _register(TKPA_valid<A_material> material_p);
+		void deregister(TKPA_valid<A_material> material_p);
 
 	public:
 		NCPP_FORCE_INLINE b8 is_has_channel_id(u64 type_hash_code) const noexcept {

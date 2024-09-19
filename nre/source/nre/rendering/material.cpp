@@ -29,11 +29,11 @@ namespace nre {
 
 		mask_ |= proxy_p_->mask();
 
-		F_material_system::instance_p()->registry(NCPP_KTHIS());
+		F_material_system::instance_p()->_register(NCPP_KTHIS());
 	}
 	A_material::~A_material() {
 
-		F_material_system::instance_p()->deregistry(NCPP_KTHIS());
+		F_material_system::instance_p()->deregister(NCPP_KTHIS());
 	}
 
 	void A_material::ready() {

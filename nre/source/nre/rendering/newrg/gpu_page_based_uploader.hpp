@@ -101,7 +101,7 @@ namespace nre::newrg
     public:
         void RG_begin_register()
         {
-            NCPP_ASSERT(gpu_large_data_list_p_->element_count() == cpu_large_data_list_p_->element_count());
+            NCPP_ASSERT(gpu_large_data_list_p_->usuable_page_count() == cpu_large_data_list_p_->usuable_page_count());
             NCPP_ASSERT(gpu_large_data_list_p_->page_capacity_in_elements() == cpu_large_data_list_p_->page_capacity_in_elements());
 
             sz usuable_page_count = gpu_large_data_list_p_->usuable_page_count();
