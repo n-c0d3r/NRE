@@ -54,16 +54,7 @@ namespace nre {
 		if(nsl_modifer)
 			nsl_modifer(raw_src_content, macros);
 
-		E_nsl_output_language output_language = E_nsl_output_language::NONE;
-
-#ifdef NRHI_DRIVER_INDEX_DIRECTX_11
-		if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_11)
-			output_language = E_nsl_output_language::HLSL_5;
-#endif
-#ifdef NRHI_DRIVER_INDEX_DIRECTX_12
-		if(driver_index() == NRHI_DRIVER_INDEX_DIRECTX_12)
-			output_language = E_nsl_output_language::HLSL_5_1;
-#endif
+		E_nsl_output_language output_language = H_nsl_output_language::default_as_enum();
 
 		auto compiler_p = H_customized_nsl_shader_compiler::create();
 		auto compiled_result_opt = compiler_p->compile(
