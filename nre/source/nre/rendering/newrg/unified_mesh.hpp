@@ -65,5 +65,9 @@ namespace nre::newrg
         void update_compressed_data(const F_compressed_unified_mesh_data& new_compressed_data);
         void update_compressed_data(F_compressed_unified_mesh_data&& new_compressed_data);
         void release_compressed_data();
+
+    public:
+        void evict();
+        void make_resident();
     };
 }

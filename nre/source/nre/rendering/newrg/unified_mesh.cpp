@@ -86,4 +86,22 @@ namespace nre::newrg
 
         compressed_data_ = {};
     }
+
+    void F_unified_mesh::evict()
+    {
+        NCPP_ASSERT(last_frame_subpage_header_id_ != NCPP_U32_MAX);
+
+        try_enqueue_update_internal();
+
+        need_to_evict_ = true;
+    }
+    void F_unified_mesh::make_resident()
+    {
+        NCPP_ASSERT((last_frame_header_id_ != NCPP_U32_MAX) || need_to_upload_);
+        NCPP_ASSERT(last_frame_subpage_header_id_ == NCPP_U32_MAX);
+
+        try_enqueue_update_internal();
+
+        need_to_make_resident_ = true;
+    }
 }
