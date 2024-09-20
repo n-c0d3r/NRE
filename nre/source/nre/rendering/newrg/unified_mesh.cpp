@@ -17,6 +17,15 @@ namespace nre::newrg
     }
     F_unified_mesh::~F_unified_mesh()
     {
+        if(last_frame_subpage_header_id_ != NCPP_U32_MAX)
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_evict(last_frame_subpage_header_id_);
+        if(last_frame_header_id_ != NCPP_U32_MAX)
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_flush(last_frame_header_id_);
+
+        need_to_upload_ = false;
+        need_to_make_resident_ = false;
+        need_to_evict_ = (last_frame_subpage_header_id_ != NCPP_U32_MAX);
+        need_to_flush_ = (last_frame_header_id_ != NCPP_U32_MAX);
     }
 
 
@@ -34,6 +43,8 @@ namespace nre::newrg
         need_to_update_ = false;
 
         need_to_upload_ = false;
+        need_to_make_resident_ = false;
+        need_to_evict_ = false;
         need_to_flush_ = false;
     }
 
@@ -44,6 +55,8 @@ namespace nre::newrg
         try_enqueue_update_internal();
 
         need_to_upload_ = true;
+        need_to_make_resident_ = true;
+        need_to_evict_ = (last_frame_subpage_header_id_ != NCPP_U32_MAX);
         need_to_flush_ = (last_frame_header_id_ != NCPP_U32_MAX);
 
         compressed_data_ = new_compressed_data;
@@ -53,6 +66,8 @@ namespace nre::newrg
         try_enqueue_update_internal();
 
         need_to_upload_ = true;
+        need_to_make_resident_ = true;
+        need_to_evict_ = (last_frame_subpage_header_id_ != NCPP_U32_MAX);
         need_to_flush_ = (last_frame_header_id_ != NCPP_U32_MAX);
 
         compressed_data_ = eastl::move(new_compressed_data);
@@ -62,6 +77,8 @@ namespace nre::newrg
         try_enqueue_update_internal();
 
         need_to_upload_ = false;
+        need_to_make_resident_ = false;
+        need_to_evict_ = (last_frame_subpage_header_id_ != NCPP_U32_MAX);
         need_to_flush_ = (last_frame_header_id_ != NCPP_U32_MAX);
 
         compressed_data_ = {};

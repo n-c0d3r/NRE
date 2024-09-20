@@ -30,17 +30,23 @@ namespace nre::newrg
         TG_queue<u32> flush_queue_;
         pac::F_spin_lock flush_lock_;
 
+        TG_queue<u32> evict_queue_;
+        pac::F_spin_lock evict_lock_;
+
         TF_cacheable_pool_gpu_data_table<F_unified_mesh_header> mesh_header_table_;
         TG_queue<TS<F_unified_mesh>> register_mesh_header_queue_;
         TG_queue<TS<F_unified_mesh>> upload_mesh_header_queue_;
+        TG_queue<u32> deregister_mesh_header_queue_;
 
         TF_general_gpu_data_table<F_unified_mesh_subpage_header> subpage_header_table_;
         TG_queue<TS<F_unified_mesh>> register_subpage_header_queue_;
         TG_queue<TS<F_unified_mesh>> upload_subpage_header_queue_;
+        TG_queue<u32> deregister_subpage_header_queue_;
 
         TF_general_gpu_data_table<F_cluster_header, F_cluster_culling_data> cluster_table_;
         TG_queue<TS<F_unified_mesh>> register_cluster_queue_;
         TG_queue<TS<F_unified_mesh>> upload_cluster_queue_;
+        TG_queue<u32> deregister_cluster_queue_;
 
         TF_general_gpu_data_table<
             F_dag_node_header,
@@ -49,6 +55,7 @@ namespace nre::newrg
         > dag_table_;
         TG_queue<TS<F_unified_mesh>> register_dag_queue_;
         TG_queue<TS<F_unified_mesh>> upload_dag_queue_;
+        TG_queue<u32> deregister_dag_queue_;
 
     public:
         NCPP_FORCE_INLINE const auto& mesh_header_table() const noexcept { return mesh_header_table_; }
@@ -67,6 +74,8 @@ namespace nre::newrg
 
     private:
          void update_internal(TSPA<F_unified_mesh> mesh_p);
+         void make_resident_internal(TSPA<F_unified_mesh> mesh_p);
+         void evict_internal(u32 mesh_header_id);
          void flush_internal(u32 mesh_header_id);
 
 
@@ -78,6 +87,7 @@ namespace nre::newrg
     public:
         void enqueue_update(TSPA<F_unified_mesh> mesh_p);
         void enqueue_flush(u32 mesh_header_id);
+        void enqueue_evict(u32 mesh_header_id);
     };
 }
 

@@ -20,6 +20,8 @@ namespace nre::newrg
 
         b8 need_to_update_ = false;
         b8 need_to_upload_ = false;
+        b8 need_to_make_resident_ = false;
+        b8 need_to_evict_ = false;
         b8 need_to_flush_ = false;
 
         u32 last_frame_header_id_ = NCPP_U32_MAX;
