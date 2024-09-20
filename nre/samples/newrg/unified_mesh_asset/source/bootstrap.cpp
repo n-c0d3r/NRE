@@ -31,7 +31,7 @@ int main() {
 
 	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
 
-b8 b = true;
+
 
 	// application events
 	{
