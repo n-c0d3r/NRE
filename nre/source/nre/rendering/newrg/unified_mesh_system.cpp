@@ -87,12 +87,12 @@ namespace nre::newrg
         register_dag_queue_.push(mesh_p);
         upload_dag_queue_.push(mesh_p);
     }
-    void F_unified_mesh_system::make_resident_internal(TKPA<F_unified_mesh> mesh_p)
+    void F_unified_mesh_system::make_subpages_resident_internal(TKPA<F_unified_mesh> mesh_p)
     {
         register_subpage_header_queue_.push(mesh_p);
         upload_subpage_header_queue_.push(mesh_p);
     }
-    void F_unified_mesh_system::evict_internal(const F_unified_mesh_evict_params& input)
+    void F_unified_mesh_system::evict_subpages_internal(const F_unified_mesh_evict_subpages_params& input)
     {
         deregister_subpage_header_queue_.push(input);
     }
@@ -116,16 +116,16 @@ namespace nre::newrg
 
         // external queues
         {
-            // process evict_queue_
+            // process evict_subpages_queue_
             {
-                NCPP_SCOPED_LOCK(evict_lock_);
+                NCPP_SCOPED_LOCK(evict_subpages_lock_);
 
-                while(evict_queue_.size())
+                while(evict_subpages_queue_.size())
                 {
-                    auto subpage_id_and_subpage_headers = evict_queue_.front();
-                    evict_queue_.pop();
+                    auto subpage_id_and_subpage_headers = evict_subpages_queue_.front();
+                    evict_subpages_queue_.pop();
 
-                    evict_internal(subpage_id_and_subpage_headers);
+                    evict_subpages_internal(subpage_id_and_subpage_headers);
                 }
             }
 
@@ -154,14 +154,14 @@ namespace nre::newrg
                     if(!mesh_p)
                         continue;
 
-                    if(mesh_p->need_to_evict_)
+                    if(mesh_p->need_to_evict_subpages_)
                     {
-                        evict_internal({
+                        evict_subpages_internal({
                             mesh_p->last_frame_header_id_,
                             mesh_p->last_frame_subpage_header_id_,
                             mesh_p->last_frame_subpage_headers_
                         });
-                        final_evict_queue_.push(mesh_p);
+                        final_evict_subpages_queue_.push(mesh_p);
                     }
 
                     if(mesh_p->need_to_flush_)
@@ -175,9 +175,9 @@ namespace nre::newrg
                         update_internal(mesh_p);
                     }
 
-                    if(mesh_p->need_to_make_resident_)
+                    if(mesh_p->need_to_make_subpages_resident_)
                     {
-                        make_resident_internal(mesh_p);
+                        make_subpages_resident_internal(mesh_p);
                     }
                 }
             }
@@ -432,12 +432,12 @@ namespace nre::newrg
                 mesh_header_table_.RG_end_register_upload();
             }
 
-            // process final_evict_queue_
+            // process final_evict_subpages_queue_
             {
-                while(final_evict_queue_.size())
+                while(final_evict_subpages_queue_.size())
                 {
-                    TK<F_unified_mesh> mesh_p = final_evict_queue_.front();
-                    final_evict_queue_.pop();
+                    TK<F_unified_mesh> mesh_p = final_evict_subpages_queue_.front();
+                    final_evict_subpages_queue_.pop();
 
                     mesh_p->last_frame_subpage_header_id_ = NCPP_U32_MAX;
                 }
@@ -472,10 +472,10 @@ namespace nre::newrg
 
         flush_queue_.push(mesh_header_id);
     }
-    void F_unified_mesh_system::enqueue_evict(const F_unified_mesh_evict_params& params)
+    void F_unified_mesh_system::enqueue_evict_subpages(const F_unified_mesh_evict_subpages_params& params)
     {
-        NCPP_SCOPED_LOCK(evict_lock_);
+        NCPP_SCOPED_LOCK(evict_subpages_lock_);
 
-        evict_queue_.push(params);
+        evict_subpages_queue_.push(params);
     }
 }

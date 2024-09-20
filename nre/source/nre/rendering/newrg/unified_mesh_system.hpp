@@ -13,7 +13,7 @@ namespace nre::newrg
 
 
 
-    struct F_unified_mesh_evict_params
+    struct F_unified_mesh_evict_subpages_params
     {
         u32 mesh_header_id = NCPP_U32_MAX;
         u32 subpage_id = NCPP_U32_MAX;
@@ -39,8 +39,8 @@ namespace nre::newrg
         TG_queue<u32> flush_queue_;
         pac::F_spin_lock flush_lock_;
 
-        TG_queue<F_unified_mesh_evict_params> evict_queue_;
-        pac::F_spin_lock evict_lock_;
+        TG_queue<F_unified_mesh_evict_subpages_params> evict_subpages_queue_;
+        pac::F_spin_lock evict_subpages_lock_;
 
         TF_cacheable_pool_gpu_data_table<F_unified_mesh_header> mesh_header_table_;
         TG_queue<TK<F_unified_mesh>> register_mesh_header_queue_;
@@ -50,7 +50,7 @@ namespace nre::newrg
         TF_general_gpu_data_table<F_unified_mesh_subpage_header> subpage_header_table_;
         TG_queue<TK<F_unified_mesh>> register_subpage_header_queue_;
         TG_queue<TK<F_unified_mesh>> upload_subpage_header_queue_;
-        TG_queue<F_unified_mesh_evict_params> deregister_subpage_header_queue_;
+        TG_queue<F_unified_mesh_evict_subpages_params> deregister_subpage_header_queue_;
 
         TF_general_gpu_data_table<F_cluster_header, F_cluster_culling_data> cluster_table_;
         TG_queue<TK<F_unified_mesh>> register_cluster_queue_;
@@ -70,7 +70,7 @@ namespace nre::newrg
 
         TF_general_gpu_data_table<F_compressed_local_cluster_vertex_id> triangle_vertex_id_table_;
 
-        TG_queue<TK<F_unified_mesh>> final_evict_queue_;
+        TG_queue<TK<F_unified_mesh>> final_evict_subpages_queue_;
         TG_queue<TK<F_unified_mesh>> final_flush_queue_;
 
     public:
@@ -90,8 +90,8 @@ namespace nre::newrg
 
     private:
          void update_internal(TKPA<F_unified_mesh> mesh_p);
-         void make_resident_internal(TKPA<F_unified_mesh> mesh_p);
-         void evict_internal(const F_unified_mesh_evict_params&);
+         void make_subpages_resident_internal(TKPA<F_unified_mesh> mesh_p);
+         void evict_subpages_internal(const F_unified_mesh_evict_subpages_params&);
          void flush_internal(u32 mesh_header_id);
 
 
@@ -103,7 +103,7 @@ namespace nre::newrg
     public:
         void enqueue_update(TKPA<F_unified_mesh> mesh_p);
         void enqueue_flush(u32 mesh_header_id);
-        void enqueue_evict(const F_unified_mesh_evict_params& params);
+        void enqueue_evict_subpages(const F_unified_mesh_evict_subpages_params& params);
     };
 }
 
