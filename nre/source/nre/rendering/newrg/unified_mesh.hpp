@@ -32,14 +32,7 @@ namespace nre::newrg
 
         u32 last_frame_dag_node_id_ = NCPP_U32_MAX;
 
-        TG_span<F_unified_mesh_subpage_header> temp_subpage_header_span_;
-
-        TG_span<F_cluster_header> temp_cluster_header_span_;
-        TG_span<F_cluster_culling_data> temp_cluster_culling_data_span_;
-
-        TG_span<F_dag_node_header> temp_dag_node_header_span_;
-        TG_span<F_dag_node_culling_data> temp_dag_node_culling_data_span_;
-        TG_span<F_cluster_id_range> temp_dag_cluster_id_range_span_;
+        TG_vector<F_unified_mesh_subpage_header> last_frame_subpage_headers_;
 
     public:
         NCPP_FORCE_INLINE const auto& compressed_data() const noexcept { return compressed_data_; }
@@ -47,6 +40,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE u32 last_frame_subpage_header_id() const noexcept { return last_frame_subpage_header_id_; }
         NCPP_FORCE_INLINE u32 last_frame_cluster_id() const noexcept { return last_frame_cluster_id_; }
         NCPP_FORCE_INLINE u32 last_frame_dag_node_id() const noexcept { return last_frame_dag_node_id_; }
+        NCPP_FORCE_INLINE const auto& last_frame_subpage_headers() const noexcept { return last_frame_subpage_headers_; }
 
 
 

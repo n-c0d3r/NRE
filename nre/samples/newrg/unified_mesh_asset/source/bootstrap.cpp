@@ -31,7 +31,7 @@ int main() {
 
 	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
 
-
+b8 b = true;
 
 	// application events
 	{
@@ -47,6 +47,13 @@ int main() {
 			{
 				NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());
 			};
+
+			if(b)
+			{
+				b = false;
+				return;
+			}
+			unified_mesh_asset_p.reset();
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p)
 		{

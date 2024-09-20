@@ -18,7 +18,10 @@ namespace nre::newrg
     F_unified_mesh::~F_unified_mesh()
     {
         if(last_frame_subpage_header_id_ != NCPP_U32_MAX)
-            NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_evict(last_frame_subpage_header_id_);
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_evict(
+                last_frame_subpage_header_id_,
+                last_frame_subpage_headers_
+            );
         if(last_frame_header_id_ != NCPP_U32_MAX)
             NRE_NEWRG_UNIFIED_MESH_SYSTEM()->enqueue_flush(last_frame_header_id_);
 

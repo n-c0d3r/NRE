@@ -45,6 +45,22 @@ namespace nre::newrg
             NRE_NEWRG_UNIFIED_MESH_DAG_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.dag_table")
+        ),
+        vertex_data_table_(
+            ED_resource_flag::SHADER_RESOURCE,
+            ED_resource_heap_type::DEFAULT,
+            ED_resource_state::COMMON,
+            NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS * NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER,
+            0
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.vertex_data_table")
+        ),
+        triangle_vertex_id_table_(
+            ED_resource_flag::SHADER_RESOURCE,
+            ED_resource_heap_type::DEFAULT,
+            ED_resource_state::COMMON,
+            NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS * NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3,
+            0
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.triangle_vertex_id_table")
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
@@ -60,7 +76,7 @@ namespace nre::newrg
 
 
 
-    void F_unified_mesh_system::update_internal(TSPA<F_unified_mesh> mesh_p)
+    void F_unified_mesh_system::update_internal(TKPA<F_unified_mesh> mesh_p)
     {
         register_mesh_header_queue_.push(mesh_p);
         upload_mesh_header_queue_.push(mesh_p);
@@ -70,20 +86,15 @@ namespace nre::newrg
 
         register_dag_queue_.push(mesh_p);
         upload_dag_queue_.push(mesh_p);
-
-        if(mesh_p->need_to_make_resident_)
-            make_resident_internal(mesh_p);
     }
-    void F_unified_mesh_system::make_resident_internal(TSPA<F_unified_mesh> mesh_p)
+    void F_unified_mesh_system::make_resident_internal(TKPA<F_unified_mesh> mesh_p)
     {
         register_subpage_header_queue_.push(mesh_p);
         upload_subpage_header_queue_.push(mesh_p);
     }
-    void F_unified_mesh_system::evict_internal(u32 mesh_header_id)
+    void F_unified_mesh_system::evict_internal(const eastl::pair<u32, TG_vector<F_unified_mesh_subpage_header>>& input)
     {
-        auto& mesh_header = mesh_header_table_.T_element(mesh_header_id);
-
-        deregister_subpage_header_queue_.push(mesh_header.subpage_offset);
+        deregister_subpage_header_queue_.push(input);
     }
     void F_unified_mesh_system::flush_internal(u32 mesh_header_id)
     {
@@ -111,10 +122,10 @@ namespace nre::newrg
 
                 while(evict_queue_.size())
                 {
-                    auto mesh_header_id = evict_queue_.front();
+                    auto subpage_id_and_subpage_headers = evict_queue_.front();
                     evict_queue_.pop();
 
-                    evict_internal(mesh_header_id);
+                    evict_internal(subpage_id_and_subpage_headers);
                 }
             }
 
@@ -137,16 +148,26 @@ namespace nre::newrg
 
                 while(update_queue_.size())
                 {
-                    TS<F_unified_mesh> mesh_p = update_queue_.front();
+                    TK<F_unified_mesh> mesh_p = update_queue_.front();
                     update_queue_.pop();
 
+                    if(!mesh_p)
+                        continue;
+
                     if(mesh_p->need_to_evict_)
-                        evict_internal(mesh_p->last_frame_subpage_header_id_);
+                        evict_internal({
+                            mesh_p->last_frame_subpage_header_id_,
+                            mesh_p->last_frame_subpage_headers_
+                        });
 
                     if(mesh_p->need_to_flush_)
                         flush_internal(mesh_p->last_frame_header_id_);
 
-                    update_internal(mesh_p);
+                    if(mesh_p->need_to_upload_)
+                        update_internal(mesh_p);
+
+                    if(mesh_p->need_to_make_resident_)
+                        make_resident_internal(mesh_p);
                 }
             }
         }
@@ -156,15 +177,26 @@ namespace nre::newrg
             // process deregister_subpage_header_queue_
             {
                 subpage_header_table_.RG_begin_register();
+                vertex_data_table_.RG_begin_register();
+                triangle_vertex_id_table_.RG_begin_register();
 
                 while(deregister_subpage_header_queue_.size())
                 {
-                    u32 subpage_header_id = deregister_subpage_header_queue_.front();
-                    deregister_subpage_header_queue_.pop();
+                    auto& subpage_header_id_and_subpage_headers = deregister_subpage_header_queue_.front();
 
-                    subpage_header_table_.deregister_id(subpage_header_id);
+                    subpage_header_table_.deregister_id(subpage_header_id_and_subpage_headers.first);
+
+                    for(auto& subpage_header : subpage_header_id_and_subpage_headers.second)
+                    {
+                        vertex_data_table_.deregister_id(subpage_header.vertex_offset);
+                        triangle_vertex_id_table_.deregister_id(subpage_header.local_cluster_triangle_vertex_id_offset);
+                    }
+
+                    deregister_subpage_header_queue_.pop();
                 }
 
+                triangle_vertex_id_table_.RG_end_register();
+                vertex_data_table_.RG_end_register();
                 subpage_header_table_.RG_end_register();
             }
 
@@ -189,7 +221,7 @@ namespace nre::newrg
 
                 while(register_mesh_header_queue_.size())
                 {
-                    TS<F_unified_mesh> mesh_p = register_mesh_header_queue_.front();
+                    TK<F_unified_mesh> mesh_p = register_mesh_header_queue_.front();
                     register_mesh_header_queue_.pop();
 
                     mesh_p->last_frame_header_id_ = mesh_header_table_.register_id();
@@ -201,25 +233,43 @@ namespace nre::newrg
             // process register_subpage_header_queue_
             {
                 subpage_header_table_.RG_begin_register();
+                vertex_data_table_.RG_begin_register();
+                triangle_vertex_id_table_.RG_begin_register();
 
                 while(register_subpage_header_queue_.size())
                 {
-                    TS<F_unified_mesh> mesh_p = register_subpage_header_queue_.front();
+                    TK<F_unified_mesh> mesh_p = register_subpage_header_queue_.front();
                     register_subpage_header_queue_.pop();
 
                     auto& compressed_data = mesh_p->compressed_data();
                     u32 subpage_count = compressed_data.subpage_vertex_counts.size();
 
                     mesh_p->last_frame_subpage_header_id_ = subpage_header_table_.register_id(subpage_count);
-                    mesh_p->temp_subpage_header_span_ = H_render_frame_allocator::T_create_array<F_unified_mesh_subpage_header>(
-                        subpage_count
-                    );
+                    mesh_p->last_frame_subpage_headers_.resize(subpage_count);
+
+                    //
+                    for(u32 subpage_index = 0; subpage_index < subpage_count; ++subpage_index)
+                    {
+                        auto& subpage_header = mesh_p->last_frame_subpage_headers_[subpage_index];
+
+                        subpage_header.vertex_count = compressed_data.subpage_vertex_counts[subpage_index];
+                        subpage_header.vertex_offset = vertex_data_table_.register_id(
+                            subpage_header.vertex_count
+                        );
+
+                        subpage_header.local_cluster_triangle_vertex_id_count = compressed_data.subpage_local_cluster_triangle_vertex_id_counts[subpage_index];
+                        subpage_header.local_cluster_triangle_vertex_id_offset = triangle_vertex_id_table_.register_id(
+                            subpage_header.local_cluster_triangle_vertex_id_count
+                        );
+                    }
 
                     auto& mesh_header = mesh_header_table_.T_element(mesh_p->last_frame_header_id_);
                     mesh_header.subpage_offset = mesh_p->last_frame_subpage_header_id_;
                     mesh_header.subpage_count = subpage_count;
                 }
 
+                triangle_vertex_id_table_.RG_end_register();
+                vertex_data_table_.RG_end_register();
                 subpage_header_table_.RG_end_register();
             }
 
@@ -227,12 +277,41 @@ namespace nre::newrg
             {
                 while(upload_subpage_header_queue_.size())
                 {
-                    TS<F_unified_mesh> mesh_p = upload_subpage_header_queue_.front();
+                    TK<F_unified_mesh> mesh_p = upload_subpage_header_queue_.front();
                     upload_subpage_header_queue_.pop();
+
+                    auto& compressed_data = mesh_p->compressed_data();
+                    u32 subpage_count = compressed_data.subpage_vertex_counts.size();
+
+                    //
+                    sz local_vertex_offset = 0;
+                    sz local_triangle_vertex_id_offset = 0;
+                    for(u32 subpage_index = 0; subpage_index < subpage_count; ++subpage_index)
+                    {
+                        auto& subpage_header = mesh_p->last_frame_subpage_headers_[subpage_index];
+
+                        vertex_data_table_.T_upload(
+                            subpage_header.vertex_offset,
+                            {
+                                (F_compressed_vertex_data*)(compressed_data.vertex_datas.data() + local_vertex_offset),
+                                sz(subpage_header.vertex_count)
+                            }
+                        );
+                        triangle_vertex_id_table_.T_upload(
+                            subpage_header.local_cluster_triangle_vertex_id_offset,
+                            {
+                                (F_compressed_local_cluster_vertex_id*)(compressed_data.local_cluster_triangle_vertex_ids.data() + local_triangle_vertex_id_offset),
+                                sz(subpage_header.local_cluster_triangle_vertex_id_count)
+                            }
+                        );
+
+                        local_vertex_offset += subpage_header.vertex_count;
+                        local_triangle_vertex_id_offset += subpage_header.local_cluster_triangle_vertex_id_count;
+                    }
 
                     subpage_header_table_.T_upload(
                         mesh_p->last_frame_subpage_header_id_,
-                        mesh_p->temp_subpage_header_span_
+                        mesh_p->last_frame_subpage_headers_
                     );
                 }
             }
@@ -243,22 +322,13 @@ namespace nre::newrg
 
                 while(register_cluster_queue_.size())
                 {
-                    TS<F_unified_mesh> mesh_p = register_cluster_queue_.front();
+                    TK<F_unified_mesh> mesh_p = register_cluster_queue_.front();
                     register_cluster_queue_.pop();
 
                     auto& compressed_data = mesh_p->compressed_data();
                     u32 cluster_count = compressed_data.cluster_headers.size();
 
                     mesh_p->last_frame_cluster_id_ = cluster_table_.register_id(cluster_count);
-
-                    mesh_p->temp_cluster_header_span_ = H_render_frame_allocator::T_create_array<F_cluster_header>(
-                        cluster_count,
-                        (TG_vector<F_cluster_header>&)compressed_data.cluster_headers
-                    );
-                    mesh_p->temp_cluster_culling_data_span_ = H_render_frame_allocator::T_create_array<F_cluster_culling_data>(
-                        cluster_count,
-                        (TG_vector<F_cluster_culling_data>&)compressed_data.cluster_culling_datas
-                    );
 
                     auto& mesh_header = mesh_header_table_.T_element(mesh_p->last_frame_header_id_);
                     mesh_header.cluster_offset = mesh_p->last_frame_cluster_id_;
@@ -272,16 +342,18 @@ namespace nre::newrg
             {
                 while(upload_cluster_queue_.size())
                 {
-                    TS<F_unified_mesh> mesh_p = upload_cluster_queue_.front();
+                    TK<F_unified_mesh> mesh_p = upload_cluster_queue_.front();
                     upload_cluster_queue_.pop();
+
+                    auto& compressed_data = mesh_p->compressed_data();
 
                     cluster_table_.T_upload<0>(
                         mesh_p->last_frame_cluster_id_,
-                        mesh_p->temp_cluster_header_span_
+                        (TG_vector<F_cluster_header>&)compressed_data.cluster_headers
                     );
                     cluster_table_.T_upload<1>(
                         mesh_p->last_frame_cluster_id_,
-                        mesh_p->temp_cluster_culling_data_span_
+                        (TG_vector<F_cluster_culling_data>&)compressed_data.cluster_headers
                     );
                 }
             }
@@ -292,26 +364,13 @@ namespace nre::newrg
 
                 while(register_dag_queue_.size())
                 {
-                    TS<F_unified_mesh> mesh_p = register_dag_queue_.front();
+                    TK<F_unified_mesh> mesh_p = register_dag_queue_.front();
                     register_dag_queue_.pop();
 
                     auto& compressed_data = mesh_p->compressed_data();
                     u32 dag_node_count = compressed_data.dag_node_headers.size();
 
                     mesh_p->last_frame_dag_node_id_ = dag_table_.register_id(dag_node_count);
-
-                    mesh_p->temp_dag_node_header_span_ = H_render_frame_allocator::T_create_array<F_dag_node_header>(
-                        dag_node_count,
-                        (TG_vector<F_dag_node_header>&)compressed_data.dag_node_headers
-                    );
-                    mesh_p->temp_dag_node_culling_data_span_ = H_render_frame_allocator::T_create_array<F_dag_node_culling_data>(
-                        dag_node_count,
-                        (TG_vector<F_dag_node_culling_data>&)compressed_data.dag_node_culling_datas
-                    );
-                    mesh_p->temp_dag_cluster_id_range_span_ = H_render_frame_allocator::T_create_array<F_cluster_id_range>(
-                        dag_node_count,
-                        (TG_vector<F_cluster_id_range>&)compressed_data.dag_cluster_id_ranges
-                    );
 
                     auto& mesh_header = mesh_header_table_.T_element(mesh_p->last_frame_header_id_);
                     mesh_header.dag_node_offset = mesh_p->last_frame_dag_node_id_;
@@ -325,20 +384,22 @@ namespace nre::newrg
             {
                 while(upload_dag_queue_.size())
                 {
-                    TS<F_unified_mesh> mesh_p = upload_dag_queue_.front();
+                    TK<F_unified_mesh> mesh_p = upload_dag_queue_.front();
                     upload_dag_queue_.pop();
+
+                    auto& compressed_data = mesh_p->compressed_data();
 
                     dag_table_.T_upload<0>(
                         mesh_p->last_frame_dag_node_id_,
-                        mesh_p->temp_dag_node_header_span_
+                        (TG_vector<F_dag_node_header>&)compressed_data.dag_node_headers
                     );
                     dag_table_.T_upload<1>(
                         mesh_p->last_frame_dag_node_id_,
-                        mesh_p->temp_dag_node_culling_data_span_
+                        (TG_vector<F_dag_node_culling_data>&)compressed_data.dag_node_headers
                     );
                     dag_table_.T_upload<2>(
                         mesh_p->last_frame_dag_node_id_,
-                        mesh_p->temp_dag_cluster_id_range_span_
+                        (TG_vector<F_cluster_id_range>&)compressed_data.dag_node_headers
                     );
                 }
             }
@@ -349,7 +410,7 @@ namespace nre::newrg
 
                 while(upload_mesh_header_queue_.size())
                 {
-                    TS<F_unified_mesh> mesh_p = upload_mesh_header_queue_.front();
+                    TK<F_unified_mesh> mesh_p = upload_mesh_header_queue_.front();
                     upload_mesh_header_queue_.pop();
 
                     mesh_header_table_.T_enqueue_upload(
@@ -364,7 +425,7 @@ namespace nre::newrg
 
 
 
-    void F_unified_mesh_system::enqueue_update(TSPA<F_unified_mesh> mesh_p)
+    void F_unified_mesh_system::enqueue_update(TKPA<F_unified_mesh> mesh_p)
     {
         NCPP_SCOPED_LOCK(update_lock_);
 
@@ -376,10 +437,10 @@ namespace nre::newrg
 
         flush_queue_.push(mesh_header_id);
     }
-    void F_unified_mesh_system::enqueue_evict(u32 mesh_header_id)
+    void F_unified_mesh_system::enqueue_evict(u32 subpage_header_id, const TG_vector<F_unified_mesh_subpage_header>& subpage_headers)
     {
         NCPP_SCOPED_LOCK(evict_lock_);
 
-        evict_queue_.push(mesh_header_id);
+        evict_queue_.push({ subpage_header_id, subpage_headers });
     }
 }
