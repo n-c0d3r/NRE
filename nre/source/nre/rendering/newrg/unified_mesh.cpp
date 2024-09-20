@@ -89,11 +89,18 @@ namespace nre::newrg
 
     void F_unified_mesh::evict()
     {
-        NCPP_ASSERT(last_frame_subpage_header_id_ != NCPP_U32_MAX);
+        NCPP_ASSERT((last_frame_subpage_header_id_ != NCPP_U32_MAX) || need_to_upload_);
 
         try_enqueue_update_internal();
 
-        need_to_evict_ = true;
+        if(need_to_upload_)
+        {
+            need_to_make_resident_ = false;
+        }
+        else
+        {
+            need_to_evict_ = true;
+        }
     }
     void F_unified_mesh::make_resident()
     {
