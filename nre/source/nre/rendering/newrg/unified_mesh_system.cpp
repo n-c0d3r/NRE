@@ -92,7 +92,7 @@ namespace nre::newrg
         register_subpage_header_queue_.push(mesh_p);
         upload_subpage_header_queue_.push(mesh_p);
     }
-    void F_unified_mesh_system::evict_internal(const eastl::pair<u32, TG_vector<F_unified_mesh_subpage_header>>& input)
+    void F_unified_mesh_system::evict_internal(const F_unified_mesh_evict_params& input)
     {
         deregister_subpage_header_queue_.push(input);
     }
@@ -155,19 +155,30 @@ namespace nre::newrg
                         continue;
 
                     if(mesh_p->need_to_evict_)
+                    {
                         evict_internal({
+                            mesh_p->last_frame_header_id_,
                             mesh_p->last_frame_subpage_header_id_,
                             mesh_p->last_frame_subpage_headers_
                         });
+                        final_evict_queue_.push(mesh_p);
+                    }
 
                     if(mesh_p->need_to_flush_)
+                    {
                         flush_internal(mesh_p->last_frame_header_id_);
+                        final_flush_queue_.push(mesh_p);
+                    }
 
                     if(mesh_p->need_to_upload_)
+                    {
                         update_internal(mesh_p);
+                    }
 
                     if(mesh_p->need_to_make_resident_)
+                    {
                         make_resident_internal(mesh_p);
+                    }
                 }
             }
         }
@@ -184,9 +195,9 @@ namespace nre::newrg
                 {
                     auto& subpage_header_id_and_subpage_headers = deregister_subpage_header_queue_.front();
 
-                    subpage_header_table_.deregister_id(subpage_header_id_and_subpage_headers.first);
+                    subpage_header_table_.deregister_id(subpage_header_id_and_subpage_headers.subpage_id);
 
-                    for(auto& subpage_header : subpage_header_id_and_subpage_headers.second)
+                    for(auto& subpage_header : subpage_header_id_and_subpage_headers.subpage_headers)
                     {
                         vertex_data_table_.deregister_id(subpage_header.vertex_offset);
                         triangle_vertex_id_table_.deregister_id(subpage_header.local_cluster_triangle_vertex_id_offset);
@@ -420,6 +431,30 @@ namespace nre::newrg
 
                 mesh_header_table_.RG_end_register_upload();
             }
+
+            // process final_evict_queue_
+            {
+                while(final_evict_queue_.size())
+                {
+                    TK<F_unified_mesh> mesh_p = final_evict_queue_.front();
+                    final_evict_queue_.pop();
+
+                    mesh_p->last_frame_subpage_header_id_ = NCPP_U32_MAX;
+                }
+            }
+
+            // process final_flush_queue_
+            {
+                while(final_flush_queue_.size())
+                {
+                    TK<F_unified_mesh> mesh_p = final_flush_queue_.front();
+                    final_flush_queue_.pop();
+
+                    mesh_p->last_frame_header_id_ = NCPP_U32_MAX;
+                    mesh_p->last_frame_cluster_id_ = NCPP_U32_MAX;
+                    mesh_p->last_frame_dag_node_id_ = NCPP_U32_MAX;
+                }
+            }
         }
     }
 
@@ -437,10 +472,10 @@ namespace nre::newrg
 
         flush_queue_.push(mesh_header_id);
     }
-    void F_unified_mesh_system::enqueue_evict(u32 subpage_header_id, const TG_vector<F_unified_mesh_subpage_header>& subpage_headers)
+    void F_unified_mesh_system::enqueue_evict(const F_unified_mesh_evict_params& params)
     {
         NCPP_SCOPED_LOCK(evict_lock_);
 
-        evict_queue_.push({ subpage_header_id, subpage_headers });
+        evict_queue_.push(params);
     }
 }
