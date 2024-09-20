@@ -47,13 +47,6 @@ b8 b = true;
 			{
 				NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());
 			};
-
-			if(b)
-			{
-				b = false;
-				return;
-			}
-			unified_mesh_asset_p.reset();
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p)
 		{
