@@ -465,8 +465,6 @@ namespace nre::newrg
 
         // create render bind lists
         {
-            auto render_graph_p = F_render_graph::instance_p();
-
             mesh_header_table_render_bind_list_p_ = render_graph_p->T_create<F_mesh_header_table_render_bind_list>(
                 &mesh_header_table_,
                 TG_array<ED_resource_view_type, 1>({ ED_resource_view_type::SHADER_RESOURCE }),

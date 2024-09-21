@@ -94,6 +94,9 @@ namespace nre::newrg
         }
 
         TF_gpu_large_data_list(const TF_gpu_large_data_list& x) :
+            flags_(x.flags_),
+            heap_type_(x.heap_type_),
+            initial_state_(x.initial_state_),
             element_count_(x.element_count_),
             page_capacity_in_elements_(x.page_capacity_in_elements_),
             page_p_vector_(x.page_p_vector_)
@@ -102,6 +105,9 @@ namespace nre::newrg
         }
         TF_gpu_large_data_list& operator = (const TF_gpu_large_data_list& x)
         {
+            flags_ = x.flags_;
+            heap_type_ = x.heap_type_;
+            initial_state_ = x.initial_state_;
             element_count_ = x.element_count_;
             page_capacity_in_elements_ = x.page_capacity_in_elements_;
             page_p_vector_ = x.page_p_vector_;
@@ -112,6 +118,9 @@ namespace nre::newrg
         }
 
         TF_gpu_large_data_list(TF_gpu_large_data_list&& x) :
+            flags_(x.flags_),
+            heap_type_(x.heap_type_),
+            initial_state_(x.initial_state_),
             element_count_(x.element_count_),
             page_capacity_in_elements_(x.page_capacity_in_elements_),
             page_p_vector_(x.page_p_vector_)
@@ -122,6 +131,9 @@ namespace nre::newrg
         }
         TF_gpu_large_data_list& operator = (TF_gpu_large_data_list&& x)
         {
+            flags_ = x.flags_;
+            heap_type_ = x.heap_type_;
+            initial_state_ = x.initial_state_;
             element_count_ = x.element_count_;
             page_capacity_in_elements_ = x.page_capacity_in_elements_;
             page_p_vector_ = eastl::move(x.page_p_vector_);
@@ -173,6 +185,10 @@ namespace nre::newrg
         {
             set_element_count(0);
             set_page_count(0);
+
+            flags_ = ED_resource_flag::NONE;
+            heap_type_ = ED_resource_heap_type::DEFAULT;
+            initial_state_ = ED_resource_state::COMMON;
         }
 
     public:
