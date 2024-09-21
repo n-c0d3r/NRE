@@ -14,7 +14,7 @@ namespace nre::newrg
     {
     private:
         const F_descriptor_handle* root_p_ = &default_descriptor_handle_root;
-        F_descriptor_handle offset_ = { NCPP_U64_MAX, NCPP_U64_MAX };
+        F_descriptor_handle offset_ = { 0, 0 };
         u32 count_ = 0;
 
     public:
@@ -25,6 +25,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE void set_root_p(const F_descriptor_handle* value) noexcept
         {
+            NCPP_ASSERT(root_p_);
             root_p_ = value;
         }
         NCPP_FORCE_INLINE void set_root(const F_descriptor_handle& value) noexcept
@@ -65,6 +66,7 @@ namespace nre::newrg
             offset_(offset),
             count_(count)
         {
+            NCPP_ASSERT(root_p);
         }
         F_descriptor_handle_range(
             const F_descriptor_handle& offset,
@@ -89,24 +91,22 @@ namespace nre::newrg
     public:
         NCPP_FORCE_INLINE F_descriptor_handle base() const noexcept
         {
+            NCPP_ASSERT(root_p_);
             F_descriptor_handle result;
             result.cpu_address = root_p_->cpu_address + offset_.cpu_address;
-
-            if(offset_.gpu_address != NCPP_U64_MAX)
-                result.gpu_address = root_p_->gpu_address + offset_.gpu_address;
+            result.gpu_address = root_p_->gpu_address + offset_.gpu_address;
 
             return result;
         }
         NCPP_FORCE_INLINE F_descriptor_cpu_address base_cpu_address() const noexcept
         {
+            NCPP_ASSERT(root_p_);
             return root_p_->cpu_address + offset_.cpu_address;
         }
         NCPP_FORCE_INLINE F_descriptor_gpu_address base_gpu_address() const noexcept
         {
-            if(offset_.gpu_address != NCPP_U64_MAX)
-                return root_p_->gpu_address + offset_.gpu_address;
-
-            return 0;
+            NCPP_ASSERT(root_p_);
+            return root_p_->gpu_address + offset_.gpu_address;
         }
         NCPP_FORCE_INLINE operator F_descriptor_handle () const noexcept
         {
@@ -114,11 +114,25 @@ namespace nre::newrg
         }
         NCPP_FORCE_INLINE b8 is_valid() const noexcept
         {
-            return (count_ != 0) && (offset_.cpu_address != NCPP_U64_MAX) && (offset_.gpu_address != NCPP_U64_MAX);
+            NCPP_ASSERT(root_p_);
+            return (
+                (count_ != 0)
+                && (
+                    ((root_p_->cpu_address + offset_.cpu_address) != 0)
+                    || ((root_p_->gpu_address + offset_.gpu_address) != 0)
+                )
+            );
         }
         NCPP_FORCE_INLINE b8 is_null() const noexcept
         {
-            return (count_ == 0) || ((offset_.cpu_address != NCPP_U64_MAX) && (offset_.gpu_address != NCPP_U64_MAX));
+            NCPP_ASSERT(root_p_);
+            return (
+                (count_ == 0)
+                || (
+                    ((root_p_->cpu_address + offset_.cpu_address) == 0)
+                    && ((root_p_->gpu_address + offset_.gpu_address) == 0)
+                )
+            );
         }
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {
@@ -126,6 +140,7 @@ namespace nre::newrg
         }
         NCPP_FORCE_INLINE void disable_gpu() noexcept
         {
+            NCPP_ASSERT(root_p_);
             offset_.gpu_address = NCPP_U64_MAX;
         }
     };
