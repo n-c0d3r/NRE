@@ -48,7 +48,7 @@ namespace nre::newrg
         uniform_transient_resource_uploader_p_->RG_begin_register();
 
         unified_mesh_system_p_->RG_begin_register();
-        unified_mesh_system_rg_register_early_event_.invoke();
+        unified_mesh_system_rg_begin_register_event_.invoke();
 
         render_actor_data_pool_p_->RG_begin_register();
         rg_register_render_actor_data_event_.invoke();
@@ -58,7 +58,7 @@ namespace nre::newrg
         rg_register_render_actor_data_upload_event_.invoke();
         render_actor_data_pool_p_->RG_end_register_upload();
 
-        unified_mesh_system_rg_register_event_.invoke();
+        unified_mesh_system_rg_end_register_event_.invoke();
         unified_mesh_system_p_->RG_end_register();
 
         {

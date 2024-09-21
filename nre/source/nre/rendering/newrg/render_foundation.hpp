@@ -28,8 +28,8 @@ namespace nre::newrg
         F_render_foundation_rg_tick_event rg_tick_event_;
         F_render_foundation_rg_register_render_actor_data_event rg_register_render_actor_data_event_;
         F_render_foundation_rg_register_render_actor_data_upload_event rg_register_render_actor_data_upload_event_;
-        F_render_foundation_unified_mesh_system_rg_register_early_event unified_mesh_system_rg_register_early_event_;
-        F_render_foundation_unified_mesh_system_rg_register_event unified_mesh_system_rg_register_event_;
+        F_render_foundation_unified_mesh_system_rg_begin_register_event unified_mesh_system_rg_begin_register_event_;
+        F_render_foundation_unified_mesh_system_rg_end_register_event unified_mesh_system_rg_end_register_event_;
         F_render_foundation_upload_event upload_event_;
         F_render_foundation_readback_event readback_event_;
         F_render_foundation_release_event release_event_;
@@ -43,8 +43,8 @@ namespace nre::newrg
             rg_tick_event_,
             rg_register_render_actor_data_event_,
             rg_register_render_actor_data_upload_event_,
-            unified_mesh_system_rg_register_early_event_,
-            unified_mesh_system_rg_register_event_,
+            unified_mesh_system_rg_begin_register_event_,
+            unified_mesh_system_rg_end_register_event_,
             upload_event_,
             readback_event_,
             release_event_
@@ -104,22 +104,22 @@ namespace nre::newrg::internal
         }
     };
 
-    struct F_render_foundation_unified_mesh_system_rg_register_early_event_caller
+    struct F_render_foundation_unified_mesh_system_rg_begin_register_event_caller
     {
         template<typename F__>
         NCPP_FORCE_INLINE void operator = (F__&& functor) {
 
-            F_render_foundation::instance_p()->T_get_event<F_render_foundation_unified_mesh_system_rg_register_early_event>().T_push_back_listener(
+            F_render_foundation::instance_p()->T_get_event<F_render_foundation_unified_mesh_system_rg_begin_register_event>().T_push_back_listener(
                 std::forward<F__>(functor)
             );
         }
     };
-    struct F_render_foundation_unified_mesh_system_rg_register_event_caller
+    struct F_render_foundation_unified_mesh_system_rg_end_register_event_caller
     {
         template<typename F__>
         NCPP_FORCE_INLINE void operator = (F__&& functor) {
 
-            F_render_foundation::instance_p()->T_get_event<F_render_foundation_unified_mesh_system_rg_register_event>().T_push_back_listener(
+            F_render_foundation::instance_p()->T_get_event<F_render_foundation_unified_mesh_system_rg_end_register_event>().T_push_back_listener(
                 std::forward<F__>(functor)
             );
         }
@@ -170,12 +170,12 @@ namespace nre::newrg::internal
 #define NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER_RENDER_ACTOR_DATA_UPLOAD() \
     nre::newrg::internal::F_render_foundation_rg_register_render_actor_data_upload_event_caller NCPP_GLUE(___nre_render_foundation_rg_register_render_actor_data_upload_event___, NCPP_LINE); \
     NCPP_GLUE(___nre_render_foundation_rg_register_render_actor_data_upload_event___, NCPP_LINE) = [&](auto&)
-#define NRE_NEWRG_RENDER_FOUNDATION_UNIFIED_MESH_SYSTEM_RG_REGISTER_EARLY() \
-    nre::newrg::internal::F_render_foundation_unified_mesh_system_rg_register_early_event_caller NCPP_GLUE(___nre_render_foundation_unified_mesh_system_rg_register_early_event___, NCPP_LINE); \
-    NCPP_GLUE(___nre_render_foundation_unified_mesh_system_rg_register_early_event___, NCPP_LINE) = [&](auto&)
-#define NRE_NEWRG_RENDER_FOUNDATION_UNIFIED_MESH_SYSTEM_RG_REGISTER() \
-    nre::newrg::internal::F_render_foundation_unified_mesh_system_rg_register_event_caller NCPP_GLUE(___nre_render_foundation_unified_mesh_system_rg_register_event___, NCPP_LINE); \
-    NCPP_GLUE(___nre_render_foundation_unified_mesh_system_rg_register_event___, NCPP_LINE) = [&](auto&)
+#define NRE_NEWRG_RENDER_FOUNDATION_UNIFIED_MESH_SYSTEM_RG_BEGIN_REGISTER() \
+    nre::newrg::internal::F_render_foundation_unified_mesh_system_rg_begin_register_event_caller NCPP_GLUE(___nre_render_foundation_unified_mesh_system_rg_begin_register_event___, NCPP_LINE); \
+    NCPP_GLUE(___nre_render_foundation_unified_mesh_system_rg_begin_register_event___, NCPP_LINE) = [&](auto&)
+#define NRE_NEWRG_RENDER_FOUNDATION_UNIFIED_MESH_SYSTEM_RG_END_REGISTER() \
+    nre::newrg::internal::F_render_foundation_unified_mesh_system_rg_end_register_event_caller NCPP_GLUE(___nre_render_foundation_unified_mesh_system_rg_end_register_event___, NCPP_LINE); \
+    NCPP_GLUE(___nre_render_foundation_unified_mesh_system_rg_end_register_event___, NCPP_LINE) = [&](auto&)
 #define NRE_NEWRG_RENDER_FOUNDATION_UPLOAD() \
     nre::newrg::internal::F_render_foundation_upload_event_caller NCPP_GLUE(___nre_render_foundation_upload_event___, NCPP_LINE); \
     NCPP_GLUE(___nre_render_foundation_upload_event___, NCPP_LINE) = [&](auto&)
