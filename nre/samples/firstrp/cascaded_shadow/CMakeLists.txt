@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.cascaded_shadow target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.cascaded_shadow
 
 
 # nre.samples.cascaded_shadow target dependencies
-add_dependencies(nre.samples.cascaded_shadow 
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.cascaded_shadow 
+    DEPENDENT_TARGETS
+        nre
 )

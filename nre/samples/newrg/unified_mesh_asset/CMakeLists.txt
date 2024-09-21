@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.newrg.unified_mesh_asset target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.newrg.unified_mesh_asset
 
 
 # nre.samples.newrg.unified_mesh_asset target dependencies
-add_dependencies(nre.samples.newrg.unified_mesh_asset 
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.newrg.unified_mesh_asset 
+    DEPENDENT_TARGETS
+        nre
 )

@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.newrg.gpu_large_data_list target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.newrg.gpu_large_data_list
 
 
 # nre.samples.newrg.gpu_large_data_list target dependencies
-add_dependencies(nre.samples.newrg.gpu_large_data_list
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.newrg.gpu_large_data_list
+    DEPENDENT_TARGETS
+        nre
 )

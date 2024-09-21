@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.cube_with_texture_2d target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.cube_with_texture_2d
 
 
 # nre.samples.cube_with_texture_2d target dependencies
-add_dependencies(nre.samples.cube_with_texture_2d 
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.cube_with_texture_2d 
+    DEPENDENT_TARGETS
+        nre
 )

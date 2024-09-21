@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.cube target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.cube
 
 
 # nre.samples.cube target dependencies
-add_dependencies(nre.samples.cube 
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.cube 
+    DEPENDENT_TARGETS
+        nre
 )

@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.newrg.render_graph.binder_group target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.newrg.render_graph.binder_group
 
 
 # nre.samples.newrg.render_graph.binder_group target dependencies
-add_dependencies(nre.samples.newrg.render_graph.binder_group
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.newrg.render_graph.binder_group
+    DEPENDENT_TARGETS
+        nre
 )

@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.newrg.transient_resource_uploader target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.newrg.transient_resource_uploader
 
 
 # nre.samples.newrg.transient_resource_uploader target dependencies
-add_dependencies(nre.samples.newrg.transient_resource_uploader 
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.newrg.transient_resource_uploader 
+    DEPENDENT_TARGETS
+        nre
 )

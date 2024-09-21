@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.newrg.render_graph.optimized_states target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.newrg.render_graph.optimized_states
 
 
 # nre.samples.newrg.render_graph.optimized_states target dependencies
-add_dependencies(nre.samples.newrg.render_graph.optimized_states
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.newrg.render_graph.optimized_states
+    DEPENDENT_TARGETS
+        nre
 )

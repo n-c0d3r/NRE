@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.depth_stencil_view target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.depth_stencil_view
 
 
 # nre.samples.depth_stencil_view target dependencies
-add_dependencies(nre.samples.depth_stencil_view 
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.depth_stencil_view 
+    DEPENDENT_TARGETS
+        nre
 )

@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.ibl target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.ibl
 
 
 # nre.samples.ibl target dependencies
-add_dependencies(nre.samples.ibl 
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.ibl 
+    DEPENDENT_TARGETS
+        nre
 )

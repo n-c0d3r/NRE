@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.newrg.gpu_page_based_uploader target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.newrg.gpu_page_based_uploader
 
 
 # nre.samples.newrg.gpu_page_based_uploader target dependencies
-add_dependencies(nre.samples.newrg.gpu_page_based_uploader
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.newrg.gpu_page_based_uploader
+    DEPENDENT_TARGETS
+        nre
 )

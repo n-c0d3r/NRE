@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.hello_nre target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.hello_nre
 
 
 # nre.samples.hello_nre target dependencies
-add_dependencies(nre.samples.hello_nre 
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.hello_nre 
+    DEPENDENT_TARGETS
+        nre
 )

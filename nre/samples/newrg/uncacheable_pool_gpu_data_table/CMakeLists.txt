@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.newrg.uncacheable_pool_gpu_data_table target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.newrg.uncacheable_pool_gpu_data_table
 
 
 # nre.samples.newrg.uncacheable_pool_gpu_data_table target dependencies
-add_dependencies(nre.samples.newrg.uncacheable_pool_gpu_data_table
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.newrg.uncacheable_pool_gpu_data_table
+    DEPENDENT_TARGETS
+        nre
 )

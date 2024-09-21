@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.newrg.render_graph.concurrent_write target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.newrg.render_graph.concurrent_write
 
 
 # nre.samples.newrg.render_graph.concurrent_write target dependencies
-add_dependencies(nre.samples.newrg.render_graph.concurrent_write
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.newrg.render_graph.concurrent_write
+    DEPENDENT_TARGETS
+        nre
 )

@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.hdri_sky target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.hdri_sky
 
 
 # nre.samples.hdri_sky target dependencies
-add_dependencies(nre.samples.hdri_sky 
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.hdri_sky 
+    DEPENDENT_TARGETS
+        nre
 )

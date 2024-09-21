@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.general_data_distributor target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.general_data_distributor
 
 
 # nre.samples.general_data_distributor target dependencies
-add_dependencies(nre.samples.general_data_distributor
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.general_data_distributor
+    DEPENDENT_TARGETS
+        nre
 )

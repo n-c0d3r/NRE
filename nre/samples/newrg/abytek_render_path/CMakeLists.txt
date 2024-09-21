@@ -1,4 +1,8 @@
 
+include(NCPP/Utilities/ApplyDependencies)
+
+
+
 # nre.samples.newrg.abytek_render_path target source files
 file(GLOB source_files
     "source/*.cpp"
@@ -34,6 +38,8 @@ target_include_directories(nre.samples.newrg.abytek_render_path
 
 
 # nre.samples.newrg.abytek_render_path target dependencies
-add_dependencies(nre.samples.newrg.abytek_render_path 
-    nre
+NCPP_ApplyDependencies(
+    TARGET nre.samples.newrg.abytek_render_path 
+    DEPENDENT_TARGETS
+        nre
 )
