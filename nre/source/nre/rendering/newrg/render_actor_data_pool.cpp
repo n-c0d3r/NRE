@@ -9,9 +9,12 @@ namespace nre::newrg
 
 
     F_render_actor_data_pool::F_render_actor_data_pool() :
-        TF_cpu_gpu_data_pool<F_render_actor_data>(
+        table_(
             ED_resource_flag::SHADER_RESOURCE,
-            NRE_NEWRG_RENDER_ACTOR_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+            ED_resource_heap_type::DEFAULT,
+            ED_resource_state::COMMON,
+            NRE_NEWRG_RENDER_ACTOR_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS,
+            0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_actor_data_pool")
         )
     {
@@ -19,5 +22,25 @@ namespace nre::newrg
     }
     F_render_actor_data_pool::~F_render_actor_data_pool()
     {
+    }
+
+
+
+    void F_render_actor_data_pool::RG_begin_register()
+    {
+        table_.RG_begin_register();
+    }
+    void F_render_actor_data_pool::RG_end_register()
+    {
+        table_.RG_end_register();
+    }
+
+    void F_render_actor_data_pool::RG_begin_register_upload()
+    {
+        table_.RG_begin_register_upload();
+    }
+    void F_render_actor_data_pool::RG_end_register_upload()
+    {
+        table_.RG_end_register_upload();
     }
 }

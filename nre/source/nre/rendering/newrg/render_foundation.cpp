@@ -47,15 +47,19 @@ namespace nre::newrg
 
         uniform_transient_resource_uploader_p_->RG_begin_register();
 
-        // render_actor_data_pool_p_->RG_begin_register_data();
-        rg_register_render_actor_data_event_.invoke();
-        // render_actor_data_pool_p_->RG_end_register_data();
-
-        // render_actor_data_pool_p_->RG_begin_register_upload();
-        rg_register_render_actor_data_upload_event_.invoke();
-        // render_actor_data_pool_p_->RG_end_register_upload();
-
         unified_mesh_system_p_->RG_begin_register();
+        unified_mesh_system_rg_register_early_event_.invoke();
+
+        render_actor_data_pool_p_->RG_begin_register();
+        rg_register_render_actor_data_event_.invoke();
+        render_actor_data_pool_p_->RG_end_register();
+
+        render_actor_data_pool_p_->RG_begin_register_upload();
+        rg_register_render_actor_data_upload_event_.invoke();
+        render_actor_data_pool_p_->RG_end_register_upload();
+
+        unified_mesh_system_rg_register_event_.invoke();
+        unified_mesh_system_p_->RG_end_register();
 
         {
             auto render_path_p = F_render_path::instance_p();
@@ -66,8 +70,6 @@ namespace nre::newrg
 
             render_path_p->RG_end_register();
         }
-
-        unified_mesh_system_p_->RG_end_register();
 
         uniform_transient_resource_uploader_p_->RG_end_register();
 
