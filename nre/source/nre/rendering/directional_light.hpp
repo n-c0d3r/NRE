@@ -83,7 +83,7 @@ namespace nre {
 		NCPP_FORCE_INLINE F_vector3 direction() const noexcept {
 
 			return normalize(
-				transform_node_p()->transform.forward.xyz()
+				transform_node_p()->local_to_world_matrix().forward.xyz()
 			);
 		}
 		NCPP_FORCE_INLINE F_vector3 plane_right() const noexcept {

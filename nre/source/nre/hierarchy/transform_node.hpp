@@ -33,15 +33,18 @@ namespace nre {
 		F_transform_node(TKPA_valid<F_actor> actor_p);
 		virtual ~F_transform_node();
 
+	private:
+		void add_child_internal(TKPA_valid<F_transform_node> child_node_p);
+		void remove_child_internal(TKPA_valid<F_transform_node> child_node_p);
+
 	public:
 		void set_parent_p(F_null);
 		void set_parent_p(TKPA<F_transform_node> parent_node_p);
 		void set_parent_p(TKPA_valid<F_transform_node> parent_node_p);
 
-	private:
-		void add_child_internal(TKPA_valid<F_transform_node> child_node_p);
-		void remove_child_internal(TKPA_valid<F_transform_node> child_node_p);
-
+	public:
+		F_matrix4x4 local_to_world_matrix() const;
+		F_matrix4x4 world_to_local_matrix() const;
 	};
 
 }

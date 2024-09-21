@@ -211,7 +211,7 @@ namespace nre {
 
 		F_main_constant_buffer_cpu_data cpu_data = {
 
-			.object_transform = casted_material_p->transform_node_p()->transform,
+			.object_transform = casted_material_p->transform_node_p()->local_to_world_matrix(),
 
 			.albedo = casted_material_p->albedo,
 			.roughness_range = {

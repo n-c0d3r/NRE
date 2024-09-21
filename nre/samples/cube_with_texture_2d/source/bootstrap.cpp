@@ -268,7 +268,7 @@ int main() {
 				// prepare data
 				uniform_data.object_transform = object_transform;
 				uniform_data.view_transform = invert(
-					spectator_p->transform_node_p()->transform
+					spectator_p->transform_node_p()->local_to_world_matrix()
 				);
 				uniform_data.projection_matrix = spectator_camera_p->render_view_p()->projection_matrix;
 

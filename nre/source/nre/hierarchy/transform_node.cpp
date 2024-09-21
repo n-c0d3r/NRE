@@ -21,6 +21,16 @@ namespace nre {
 		set_parent_p(null);
 	}
 
+	void F_transform_node::add_child_internal(TKPA_valid<F_transform_node> child_node_p)
+	{
+		child_node_p_list_.push_back(child_node_p);
+		child_node_p->handle_ = --(child_node_p_list_.end());
+	}
+	void F_transform_node::remove_child_internal(TKPA_valid<F_transform_node> child_node_p)
+	{
+		child_node_p_list_.erase(child_node_p->handle_);
+	}
+
 	void F_transform_node::set_parent_p(F_null)
 	{
 		if(parent_node_p_)
@@ -53,14 +63,15 @@ namespace nre {
 		parent_node_p_ = parent_node_p.no_requirements();
 	}
 
-	void F_transform_node::add_child_internal(TKPA_valid<F_transform_node> child_node_p)
+	F_matrix4x4 F_transform_node::local_to_world_matrix() const
 	{
-		child_node_p_list_.push_back(child_node_p);
-		child_node_p->handle_ = --(child_node_p_list_.end());
-	}
-	void F_transform_node::remove_child_internal(TKPA_valid<F_transform_node> child_node_p)
-	{
-		child_node_p_list_.erase(child_node_p->handle_);
-	}
+		if(parent_node_p_)
+			return parent_node_p_->local_to_world_matrix() * transform;
 
+		return transform;
+	}
+	F_matrix4x4 F_transform_node::world_to_local_matrix() const
+	{
+		return invert(local_to_world_matrix());
+	}
 }
