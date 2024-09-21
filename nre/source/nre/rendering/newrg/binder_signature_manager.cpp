@@ -5,6 +5,7 @@
 #include <nre/rendering/render_system.hpp>
 #include <nre/rendering/newrg/binder_signature_all_1cbv.hpp>
 #include <nre/rendering/newrg/binder_signature_vs_1cbv_ps_1cbv.hpp>
+#include <nre/rendering/newrg/binder_signature_vs_128cbv_ps_128cbv.hpp>
 
 
 namespace nre::newrg
@@ -19,6 +20,7 @@ namespace nre::newrg
 
         T_register<F_binder_signature_all_1cbv>();
         T_register<F_binder_signature_vs_1cbv_ps_1cbv>();
+        T_register<F_binder_signature_vs_128cbv_ps_128cbv>();
     }
     F_binder_signature_manager::~F_binder_signature_manager()
     {
