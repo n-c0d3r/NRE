@@ -82,7 +82,7 @@ int main() {
 			H_scene_render_view::for_each(
 				[&](TKPA_valid<F_scene_render_view> scene_render_view_p)
 				{
-					auto size = scene_render_view_p->size();
+					auto view_size = scene_render_view_p->size();
 
 					auto output_rtv_descriptor_handle = scene_render_view_p->output_rtv_descriptor_handle();
 					auto output_texture_2d_p = scene_render_view_p->output_texture_2d_p();
