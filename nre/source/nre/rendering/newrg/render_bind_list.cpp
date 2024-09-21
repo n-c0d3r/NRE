@@ -18,6 +18,7 @@ namespace nre::newrg
             F_render_graph::instance_p()->create_descriptor(
                 heap_type,
                 count
+                NRE_OPTIONAL_DEBUG_PARAM(name)
             )
         )
     {

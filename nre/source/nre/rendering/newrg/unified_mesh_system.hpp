@@ -5,6 +5,7 @@
 #include <nre/rendering/newrg/unified_mesh_data.hpp>
 #include <nre/rendering/newrg/cacheable_pool_gpu_data_table.hpp>
 #include <nre/rendering/newrg/general_gpu_data_table.hpp>
+#include <nre/rendering/newrg/gpu_data_table_render_bind_list.hpp>
 
 
 namespace nre::newrg
@@ -42,40 +43,89 @@ namespace nre::newrg
         TG_queue<F_unified_mesh_evict_subpages_params> evict_subpages_queue_;
         pac::F_spin_lock evict_subpages_lock_;
 
-        TF_cacheable_pool_gpu_data_table<F_unified_mesh_header> mesh_header_table_;
+        using F_mesh_header_table = TF_cacheable_pool_gpu_data_table<F_unified_mesh_header>;
+        F_mesh_header_table mesh_header_table_;
         TG_queue<TK<F_unified_mesh>> register_mesh_header_queue_;
         TG_queue<TK<F_unified_mesh>> upload_mesh_header_queue_;
         TG_queue<u32> deregister_mesh_header_queue_;
 
-        TF_general_gpu_data_table<F_unified_mesh_subpage_header> subpage_header_table_;
+        using F_subpage_header_table = TF_general_gpu_data_table<F_unified_mesh_subpage_header>;
+        F_subpage_header_table subpage_header_table_;
         TG_queue<TK<F_unified_mesh>> register_subpage_header_queue_;
         TG_queue<TK<F_unified_mesh>> upload_subpage_header_queue_;
         TG_queue<F_unified_mesh_evict_subpages_params> deregister_subpage_header_queue_;
 
-        TF_general_gpu_data_table<F_cluster_header, F_cluster_culling_data> cluster_table_;
+        using F_cluster_table = TF_general_gpu_data_table<F_cluster_header, F_cluster_culling_data>;
+        F_cluster_table cluster_table_;
         TG_queue<TK<F_unified_mesh>> register_cluster_queue_;
         TG_queue<TK<F_unified_mesh>> upload_cluster_queue_;
         TG_queue<u32> deregister_cluster_queue_;
 
-        TF_general_gpu_data_table<
+        using F_dag_table = TF_general_gpu_data_table<
             F_dag_node_header,
             F_dag_node_culling_data,
             F_cluster_id_range
-        > dag_table_;
+        >;
+        F_dag_table dag_table_;
         TG_queue<TK<F_unified_mesh>> register_dag_queue_;
         TG_queue<TK<F_unified_mesh>> upload_dag_queue_;
         TG_queue<u32> deregister_dag_queue_;
 
+        using F_vertex_data_table = TF_general_gpu_data_table<F_compressed_vertex_data>;
         TF_general_gpu_data_table<F_compressed_vertex_data> vertex_data_table_;
 
+        using F_triangle_vertex_id_table = TF_general_gpu_data_table<F_unified_mesh_header>;
         TF_general_gpu_data_table<F_compressed_local_cluster_vertex_id> triangle_vertex_id_table_;
 
         TG_queue<TK<F_unified_mesh>> final_evict_subpages_queue_;
         TG_queue<TK<F_unified_mesh>> final_flush_queue_;
 
+        using F_mesh_header_table_render_bind_list = TF_cacheable_pool_gpu_data_table_render_bind_list<
+            F_unified_mesh_header
+        >;
+        F_mesh_header_table_render_bind_list* mesh_header_table_render_bind_list_p_ = 0;
+
+        using F_subpage_header_table_render_bind_list = TF_general_gpu_data_table_render_bind_list<
+            F_unified_mesh_subpage_header
+        >;
+        F_subpage_header_table_render_bind_list* subpage_header_table_render_bind_list_p_ = 0;
+
+        using F_cluster_table_render_bind_list = TF_general_gpu_data_table_render_bind_list<
+            F_cluster_header, F_cluster_culling_data
+        >;
+        F_cluster_table_render_bind_list* cluster_table_render_bind_list_p_ = 0;
+
+        using F_dag_table_render_bind_list = TF_general_gpu_data_table_render_bind_list<
+            F_dag_node_header,
+            F_dag_node_culling_data,
+            F_cluster_id_range
+        >;
+        F_dag_table_render_bind_list* dag_table_render_bind_list_p_ = 0;
+
+        using F_vertex_data_table_render_bind_list = TF_general_gpu_data_table_render_bind_list<
+            F_compressed_vertex_data
+        >;
+        F_vertex_data_table_render_bind_list* vertex_data_table_render_bind_list_p_ = 0;
+
+        using F_triangle_vertex_id_table_render_bind_list = TF_general_gpu_data_table_render_bind_list<
+            F_compressed_local_cluster_vertex_id
+        >;
+        F_triangle_vertex_id_table_render_bind_list* triangle_vertex_id_table_render_bind_list_p_ = 0;
+
     public:
         NCPP_FORCE_INLINE const auto& mesh_header_table() const noexcept { return mesh_header_table_; }
         NCPP_FORCE_INLINE const auto& subpage_header_table() const noexcept { return subpage_header_table_; }
+        NCPP_FORCE_INLINE const auto& cluster_table() const noexcept { return cluster_table_; }
+        NCPP_FORCE_INLINE const auto& dag_table() const noexcept { return dag_table_; }
+        NCPP_FORCE_INLINE const auto& vertex_data_table() const noexcept { return vertex_data_table_; }
+        NCPP_FORCE_INLINE const auto& triangle_vertex_id_table() const noexcept { return triangle_vertex_id_table_; }
+
+        NCPP_FORCE_INLINE const auto& mesh_header_table_render_bind_list() const noexcept { return *mesh_header_table_render_bind_list_p_; }
+        NCPP_FORCE_INLINE const auto& subpage_header_table_render_bind_list() const noexcept { return *subpage_header_table_render_bind_list_p_; }
+        NCPP_FORCE_INLINE const auto& cluster_table_render_bind_list() const noexcept { return *cluster_table_render_bind_list_p_; }
+        NCPP_FORCE_INLINE const auto& dag_table_render_bind_list() const noexcept { return *dag_table_render_bind_list_p_; }
+        NCPP_FORCE_INLINE const auto& vertex_data_table_render_bind_list() const noexcept { return *vertex_data_table_render_bind_list_p_; }
+        NCPP_FORCE_INLINE const auto& triangle_vertex_id_table_render_bind_list() const noexcept { return *triangle_vertex_id_table_render_bind_list_p_; }
 
 
 

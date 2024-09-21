@@ -109,6 +109,12 @@ namespace nre::newrg
 
     void F_unified_mesh_system::RG_begin_register()
     {
+        mesh_header_table_render_bind_list_p_ = 0;
+        subpage_header_table_render_bind_list_p_ = 0;
+        cluster_table_render_bind_list_p_ = 0;
+        dag_table_render_bind_list_p_ = 0;
+        vertex_data_table_render_bind_list_p_ = 0;
+        triangle_vertex_id_table_render_bind_list_p_ = 0;
     }
     void F_unified_mesh_system::RG_end_register()
     {
@@ -455,6 +461,75 @@ namespace nre::newrg
                     mesh_p->last_frame_dag_node_id_ = NCPP_U32_MAX;
                 }
             }
+        }
+
+        // create render bind lists
+        {
+            auto render_graph_p = F_render_graph::instance_p();
+
+            mesh_header_table_render_bind_list_p_ = render_graph_p->T_create<F_mesh_header_table_render_bind_list>(
+                &mesh_header_table_,
+                TG_array<ED_resource_view_type, 1>({ ED_resource_view_type::SHADER_RESOURCE }),
+                TG_array<ED_resource_flag, 1>({ ED_resource_flag::NONE }),
+                TG_array<ED_format, 1>({ ED_format::NONE })
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.mesh_header_table_render_bind_list")
+            );
+            subpage_header_table_render_bind_list_p_ = render_graph_p->T_create<F_subpage_header_table_render_bind_list>(
+                &subpage_header_table_,
+                TG_array<ED_resource_view_type, 1>({ ED_resource_view_type::SHADER_RESOURCE }),
+                TG_array<ED_resource_flag, 1>({ ED_resource_flag::NONE }),
+                TG_array<ED_format, 1>({ ED_format::NONE })
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.subpage_header_table_render_bind_list")
+            );
+            cluster_table_render_bind_list_p_ = render_graph_p->T_create<F_cluster_table_render_bind_list>(
+                &cluster_table_,
+                TG_array<ED_resource_view_type, 2>({
+                    ED_resource_view_type::SHADER_RESOURCE,
+                    ED_resource_view_type::SHADER_RESOURCE
+                }),
+                TG_array<ED_resource_flag, 2>({
+                    ED_resource_flag::NONE,
+                    ED_resource_flag::NONE
+                }),
+                TG_array<ED_format, 2>({
+                    ED_format::NONE,
+                    ED_format::NONE
+                })
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.cluster_table_render_bind_list")
+            );
+            dag_table_render_bind_list_p_ = render_graph_p->T_create<F_dag_table_render_bind_list>(
+                &dag_table_,
+                TG_array<ED_resource_view_type, 3>({
+                    ED_resource_view_type::SHADER_RESOURCE,
+                    ED_resource_view_type::SHADER_RESOURCE,
+                    ED_resource_view_type::SHADER_RESOURCE
+                }),
+                TG_array<ED_resource_flag, 3>({
+                    ED_resource_flag::NONE,
+                    ED_resource_flag::NONE,
+                    ED_resource_flag::NONE
+                }),
+                TG_array<ED_format, 3>({
+                    ED_format::NONE,
+                    ED_format::NONE,
+                    ED_format::NONE
+                })
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.dag_table_render_bind_list")
+            );
+            vertex_data_table_render_bind_list_p_ = render_graph_p->T_create<F_vertex_data_table_render_bind_list>(
+                &vertex_data_table_,
+                TG_array<ED_resource_view_type, 1>({ ED_resource_view_type::SHADER_RESOURCE }),
+                TG_array<ED_resource_flag, 1>({ ED_resource_flag::NONE }),
+                TG_array<ED_format, 1>({ ED_format::NONE })
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.vertex_data_table_render_bind_list")
+            );
+            triangle_vertex_id_table_render_bind_list_p_ = render_graph_p->T_create<F_triangle_vertex_id_table_render_bind_list>(
+                &triangle_vertex_id_table_,
+                TG_array<ED_resource_view_type, 1>({ ED_resource_view_type::SHADER_RESOURCE }),
+                TG_array<ED_resource_flag, 1>({ ED_resource_flag::NONE }),
+                TG_array<ED_format, 1>({ ED_format::R16_UINT })
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.triangle_vertex_id_table_render_bind_list")
+            );
         }
     }
 

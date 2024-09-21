@@ -90,6 +90,7 @@
 #include <nre/rendering/newrg/cacheable_pool_gpu_data_table.hpp>
 #include <nre/rendering/newrg/uncacheable_pool_gpu_data_table.hpp>
 #include <nre/rendering/newrg/general_gpu_data_table.hpp>
+#include <nre/rendering/newrg/gpu_data_table_render_bind_list.hpp>
 #include <nre/rendering/newrg/render_actor_data.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>

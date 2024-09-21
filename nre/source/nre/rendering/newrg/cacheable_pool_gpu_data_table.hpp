@@ -51,6 +51,9 @@ namespace nre::newrg
         template<sz row_index__ = 0>
         NCPP_FORCE_INLINE const auto& T_gpu_page_based_uploader_tuple() const noexcept { return eastl::get<row_index__>(gpu_page_based_uploader_tuple_); }
 
+        NCPP_FORCE_INLINE sz page_count() const noexcept { return eastl::get<0>(gpu_large_data_list_tuple_).page_count(); }
+        NCPP_FORCE_INLINE sz usuable_page_count() const noexcept { return eastl::get<0>(gpu_large_data_list_tuple_).usuable_page_count(); }
+
 
 
     public:
