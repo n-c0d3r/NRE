@@ -5,6 +5,7 @@
 include(NCPP/ConfigureCompiler)
 include(NCPP/Utilities/SetGlobal)
 include(NCPP/Utilities/ApplyGlobal)
+include(NCPP/Utilities/ApplyDependencies)
 
 
 
@@ -191,17 +192,19 @@ endif()
 #####################################################################################
 #   Dependencies
 #####################################################################################
-add_dependencies(nre
-    ncpp
-    nmath
-    nsurface
-    nrhi
-    nts
-    FreeImage
-    meshoptimizer
-    nanoflann
-    metis
-    ${NRE_THIRD_PARTY_TARGETS}
+NCPP_ApplyDependencies(
+    TARGET nre
+    DEPENDENT_TARGETS
+        ncpp
+        nmath
+        nsurface
+        nrhi
+        nts
+        FreeImage
+        meshoptimizer
+        nanoflann
+        metis
+        ${NRE_THIRD_PARTY_TARGETS}
 )
 
 
