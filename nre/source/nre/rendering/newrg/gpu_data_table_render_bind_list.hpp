@@ -67,11 +67,16 @@ namespace nre::newrg
             table_p_(table_p)
             NRE_OPTIONAL_DEBUG_PARAM(name_(name))
         {
-            T_setup_base<0>(
-                types,
-                overrided_resource_flags,
-                overrided_formats
-            );
+            NCPP_ASSERT(table_p);
+
+            if(table_p->usuable_page_count())
+            {
+                T_setup_base<0>(
+                    types,
+                    overrided_resource_flags,
+                    overrided_formats
+                );
+            }
         }
         ~TF_gpu_data_table_render_bind_list()
         {

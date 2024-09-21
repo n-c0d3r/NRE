@@ -124,5 +124,9 @@ namespace nre::newrg
         {
             return is_valid();
         }
+        NCPP_FORCE_INLINE void disable_gpu() noexcept
+        {
+            offset_.gpu_address = NCPP_U64_MAX;
+        }
     };
 }
