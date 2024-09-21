@@ -54,7 +54,7 @@ namespace nre {
 		if(nsl_modifer)
 			nsl_modifer(raw_src_content, macros);
 
-		E_nsl_output_language output_language = H_nsl_output_language::default_as_enum();
+		E_nsl_output_language output_language = H_nsl_output_language::default_as_enum(NRE_MAIN_DEVICE());
 
 		auto compiler_p = H_customized_nsl_shader_compiler::create();
 		auto compiled_result_opt = compiler_p->compile(
