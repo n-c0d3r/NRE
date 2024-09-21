@@ -525,7 +525,7 @@ namespace nre::newrg
                 &triangle_vertex_id_table_,
                 TG_array<ED_resource_view_type, 1>({ ED_resource_view_type::SHADER_RESOURCE }),
                 TG_array<ED_resource_flag, 1>({ ED_resource_flag::NONE }),
-                TG_array<ED_format, 1>({ ED_format::R16_UINT })
+                TG_array<ED_format, 1>({ ED_format::R8_UINT })
                 NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.triangle_vertex_id_table_render_bind_list")
             );
         }
