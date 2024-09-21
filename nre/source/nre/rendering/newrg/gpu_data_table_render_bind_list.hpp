@@ -157,6 +157,26 @@ namespace nre::newrg
 
             table_p_ = 0;
         }
+
+    public:
+        NCPP_FORCE_INLINE b8 is_valid() const noexcept
+        {
+            if(table_p_)
+                return (table_p_->usuable_page_count() != 0);
+
+            return false;
+        }
+        NCPP_FORCE_INLINE b8 is_null() const noexcept
+        {
+            if(table_p_)
+                return (table_p_->usuable_page_count() == 0);
+
+            return true;
+        }
+        NCPP_FORCE_INLINE operator b8 () const noexcept
+        {
+            return is_valid();
+        }
     };
 
 

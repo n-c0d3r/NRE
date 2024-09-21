@@ -3,6 +3,7 @@
 #include <nre/rendering/general_texture_2d.hpp>
 
 
+
 namespace nre::newrg
 {
     F_scene_render_view::F_scene_render_view(TKPA_valid<F_actor> actor_p, A_render_view_mask mask) :
