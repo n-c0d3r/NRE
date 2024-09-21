@@ -253,6 +253,8 @@ namespace nre::newrg
             sampler_descriptor_heap_p_ = find_descriptor_allocator(
                 ED_descriptor_heap_type::SAMPLER
             ).pages()[0].heap_p;
+
+            update_descriptor_handle_roots_internal();
         }
     }
     F_render_graph::~F_render_graph()
@@ -1158,7 +1160,7 @@ namespace nre::newrg
                     auto& allocator = find_descriptor_allocator(descriptor_heap_type);
 
                     u32 overflow;
-                    auto allocation_opt = allocator.try_allocate(descriptor_handle_range.count, overflow);
+                    auto allocation_opt = allocator.try_allocate(descriptor_handle_range.count(), overflow);
                     if(allocation_opt)
                     {
                         descriptor_p->allocation_ = allocation_opt.value();
@@ -1171,7 +1173,7 @@ namespace nre::newrg
                             + eastl::max(overflow, old_page_capacity),
                             false
                         );
-                        descriptor_p->allocation_ = allocator.allocate(descriptor_handle_range.count, false);
+                        descriptor_p->allocation_ = allocator.allocate(descriptor_handle_range.count(), false);
                     }
                 }
             }
@@ -1195,25 +1197,21 @@ namespace nre::newrg
                 F_descriptor_allocation& descriptor_allocation = descriptor_p->allocation_;
 
                 auto allocator_p = descriptor_allocation.allocator_p;
+                u32 allocator_index = allocator_p - descriptor_allocators_.data();
 
-                auto& page = allocator_p->pages()[descriptor_allocation.page_index];
+                descriptor_p->handle_range_.set_root(descriptor_handle_roots_[allocator_index]);
 
                 if(flag_is_has(allocator_p->heap_flags(), ED_descriptor_heap_flag::SHADER_VISIBLE))
                 {
-                    F_descriptor_gpu_address gpu_address = (
-                        page.base_gpu_address()
-                        + descriptor_allocation.placed_range.begin * descriptor_increment_size
-                    );
-                    descriptor_p->handle_range_.begin_handle.gpu_address = gpu_address;
+                    descriptor_p->handle_range_.set_offset_gpu(descriptor_allocation.placed_range.begin * descriptor_increment_size);
                 }
 
-                F_descriptor_cpu_address cpu_address = (
-                    page.base_cpu_address()
-                    + descriptor_allocation.placed_range.begin * descriptor_increment_size
-                );
-                descriptor_p->handle_range_.begin_handle.cpu_address = cpu_address;
+                descriptor_p->handle_range_.set_offset_cpu(descriptor_allocation.placed_range.begin * descriptor_increment_size);
             }
         }
+
+        //
+        update_descriptor_handle_roots_internal();
     }
     void F_render_graph::deallocate_descriptors_internal()
     {
@@ -1226,6 +1224,24 @@ namespace nre::newrg
 
                 descriptor_allocation.allocator_p->deallocate(descriptor_allocation);
             }
+        }
+    }
+    void F_render_graph::update_descriptor_handle_roots_internal()
+    {
+        descriptor_handle_roots_.resize(descriptor_allocators_.size());
+        for(u32 i = 0; i < descriptor_handle_roots_.size(); ++i)
+        {
+            auto& allocator = descriptor_allocators_[i];
+            auto& handle_root = descriptor_handle_roots_[i];
+
+            auto& page = allocator.pages()[0];
+
+            if(flag_is_has(allocator.heap_flags(), ED_descriptor_heap_flag::SHADER_VISIBLE))
+            {
+                handle_root.gpu_address = page.base_gpu_address();
+            }
+
+            handle_root.cpu_address = page.base_cpu_address();
         }
     }
 
@@ -1250,7 +1266,7 @@ namespace nre::newrg
                     u32 rtv_descriptor_index = rtv_descriptor_element.index;
 
                     F_descriptor_cpu_address descriptor_cpu_address = (
-                        rtv_descriptor_p->handle_range_.begin_handle.cpu_address
+                        rtv_descriptor_p->handle_range_.base_cpu_address()
                         + rtv_descriptor_index * rtv_descriptor_p->descriptor_stride()
                     );
                     rtv_descriptor_cpu_addresses[i] = descriptor_cpu_address;
@@ -1263,9 +1279,9 @@ namespace nre::newrg
                     F_render_descriptor* dsv_descriptor_p = dsv_descriptor_element.descriptor_p;
                     u32 dsv_descriptor_index = dsv_descriptor_element.index;
 
-                    dsv_descriptor_cpu_address = dsv_descriptor_p->handle_range_.begin_handle.cpu_address;
+                    dsv_descriptor_cpu_address = dsv_descriptor_p->handle_range_.base_cpu_address();
                     F_descriptor_cpu_address descriptor_cpu_address = (
-                        dsv_descriptor_p->handle_range_.begin_handle.cpu_address
+                        dsv_descriptor_p->handle_range_.base_cpu_address()
                         + dsv_descriptor_index * dsv_descriptor_p->descriptor_stride()
                     );
                     dsv_descriptor_cpu_address = descriptor_cpu_address;
@@ -1317,7 +1333,7 @@ namespace nre::newrg
 
             H_descriptor::initialize_resource_view(
                 NCPP_FOH_VALID(page.heap_p),
-                descriptor_handle_range.begin_handle.cpu_address + offset_in_descriptors * descriptor_stride,
+                descriptor_handle_range.base_cpu_address() + offset_in_descriptors * descriptor_stride,
                 desc
             );
         }
@@ -1343,7 +1359,7 @@ namespace nre::newrg
 
             H_descriptor::initialize_sampler_state(
                 NCPP_FOH_VALID(page.heap_p),
-                descriptor_handle_range.begin_handle.cpu_address + offset_in_descriptors * descriptor_stride,
+                descriptor_handle_range.base_cpu_address() + offset_in_descriptors * descriptor_stride,
                 desc
             );
         }
@@ -1367,9 +1383,9 @@ namespace nre::newrg
 
             H_descriptor::copy_descriptors(
                 device_p,
-                descriptor_handle_range.begin_handle.cpu_address + offset_in_descriptors * descriptor_stride,
-                src_handle_range.begin_handle.cpu_address + offset_in_descriptors * descriptor_stride,
-                descriptor_handle_range.count,
+                descriptor_handle_range.base_cpu_address() + offset_in_descriptors * descriptor_stride,
+                src_handle_range.base_cpu_address() + offset_in_descriptors * descriptor_stride,
+                descriptor_handle_range.count(),
                 descriptor_heap_type
             );
         }
@@ -1398,8 +1414,8 @@ namespace nre::newrg
 
             H_descriptor::copy_descriptors(
                 device_p,
-                descriptor_handle_range.begin_handle.cpu_address + offset_in_descriptors * descriptor_stride,
-                src_descriptor_handle_range.begin_handle.cpu_address + src_offset_in_descriptors * descriptor_stride,
+                descriptor_handle_range.base_cpu_address() + offset_in_descriptors * descriptor_stride,
+                src_descriptor_handle_range.base_cpu_address() + src_offset_in_descriptors * descriptor_stride,
                 count,
                 descriptor_heap_type
             );
@@ -3445,7 +3461,7 @@ namespace nre::newrg
         {
             descriptor_p->external_p_ = TS<F_external_render_descriptor>()(
                 descriptor_p->heap_type_,
-                descriptor_p->handle_range_.count
+                descriptor_p->handle_range_.count()
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , descriptor_p->name_.c_str()
 #endif
@@ -3582,7 +3598,7 @@ namespace nre::newrg
             {
                 out_external_p = TS<F_external_render_descriptor>()(
                     descriptor_p->heap_type_,
-                    descriptor_p->handle_range_.count
+                    descriptor_p->handle_range_.count()
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                     , descriptor_p->name_.c_str()
 #endif
@@ -3814,26 +3830,34 @@ namespace nre::newrg
         ];
     }
 
-    F_descriptor_allocator& F_render_graph::find_descriptor_allocator(ED_descriptor_heap_type descriptor_heap_type)
+    u32 F_render_graph::find_descriptor_allocator_index(ED_descriptor_heap_type heap_type)
     {
         NRHI_ENUM_SWITCH(
-            descriptor_heap_type,
+            heap_type,
             NRHI_ENUM_CASE(
                 ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
-                return descriptor_allocators_[NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_CBV_SRV_UAV];
+                return NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_CBV_SRV_UAV;
             )
             NRHI_ENUM_CASE(
                 ED_descriptor_heap_type::SAMPLER,
-                return descriptor_allocators_[NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_SAMPLER];
+                return NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_SAMPLER;
             )
             NRHI_ENUM_CASE(
                 ED_descriptor_heap_type::RENDER_TARGET,
-                return descriptor_allocators_[NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_RENDER_TARGET];
+                return NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_RENDER_TARGET;
             )
             NRHI_ENUM_CASE(
                 ED_descriptor_heap_type::DEPTH_STENCIL,
-                return descriptor_allocators_[NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_DEPTH_STENCIL];
+                return NRE_RENDER_GRAPH_DESCRIPTOR_ALLOCATOR_INDEX_DEPTH_STENCIL;
             )
         );
+    }
+    F_descriptor_allocator& F_render_graph::find_descriptor_allocator(ED_descriptor_heap_type heap_type)
+    {
+        return descriptor_allocators_[find_descriptor_allocator_index(heap_type)];
+    }
+    const F_descriptor_handle& F_render_graph::find_descriptor_handle_root(ED_descriptor_heap_type heap_type)
+    {
+        return descriptor_handle_roots_[find_descriptor_allocator_index(heap_type)];
     }
 }

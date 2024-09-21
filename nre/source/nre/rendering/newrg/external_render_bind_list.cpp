@@ -91,7 +91,7 @@ namespace nre::newrg
 
         H_descriptor::initialize_resource_view(
             NCPP_FOH_VALID(page.heap_p),
-            descriptor_handle_range.begin_handle.cpu_address + index * descriptor_stride,
+            descriptor_handle_range.base_cpu_address() + index * descriptor_stride,
             desc
         );
     }
@@ -114,7 +114,7 @@ namespace nre::newrg
 
         H_descriptor::initialize_sampler_state(
             NCPP_FOH_VALID(page.heap_p),
-            descriptor_handle_range.begin_handle.cpu_address + index * descriptor_stride,
+            descriptor_handle_range.base_cpu_address() + index * descriptor_stride,
             desc
         );
     }
@@ -133,9 +133,9 @@ namespace nre::newrg
 
         H_descriptor::copy_descriptors(
             NRE_MAIN_DEVICE(),
-            descriptor_handle_range.begin_handle.cpu_address + index * descriptor_stride,
-            src_handle_range.begin_handle.cpu_address + index * descriptor_stride,
-            descriptor_handle_range.count,
+            descriptor_handle_range.base_cpu_address() + index * descriptor_stride,
+            src_handle_range.base_cpu_address() + index * descriptor_stride,
+            descriptor_handle_range.count(),
             descriptor_heap_type
         );
     }

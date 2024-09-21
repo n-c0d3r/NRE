@@ -117,7 +117,7 @@ int main() {
 				[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 				{
 					command_list_p->async_clear_rtv_with_descriptor(
-						rg_back_rtv_p->handle_range().begin_handle.cpu_address,
+						rg_back_rtv_p->handle_range().base_cpu_address(),
 						F_vector4_f32::forward()
 					);
 				},

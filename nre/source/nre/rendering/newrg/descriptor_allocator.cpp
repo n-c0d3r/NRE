@@ -203,14 +203,29 @@ namespace nre::newrg
             if(new_page_capacity != page_capacity_)
                 page.update_capacity_unsafe_internal(page_capacity_, new_page_capacity);
             if(rebuild_heap && (page.heap_p->desc().descriptor_count != new_page_capacity))
-                page.heap_p = H_descriptor_heap::create(
+            {
+                auto new_heap_p = H_descriptor_heap::create(
                     NRE_MAIN_DEVICE(),
                     {
                         .type = heap_type_,
                         .flags = heap_flags_,
                         .descriptor_count = new_page_capacity,
                     }
+                );
+
+                if(page.heap_p)
+                {
+                    H_descriptor::copy_descriptors(
+                        NRE_MAIN_DEVICE(),
+                        new_heap_p->base_cpu_address(),
+                        page.heap_p->base_cpu_address(),
+                        eastl::min(new_page_capacity, page.heap_p->desc().descriptor_count),
+                        heap_type_
                     );
+                }
+
+                page.heap_p = eastl::move(new_heap_p);
+            }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             if(page.heap_p)

@@ -24,7 +24,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE F_descriptor_handle handle() const noexcept
         {
-            auto& begin_handle = descriptor_p->handle();
+            auto begin_handle = descriptor_p->handle();
 
             u64 descriptor_stride = descriptor_p->descriptor_stride();
 

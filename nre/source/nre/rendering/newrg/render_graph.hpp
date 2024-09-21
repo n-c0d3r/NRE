@@ -168,6 +168,7 @@ namespace nre::newrg
         TG_vector<F_cpu_fence> cpu_fences_;
 
         TG_vector<F_descriptor_allocator> descriptor_allocators_;
+        TG_vector<F_descriptor_handle> descriptor_handle_roots_;
         TK<A_descriptor_heap> cbv_srv_uav_descriptor_heap_p_;
         TK<A_descriptor_heap> sampler_descriptor_heap_p_;
 
@@ -219,6 +220,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& fence_p_vector() noexcept { return fence_p_vector_; }
 
         NCPP_FORCE_INLINE const auto& descriptor_allocators() noexcept { return descriptor_allocators_; }
+        NCPP_FORCE_INLINE const auto& descriptor_handle_roots() noexcept { return descriptor_handle_roots_; }
         NCPP_FORCE_INLINE auto cbv_srv_uav_descriptor_heap_p() noexcept { return NCPP_FOH_VALID(cbv_srv_uav_descriptor_heap_p_); }
         NCPP_FORCE_INLINE auto sampler_descriptor_heap_p() noexcept { return NCPP_FOH_VALID(sampler_descriptor_heap_p_); }
 
@@ -281,6 +283,7 @@ namespace nre::newrg
     private:
         void allocate_descriptors_internal();
         void deallocate_descriptors_internal();
+        void update_descriptor_handle_roots_internal();
 
     private:
         void create_rhi_frame_buffers_internal();
@@ -694,7 +697,7 @@ namespace nre::newrg
         )
         {
             return create_permanent_descriptor(
-                F_descriptor_handle_range { .begin_handle = descriptor_handle, .count = 1 },
+                F_descriptor_handle_range(descriptor_handle, 1),
                 heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , name
@@ -736,7 +739,7 @@ namespace nre::newrg
             );
 
             return create_permanent_descriptor(
-                F_descriptor_handle_range { .begin_handle = rhi_resource_view_p->descriptor_handle(), .count = 1 },
+                F_descriptor_handle_range(rhi_resource_view_p->descriptor_handle(), 1),
                 heap_type
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , name
@@ -756,7 +759,7 @@ namespace nre::newrg
         )
         {
             return create_permanent_descriptor(
-                F_descriptor_handle_range { .begin_handle = rhi_sampler_state_p->descriptor_handle(), .count = 1 },
+                F_descriptor_handle_range(rhi_sampler_state_p->descriptor_handle(), 1),
                 ED_descriptor_heap_type::SAMPLER
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 , name
@@ -829,7 +832,19 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
+        u32 find_descriptor_allocator_index(
+            ED_descriptor_heap_type heap_type
+        );
+        /**
+         *  Thread-safe
+         */
         F_descriptor_allocator& find_descriptor_allocator(
+            ED_descriptor_heap_type heap_type
+        );
+        /**
+         *  Thread-safe
+         */
+        const F_descriptor_handle& find_descriptor_handle_root(
             ED_descriptor_heap_type heap_type
         );
     };

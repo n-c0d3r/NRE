@@ -49,20 +49,20 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& allocation() const noexcept { return allocation_; }
         NCPP_FORCE_INLINE const auto& handle_range() const noexcept { return handle_range_; }
-        NCPP_FORCE_INLINE const auto& handle() const noexcept
+        NCPP_FORCE_INLINE auto handle() const noexcept
         {
-            return handle_range_.begin_handle;
+            return handle_range_.base();
         }
         NCPP_FORCE_INLINE F_descriptor_handle handle(u32 index) const noexcept
         {
             return {
-                .cpu_address = handle_range_.begin_handle.cpu_address + descriptor_stride_ * index,
-                .gpu_address = handle_range_.begin_handle.gpu_address + descriptor_stride_ * index
+                .cpu_address = handle_range_.base_cpu_address() + descriptor_stride_ * index,
+                .gpu_address = handle_range_.base_gpu_address() + descriptor_stride_ * index
             };
         }
         NCPP_FORCE_INLINE u32 count() const noexcept
         {
-            return handle_range_.count;
+            return handle_range_.count();
         }
         NCPP_FORCE_INLINE ED_descriptor_heap_type heap_type() const noexcept { return heap_type_; }
 

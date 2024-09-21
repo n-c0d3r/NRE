@@ -12,7 +12,7 @@ namespace nre::newrg
         , const F_debug_name& name
 #endif
     ) :
-        handle_range_({ .count = count }),
+        handle_range_(count),
         heap_type_(heap_type)
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         , name_(name)
