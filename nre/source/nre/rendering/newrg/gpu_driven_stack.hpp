@@ -13,7 +13,7 @@ namespace nre::newrg
 
 
 
-    class NRE_API F_gpu_driven_stack final
+    class NRE_API F_gpu_driven_stack
     {
     private:
         ED_resource_flag resource_flags_ = ED_resource_flag::NONE;
@@ -98,9 +98,15 @@ namespace nre::newrg
     public:
         /**
          *  Thread-safe
-         *  Return: offset
          */
         void enqueue_resource_state(F_render_pass* pass_p, ED_resource_state states);
+        /**
+         *  Thread-safe
+         */
+        NCPP_FORCE_INLINE void enqueue_resource_state(F_render_pass* pass_p)
+        {
+            enqueue_resource_state(pass_p, ED_resource_state::INDIRECT_ARGUMENT);
+        }
 
     public:
         /**

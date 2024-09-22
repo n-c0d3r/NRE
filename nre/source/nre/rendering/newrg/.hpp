@@ -95,6 +95,7 @@
 #include <nre/rendering/newrg/general_gpu_data_table.hpp>
 #include <nre/rendering/newrg/gpu_data_table_render_bind_list.hpp>
 #include <nre/rendering/newrg/render_actor_data.hpp>
+#include <nre/rendering/newrg/indirect_command_system.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

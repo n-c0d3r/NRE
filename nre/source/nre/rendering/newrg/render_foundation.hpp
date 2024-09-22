@@ -11,6 +11,7 @@ namespace nre::newrg
     class F_uniform_transient_resource_uploader;
     class F_render_actor_data_pool;
     class F_unified_mesh_system;
+    class F_indirect_command_system;
 
 
 
@@ -37,6 +38,7 @@ namespace nre::newrg
         TU<F_uniform_transient_resource_uploader> uniform_transient_resource_uploader_p_;
         TU<F_render_actor_data_pool> render_actor_data_pool_p_;
         TU<F_unified_mesh_system> unified_mesh_system_p_;
+        TU<F_indirect_command_system> indirect_command_system_p_;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(
