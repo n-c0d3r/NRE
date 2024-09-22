@@ -51,7 +51,7 @@ namespace nre::newrg
         );
     }
 
-    void F_abytek_render_path::clear_view(
+    void F_abytek_render_path::clear_view_main_texture(
         TKPA_valid<F_abytek_scene_render_view> view_p
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
@@ -60,14 +60,34 @@ namespace nre::newrg
             view_p->rg_main_view_element(),
             view_p->rg_main_texture_p(),
             view_p->clear_color
-            NRE_OPTIONAL_DEBUG_PARAM(name + " (render target)")
+            NRE_OPTIONAL_DEBUG_PARAM(name)
         );
+    }
+    void F_abytek_render_path::clear_view_depth_texture(
+        TKPA_valid<F_abytek_scene_render_view> view_p
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
+    )
+    {
         H_gpu_render_pass::clear_depth_stencil(
             view_p->rg_depth_view_element(),
             view_p->rg_depth_texture_p(),
             ED_clear_flag::DEPTH,
             1.0f,
             0
+            NRE_OPTIONAL_DEBUG_PARAM(name)
+        );
+    }
+    void F_abytek_render_path::clear_view(
+        TKPA_valid<F_abytek_scene_render_view> view_p
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
+    )
+    {
+        clear_view_main_texture(
+            view_p
+            NRE_OPTIONAL_DEBUG_PARAM(name + " (render target)")
+        );
+        clear_view_depth_texture(
+            view_p
             NRE_OPTIONAL_DEBUG_PARAM(name + " (depth stencil)")
         );
     }
