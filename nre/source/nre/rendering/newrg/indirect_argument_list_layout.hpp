@@ -8,7 +8,7 @@
 
 namespace nre::newrg
 {
-    class NRE_API F_indirect_argument_list_layout final
+    class NRE_API F_indirect_argument_list_layout
     {
     private:
         TU<A_command_signature> command_signature_p_;
