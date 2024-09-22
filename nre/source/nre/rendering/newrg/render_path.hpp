@@ -45,3 +45,7 @@ namespace nre::newrg
         virtual void RG_end_register();
     };
 }
+
+
+
+#define NRE_NEWRG_RENDER_PATH() nre::newrg::F_render_path::instance_p()

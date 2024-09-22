@@ -11,6 +11,7 @@
 #include <nre/rendering/newrg/render_path.hpp>
 #include <nre/rendering/newrg/abytek_render_path.hpp>
 #include <nre/rendering/newrg/abytek_render_factory_proxy.hpp>
+#include <nre/rendering/newrg/abytek_scene_render_view.hpp>
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>

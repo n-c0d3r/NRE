@@ -3,6 +3,7 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/newrg/render_path.hpp>
+#include <nre/rendering/newrg/abytek_render_path_events.hpp>
 
 
 
@@ -10,6 +11,16 @@ namespace nre::newrg
 {
     class NRE_API F_abytek_render_path : public F_render_path
     {
+    private:
+        F_abytek_render_path_rg_register_view_event rg_register_view_event_;
+
+    public:
+        NCPP_DECLARE_STATIC_EVENTS(
+            rg_register_view_event_
+        );
+
+
+
     public:
         F_abytek_render_path();
         virtual ~F_abytek_render_path();
@@ -24,3 +35,36 @@ namespace nre::newrg
         virtual void RG_end_register() override;
     };
 }
+
+
+
+#define NRE_NEWRG_ABYTEK_RENDER_PATH() NRE_NEWRG_RENDER_PATH().T_cast<nre::newrg::F_abytek_render_path>()
+
+
+
+namespace nre::newrg::internal
+{
+    struct F_abytek_render_path_rg_register_view_event_caller
+    {
+        template<typename F__>
+        NCPP_FORCE_INLINE void operator = (F__&& functor) {
+
+            NRE_NEWRG_ABYTEK_RENDER_PATH()->T_get_event<F_abytek_render_path_rg_register_view_event>().T_push_back_listener(
+                [f = NCPP_FORWARD(functor)](F_event& event)
+                {
+                    f(
+                        NCPP_FOH_VALID(
+                            ((F_abytek_render_path_rg_register_view_event&)event).view_p()
+                        )
+                    );
+                }
+            );
+        }
+    };
+}
+
+
+
+#define NRE_NEWRG_ABYTEK_RENDER_PATH_RG_REGISTER_VIEW(view_p) \
+    nre::newrg::internal::F_abytek_render_path_rg_register_view_event_caller NCPP_GLUE(___nre_abytek_render_path_rg_register_view_event___, NCPP_LINE); \
+    NCPP_GLUE(___nre_abytek_render_path_rg_register_view_event___, NCPP_LINE) = [&](TKPA_valid<F_abytek_scene_render_view> view_p)

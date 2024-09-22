@@ -69,6 +69,10 @@ namespace nre::newrg
 
 
 
+#define NRE_NEWRG_RENDER_FOUNDATION() nre::newrg::F_render_foundation::instance_p()
+
+
+
 namespace nre::newrg::internal
 {
     struct F_render_foundation_rg_tick_event_caller

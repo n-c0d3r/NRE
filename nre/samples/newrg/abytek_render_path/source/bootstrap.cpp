@@ -11,7 +11,7 @@ int main() {
 	auto application_p = TU<F_application>()(
 		F_application_desc {
 			.main_surface_desc = {
-				.title = L"Abytek Geometry (NewRG)",
+				.title = L"Abytek Render Path (NewRG)",
 				.size = { 1024, 700 }
 			}
 		}
@@ -20,6 +20,29 @@ int main() {
 
 
 	auto render_path_p = TU<F_abytek_render_path>()();
+
+
+
+	// create level
+	auto level_p = TU<F_level>()();
+
+	// create model actor
+	auto model_actor_p = level_p->T_create_actor();
+	auto model_transform_node_p = model_actor_p->template T_add_component<F_transform_node>();
+	model_transform_node_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(
+		make_scale(F_vector3::one() * 5.0f)
+	);
+
+	// create spectator
+	auto spectator_actor_p = level_p->T_create_actor();
+	auto spectator_transform_node_p = spectator_actor_p->template T_add_component<F_transform_node>();
+	auto spectator_camera_p = spectator_actor_p->template T_add_component<F_camera>();
+	auto spectator_p = spectator_actor_p->template T_add_component<F_spectator>();
+
+	spectator_p->position = F_vector3 { 0.0f, 0.0f, -10.0f };
+	spectator_p->move_speed = 4.0f;
+
+	spectator_camera_p->render_view_p().T_cast<F_scene_render_view>()->bind_output(NRE_MAIN_SWAPCHAIN());
 
 
 
@@ -53,6 +76,13 @@ int main() {
 		{
 		};
 		NRE_NEWRG_RENDER_FOUNDATION_RELEASE()
+		{
+		};
+	}
+
+	// abytek render path events
+	{
+		NRE_NEWRG_ABYTEK_RENDER_PATH_RG_REGISTER_VIEW(view_p)
 		{
 		};
 	}
