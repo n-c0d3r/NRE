@@ -100,6 +100,9 @@ namespace nre::newrg
             is_started_register_ = false;
         );
 
+        if(!resource_size_)
+            return;
+
         auto render_graph_p = F_render_graph::instance_p();
 
         //

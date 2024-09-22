@@ -75,6 +75,8 @@ namespace nre::newrg
             x.data().data(),
             data_.size()
         );
+
+        return *this;
     }
 
     F_indirect_argument_list::F_indirect_argument_list(F_indirect_argument_list&& x) :
@@ -89,6 +91,8 @@ namespace nre::newrg
         data_ = eastl::move(x.data_);
 
         x.reset();
+
+        return *this;
     }
 
 
