@@ -4,11 +4,15 @@
 
 #include <nre/rendering/newrg/render_path.hpp>
 #include <nre/rendering/newrg/abytek_render_path_events.hpp>
-
+#include <nre/rendering/newrg/render_frame_containers.hpp>
 
 
 namespace nre::newrg
 {
+    class F_render_graph;
+
+
+
     class NRE_API F_abytek_render_path : public F_render_path
     {
     private:
@@ -33,6 +37,12 @@ namespace nre::newrg
     public:
         virtual void RG_begin_register() override;
         virtual void RG_end_register() override;
+
+    public:
+        void clear_view(
+            TKPA_valid<F_abytek_scene_render_view> view_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
     };
 }
 

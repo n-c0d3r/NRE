@@ -3,16 +3,29 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/newrg/scene_render_view.hpp>
+#include <nre/rendering/newrg/render_descriptor_element.hpp>
 
 
 
 namespace nre::newrg
 {
+    class F_render_resource;
+
+
+
     class NRE_API F_abytek_scene_render_view :
         public F_scene_render_view
     {
+    private:
+        F_render_descriptor_element rg_main_view_element_;
+        F_render_resource* rg_main_texture_p_ = 0;
+
     public:
         F_vector4 clear_color = F_vector4::zero();
+
+    public:
+        NCPP_FORCE_INLINE const auto& rg_main_view_element() const noexcept { return rg_main_view_element_; }
+        NCPP_FORCE_INLINE F_render_resource* rg_main_texture_p() const noexcept { return rg_main_texture_p_; }
 
 
 

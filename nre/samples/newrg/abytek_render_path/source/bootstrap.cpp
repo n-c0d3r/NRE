@@ -39,10 +39,13 @@ int main() {
 	auto spectator_camera_p = spectator_actor_p->template T_add_component<F_camera>();
 	auto spectator_p = spectator_actor_p->template T_add_component<F_spectator>();
 
+	auto spectator_view_p = spectator_camera_p->render_view_p().T_cast<F_abytek_scene_render_view>();
+
 	spectator_p->position = F_vector3 { 0.0f, 0.0f, -10.0f };
 	spectator_p->move_speed = 4.0f;
 
-	spectator_camera_p->render_view_p().T_cast<F_scene_render_view>()->bind_output(NRE_MAIN_SWAPCHAIN());
+	spectator_view_p->bind_output(NRE_MAIN_SWAPCHAIN());
+	spectator_view_p->clear_color = F_vector4::forward();
 
 
 

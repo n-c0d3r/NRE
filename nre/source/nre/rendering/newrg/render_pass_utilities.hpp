@@ -227,5 +227,47 @@ namespace nre::newrg
                 NRE_OPTIONAL_DEBUG_PARAM(name)
             );
         }
+
+    public:
+        template<E_render_pass_flag additional_flags__ = E_render_pass_flag::MAIN_RENDER_WORKER>
+        static F_render_pass* T_clear_render_target(
+            const F_render_descriptor_element& descriptor_element,
+            F_render_resource* resource_p,
+            F_vector4_f32 color
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            F_render_pass* result = F_render_graph::instance_p()->create_pass(
+                [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+                {
+                    command_list_p->async_clear_rtv_with_descriptor(
+                        descriptor_element.handle().cpu_address,
+                        color
+                    );
+                },
+                flag_combine(additional_flags__, E_render_pass_flag::GPU_ACCESS_RASTER)
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+            result->add_resource_state({
+                .resource_p = resource_p,
+                .states = ED_resource_state::RENDER_TARGET
+            });
+
+            return result;
+        }
+        NCPP_FORCE_INLINE static F_render_pass* clear_render_target(
+            const F_render_descriptor_element& descriptor_element,
+            F_render_resource* resource_p,
+            F_vector4_f32 color
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            return T_clear_render_target(
+                descriptor_element,
+                resource_p,
+                color
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+        }
     };
 }
