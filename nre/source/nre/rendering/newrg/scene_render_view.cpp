@@ -36,7 +36,6 @@ namespace nre::newrg
         case E_render_view_output_mode::NONE:
             {
                 size_ = F_vector2_u32::zero();
-                is_renderable_ = false;
                 break;
             }
         case E_render_view_output_mode::GENERAL_TEXTURE_2D:
@@ -44,7 +43,6 @@ namespace nre::newrg
                 auto texture_2d_p = output_texture_2d_p();
                 auto& resource_desc = texture_2d_p->desc();
                 size_ = F_vector2_u32 { resource_desc.width, resource_desc.height };
-                is_renderable_ = true;
                 break;
             }
         case E_render_view_output_mode::SWAPCHAIN:
@@ -53,7 +51,6 @@ namespace nre::newrg
                 auto& resource_desc = texture_2d_p->desc();
                 size_ = F_vector2_u32 { resource_desc.width, resource_desc.height };
                 output_rtv_descriptor_handle_ = output_swapchain_p_->back_rtv_p()->descriptor_handle();
-                is_renderable_ = true;
                 break;
             }
         case E_render_view_output_mode::MANAGED_RTV:
@@ -62,7 +59,6 @@ namespace nre::newrg
                 auto& resource_desc = texture_2d_p->desc();
                 size_ = F_vector2_u32 { resource_desc.width, resource_desc.height };
                 output_rtv_descriptor_handle_ = output_managed_rtv_p_->descriptor_handle();
-                is_renderable_ = true;
                 break;
             }
         case E_render_view_output_mode::UNMANAGED_RTV_DESCRIPTOR_HANDLE_AND_TEXTURE_2D:
@@ -70,10 +66,11 @@ namespace nre::newrg
                 auto texture_2d_p = output_texture_2d_p();
                 auto& resource_desc = texture_2d_p->desc();
                 size_ = F_vector2_u32 { resource_desc.width, resource_desc.height };
-                is_renderable_ = true;
                 break;
             }
         }
+
+        is_renderable_ = (size_ != F_vector2_u32::zero());
     }
 
     void F_scene_render_view::RG_register()
