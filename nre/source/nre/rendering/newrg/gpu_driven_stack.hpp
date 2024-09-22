@@ -75,7 +75,7 @@ namespace nre::newrg
          *  Thread-safe
          *  Return: offset
          */
-        sz push(sz size, sz alignment = 256, sz alignment_offset = 0);
+        sz push(sz size, sz alignment = 16, sz alignment_offset = 0);
         /**
          *  Thread-safe
          *  Return: offset
