@@ -59,7 +59,15 @@ namespace nre::newrg
             view_p->rg_main_view_element(),
             view_p->rg_main_texture_p(),
             view_p->clear_color
-            NRE_OPTIONAL_DEBUG_PARAM(name)
+            NRE_OPTIONAL_DEBUG_PARAM(name + " (render target)")
+        );
+        H_gpu_render_pass::clear_depth_stencil(
+            view_p->rg_depth_view_element(),
+            view_p->rg_depth_texture_p(),
+            ED_clear_flag::DEPTH,
+            1.0f,
+            0
+            NRE_OPTIONAL_DEBUG_PARAM(name + " (depth stencil)")
         );
     }
 }

@@ -19,6 +19,8 @@ namespace nre::newrg
     private:
         F_render_descriptor_element rg_main_view_element_;
         F_render_resource* rg_main_texture_p_ = 0;
+        F_render_descriptor_element rg_depth_view_element_;
+        F_render_resource* rg_depth_texture_p_ = 0;
 
     public:
         F_vector4 clear_color = F_vector4::zero();
@@ -26,6 +28,8 @@ namespace nre::newrg
     public:
         NCPP_FORCE_INLINE const auto& rg_main_view_element() const noexcept { return rg_main_view_element_; }
         NCPP_FORCE_INLINE F_render_resource* rg_main_texture_p() const noexcept { return rg_main_texture_p_; }
+        NCPP_FORCE_INLINE const auto& rg_depth_view_element() const noexcept { return rg_depth_view_element_; }
+        NCPP_FORCE_INLINE F_render_resource* rg_depth_texture_p() const noexcept { return rg_depth_texture_p_; }
 
 
 

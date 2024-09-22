@@ -72,6 +72,7 @@ namespace nre::newrg
     }
     F_unified_mesh_system::~F_unified_mesh_system()
     {
+        int a = 5;
     }
 
 

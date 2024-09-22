@@ -25,7 +25,6 @@ int main() {
 
 	// unified mesh asset
 	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
-	auto unified_mesh_p = unified_mesh_asset_p->mesh_p();
 
 
 
@@ -42,7 +41,7 @@ int main() {
 		make_scale(F_vector3::one() * 5.0f)
 	);
 
-	model_drawable_p->mesh_p = unified_mesh_p;
+	model_drawable_p->mesh_p = unified_mesh_asset_p->mesh_p();
 
 	// create spectator
 	auto spectator_actor_p = level_p->T_create_actor();
@@ -65,6 +64,9 @@ int main() {
 		NRE_APPLICATION_STARTUP(application_p) {
 		};
 		NRE_APPLICATION_SHUTDOWN(application_p) {
+
+			level_p.reset();
+			unified_mesh_asset_p.reset();
 		};
 		NRE_APPLICATION_GAMEPLAY_TICK(application_p) {
 
