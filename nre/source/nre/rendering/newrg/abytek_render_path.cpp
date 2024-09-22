@@ -3,6 +3,7 @@
 #include <nre/rendering/newrg/abytek_scene_render_view.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/render_pass_utilities.hpp>
+#include <nre/rendering/newrg/indirect_command_system.hpp>
 #include <nre/actor/actor.hpp>
 
 
