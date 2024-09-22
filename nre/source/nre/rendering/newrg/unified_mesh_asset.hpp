@@ -20,7 +20,7 @@ namespace nre::newrg
         TS<F_unified_mesh> mesh_p_;
 
     public:
-        NCPP_FORCE_INLINE auto mesh_p() const noexcept { return NCPP_FOH_VALID(mesh_p_); }
+        NCPP_FORCE_INLINE const auto& mesh_p() const noexcept { return mesh_p_; }
 
 
 

@@ -5,8 +5,8 @@
 
 
 
-namespace nre {
-
+namespace nre
+{
 	A_material_proxy::A_material_proxy(TKPA_valid<A_material> material_p, F_material_mask mask) :
 		material_p_(material_p),
 		mask_(mask)
@@ -49,4 +49,10 @@ namespace nre {
 		proxy_p_->update();
 	}
 
+	void A_material::update_mask(F_material_mask value)
+	{
+		F_material_system::instance_p()->deregister(NCPP_KTHIS());
+		mask_ = value;
+		F_material_system::instance_p()->_register(NCPP_KTHIS());
+	}
 }

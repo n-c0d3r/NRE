@@ -82,6 +82,7 @@
 #include <nre/rendering/newrg/unified_mesh_system.hpp>
 #include <nre/rendering/newrg/unified_mesh_drawable.hpp>
 #include <nre/rendering/newrg/unified_mesh_material.hpp>
+#include <nre/rendering/newrg/simple_unified_mesh_material.hpp>
 #include <nre/rendering/newrg/bind_list.hpp>
 #include <nre/rendering/newrg/rhi_resource_view_bind.hpp>
 #include <nre/rendering/newrg/render_pass_utilities.hpp>

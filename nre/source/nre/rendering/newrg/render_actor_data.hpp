@@ -11,6 +11,7 @@ namespace nre::newrg
 
     using F_render_actor_data_targ_list = TF_template_targ_list<
         F_render_actor_transform,
+        F_render_actor_transform,
         F_render_actor_mesh_id
     >;
 }
@@ -18,3 +19,5 @@ namespace nre::newrg
 
 
 #define NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_TRANSFORM 0
+#define NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_LAST_TRANSFORM 1
+#define NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_MESH_ID 2

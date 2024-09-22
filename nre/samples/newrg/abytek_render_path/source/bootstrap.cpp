@@ -23,15 +23,26 @@ int main() {
 
 
 
+	// unified mesh asset
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
+	auto unified_mesh_p = unified_mesh_asset_p->mesh_p();
+
+
+
 	// create level
 	auto level_p = TU<F_level>()();
 
 	// create model actor
 	auto model_actor_p = level_p->T_create_actor();
 	auto model_transform_node_p = model_actor_p->template T_add_component<F_transform_node>();
+	auto model_drawable_p = model_actor_p->template T_add_component<F_unified_mesh_drawable>();
+	auto model_material_p = model_actor_p->template T_add_component<F_simple_unified_mesh_material>();
+
 	model_transform_node_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(
 		make_scale(F_vector3::one() * 5.0f)
 	);
+
+	model_drawable_p->mesh_p = unified_mesh_p;
 
 	// create spectator
 	auto spectator_actor_p = level_p->T_create_actor();

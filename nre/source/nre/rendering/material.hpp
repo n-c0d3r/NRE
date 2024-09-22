@@ -66,7 +66,6 @@ namespace nre {
 
 	protected:
 		virtual void update();
-
 	};
 
 
@@ -102,6 +101,8 @@ namespace nre {
 		virtual void ready() override;
 		virtual void render_tick() override;
 
+	protected:
+		void update_mask(F_material_mask value);
 	};
 
 }
