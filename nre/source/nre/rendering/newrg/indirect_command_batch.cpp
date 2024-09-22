@@ -15,13 +15,4 @@ namespace nre::newrg
     {
         NCPP_ASSERT(count);
     }
-
-
-
-    void F_indirect_command_batch::execute(TKPA_valid<A_command_list> command_list_p)
-    {
-        // command_list_p->async_execute_indirect(
-        //
-        // );
-    }
 }

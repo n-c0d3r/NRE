@@ -27,15 +27,12 @@ namespace nre::newrg
             sz address_offset,
             u32 count = 1
         );
-        ~F_indirect_command_batch();
+        ~F_indirect_command_batch() = default;
 
         F_indirect_command_batch(const F_indirect_command_batch& x) = default;
         F_indirect_command_batch& operator = (const F_indirect_command_batch& x) = default;
 
 
-
-    public:
-        void execute(TKPA_valid<A_command_list> command_list_p);
 
     public:
         NCPP_FORCE_INLINE b8 is_valid() const noexcept

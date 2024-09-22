@@ -8,6 +8,10 @@
 
 namespace nre::newrg
 {
+    class F_indirect_command_batch;
+
+
+
     class NRE_API F_indirect_command_system final : public F_gpu_driven_stack
     {
     private:
@@ -18,15 +22,24 @@ namespace nre::newrg
 
 
 
-    private:
-
-
-
     public:
         F_indirect_command_system();
         ~F_indirect_command_system();
 
     public:
         NCPP_OBJECT(F_indirect_command_system);
+
+
+
+    public:
+        void execute(
+            TKPA_valid<A_command_list> command_list_p,
+            const F_indirect_command_batch& command_batch
+        );
+        void execute_with_dynamic_count(
+            TKPA_valid<A_command_list> command_list_p,
+            const F_indirect_command_batch& command_batch,
+            sz count_offset
+        );
     };
 }
