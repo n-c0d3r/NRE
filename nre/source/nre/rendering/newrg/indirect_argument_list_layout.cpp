@@ -25,16 +25,16 @@ namespace nre::newrg
             );
 
             slot.offset = align_address(
-                table_.size,
+                table_.stride,
                 table_.alignment
             );
             slot.size = H_indirect_argument::size(argument_desc);
 
-            table_.size = slot.offset + slot.size;
+            table_.stride = slot.offset + slot.size;
         }
-        table_.size = align_address(table_.alignment);
+        table_.stride = align_address(table_.alignment);
 
-        parsed_desc.stride = table_.size;
+        parsed_desc.stride = table_.stride;
 
         command_signature_p_ = H_command_signature::create(
             NRE_MAIN_DEVICE(),

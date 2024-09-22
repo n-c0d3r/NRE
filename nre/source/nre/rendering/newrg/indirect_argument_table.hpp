@@ -16,7 +16,7 @@ namespace nre::newrg
 
         TG_vector<F_slot> slots;
 
-        sz size = 0;
+        sz stride = 0;
         sz alignment = 16;
     };
 }
