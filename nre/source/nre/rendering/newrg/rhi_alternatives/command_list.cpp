@@ -312,7 +312,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::dispatch(
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_instanced_indirect(
     TKPA_valid<A_command_list> command_list_p,
-    KPA_buffer_handle buffer_p,
+    KPA_valid_buffer_handle buffer_p,
     u32 buffer_offset
 )
 {
@@ -320,7 +320,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_instanced_indirect(
 }
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_indexed_instanced_indirect(
     TKPA_valid<A_command_list> command_list_p,
-    KPA_buffer_handle buffer_p,
+    KPA_valid_buffer_handle buffer_p,
     u32 buffer_offset
 )
 {
@@ -329,7 +329,7 @@ void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::draw_indexed_instanced_indir
 
 void NRHI_DRIVER_ALTERNATIVE(nrhi, H_command_list)::dispatch_indirect(
     TKPA_valid<A_command_list> command_list_p,
-    KPA_buffer_handle buffer_p,
+    KPA_valid_buffer_handle buffer_p,
     u32 buffer_offset
 )
 {
