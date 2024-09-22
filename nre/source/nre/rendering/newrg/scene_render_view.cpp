@@ -70,7 +70,7 @@ namespace nre::newrg
             }
         }
 
-        is_renderable_ = (size_ != F_vector2_u32::zero());
+        is_renderable_ = (size_.width != 0) && (size_.height != 0);
     }
 
     void F_scene_render_view::RG_register()
