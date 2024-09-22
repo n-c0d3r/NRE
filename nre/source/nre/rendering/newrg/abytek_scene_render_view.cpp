@@ -28,6 +28,10 @@ namespace nre::newrg
     {
         rg_main_view_element_ = {};
         rg_main_texture_p_ = 0;
+        rg_depth_view_element_ = {};
+        rg_depth_texture_p_ = 0;
+        rg_main_frame_buffer_p_ = 0;
+        rg_depth_only_frame_buffer_p_ = 0;
 
         F_scene_render_view::RG_register();
 
@@ -83,6 +87,25 @@ namespace nre::newrg
             rg_depth_view_element_ = {
                 .descriptor_p = rg_depth_view_p
             };
+
+            rg_main_frame_buffer_p_ = render_graph_p->create_frame_buffer(
+                { rg_main_view_element() },
+                rg_depth_view_element_
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_view.main_frame_buffers[")
+                    + actor_p()->name().c_str()
+                    + "]"
+                )
+            );
+            rg_depth_only_frame_buffer_p_ = render_graph_p->create_frame_buffer(
+                {},
+                rg_depth_view_element_
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_view.depth_only_frame_buffers[")
+                    + actor_p()->name().c_str()
+                    + "]"
+                )
+            );
         }
     }
 }

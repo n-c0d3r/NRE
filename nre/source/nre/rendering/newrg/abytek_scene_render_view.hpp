@@ -10,6 +10,7 @@
 namespace nre::newrg
 {
     class F_render_resource;
+    class F_render_frame_buffer;
 
 
 
@@ -21,6 +22,8 @@ namespace nre::newrg
         F_render_resource* rg_main_texture_p_ = 0;
         F_render_descriptor_element rg_depth_view_element_;
         F_render_resource* rg_depth_texture_p_ = 0;
+        F_render_frame_buffer* rg_main_frame_buffer_p_ = 0;
+        F_render_frame_buffer* rg_depth_only_frame_buffer_p_ = 0;
 
     public:
         F_vector4 clear_color = F_vector4::zero();
@@ -30,6 +33,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE F_render_resource* rg_main_texture_p() const noexcept { return rg_main_texture_p_; }
         NCPP_FORCE_INLINE const auto& rg_depth_view_element() const noexcept { return rg_depth_view_element_; }
         NCPP_FORCE_INLINE F_render_resource* rg_depth_texture_p() const noexcept { return rg_depth_texture_p_; }
+        NCPP_FORCE_INLINE F_render_frame_buffer* rg_main_frame_buffer_p() const noexcept { return rg_main_frame_buffer_p_; }
+        NCPP_FORCE_INLINE F_render_frame_buffer* rg_depth_only_frame_buffer_p() const noexcept { return rg_depth_only_frame_buffer_p_; }
 
 
 
