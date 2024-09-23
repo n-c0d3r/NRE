@@ -162,7 +162,7 @@ namespace nre::newrg
             }
             NCPP_FORCE_INLINE void wait(u64 target_value) const noexcept
             {
-                 while(is_complete(target_value));
+                 while(!is_complete(target_value));
             }
         };
         TG_vector<F_cpu_fence> cpu_fences_;

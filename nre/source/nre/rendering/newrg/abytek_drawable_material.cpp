@@ -109,25 +109,25 @@ namespace nre::newrg
             last_local_to_world_matrix_
         );
 
-        // const auto& mesh_p = drawable_p_->mesh_p;
-        // if(mesh_p)
-        // {
-        //     u32 mesh_id = mesh_p->last_frame_header_id();
-        //     if(mesh_id != NCPP_U32_MAX)
-        //     {
-        //         table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_MESH_ID>(
-        //             render_data_id_,
-        //             mesh_id
-        //         );
-        //     }
-        // }
-        // else
-        // {
-        //     table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_MESH_ID>(
-        //         render_data_id_,
-        //         NCPP_U32_MAX
-        //     );
-        // }
+        const auto& mesh_p = drawable_p_->mesh_p;
+        if(mesh_p)
+        {
+            u32 mesh_id = mesh_p->last_frame_header_id();
+            if(mesh_id != NCPP_U32_MAX)
+            {
+                table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_MESH_ID>(
+                    render_data_id_,
+                    mesh_id
+                );
+            }
+        }
+        else
+        {
+            table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_MESH_ID>(
+                render_data_id_,
+                NCPP_U32_MAX
+            );
+        }
 
         last_local_to_world_matrix_ = local_to_world_matrix;
     }
