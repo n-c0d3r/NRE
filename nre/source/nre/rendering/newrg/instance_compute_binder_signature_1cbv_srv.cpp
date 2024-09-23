@@ -12,7 +12,7 @@ namespace nre::newrg
         A_binder_signature(
             {
                 .param_descs = {
-                    F_root_param_desc( // actor transform
+                    F_root_param_desc( // render primitive data transform
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -23,7 +23,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // actor last transform
+                    F_root_param_desc( // render primitive data last transform
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -34,7 +34,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // actor mesh id
+                    F_root_param_desc( // render primitive data mesh id
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
