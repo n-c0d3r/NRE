@@ -33,7 +33,7 @@ namespace nre::newrg
 
             table_.stride = slot.offset + slot.size;
         }
-        table_.stride = align_address(table_.alignment);
+        table_.stride = align_address(table_.stride, table_.alignment);
 
         parsed_desc.stride = table_.stride;
 
