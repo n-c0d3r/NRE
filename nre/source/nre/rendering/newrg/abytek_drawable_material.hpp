@@ -35,7 +35,7 @@ namespace nre::newrg
         TK_valid<F_abytek_drawable> drawable_p_;
 		TK_valid<F_transform_node> transform_node_p_;
 
-        u32 render_data_id_ = NCPP_U32_MAX;
+        u32 render_primitive_data_id_ = NCPP_U32_MAX;
 
         F_matrix4x4_f32 last_local_to_world_matrix_;
 
@@ -45,7 +45,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& drawable_p() const noexcept { return drawable_p_; }
         NCPP_FORCE_INLINE const auto& transform_node_p() const noexcept { return transform_node_p_; }
 
-        NCPP_FORCE_INLINE u32 render_data_id() const noexcept { return render_data_id_; }
+        NCPP_FORCE_INLINE u32 render_primitive_data_id() const noexcept { return render_primitive_data_id_; }
 
         NCPP_FORCE_INLINE PA_matrix4x4_f32 last_local_to_world_matrix() const noexcept { return last_local_to_world_matrix_; }
 

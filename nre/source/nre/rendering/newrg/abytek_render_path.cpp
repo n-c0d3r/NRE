@@ -19,16 +19,16 @@ namespace nre::newrg
     F_abytek_render_path::F_abytek_render_path() :
         F_render_path(TU<F_abytek_render_factory_proxy>()())
     {
-        rg_register_render_actor_data_listener_handle_ = F_render_foundation::instance_p()->T_get_event<
-            F_render_foundation_rg_register_render_actor_data_event
+        rg_register_render_primitive_data_listener_handle_ = F_render_foundation::instance_p()->T_get_event<
+            F_render_foundation_rg_register_render_primitive_data_event
         >().T_push_back_listener(
             [](auto&&)
             {
                 H_abytek_drawable_material::RG_register_dynamic();
             }
         );
-        rg_register_render_actor_data_upload_listener_handle_ = F_render_foundation::instance_p()->T_get_event<
-            F_render_foundation_rg_register_render_actor_data_upload_event
+        rg_register_render_primitive_data_upload_listener_handle_ = F_render_foundation::instance_p()->T_get_event<
+            F_render_foundation_rg_register_render_primitive_data_upload_event
         >().T_push_back_listener(
             [](auto&&)
             {
@@ -39,14 +39,14 @@ namespace nre::newrg
     F_abytek_render_path::~F_abytek_render_path()
     {
         F_render_foundation::instance_p()->T_get_event<
-            F_render_foundation_rg_register_render_actor_data_event
+            F_render_foundation_rg_register_render_primitive_data_event
         >().remove_listener(
-            rg_register_render_actor_data_listener_handle_
+            rg_register_render_primitive_data_listener_handle_
         );
         F_render_foundation::instance_p()->T_get_event<
-            F_render_foundation_rg_register_render_actor_data_upload_event
+            F_render_foundation_rg_register_render_primitive_data_upload_event
         >().remove_listener(
-            rg_register_render_actor_data_upload_listener_handle_
+            rg_register_render_primitive_data_upload_listener_handle_
         );
     }
 

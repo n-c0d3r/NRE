@@ -74,7 +74,7 @@
 #include <nre/rendering/newrg/cpu_gpu_data_pool.hpp>
 #include <nre/rendering/newrg/scene_render_view.hpp>
 #include <nre/rendering/newrg/render_path.hpp>
-#include <nre/rendering/newrg/render_actor_data_pool.hpp>
+#include <nre/rendering/newrg/render_primitive_data_pool.hpp>
 #include <nre/rendering/newrg/unified_mesh.hpp>
 #include <nre/rendering/newrg/unified_mesh_data.hpp>
 #include <nre/rendering/newrg/unified_mesh_asset.hpp>
@@ -96,7 +96,7 @@
 #include <nre/rendering/newrg/uncacheable_pool_gpu_data_table.hpp>
 #include <nre/rendering/newrg/general_gpu_data_table.hpp>
 #include <nre/rendering/newrg/gpu_data_table_render_bind_list.hpp>
-#include <nre/rendering/newrg/render_actor_data.hpp>
+#include <nre/rendering/newrg/render_primitive_data.hpp>
 #include <nre/rendering/newrg/indirect_command_system.hpp>
 #include <nre/rendering/newrg/indirect_command_batch.hpp>
 #include <nre/rendering/newrg/indirect_argument_list.hpp>

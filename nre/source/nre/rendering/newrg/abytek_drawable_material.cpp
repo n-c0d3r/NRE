@@ -1,7 +1,7 @@
 #include <nre/rendering/newrg/abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/abytek_drawable.hpp>
-#include <nre/rendering/newrg/render_actor_data_pool.hpp>
-#include <nre/rendering/newrg/render_actor_data.hpp>
+#include <nre/rendering/newrg/render_primitive_data_pool.hpp>
+#include <nre/rendering/newrg/render_primitive_data.hpp>
 #include <nre/rendering/newrg/unified_mesh.hpp>
 #include <nre/rendering/drawable_system.hpp>
 #include <nre/actor/actor.hpp>
@@ -22,10 +22,10 @@ namespace nre::newrg
     }
     A_abytek_drawable_material::~A_abytek_drawable_material()
     {
-        F_render_actor_data_pool::instance_p()->enqueue_rg_register(
-            [id = render_data_id_]()
+        F_render_primitive_data_pool::instance_p()->enqueue_rg_register(
+            [id = render_primitive_data_id_]()
             {
-                F_render_actor_data_pool::instance_p()->table().deregister_id(id);
+                F_render_primitive_data_pool::instance_p()->table().deregister_id(id);
             }
         );
     }
@@ -34,7 +34,7 @@ namespace nre::newrg
     {
         A_material::ready();
 
-        F_render_actor_data_pool::instance_p()->enqueue_rg_register(
+        F_render_primitive_data_pool::instance_p()->enqueue_rg_register(
             [oref = NCPP_KTHIS_UNSAFE()]()
             {
                 if(oref)
@@ -44,7 +44,7 @@ namespace nre::newrg
             }
         );
 
-        F_render_actor_data_pool::instance_p()->enqueue_rg_register_upload(
+        F_render_primitive_data_pool::instance_p()->enqueue_rg_register_upload(
             [oref = NCPP_KTHIS_UNSAFE()]()
             {
                 if(oref)
@@ -88,26 +88,26 @@ namespace nre::newrg
     }
     void A_abytek_drawable_material::RG_register()
     {
-        auto render_actor_data_pool_p = F_render_actor_data_pool::instance_p();
+        auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
 
-        if(render_data_id_ == NCPP_U32_MAX)
-            render_data_id_ = render_actor_data_pool_p->table().register_id();
+        if(render_primitive_data_id_ == NCPP_U32_MAX)
+            render_primitive_data_id_ = render_primitive_data_pool_p->table().register_id();
     }
     void A_abytek_drawable_material::RG_register_upload()
     {
-        auto render_actor_data_pool_p = F_render_actor_data_pool::instance_p();
+        auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
 
         F_matrix4x4_f32 local_to_world_matrix = transform_node_p_->local_to_world_matrix();
 
-        auto& table = render_actor_data_pool_p->table();
+        auto& table = render_primitive_data_pool_p->table();
         if(local_to_world_matrix != last_local_to_world_matrix_)
         {
-            table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_TRANSFORM>(
-                render_data_id_,
+            table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM>(
+                render_primitive_data_id_,
                 local_to_world_matrix
             );
-            table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_LAST_TRANSFORM>(
-                render_data_id_,
+            table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_TRANSFORM>(
+                render_primitive_data_id_,
                 last_local_to_world_matrix_
             );
             last_local_to_world_matrix_ = local_to_world_matrix;
@@ -119,11 +119,11 @@ namespace nre::newrg
         {
             mesh_id = mesh_p->last_frame_id();
         }
-        auto& last_mesh_id = table.T_element<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_MESH_ID>(render_data_id_);
+        auto& last_mesh_id = table.T_element<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(render_primitive_data_id_);
         if(last_mesh_id != mesh_id)
         {
-            table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_MESH_ID>(
-                render_data_id_,
+            table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(
+                render_primitive_data_id_,
                 mesh_id
             );
         }
@@ -133,7 +133,7 @@ namespace nre::newrg
 
     void H_abytek_drawable_material::RG_register_dynamic()
     {
-        F_render_actor_data_pool::instance_p()->enqueue_rg_register(
+        F_render_primitive_data_pool::instance_p()->enqueue_rg_register(
             []()
             {
                 T_for_each_dynamic(
@@ -147,7 +147,7 @@ namespace nre::newrg
     }
     void H_abytek_drawable_material::RG_register_upload_dynamic()
     {
-        F_render_actor_data_pool::instance_p()->enqueue_rg_register_upload(
+        F_render_primitive_data_pool::instance_p()->enqueue_rg_register_upload(
             []()
             {
                 T_for_each_dynamic(

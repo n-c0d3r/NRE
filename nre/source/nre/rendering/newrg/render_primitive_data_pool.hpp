@@ -3,24 +3,24 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/newrg/cacheable_pool_gpu_data_table.hpp>
-#include <nre/rendering/newrg/render_actor_data.hpp>
+#include <nre/rendering/newrg/render_primitive_data.hpp>
 
 
 
 namespace nre::newrg
 {
-    class NRE_API F_render_actor_data_pool final
+    class NRE_API F_render_primitive_data_pool final
     {
     public:
-        using F_table = typename F_render_actor_data_targ_list::template TF_apply<TF_cacheable_pool_gpu_data_table>;
+        using F_table = typename F_render_primitive_data_targ_list::template TF_apply<TF_cacheable_pool_gpu_data_table>;
 
 
 
     private:
-        static TK<F_render_actor_data_pool> instance_p_;
+        static TK<F_render_primitive_data_pool> instance_p_;
 
     public:
-        static TKPA_valid<F_render_actor_data_pool> instance_p() { return (TKPA_valid<F_render_actor_data_pool>)instance_p_; }
+        static TKPA_valid<F_render_primitive_data_pool> instance_p() { return (TKPA_valid<F_render_primitive_data_pool>)instance_p_; }
 
 
 
@@ -40,11 +40,11 @@ namespace nre::newrg
 
 
     public:
-        F_render_actor_data_pool();
-        ~F_render_actor_data_pool();
+        F_render_primitive_data_pool();
+        ~F_render_primitive_data_pool();
 
     public:
-        NCPP_OBJECT(F_render_actor_data_pool);
+        NCPP_OBJECT(F_render_primitive_data_pool);
 
 
 
