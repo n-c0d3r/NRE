@@ -4,7 +4,7 @@
 
 #include <nre/utilities/large_data_list.hpp>
 #include <nre/rendering/newrg/gpu_large_data_list.hpp>
-#include <nre/rendering/newrg/gpu_page_based_uploader.hpp>
+#include <nre/rendering/newrg/gpu_subpage_based_uploader.hpp>
 #include <nre/utilities/pool_data_distributor.hpp>
 
 
@@ -25,7 +25,7 @@ namespace nre::newrg
 
         using F_large_data_list_tuple = TG_tuple<TF_large_data_list<Fs_element__>...>;
         using F_gpu_large_data_list_tuple = TG_tuple<TF_gpu_large_data_list<Fs_element__>...>;
-        using F_gpu_page_based_uploader_tuple = TG_tuple<TF_gpu_page_based_uploader<Fs_element__>...>;
+        using F_gpu_subpage_based_uploader_tuple = TG_tuple<TF_gpu_subpage_based_uploader<Fs_element__>...>;
 
 
 
@@ -34,7 +34,9 @@ namespace nre::newrg
 
         F_large_data_list_tuple large_data_list_tuple_;
         F_gpu_large_data_list_tuple gpu_large_data_list_tuple_;
-        F_gpu_page_based_uploader_tuple gpu_page_based_uploader_tuple_;
+        F_gpu_subpage_based_uploader_tuple gpu_subpage_based_uploader_tuple_;
+
+        sz subpage_count_per_page_ = 1;
 
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(F_debug_name name_);
 
@@ -42,14 +44,16 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& pool_data_distributor() const noexcept { return pool_data_distributor_; }
         NCPP_FORCE_INLINE const auto& large_data_list_tuple() const noexcept { return large_data_list_tuple_; }
         NCPP_FORCE_INLINE const auto& gpu_large_data_list_tuple() const noexcept { return gpu_large_data_list_tuple_; }
-        NCPP_FORCE_INLINE const auto& gpu_page_based_uploader_tuple() const noexcept { return gpu_page_based_uploader_tuple_; }
+        NCPP_FORCE_INLINE const auto& gpu_subpage_based_uploader_tuple() const noexcept { return gpu_subpage_based_uploader_tuple_; }
 
         template<sz row_index__ = 0>
         NCPP_FORCE_INLINE const auto& T_large_data_list() const noexcept { return eastl::get<row_index__>(large_data_list_tuple_); }
         template<sz row_index__ = 0>
         NCPP_FORCE_INLINE const auto& T_gpu_large_data_list_tuple() const noexcept { return eastl::get<row_index__>(gpu_large_data_list_tuple_); }
         template<sz row_index__ = 0>
-        NCPP_FORCE_INLINE const auto& T_gpu_page_based_uploader_tuple() const noexcept { return eastl::get<row_index__>(gpu_page_based_uploader_tuple_); }
+        NCPP_FORCE_INLINE const auto& T_gpu_subpage_based_uploader_tuple() const noexcept { return eastl::get<row_index__>(gpu_subpage_based_uploader_tuple_); }
+
+        NCPP_FORCE_INLINE sz subpage_count_per_page() const noexcept { return subpage_count_per_page_; }
 
         NCPP_FORCE_INLINE sz page_count() const noexcept { return eastl::get<0>(gpu_large_data_list_tuple_).page_count(); }
         NCPP_FORCE_INLINE sz usuable_page_count() const noexcept { return eastl::get<0>(gpu_large_data_list_tuple_).usuable_page_count(); }
@@ -63,10 +67,12 @@ namespace nre::newrg
             ED_resource_heap_type heap_type,
             ED_resource_state initial_state,
             sz page_capacity_in_elements = 1024,
-            sz page_count = 0
+            sz page_count = 0,
+            sz subpage_count_per_page = 1
             NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name = "")
         ) :
-            pool_data_distributor_(page_capacity_in_elements)
+            pool_data_distributor_(page_capacity_in_elements),
+            subpage_count_per_page_(subpage_count_per_page)
             NRE_OPTIONAL_DEBUG_PARAM(name_(name))
         {
             T_setup_row<0>(
@@ -87,7 +93,8 @@ namespace nre::newrg
         TF_cacheable_pool_gpu_data_table(const TF_cacheable_pool_gpu_data_table& x) :
             pool_data_distributor_(x.pool_data_distributor_),
             large_data_list_tuple_(x.large_data_list_tuple_),
-            gpu_large_data_list_tuple_(x.gpu_large_data_list_tuple_)
+            gpu_large_data_list_tuple_(x.gpu_large_data_list_tuple_),
+            subpage_count_per_page_(x.subpage_count_per_page_)
         {
             T_link_data_lists_to_uploader<0>();
         }
@@ -96,6 +103,7 @@ namespace nre::newrg
             pool_data_distributor_ = x.pool_data_distributor_;
             large_data_list_tuple_ = x.large_data_list_tuple_;
             gpu_large_data_list_tuple_ = x.gpu_large_data_list_tuple_;
+            subpage_count_per_page_ = x.subpage_count_per_page_;
 
             T_link_data_lists_to_uploader<0>();
 
@@ -105,7 +113,8 @@ namespace nre::newrg
         TF_cacheable_pool_gpu_data_table(TF_cacheable_pool_gpu_data_table&& x) :
             pool_data_distributor_(eastl::move(x.pool_data_distributor_)),
             large_data_list_tuple_(eastl::move(x.large_data_list_tuple_)),
-            gpu_large_data_list_tuple_(eastl::move(x.gpu_large_data_list_tuple_))
+            gpu_large_data_list_tuple_(eastl::move(x.gpu_large_data_list_tuple_)),
+            subpage_count_per_page_(x.subpage_count_per_page_)
         {
             T_link_data_lists_to_uploader<0>();
 
@@ -116,6 +125,7 @@ namespace nre::newrg
             pool_data_distributor_ = eastl::move(x.pool_data_distributor_);
             large_data_list_tuple_ = eastl::move(x.large_data_list_tuple_);
             gpu_large_data_list_tuple_ = eastl::move(x.gpu_large_data_list_tuple_);
+            subpage_count_per_page_ = x.subpage_count_per_page_;
 
             T_link_data_lists_to_uploader<0>();
 
@@ -176,7 +186,7 @@ namespace nre::newrg
 
             eastl::get<row_index__>(large_data_list_tuple_).reset();
             eastl::get<row_index__>(gpu_large_data_list_tuple_).reset();
-            eastl::get<row_index__>(gpu_page_based_uploader_tuple_).reset();
+            eastl::get<row_index__>(gpu_subpage_based_uploader_tuple_).reset();
         }
         template<sz row_index__>
         void T_link_data_lists_to_uploader()
@@ -188,10 +198,11 @@ namespace nre::newrg
 
             using F_element = typename F_element_targ_list::template TF_at<row_index__>;
 
-            eastl::get<row_index__>(gpu_page_based_uploader_tuple_) = TF_gpu_page_based_uploader<F_element>(
+            eastl::get<row_index__>(gpu_subpage_based_uploader_tuple_) = TF_gpu_subpage_based_uploader<F_element>(
                 &eastl::get<row_index__>(gpu_large_data_list_tuple_),
-                &eastl::get<row_index__>(large_data_list_tuple_)
-                NRE_OPTIONAL_DEBUG_PARAM(name_ + ".gpu_page_based_uploaders[" + G_to_string(row_index__).c_str() + ": " + T_type_fullname<F_element>() + "]")
+                &eastl::get<row_index__>(large_data_list_tuple_),
+                subpage_count_per_page_
+                NRE_OPTIONAL_DEBUG_PARAM(name_ + ".gpu_subpage_based_uploaders[" + G_to_string(row_index__).c_str() + ": " + T_type_fullname<F_element>() + "]")
             );
         }
         template<sz row_index__>
@@ -216,7 +227,7 @@ namespace nre::newrg
                 TRG_begin_register_upload<(row_index__ + 1 < row_count) ? (row_index__ + 1) : 0>();
             }
 
-            eastl::get<row_index__>(gpu_page_based_uploader_tuple_).RG_begin_register();
+            eastl::get<row_index__>(gpu_subpage_based_uploader_tuple_).RG_begin_register();
         }
         template<sz row_index__>
         void TRG_end_register_upload()
@@ -226,7 +237,7 @@ namespace nre::newrg
                 TRG_end_register_upload<(row_index__ + 1 < row_count) ? (row_index__ + 1) : 0>();
             }
 
-            eastl::get<row_index__>(gpu_page_based_uploader_tuple_).RG_end_register();
+            eastl::get<row_index__>(gpu_subpage_based_uploader_tuple_).RG_end_register();
         }
 
 
@@ -309,9 +320,11 @@ namespace nre::newrg
         {
             auto& large_data_list = eastl::get<row_index__>(large_data_list_tuple_);
 
+            sz subpage_capacity_in_elements = eastl::get<row_index__>(gpu_large_data_list_tuple_).page_capacity_in_elements() / subpage_count_per_page_;
+
             large_data_list.element(id) = NCPP_FORWARD(data);
-            eastl::get<row_index__>(gpu_page_based_uploader_tuple_).enqueue_upload(
-                large_data_list.page_index(id)
+            eastl::get<row_index__>(gpu_subpage_based_uploader_tuple_).enqueue_upload(
+               id / subpage_capacity_in_elements
             );
         }
         /**
@@ -320,8 +333,10 @@ namespace nre::newrg
         template<sz row_index__ = 0>
         NCPP_FORCE_INLINE void T_enqueue_upload(sz id)
         {
-            eastl::get<row_index__>(gpu_page_based_uploader_tuple_).enqueue_upload(
-                eastl::get<row_index__>(large_data_list_tuple_).page_index(id)
+            sz subpage_capacity_in_elements = eastl::get<row_index__>(gpu_large_data_list_tuple_).page_capacity_in_elements() / subpage_count_per_page_;
+
+            eastl::get<row_index__>(gpu_subpage_based_uploader_tuple_).enqueue_upload(
+               id / subpage_capacity_in_elements
             );
         }
     };

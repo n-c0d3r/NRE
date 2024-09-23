@@ -19,7 +19,8 @@ namespace nre::newrg
             ED_resource_heap_type::DEFAULT,
             ED_resource_state::COMMON,
             NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
-            0
+            0,
+            NRE_NEWRG_UNIFIED_MESH_TABLE_SUBPAGE_COUNT_PER_PAGE
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.mesh_table")
         ),
         subpage_header_table_(

@@ -90,6 +90,7 @@
 #include <nre/rendering/newrg/page_resource_stream.hpp>
 #include <nre/rendering/newrg/gpu_large_data_list.hpp>
 #include <nre/rendering/newrg/gpu_page_based_uploader.hpp>
+#include <nre/rendering/newrg/gpu_subpage_based_uploader.hpp>
 #include <nre/rendering/newrg/gpu_range_based_uploader.hpp>
 #include <nre/rendering/newrg/cacheable_pool_gpu_data_table.hpp>
 #include <nre/rendering/newrg/uncacheable_pool_gpu_data_table.hpp>

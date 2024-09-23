@@ -14,7 +14,8 @@ namespace nre::newrg
             ED_resource_heap_type::DEFAULT,
             ED_resource_state::COMMON,
             NRE_NEWRG_RENDER_ACTOR_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS,
-            0
+            0,
+            NRE_NEWRG_RENDER_ACTOR_DATA_POOL_SUBPAGE_COUNT_PER_PAGE
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_actor_data_pool")
         )
     {
