@@ -148,7 +148,7 @@ namespace nre::newrg
                 0,
                 page_capacity_in_elements,
                 page_count
-                NRE_OPTIONAL_DEBUG_PARAM(name + ".gpu_large_data_lists[" + T_type_fullname<F_element>() + "]")
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".gpu_large_data_lists[" + G_to_string(row_index__).c_str() + ": " + T_type_fullname<F_element>() + "]")
             );
         }
         template<sz row_index__>
@@ -174,7 +174,7 @@ namespace nre::newrg
 
             eastl::get<row_index__>(gpu_range_based_uploader_tuple_) = TF_gpu_range_based_uploader<F_element>(
                 &eastl::get<row_index__>(gpu_large_data_list_tuple_)
-                NRE_OPTIONAL_DEBUG_PARAM(name_ + ".gpu_range_based_uploaders[" + T_type_fullname<F_element>() + "]")
+                NRE_OPTIONAL_DEBUG_PARAM(name_ + ".gpu_range_based_uploaders[" + G_to_string(row_index__).c_str() + ": " + T_type_fullname<F_element>() + "]")
             );
         }
         template<sz row_index__>

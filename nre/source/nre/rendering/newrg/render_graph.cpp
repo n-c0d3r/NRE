@@ -2773,7 +2773,7 @@ namespace nre::newrg
             );
         }
 
-        EA::Thread::AtomicSetValue((int*)&(execute_range.counter), 0);
+        (u32&)(execute_range.counter) = 0;
     }
     void F_render_graph::execute_passes_internal()
     {
@@ -2808,7 +2808,7 @@ namespace nre::newrg
                             for(auto dependency_id : dependency_ids)
                             {
                                 auto& dependency = execute_range_span[dependency_id];
-                                if(EA::Thread::AtomicGetValue(&(dependency.counter)) != 0)
+                                if(dependency.counter)
                                 {
                                     enable_long_dependencies_check = false;
                                     break;
@@ -2823,7 +2823,7 @@ namespace nre::newrg
                                         for(auto dependency_id : dependency_ids)
                                         {
                                             auto& dependency = execute_range_span[dependency_id];
-                                            if(EA::Thread::AtomicGetValue(&(dependency.counter)))
+                                            if(dependency.counter)
                                                 return false;
                                         }
                                         return true;

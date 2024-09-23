@@ -127,7 +127,7 @@ namespace nre::newrg
             bases_[row_index__] = F_render_bind_list(
                 ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
                 table_p_->usuable_page_count()
-                NRE_OPTIONAL_DEBUG_PARAM(name_ + "[" + T_type_fullname<typename F_element_targ_list::template TF_at<row_index__>>() + "]")
+                NRE_OPTIONAL_DEBUG_PARAM(name_ + "[" + G_to_string(row_index__).c_str() + ": " + T_type_fullname<typename F_element_targ_list::template TF_at<row_index__>>() + "]")
             );
 
             auto& gpu_large_data_list = table_p_->T_gpu_large_data_list_tuple<row_index__>();
