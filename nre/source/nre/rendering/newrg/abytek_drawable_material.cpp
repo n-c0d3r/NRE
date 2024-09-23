@@ -104,10 +104,10 @@ namespace nre::newrg
             render_data_id_,
             local_to_world_matrix
         );
-        // table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_LAST_TRANSFORM>(
-        //     render_data_id_,
-        //     last_local_to_world_matrix_
-        // );
+        table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_LAST_TRANSFORM>(
+            render_data_id_,
+            last_local_to_world_matrix_
+        );
 
         // const auto& mesh_p = drawable_p_->mesh_p;
         // if(mesh_p)
