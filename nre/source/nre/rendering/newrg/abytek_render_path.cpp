@@ -1,8 +1,10 @@
 #include <nre/rendering/newrg/abytek_render_path.hpp>
 #include <nre/rendering/newrg/abytek_render_factory_proxy.hpp>
 #include <nre/rendering/newrg/abytek_scene_render_view.hpp>
+#include <nre/rendering/newrg/abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/render_pass_utilities.hpp>
+#include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/indirect_command_system.hpp>
 #include <nre/actor/actor.hpp>
 
@@ -12,9 +14,35 @@ namespace nre::newrg
     F_abytek_render_path::F_abytek_render_path() :
         F_render_path(TU<F_abytek_render_factory_proxy>()())
     {
+        rg_register_render_actor_data_listener_handle_ = F_render_foundation::instance_p()->T_get_event<
+            F_render_foundation_rg_register_render_actor_data_event
+        >().T_push_back_listener(
+            [](auto&&)
+            {
+                H_abytek_drawable_material::RG_register_dynamic();
+            }
+        );
+        rg_register_render_actor_data_upload_listener_handle_ = F_render_foundation::instance_p()->T_get_event<
+            F_render_foundation_rg_register_render_actor_data_upload_event
+        >().T_push_back_listener(
+            [](auto&&)
+            {
+                H_abytek_drawable_material::RG_register_upload_dynamic();
+            }
+        );
     }
     F_abytek_render_path::~F_abytek_render_path()
     {
+        F_render_foundation::instance_p()->T_get_event<
+            F_render_foundation_rg_register_render_actor_data_event
+        >().remove_listener(
+            rg_register_render_actor_data_listener_handle_
+        );
+        F_render_foundation::instance_p()->T_get_event<
+            F_render_foundation_rg_register_render_actor_data_upload_event
+        >().remove_listener(
+            rg_register_render_actor_data_upload_listener_handle_
+        );
     }
 
 

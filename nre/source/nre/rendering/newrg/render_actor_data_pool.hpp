@@ -27,6 +27,12 @@ namespace nre::newrg
     private:
         F_table table_;
 
+        TG_queue<eastl::function<void()>> rg_register_queue_;
+        pac::F_spin_lock rg_register_lock_;
+
+        TG_queue<eastl::function<void()>> rg_register_upload_queue_;
+        pac::F_spin_lock rg_register_upload_lock_;
+
     public:
         NCPP_FORCE_INLINE auto& table() noexcept { return table_; }
         NCPP_FORCE_INLINE const auto& table() const noexcept { return table_; }
@@ -49,5 +55,11 @@ namespace nre::newrg
     public:
         void RG_begin_register_upload();
         void RG_end_register_upload();
+
+    public:
+        void enqueue_rg_register(const eastl::function<void()>& callback);
+        void enqueue_rg_register(eastl::function<void()>&& callback);
+        void enqueue_rg_register_upload(const eastl::function<void()>& callback);
+        void enqueue_rg_register_upload(eastl::function<void()>&& callback);
     };
 }

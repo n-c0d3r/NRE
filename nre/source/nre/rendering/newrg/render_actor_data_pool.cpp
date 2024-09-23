@@ -32,6 +32,18 @@ namespace nre::newrg
     }
     void F_render_actor_data_pool::RG_end_register()
     {
+        {
+            NCPP_SCOPED_LOCK(rg_register_lock_);
+
+            while(rg_register_queue_.size())
+            {
+                auto callback = rg_register_queue_.front();
+                rg_register_queue_.pop();
+
+                callback();
+            }
+        }
+
         table_.RG_end_register();
     }
 
@@ -41,6 +53,43 @@ namespace nre::newrg
     }
     void F_render_actor_data_pool::RG_end_register_upload()
     {
+        {
+            NCPP_SCOPED_LOCK(rg_register_upload_lock_);
+
+            while(rg_register_upload_queue_.size())
+            {
+                auto callback = rg_register_upload_queue_.front();
+                rg_register_upload_queue_.pop();
+
+                callback();
+            }
+        }
+
         table_.RG_end_register_upload();
+    }
+
+    void F_render_actor_data_pool::enqueue_rg_register(const eastl::function<void()>& callback)
+    {
+        NCPP_SCOPED_LOCK(rg_register_lock_);
+
+        rg_register_queue_.push(callback);
+    }
+    void F_render_actor_data_pool::enqueue_rg_register(eastl::function<void()>&& callback)
+    {
+        NCPP_SCOPED_LOCK(rg_register_lock_);
+
+        rg_register_queue_.push(eastl::move(callback));
+    }
+    void F_render_actor_data_pool::enqueue_rg_register_upload(const eastl::function<void()>& callback)
+    {
+        NCPP_SCOPED_LOCK(rg_register_upload_lock_);
+
+        rg_register_upload_queue_.push(callback);
+    }
+    void F_render_actor_data_pool::enqueue_rg_register_upload(eastl::function<void()>&& callback)
+    {
+        NCPP_SCOPED_LOCK(rg_register_upload_lock_);
+
+        rg_register_upload_queue_.push(eastl::move(callback));
     }
 }

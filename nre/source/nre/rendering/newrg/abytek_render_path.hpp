@@ -5,6 +5,8 @@
 #include <nre/rendering/newrg/render_path.hpp>
 #include <nre/rendering/newrg/abytek_render_path_events.hpp>
 #include <nre/rendering/newrg/render_frame_containers.hpp>
+#include <nre/rendering/newrg/render_foundation_events.hpp>
+
 
 
 namespace nre::newrg
@@ -17,6 +19,9 @@ namespace nre::newrg
     {
     private:
         F_abytek_render_path_rg_register_view_event rg_register_view_event_;
+
+        F_render_foundation_rg_register_render_actor_data_event::F_listener_handle rg_register_render_actor_data_listener_handle_;
+        F_render_foundation_rg_register_render_actor_data_upload_event::F_listener_handle rg_register_render_actor_data_upload_listener_handle_;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(
