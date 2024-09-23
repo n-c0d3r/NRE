@@ -107,7 +107,7 @@ namespace nre::newrg
         data_ = {};
     }
 
-    sz F_indirect_argument_list::build()
+    F_indirect_command_batch F_indirect_argument_list::build()
     {
         NCPP_ASSERT(is_valid());
 
@@ -125,7 +125,11 @@ namespace nre::newrg
             offset
         );
 
-        return offset;
+        return {
+            layout_p_->command_signature_p(),
+            offset,
+            command_count_
+        };
     }
 
     void F_indirect_argument_list::draw(

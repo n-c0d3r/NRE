@@ -3,6 +3,7 @@
 #include <nre/prerequisites.hpp>
 
 #include <nre/rendering/newrg/render_frame_allocator.hpp>
+#include <nre/rendering/newrg/indirect_command_batch.hpp>
 
 
 
@@ -52,7 +53,7 @@ namespace nre::newrg
         void reset();
 
     public:
-        sz build();
+        F_indirect_command_batch build();
 
     public:
         void draw(

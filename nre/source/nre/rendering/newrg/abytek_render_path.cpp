@@ -66,10 +66,6 @@ namespace nre::newrg
                 TK<F_abytek_scene_render_view> casted_view_p;
                 if(view_p.T_try_interface<F_abytek_scene_render_view>(casted_view_p))
                 {
-                    auto demo_indirect_argument_list = F_indirect_argument_list(
-                        F_draw_indexed_instanced_indirect_argument_list_layout::instance_p()
-                    );
-
                     clear_view(
                         NCPP_FOH_VALID(casted_view_p)
                         NRE_OPTIONAL_DEBUG_PARAM(
