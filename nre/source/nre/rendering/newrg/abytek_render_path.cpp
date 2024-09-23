@@ -6,7 +6,12 @@
 #include <nre/rendering/newrg/render_pass_utilities.hpp>
 #include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/indirect_command_system.hpp>
+#include <nre/rendering/newrg/indirect_argument_list.hpp>
+#include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
+#include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
+#include <nre/rendering/newrg/instance_compute_binder_signature_1cbv_srv.hpp>
 #include <nre/actor/actor.hpp>
+
 
 
 namespace nre::newrg
@@ -30,6 +35,8 @@ namespace nre::newrg
                 H_abytek_drawable_material::RG_register_upload_dynamic();
             }
         );
+
+        setup_indirect_argument_list_layouts_internal();
     }
     F_abytek_render_path::~F_abytek_render_path()
     {
@@ -43,6 +50,19 @@ namespace nre::newrg
         >().remove_listener(
             rg_register_render_actor_data_upload_listener_handle_
         );
+    }
+
+    void F_abytek_render_path::setup_indirect_argument_list_layouts_internal()
+    {
+        {
+            auto& instance_compute_binder_signature_1cbv_srv = indirect_argument_list_layouts_.instance_compute_binder_signature_1cbv_srv;
+            instance_compute_binder_signature_1cbv_srv.draw_instanced = TU<F_draw_instanced_indirect_argument_list_layout>()(
+                F_instance_compute_binder_signature_1cbv_srv::instance_p()->root_signature_p()
+            );
+            instance_compute_binder_signature_1cbv_srv.draw_indexed_instanced = TU<F_draw_indexed_instanced_indirect_argument_list_layout>()(
+                F_instance_compute_binder_signature_1cbv_srv::instance_p()->root_signature_p()
+            );
+        }
     }
 
 
@@ -63,6 +83,12 @@ namespace nre::newrg
                 TK<F_abytek_scene_render_view> casted_view_p;
                 if(view_p.T_try_interface<F_abytek_scene_render_view>(casted_view_p))
                 {
+                    auto demo_indirect_argument_list = F_indirect_argument_list(
+                        NCPP_FOH_VALID(
+                            indirect_argument_list_layouts_.instance_compute_binder_signature_1cbv_srv.draw_indexed_instanced
+                        )
+                    );
+
                     clear_view(
                         NCPP_FOH_VALID(casted_view_p)
                         NRE_OPTIONAL_DEBUG_PARAM(
