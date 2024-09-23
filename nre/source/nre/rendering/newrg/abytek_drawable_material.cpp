@@ -1,4 +1,5 @@
 #include <nre/rendering/newrg/abytek_drawable_material.hpp>
+#include <nre/rendering/newrg/abytek_drawable.hpp>
 #include <nre/rendering/drawable_system.hpp>
 #include <nre/actor/actor.hpp>
 
