@@ -10,7 +10,7 @@
 namespace nre {
 
 	A_directional_light_shadow_proxy::A_directional_light_shadow_proxy(TKPA_valid<A_directional_light_shadow> shadow_p, F_shadow_mask mask) :
-		A_shadow_proxy(shadow_p, mask)
+		A_delegable_shadow_proxy(shadow_p, mask)
 	{
 	}
 	A_directional_light_shadow_proxy::~A_directional_light_shadow_proxy() {
@@ -21,7 +21,7 @@ namespace nre {
 	TK<A_directional_light_shadow> A_directional_light_shadow::instance_ps;
 
 	A_directional_light_shadow::A_directional_light_shadow(TKPA_valid<F_actor> actor_p, TU<A_directional_light_shadow_proxy>&& proxy_p, F_shadow_mask mask) :
-		A_shadow(actor_p, std::move(proxy_p), mask),
+		A_delegable_shadow(actor_p, std::move(proxy_p), mask),
 		light_p_(actor_p->T_component<A_directional_light>())
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(A_directional_light_shadow);
@@ -34,7 +34,7 @@ namespace nre {
 
 	void A_directional_light_shadow::gameplay_tick() {
 
-		A_shadow::gameplay_tick();
+		A_delegable_shadow::gameplay_tick();
 
 		instance_ps = NCPP_KTHIS().no_requirements();
 	}

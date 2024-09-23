@@ -71,6 +71,8 @@ namespace nre {
 	public:
 		NCPP_OBJECT(A_drawable);
 
+	public:
+		void update_mask(F_drawable_mask value);
 	};
 
 }

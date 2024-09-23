@@ -21,4 +21,11 @@ namespace nre {
 	{
 		F_drawable_system::instance_p()->deregister(NCPP_KTHIS());
 	}
+
+	void A_drawable::update_mask(F_drawable_mask value)
+	{
+		F_drawable_system::instance_p()->deregister(NCPP_KTHIS());
+		mask_ = value;
+		F_drawable_system::instance_p()->_register(NCPP_KTHIS());
+	}
 }

@@ -38,7 +38,7 @@ namespace nre {
 		virtual void ready() override;
 		virtual void render_tick() override;
 
-	protected:
+	public:
 		void update_mask(F_material_mask value);
 	};
 }

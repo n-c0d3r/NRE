@@ -224,7 +224,7 @@ int main() {
 				  	NRE_SHADOW_SYSTEM()->T_for_each<I_has_view_based_simple_compute_shadow_proxy>(
 					  	[&](const auto& shadow_p) {
 
-							auto simple_shadow_proxy_p = shadow_p->proxy_p().T_interface<I_has_view_based_simple_compute_shadow_proxy>();
+							auto simple_shadow_proxy_p = shadow_p.T_cast<A_delegable_shadow>()->proxy_p().T_interface<I_has_view_based_simple_compute_shadow_proxy>();
 
 							simple_shadow_proxy_p->view_based_simple_compute(
 								main_command_list_p,
@@ -244,7 +244,7 @@ int main() {
 				  	NRE_MATERIAL_SYSTEM()->T_for_each<I_has_simple_render_material_proxy>(
 					  	[&](const auto& material_p) {
 
-							auto simple_render_material_proxy_p = material_p.T_cast<A_delegable_material>()->proxy_p().T_cast<A_delegable_material>().T_interface<I_has_simple_render_material_proxy>();
+							auto simple_render_material_proxy_p = material_p.T_cast<A_delegable_material>()->proxy_p().T_interface<I_has_simple_render_material_proxy>();
 
 						  	simple_render_material_proxy_p->simple_render(
 								main_command_list_p,

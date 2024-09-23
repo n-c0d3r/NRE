@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nre/rendering/shadow.hpp>
+#include <nre/rendering/delegable_shadow.hpp>
 
 
 
@@ -12,7 +12,7 @@ namespace nre {
 
 
 
-	class NRE_API A_directional_light_shadow_proxy : public A_shadow_proxy {
+	class NRE_API A_directional_light_shadow_proxy : public A_delegable_shadow_proxy {
 
 	protected:
 		A_directional_light_shadow_proxy(TKPA_valid<A_directional_light_shadow> shadow_p, F_shadow_mask mask = 0);
@@ -27,7 +27,7 @@ namespace nre {
 
 
 
-	class NRE_API A_directional_light_shadow : public A_shadow {
+	class NRE_API A_directional_light_shadow : public A_delegable_shadow {
 
 	private:
 		static TK<A_directional_light_shadow> instance_ps;
