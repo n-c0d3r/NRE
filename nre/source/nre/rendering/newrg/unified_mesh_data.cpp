@@ -40,6 +40,8 @@ namespace nre::newrg
 
             data_stream.T_write_vector<u32>(data.subpage_vertex_counts, false);
             data_stream.T_write_vector<u32>(data.subpage_local_cluster_triangle_vertex_id_counts, false);
+
+            data_stream.T_write_shallow<F_box_f32>(data.bbox);
         }
 
         //
@@ -99,6 +101,8 @@ namespace nre::newrg
 
             data.subpage_vertex_counts = data_stream.T_read_vector<u32>(subpage_count);
             data.subpage_local_cluster_triangle_vertex_id_counts = data_stream.T_read_vector<u32>(subpage_count);
+
+            data.bbox = data_stream.T_read_shallow<F_box_f32>();
         }
 
         return true;

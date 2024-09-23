@@ -1503,6 +1503,20 @@ namespace nre::newrg
             result.local_cluster_triangle_vertex_ids[i] = data.local_cluster_triangle_vertex_ids[i];
         }
 
+        for(F_global_vertex_id i = 0; i < vertex_count; ++i)
+        {
+            auto& vertex_data = data.vertex_datas[i];
+
+            result.bbox.min = element_min(
+                result.bbox.min,
+                vertex_data.position
+            );
+            result.bbox.max = element_max(
+                result.bbox.max,
+                vertex_data.position
+            );
+        }
+
         result.cluster_headers = data.dag_sorted_cluster_headers;
         result.cluster_culling_datas = data.dag_sorted_cluster_culling_datas;
         result.dag_node_headers = data.dag_node_headers;

@@ -14,13 +14,13 @@ namespace nre::newrg
 
 
     F_unified_mesh_system::F_unified_mesh_system() :
-        mesh_header_table_(
+        mesh_table_(
             ED_resource_flag::SHADER_RESOURCE,
             ED_resource_heap_type::DEFAULT,
             ED_resource_state::COMMON,
             NRE_NEWRG_UNIFIED_MESH_HEADER_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
             0
-            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.mesh_header_table")
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.mesh_table")
         ),
         subpage_header_table_(
             ED_resource_flag::SHADER_RESOURCE,
@@ -72,15 +72,14 @@ namespace nre::newrg
     }
     F_unified_mesh_system::~F_unified_mesh_system()
     {
-        int a = 5;
     }
 
 
 
     void F_unified_mesh_system::update_internal(TKPA<F_unified_mesh> mesh_p)
     {
-        register_mesh_header_queue_.push(mesh_p);
-        upload_mesh_header_queue_.push(mesh_p);
+        register_mesh_queue_.push(mesh_p);
+        upload_mesh_queue_.push(mesh_p);
 
         register_cluster_queue_.push(mesh_p);
         upload_cluster_queue_.push(mesh_p);
@@ -99,9 +98,9 @@ namespace nre::newrg
     }
     void F_unified_mesh_system::flush_internal(u32 mesh_header_id)
     {
-        auto& mesh_header = mesh_header_table_.T_element(mesh_header_id);
+        auto& mesh_header = mesh_table_.T_element(mesh_header_id);
 
-        deregister_mesh_header_queue_.push(mesh_header_id);
+        deregister_mesh_queue_.push(mesh_header_id);
         deregister_cluster_queue_.push(mesh_header.subpage_offset);
         deregister_dag_queue_.push(mesh_header.subpage_offset);
     }
@@ -110,7 +109,7 @@ namespace nre::newrg
 
     void F_unified_mesh_system::RG_begin_register()
     {
-        mesh_header_table_render_bind_list_p_ = 0;
+        mesh_table_render_bind_list_p_ = 0;
         subpage_header_table_render_bind_list_p_ = 0;
         cluster_table_render_bind_list_p_ = 0;
         dag_table_render_bind_list_p_ = 0;
@@ -142,10 +141,10 @@ namespace nre::newrg
 
                 while(flush_queue_.size())
                 {
-                    auto mesh_header_id = flush_queue_.front();
+                    auto mesh_id = flush_queue_.front();
                     flush_queue_.pop();
 
-                    flush_internal(mesh_header_id);
+                    flush_internal(mesh_id);
                 }
             }
 
@@ -164,7 +163,7 @@ namespace nre::newrg
                     if(mesh_p->need_to_evict_subpages_)
                     {
                         evict_subpages_internal({
-                            mesh_p->last_frame_header_id_,
+                            mesh_p->last_frame_id_,
                             mesh_p->last_frame_subpage_header_id_,
                             mesh_p->last_frame_subpage_headers_
                         });
@@ -173,7 +172,7 @@ namespace nre::newrg
 
                     if(mesh_p->need_to_flush_)
                     {
-                        flush_internal(mesh_p->last_frame_header_id_);
+                        flush_internal(mesh_p->last_frame_id_);
                         final_flush_queue_.push(mesh_p);
                     }
 
@@ -220,32 +219,32 @@ namespace nre::newrg
 
             // process deregister_mesh_header_queue_
             {
-                mesh_header_table_.RG_begin_register();
+                mesh_table_.RG_begin_register();
 
-                while(deregister_mesh_header_queue_.size())
+                while(deregister_mesh_queue_.size())
                 {
-                    u32 mesh_header_id = deregister_mesh_header_queue_.front();
-                    deregister_mesh_header_queue_.pop();
+                    u32 mesh_id = deregister_mesh_queue_.front();
+                    deregister_mesh_queue_.pop();
 
-                    mesh_header_table_.deregister_id(mesh_header_id);
+                    mesh_table_.deregister_id(mesh_id);
                 }
 
-                mesh_header_table_.RG_end_register();
+                mesh_table_.RG_end_register();
             }
 
-            // process register_mesh_header_queue_
+            // process register_mesh_queue_
             {
-                mesh_header_table_.RG_begin_register();
+                mesh_table_.RG_begin_register();
 
-                while(register_mesh_header_queue_.size())
+                while(register_mesh_queue_.size())
                 {
-                    TK<F_unified_mesh> mesh_p = register_mesh_header_queue_.front();
-                    register_mesh_header_queue_.pop();
+                    TK<F_unified_mesh> mesh_p = register_mesh_queue_.front();
+                    register_mesh_queue_.pop();
 
-                    mesh_p->last_frame_header_id_ = mesh_header_table_.register_id();
+                    mesh_p->last_frame_id_ = mesh_table_.register_id();
                 }
 
-                mesh_header_table_.RG_end_register();
+                mesh_table_.RG_end_register();
             }
 
             // process register_subpage_header_queue_
@@ -281,7 +280,7 @@ namespace nre::newrg
                         );
                     }
 
-                    auto& mesh_header = mesh_header_table_.T_element(mesh_p->last_frame_header_id_);
+                    auto& mesh_header = mesh_table_.T_element(mesh_p->last_frame_id_);
                     mesh_header.subpage_offset = mesh_p->last_frame_subpage_header_id_;
                     mesh_header.subpage_count = subpage_count;
                 }
@@ -348,7 +347,7 @@ namespace nre::newrg
 
                     mesh_p->last_frame_cluster_id_ = cluster_table_.register_id(cluster_count);
 
-                    auto& mesh_header = mesh_header_table_.T_element(mesh_p->last_frame_header_id_);
+                    auto& mesh_header = mesh_table_.T_element(mesh_p->last_frame_id_);
                     mesh_header.cluster_offset = mesh_p->last_frame_cluster_id_;
                     mesh_header.cluster_count = cluster_count;
                 }
@@ -390,7 +389,7 @@ namespace nre::newrg
 
                     mesh_p->last_frame_dag_node_id_ = dag_table_.register_id(dag_node_count);
 
-                    auto& mesh_header = mesh_header_table_.T_element(mesh_p->last_frame_header_id_);
+                    auto& mesh_header = mesh_table_.T_element(mesh_p->last_frame_id_);
                     mesh_header.dag_node_offset = mesh_p->last_frame_dag_node_id_;
                     mesh_header.dag_node_count = dag_node_count;
                 }
@@ -422,21 +421,25 @@ namespace nre::newrg
                 }
             }
 
-            // process upload_mesh_header_queue_
+            // process upload_mesh_queue_
             {
-                mesh_header_table_.RG_begin_register_upload();
+                mesh_table_.RG_begin_register_upload();
 
-                while(upload_mesh_header_queue_.size())
+                while(upload_mesh_queue_.size())
                 {
-                    TK<F_unified_mesh> mesh_p = upload_mesh_header_queue_.front();
-                    upload_mesh_header_queue_.pop();
+                    TK<F_unified_mesh> mesh_p = upload_mesh_queue_.front();
+                    upload_mesh_queue_.pop();
 
-                    mesh_header_table_.T_enqueue_upload(
-                        mesh_p->last_frame_header_id_
+                    mesh_table_.T_enqueue_upload<0>(
+                        mesh_p->last_frame_id_
+                    );
+                    mesh_table_.T_enqueue_upload<1>(
+                        mesh_p->last_frame_id_,
+                        mesh_p->compressed_data().bbox
                     );
                 }
 
-                mesh_header_table_.RG_end_register_upload();
+                mesh_table_.RG_end_register_upload();
             }
 
             // process final_evict_subpages_queue_
@@ -457,7 +460,7 @@ namespace nre::newrg
                     TK<F_unified_mesh> mesh_p = final_flush_queue_.front();
                     final_flush_queue_.pop();
 
-                    mesh_p->last_frame_header_id_ = NCPP_U32_MAX;
+                    mesh_p->last_frame_id_ = NCPP_U32_MAX;
                     mesh_p->last_frame_cluster_id_ = NCPP_U32_MAX;
                     mesh_p->last_frame_dag_node_id_ = NCPP_U32_MAX;
                 }
@@ -466,12 +469,21 @@ namespace nre::newrg
 
         // create render bind lists
         {
-            mesh_header_table_render_bind_list_p_ = render_graph_p->T_create<F_mesh_header_table_render_bind_list>(
-                &mesh_header_table_,
-                TG_array<ED_resource_view_type, 1>({ ED_resource_view_type::SHADER_RESOURCE }),
-                TG_array<ED_resource_flag, 1>({ ED_resource_flag::NONE }),
-                TG_array<ED_format, 1>({ ED_format::NONE })
-                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.mesh_header_table_render_bind_list")
+            mesh_table_render_bind_list_p_ = render_graph_p->T_create<F_mesh_table_render_bind_list>(
+                &mesh_table_,
+                TG_array<ED_resource_view_type, 2>({
+                    ED_resource_view_type::SHADER_RESOURCE,
+                    ED_resource_view_type::SHADER_RESOURCE
+                }),
+                TG_array<ED_resource_flag, 2>({
+                    ED_resource_flag::NONE,
+                    ED_resource_flag::NONE
+                }),
+                TG_array<ED_format, 2>({
+                    ED_format::NONE,
+                    ED_format::NONE
+                })
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.mesh_table_render_bind_list")
             );
             subpage_header_table_render_bind_list_p_ = render_graph_p->T_create<F_subpage_header_table_render_bind_list>(
                 &subpage_header_table_,
@@ -540,11 +552,11 @@ namespace nre::newrg
 
         update_queue_.push(mesh_p);
     }
-    void F_unified_mesh_system::enqueue_flush(u32 mesh_header_id)
+    void F_unified_mesh_system::enqueue_flush(u32 mesh_id)
     {
         NCPP_SCOPED_LOCK(flush_lock_);
 
-        flush_queue_.push(mesh_header_id);
+        flush_queue_.push(mesh_id);
     }
     void F_unified_mesh_system::enqueue_evict_subpages(const F_unified_mesh_evict_subpages_params& params)
     {

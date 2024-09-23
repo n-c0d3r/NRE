@@ -112,7 +112,7 @@ namespace nre::newrg
         const auto& mesh_p = drawable_p_->mesh_p;
         if(mesh_p)
         {
-            u32 mesh_id = mesh_p->last_frame_header_id();
+            u32 mesh_id = mesh_p->last_frame_id();
             if(mesh_id != NCPP_U32_MAX)
             {
                 table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_MESH_ID>(

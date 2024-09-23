@@ -24,7 +24,7 @@ namespace nre::newrg
         b8 need_to_evict_subpages_ = false;
         b8 need_to_flush_ = false;
 
-        u32 last_frame_header_id_ = NCPP_U32_MAX;
+        u32 last_frame_id_ = NCPP_U32_MAX;
 
         u32 last_frame_subpage_header_id_ = NCPP_U32_MAX;
 
@@ -36,7 +36,7 @@ namespace nre::newrg
 
     public:
         NCPP_FORCE_INLINE const auto& compressed_data() const noexcept { return compressed_data_; }
-        NCPP_FORCE_INLINE u32 last_frame_header_id() const noexcept { return last_frame_header_id_; }
+        NCPP_FORCE_INLINE u32 last_frame_id() const noexcept { return last_frame_id_; }
         NCPP_FORCE_INLINE u32 last_frame_subpage_header_id() const noexcept { return last_frame_subpage_header_id_; }
         NCPP_FORCE_INLINE u32 last_frame_cluster_id() const noexcept { return last_frame_cluster_id_; }
         NCPP_FORCE_INLINE u32 last_frame_dag_node_id() const noexcept { return last_frame_dag_node_id_; }
@@ -44,7 +44,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE b8 is_resident_last_frame() const noexcept
         {
-            return is_subpages_resident_last_frame() && (last_frame_header_id_ != NCPP_U32_MAX);
+            return is_subpages_resident_last_frame() && (last_frame_id_ != NCPP_U32_MAX);
         }
         NCPP_FORCE_INLINE b8 is_subpages_resident_last_frame() const noexcept
         {
