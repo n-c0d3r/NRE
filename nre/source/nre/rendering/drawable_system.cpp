@@ -18,11 +18,17 @@ namespace nre
 
 	void F_drawable_system::_register(TKPA_valid<A_drawable> drawable_p)
 	{
+		if(drawable_p->mask() == 0)
+			return;
+
 		drawable_p_list_.push_back(drawable_p);
 		drawable_p->handle_ = --(drawable_p_list_.end());
 	}
 	void F_drawable_system::deregister(TKPA_valid<A_drawable> drawable_p)
 	{
+		if(drawable_p->mask() == 0)
+			return;
+
 		drawable_p_list_.erase(drawable_p->handle_);
 		drawable_p->handle_ = drawable_p_list_.end();
 	}

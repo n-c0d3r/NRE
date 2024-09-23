@@ -48,4 +48,10 @@ namespace nre {
 		proxy_p_->update();
 	}
 
+	void A_light::update_mask(F_light_mask value)
+	{
+		F_light_system::instance_p()->deregister(NCPP_KTHIS());
+		mask_ = value;
+		F_light_system::instance_p()->_register(NCPP_KTHIS());
+	}
 }

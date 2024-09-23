@@ -104,6 +104,7 @@ namespace nre {
 		virtual void ready() override;
 		virtual void render_tick() override;
 
+	public:
+		void update_mask(F_light_mask value);
 	};
-
 }
