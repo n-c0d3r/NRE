@@ -18,7 +18,7 @@ namespace nre::newrg
             ED_resource_flag::SHADER_RESOURCE,
             ED_resource_heap_type::DEFAULT,
             ED_resource_state::COMMON,
-            NRE_NEWRG_UNIFIED_MESH_HEADER_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
+            NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.mesh_table")
         ),
