@@ -8,7 +8,7 @@
 
 namespace nre::newrg
 {
-    class F_binder_signature_vs_1cbv_ps_1cbv : public A_binder_signature
+    class NRE_API F_binder_signature_vs_1cbv_ps_1cbv : public A_binder_signature
     {
     private:
         static TK<F_binder_signature_vs_1cbv_ps_1cbv> instance_p_;

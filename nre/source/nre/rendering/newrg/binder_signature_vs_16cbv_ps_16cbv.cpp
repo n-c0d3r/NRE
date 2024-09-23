@@ -1,14 +1,14 @@
-#include <nre/rendering/newrg/binder_signature_vs_128cbv_ps_128cbv.hpp>
+#include <nre/rendering/newrg/binder_signature_vs_16cbv_ps_16cbv.hpp>
 
 
 
 namespace nre::newrg
 {
-    TK<F_binder_signature_vs_128cbv_ps_128cbv> F_binder_signature_vs_128cbv_ps_128cbv::instance_p_;
+    TK<F_binder_signature_vs_16cbv_ps_16cbv> F_binder_signature_vs_16cbv_ps_16cbv::instance_p_;
 
 
 
-    F_binder_signature_vs_128cbv_ps_128cbv::F_binder_signature_vs_128cbv_ps_128cbv() :
+    F_binder_signature_vs_16cbv_ps_16cbv::F_binder_signature_vs_16cbv_ps_16cbv() :
         A_binder_signature(
             {
                 .param_descs = {
@@ -39,7 +39,7 @@ namespace nre::newrg
                 },
                 .flags = ED_root_signature_flag::ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
             },
-            "NRE_NEWRG_BINDER_SIGNATURE_VS_128CBV_PS_128CBV"
+            "NRE_NEWRG_BINDER_SIGNATURE_VS_16CBV_PS_16CBV"
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();

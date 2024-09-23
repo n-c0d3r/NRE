@@ -65,7 +65,8 @@
 #include <nre/rendering/newrg/binder_signature.hpp>
 #include <nre/rendering/newrg/binder_signature_all_1cbv.hpp>
 #include <nre/rendering/newrg/binder_signature_vs_1cbv_ps_1cbv.hpp>
-#include <nre/rendering/newrg/binder_signature_vs_128cbv_ps_128cbv.hpp>
+#include <nre/rendering/newrg/binder_signature_vs_16cbv_ps_16cbv.hpp>
+#include <nre/rendering/newrg/instance_compute_binder_signature_1cbv_srv.hpp>
 #include <nre/rendering/newrg/binder.hpp>
 #include <nre/rendering/newrg/render_bind_list.hpp>
 #include <nre/rendering/newrg/external_render_bind_list.hpp>
