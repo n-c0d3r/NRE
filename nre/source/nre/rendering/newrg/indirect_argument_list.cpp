@@ -107,7 +107,7 @@ namespace nre::newrg
         data_ = {};
     }
 
-    sz F_indirect_argument_list::build(u32 command_count)
+    sz F_indirect_argument_list::build()
     {
         NCPP_ASSERT(is_valid());
 

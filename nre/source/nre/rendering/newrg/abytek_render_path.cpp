@@ -35,8 +35,6 @@ namespace nre::newrg
                 H_abytek_drawable_material::RG_register_upload_dynamic();
             }
         );
-
-        setup_indirect_argument_list_layouts_internal();
     }
     F_abytek_render_path::~F_abytek_render_path()
     {
@@ -51,21 +49,6 @@ namespace nre::newrg
             rg_register_render_actor_data_upload_listener_handle_
         );
     }
-
-    void F_abytek_render_path::setup_indirect_argument_list_layouts_internal()
-    {
-        {
-            auto& instance_compute_binder_signature_1cbv_srv = indirect_argument_list_layouts_.instance_compute_binder_signature_1cbv_srv;
-            instance_compute_binder_signature_1cbv_srv.draw_instanced = TU<F_draw_instanced_indirect_argument_list_layout>()(
-                F_instance_compute_binder_signature_1cbv_srv::instance_p()->root_signature_p()
-            );
-            instance_compute_binder_signature_1cbv_srv.draw_indexed_instanced = TU<F_draw_indexed_instanced_indirect_argument_list_layout>()(
-                F_instance_compute_binder_signature_1cbv_srv::instance_p()->root_signature_p()
-            );
-        }
-    }
-
-
 
     void F_abytek_render_path::RG_begin_register()
     {
@@ -84,9 +67,7 @@ namespace nre::newrg
                 if(view_p.T_try_interface<F_abytek_scene_render_view>(casted_view_p))
                 {
                     auto demo_indirect_argument_list = F_indirect_argument_list(
-                        NCPP_FOH_VALID(
-                            indirect_argument_list_layouts_.instance_compute_binder_signature_1cbv_srv.draw_indexed_instanced
-                        )
+                        F_draw_indexed_instanced_indirect_argument_list_layout::instance_p()
                     );
 
                     clear_view(

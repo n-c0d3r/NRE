@@ -52,7 +52,7 @@ namespace nre::newrg
         void reset();
 
     public:
-        sz build(u32 command_count);
+        sz build();
 
     public:
         void draw(

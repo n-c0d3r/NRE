@@ -24,23 +24,10 @@ namespace nre::newrg
         F_render_foundation_rg_register_render_actor_data_event::F_listener_handle rg_register_render_actor_data_listener_handle_;
         F_render_foundation_rg_register_render_actor_data_upload_event::F_listener_handle rg_register_render_actor_data_upload_listener_handle_;
 
-        struct F_indirect_argument_list_layouts
-        {
-            struct F_instance_compute_binder_signature_1cbv_srv
-            {
-                TU<F_indirect_argument_list_layout> draw_instanced;
-                TU<F_indirect_argument_list_layout> draw_indexed_instanced;
-            };
-            F_instance_compute_binder_signature_1cbv_srv instance_compute_binder_signature_1cbv_srv;
-        };
-        F_indirect_argument_list_layouts indirect_argument_list_layouts_;
-
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_register_view_event_
         );
-
-        NCPP_FORCE_INLINE const auto& indirect_argument_list_layouts() const noexcept { return indirect_argument_list_layouts_; }
 
 
 
@@ -50,9 +37,6 @@ namespace nre::newrg
 
     public:
         NCPP_OBJECT(F_abytek_render_path);
-
-    private:
-        void setup_indirect_argument_list_layouts_internal();
 
     public:
         virtual void RG_begin_register() override;

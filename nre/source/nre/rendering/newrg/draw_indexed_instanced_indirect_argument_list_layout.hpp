@@ -6,12 +6,18 @@
 
 namespace nre::newrg
 {
-    class NRE_API F_draw_indexed_instanced_indirect_argument_list_layout : public F_indirect_argument_list_layout
+    class NRE_API F_draw_indexed_instanced_indirect_argument_list_layout final : public F_indirect_argument_list_layout
     {
+    private:
+        static TK<F_draw_indexed_instanced_indirect_argument_list_layout> instance_p_;
+
     public:
-        F_draw_indexed_instanced_indirect_argument_list_layout(
-            TKPA_valid<A_root_signature> root_signature_p
-        );
-        virtual ~F_draw_indexed_instanced_indirect_argument_list_layout() override;
+        static NCPP_FORCE_INLINE TKPA_valid<F_draw_indexed_instanced_indirect_argument_list_layout> instance_p() { return (TKPA_valid<F_draw_indexed_instanced_indirect_argument_list_layout>)instance_p_; }
+
+
+
+    public:
+        F_draw_indexed_instanced_indirect_argument_list_layout();
+        ~F_draw_indexed_instanced_indirect_argument_list_layout() override;
     };
 }

@@ -100,14 +100,18 @@ namespace nre::newrg
         F_matrix4x4_f32 local_to_world_matrix = transform_node_p_->local_to_world_matrix();
 
         auto& table = render_actor_data_pool_p->table();
-        table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_TRANSFORM>(
-            render_data_id_,
-            local_to_world_matrix
-        );
-        table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_LAST_TRANSFORM>(
-            render_data_id_,
-            last_local_to_world_matrix_
-        );
+        if(local_to_world_matrix != last_local_to_world_matrix_)
+        {
+            table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_TRANSFORM>(
+                render_data_id_,
+                local_to_world_matrix
+            );
+            table.T_enqueue_upload<NRE_NEWRG_RENDER_ACTOR_DATA_INDEX_LAST_TRANSFORM>(
+                render_data_id_,
+                last_local_to_world_matrix_
+            );
+            last_local_to_world_matrix_ = local_to_world_matrix;
+        }
 
         const auto& mesh_p = drawable_p_->mesh_p;
         if(mesh_p)
@@ -128,8 +132,6 @@ namespace nre::newrg
                 NCPP_U32_MAX
             );
         }
-
-        last_local_to_world_matrix_ = local_to_world_matrix;
     }
 
 

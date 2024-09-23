@@ -1,5 +1,8 @@
 #include <nre/rendering/newrg/indirect_command_system.hpp>
 #include <nre/rendering/newrg/indirect_command_batch.hpp>
+#include <nre/rendering/newrg/indirect_argument_list.hpp>
+#include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
+#include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
 
 
 
@@ -18,6 +21,9 @@ namespace nre::newrg
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
+
+        draw_indexed_instanced_indirect_argument_list_layout_p_ = TU<F_draw_indexed_instanced_indirect_argument_list_layout>()();
+        draw_instanced_indirect_argument_list_layout_p_ = TU<F_draw_instanced_indirect_argument_list_layout>()();
     }
     F_indirect_command_system::~F_indirect_command_system()
     {

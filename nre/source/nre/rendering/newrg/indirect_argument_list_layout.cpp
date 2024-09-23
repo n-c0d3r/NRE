@@ -7,8 +7,7 @@
 namespace nre::newrg
 {
     F_indirect_argument_list_layout::F_indirect_argument_list_layout(
-        const F_command_signature_desc& desc,
-        TKPA_valid<A_root_signature> root_signature_p
+        const F_command_signature_desc& desc
     )
     {
         F_command_signature_desc parsed_desc = desc;
@@ -19,14 +18,16 @@ namespace nre::newrg
             auto& slot = table_.slots[i];
             auto& argument_desc = parsed_desc.indirect_argument_descs[i];
 
+            auto slot_alignment = H_indirect_argument::alignment(argument_desc.type);
+
             table_.alignment = align_address(
                 table_.alignment,
-                H_indirect_argument::alignment(argument_desc.type)
+                slot_alignment
             );
 
             slot.offset = align_address(
                 table_.stride,
-                table_.alignment
+                slot_alignment
             );
             slot.size = H_indirect_argument::size(argument_desc);
 
@@ -38,8 +39,7 @@ namespace nre::newrg
 
         command_signature_p_ = H_command_signature::create(
             NRE_MAIN_DEVICE(),
-            parsed_desc,
-            root_signature_p
+            parsed_desc
         );
     }
     F_indirect_argument_list_layout::~F_indirect_argument_list_layout()

@@ -4,9 +4,11 @@
 
 namespace nre::newrg
 {
-    F_draw_indexed_instanced_indirect_argument_list_layout::F_draw_indexed_instanced_indirect_argument_list_layout(
-        TKPA_valid<A_root_signature> root_signature_p
-    ) :
+    TK<F_draw_indexed_instanced_indirect_argument_list_layout> F_draw_indexed_instanced_indirect_argument_list_layout::instance_p_;
+
+
+
+    F_draw_indexed_instanced_indirect_argument_list_layout::F_draw_indexed_instanced_indirect_argument_list_layout() :
         F_indirect_argument_list_layout(
             {
                 .indirect_argument_descs = {
@@ -14,10 +16,10 @@ namespace nre::newrg
                         .type = ED_indirect_argument_type::DRAW_INDEXED_INSTANCED
                     }
                 }
-            },
-            root_signature_p
+            }
         )
     {
+        instance_p_ = NCPP_KTHIS_UNSAFE();
     }
     F_draw_indexed_instanced_indirect_argument_list_layout::~F_draw_indexed_instanced_indirect_argument_list_layout()
     {
