@@ -179,7 +179,7 @@ namespace nre {
 			render_command_list_p
 		);
 	}
-	void F_triplanar_lit_static_mesh_material_proxy::simple_shadow_render_render(
+	void F_triplanar_lit_static_mesh_material_proxy::simple_shadow_render(
 		TKPA_valid<A_command_list> render_command_list_p,
 		KPA_valid_buffer_handle view_constant_buffer_p,
 		TKPA_valid<A_frame_buffer> frame_buffer_p

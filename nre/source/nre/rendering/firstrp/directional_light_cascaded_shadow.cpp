@@ -3,10 +3,9 @@
 #include <nre/rendering/shadow_system.hpp>
 #include <nre/rendering/render_view.hpp>
 #include <nre/rendering/render_system.hpp>
-#include <nre/rendering/render_pipeline.hpp>
-#include <nre/rendering/firstrp/debug_drawer.hpp>
 #include <nre/rendering/material_system.hpp>
 #include <nre/rendering/drawable.hpp>
+#include <nre/rendering/delegable_material.hpp>
 #include <nre/actor/actor.hpp>
 
 
@@ -353,12 +352,12 @@ namespace nre {
 			});
 
 			render_command_list_p->ZOM_bind_frame_buffer(shadow_frame_buffer_p);
-			NRE_MATERIAL_SYSTEM()->T_for_each<I_has_simple_shadow_render_render_material_proxy>(
+			NRE_MATERIAL_SYSTEM()->T_for_each<I_has_simple_shadow_render_material_proxy>(
 				[&](const auto& material_p)
 				{
-				  	auto simple_shadow_render_render_material_proxy_p = material_p->proxy_p().T_interface<I_has_simple_shadow_render_render_material_proxy>();
+				  	auto simple_shadow_render_material_proxy_p = material_p.T_cast<A_delegable_material>()->proxy_p().T_interface<I_has_simple_shadow_render_material_proxy>();
 
-				  	simple_shadow_render_render_material_proxy_p->simple_shadow_render_render(
+				  	simple_shadow_render_material_proxy_p->simple_shadow_render(
 					  	render_command_list_p,
 					 	NCPP_FOH_VALID(render_view_attachment_p->shadow_view_constant_buffer_p_vector()[i]),
 						shadow_frame_buffer_p

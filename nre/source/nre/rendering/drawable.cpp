@@ -1,9 +1,6 @@
 ﻿#include <nre/rendering/drawable.hpp>
 #include <nre/rendering/render_system.hpp>
-#include <nre/rendering/render_pipeline.hpp>
 #include <nre/rendering/drawable_system.hpp>
-#include <nre/rendering/material.hpp>
-#include <nre/application/application.hpp>
 #include <nre/hierarchy/transform_node.hpp>
 #include <nre/actor/actor.hpp>
 
@@ -24,5 +21,4 @@ namespace nre {
 	{
 		F_drawable_system::instance_p()->deregister(NCPP_KTHIS());
 	}
-
 }

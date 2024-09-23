@@ -244,7 +244,7 @@ int main() {
 				  	NRE_MATERIAL_SYSTEM()->T_for_each<I_has_simple_render_material_proxy>(
 					  	[&](const auto& material_p) {
 
-							auto simple_render_material_proxy_p = material_p->proxy_p().T_interface<I_has_simple_render_material_proxy>();
+							auto simple_render_material_proxy_p = material_p.T_cast<A_delegable_material>()->proxy_p().T_cast<A_delegable_material>().T_interface<I_has_simple_render_material_proxy>();
 
 						  	simple_render_material_proxy_p->simple_render(
 								main_command_list_p,

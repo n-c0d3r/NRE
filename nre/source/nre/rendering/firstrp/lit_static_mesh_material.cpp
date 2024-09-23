@@ -35,7 +35,7 @@ namespace nre {
 			material_p,
 			mask
 			| NRE_MATERIAL_SYSTEM()->T_mask<I_has_simple_render_material_proxy>()
-			| NRE_MATERIAL_SYSTEM()->T_mask<I_has_simple_shadow_render_render_material_proxy>()
+			| NRE_MATERIAL_SYSTEM()->T_mask<I_has_simple_shadow_render_material_proxy>()
 		)
 	{
 		main_constant_buffer_p_ = H_buffer::create(
@@ -181,7 +181,7 @@ namespace nre {
 			render_command_list_p
 		);
 	}
-	void F_lit_static_mesh_material_proxy::simple_shadow_render_render(
+	void F_lit_static_mesh_material_proxy::simple_shadow_render(
 		TKPA_valid<A_command_list> render_command_list_p,
 		KPA_valid_buffer_handle view_constant_buffer_p,
 		TKPA_valid<A_frame_buffer> frame_buffer_p

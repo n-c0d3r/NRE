@@ -30,7 +30,7 @@ namespace nre {
 	class NRE_API F_triplanar_lit_static_mesh_material_proxy :
 		public A_triplanar_lit_static_mesh_material_proxy,
 		public I_has_simple_render_material_proxy,
-		public I_has_simple_shadow_render_render_material_proxy
+		public I_has_simple_shadow_render_material_proxy
 	{
 
 	public:
@@ -76,7 +76,7 @@ namespace nre {
 			TKPA_valid<A_render_view> render_view_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p
 		) override;
-		virtual void simple_shadow_render_render(
+		virtual void simple_shadow_render(
 			TKPA_valid<A_command_list> render_command_list_p,
 			KPA_valid_buffer_handle view_constant_buffer_p,
 			TKPA_valid<A_frame_buffer> frame_buffer_p

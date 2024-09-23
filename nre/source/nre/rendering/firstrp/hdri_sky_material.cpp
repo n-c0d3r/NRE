@@ -17,7 +17,7 @@
 namespace nre {
 
 	A_hdri_sky_material_proxy::A_hdri_sky_material_proxy(TKPA_valid<F_hdri_sky_material> material_p, F_material_mask mask) :
-		A_material_proxy(material_p, mask)
+		A_delegable_material_proxy(material_p, mask)
 	{
 	}
 	A_hdri_sky_material_proxy::~A_hdri_sky_material_proxy() {
@@ -161,7 +161,7 @@ namespace nre {
 	TK<F_hdri_sky_material> F_hdri_sky_material::instance_ps;
 
 	F_hdri_sky_material::F_hdri_sky_material(TKPA_valid<F_actor> actor_p, F_material_mask mask) :
-		A_drawable_material(actor_p, TU<F_hdri_sky_material_proxy>()(NCPP_KTHIS()), mask)
+		A_delegable_drawable_material(actor_p, TU<F_hdri_sky_material_proxy>()(NCPP_KTHIS()), mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_hdri_sky_material);
 
@@ -171,7 +171,7 @@ namespace nre {
 		actor_p->set_render_tick(true);
 	}
 	F_hdri_sky_material::F_hdri_sky_material(TKPA_valid<F_actor> actor_p, TU<A_hdri_sky_material_proxy>&& proxy_p, F_material_mask mask) :
-		A_drawable_material(actor_p, std::move(proxy_p), mask)
+		A_delegable_drawable_material(actor_p, std::move(proxy_p), mask)
 	{
 		NRE_ACTOR_COMPONENT_REGISTER(F_hdri_sky_material);
 
@@ -185,7 +185,7 @@ namespace nre {
 
 	void F_hdri_sky_material::gameplay_tick() {
 
-		A_material::gameplay_tick();
+		A_delegable_material::gameplay_tick();
 
 		instance_ps = NCPP_KTHIS().no_requirements();
 	}

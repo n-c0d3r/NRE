@@ -10,7 +10,7 @@ namespace nre {
 
 	class F_transform_node;
 	class A_render_view;
-	class A_material;
+	class A_delegable_material;
 
 
 

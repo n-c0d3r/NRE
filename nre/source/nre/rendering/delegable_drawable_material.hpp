@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nre/rendering/material.hpp>
+#include <nre/rendering/delegable_material.hpp>
 
 
 
@@ -11,9 +11,7 @@ namespace nre {
 
 
 
-	class NRE_API A_drawable_material : public A_material {
-
-
+	class NRE_API A_delegable_drawable_material : public A_delegable_material {
 
 	private:
 		TK_valid<F_transform_node> transform_node_p_;
@@ -26,14 +24,12 @@ namespace nre {
 
 
 	protected:
-		A_drawable_material(TKPA_valid<F_actor> actor_p, TU<A_material_proxy>&& proxy_p, F_material_mask mask = 0);
+		A_delegable_drawable_material(TKPA_valid<F_actor> actor_p, TU<A_delegable_material_proxy>&& proxy_p, F_material_mask mask = 0);
 
 	public:
-		virtual ~A_drawable_material();
+		virtual ~A_delegable_drawable_material();
 
 	public:
-		NCPP_OBJECT(A_drawable_material);
-
+		NCPP_OBJECT(A_delegable_drawable_material);
 	};
-
 }

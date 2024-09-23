@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nre/rendering/drawable_material.hpp>
+#include <nre/rendering/delegable_drawable_material.hpp>
 #include <nre/rendering/render_command_list.hpp>
 
 
@@ -15,7 +15,7 @@ namespace nre {
 
 
 
-	class NRE_API A_hdri_sky_material_proxy : public A_material_proxy {
+	class NRE_API A_hdri_sky_material_proxy : public A_delegable_material_proxy {
 
 	public:
 		friend class F_hdri_sky_material;
@@ -80,7 +80,7 @@ namespace nre {
 
 
 
-	class NRE_API F_hdri_sky_material : public A_drawable_material {
+	class NRE_API F_hdri_sky_material : public A_delegable_drawable_material {
 
 	private:
 		static TK<F_hdri_sky_material> instance_ps;

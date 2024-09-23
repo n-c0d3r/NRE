@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nre/rendering/drawable_material.hpp>
+#include <nre/rendering/delegable_drawable_material.hpp>
 
 
 
@@ -10,7 +10,7 @@ namespace nre::newrg
 
 
 
-    class NRE_API A_unified_mesh_material_proxy : public A_material_proxy {
+    class NRE_API A_unified_mesh_material_proxy : public A_delegable_material_proxy {
 
     public:
         friend class A_unified_mesh_material;
@@ -30,7 +30,7 @@ namespace nre::newrg
 
 
     class NRE_API A_unified_mesh_material :
-        public A_drawable_material,
+        public A_delegable_drawable_material,
         public I_unified_mesh_material_can_be_dynamic
     {
 

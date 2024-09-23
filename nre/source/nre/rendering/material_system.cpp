@@ -5,7 +5,6 @@
 
 namespace nre
 {
-
 	TK<F_material_system> F_material_system::instance_ps;
 
 	F_material_system::F_material_system()
@@ -26,5 +25,4 @@ namespace nre
 		material_p_list_.erase(material_p->handle_);
 		material_p->handle_ = material_p_list_.end();
 	}
-
 }

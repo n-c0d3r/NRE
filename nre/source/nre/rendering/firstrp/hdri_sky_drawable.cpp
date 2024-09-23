@@ -1,8 +1,5 @@
 #include <nre/rendering/firstrp/hdri_sky_drawable.hpp>
 #include <nre/rendering/drawable_system.hpp>
-#include <nre/rendering/static_mesh.hpp>
-#include <nre/rendering/material.hpp>
-#include <nre/rendering/render_view.hpp>
 #include <nre/actor/actor.hpp>
 #include <nre/asset/static_mesh_asset.hpp>
 #include <nre/asset/asset_system.hpp>
@@ -36,5 +33,4 @@ namespace nre {
 
 		instance_ps = NCPP_KTHIS().no_requirements();
 	}
-
 }
