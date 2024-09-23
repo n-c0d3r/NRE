@@ -29,6 +29,6 @@ namespace nre::newrg
             const F_command_signature_desc& desc,
             TKPA_valid<A_root_signature> root_signature_p
         );
-        ~F_indirect_argument_list_layout();
+        virtual ~F_indirect_argument_list_layout();
     };
 }

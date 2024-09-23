@@ -140,13 +140,16 @@ int main() {
 
 	// application events
 	{
-		NRE_APPLICATION_STARTUP(application_p) {
+		NRE_APPLICATION_STARTUP(application_p)
+		{
 		};
-		NRE_APPLICATION_SHUTDOWN(application_p) {
+		NRE_APPLICATION_SHUTDOWN(application_p)
+		{
 		  	level_p.reset();
+			render_path_p.reset();
 		};
-		NRE_APPLICATION_GAMEPLAY_TICK(application_p) {
-
+		NRE_APPLICATION_GAMEPLAY_TICK(application_p)
+		{
 			NRE_TICK_BY_DURATION(1.0f)
 			{
 				NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());

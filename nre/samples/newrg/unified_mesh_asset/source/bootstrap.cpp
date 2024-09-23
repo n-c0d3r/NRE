@@ -40,6 +40,7 @@ int main() {
 		NRE_APPLICATION_SHUTDOWN(application_p) {
 
 			unified_mesh_asset_p.reset();
+			render_path_p.reset();
 		};
 		NRE_APPLICATION_GAMEPLAY_TICK(application_p) {
 

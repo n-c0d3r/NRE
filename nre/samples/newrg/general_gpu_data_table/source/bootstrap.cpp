@@ -42,6 +42,7 @@ int main() {
 		NRE_APPLICATION_SHUTDOWN(application_p)
 		{
 			demo_gpu_data_table.reset();
+			render_path_p.reset();
 		};
 		NRE_APPLICATION_GAMEPLAY_TICK(application_p)
 		{

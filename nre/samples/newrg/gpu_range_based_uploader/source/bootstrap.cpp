@@ -52,6 +52,7 @@ int main() {
 			demo_gpu_range_based_uploader.reset();
 			demo_gpu_large_data_list.reset();
 			demo_large_data_list.reset();
+			render_path_p.reset();
 		};
 		NRE_APPLICATION_GAMEPLAY_TICK(application_p)
 		{

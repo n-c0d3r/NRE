@@ -67,6 +67,7 @@ int main() {
 
 			level_p.reset();
 			unified_mesh_asset_p.reset();
+			render_path_p.reset();
 		};
 		NRE_APPLICATION_GAMEPLAY_TICK(application_p) {
 
