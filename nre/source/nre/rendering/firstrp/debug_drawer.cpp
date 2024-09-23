@@ -65,7 +65,7 @@ namespace nre {
 					.primitive_topology = ED_primitive_topology::LINE_LIST,
 					.input_assembler_desc = input_assembler_desc,
 					.shader_binaries = {
-						vshader_binary,
+						(F_shader_binary_temp)vshader_binary,
 						(F_shader_binary_temp)pshader_binary
 					}
 				}

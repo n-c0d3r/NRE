@@ -109,7 +109,7 @@ namespace nre {
 				},
 				.input_assembler_desc = input_assembler_desc,
 				.shader_binaries = {
-					vshader_binary,
+					(F_shader_binary_temp)vshader_binary,
 					F_shader_binary_temp(pshader_binary)
 				}
 			}
@@ -123,7 +123,7 @@ namespace nre {
 				},
 				.input_assembler_desc = input_assembler_desc,
 				.shader_binaries = {
-					vshader_binary
+					(F_shader_binary_temp)vshader_binary
 				}
 			}
 		);
@@ -217,12 +217,12 @@ namespace nre {
 
 			.albedo = casted_material_p->albedo,
 			.roughness_range = {
-				element_clamp(casted_material_p->roughness_range.min(), 0.025f, 0.975f),
-				element_clamp(casted_material_p->roughness_range.max(), 0.025f, 0.975f)
+				element_clamp(casted_material_p->roughness_range.min, 0.025f, 0.975f),
+				element_clamp(casted_material_p->roughness_range.max, 0.025f, 0.975f)
 			},
 			.metallic_range = {
-				element_clamp(casted_material_p->metallic_range.min(), 0.025f, 0.975f),
-				element_clamp(casted_material_p->metallic_range.max(), 0.025f, 0.975f)
+				element_clamp(casted_material_p->metallic_range.min, 0.025f, 0.975f),
+				element_clamp(casted_material_p->metallic_range.max, 0.025f, 0.975f)
 			},
 			.uv_scale = casted_material_p->uv_scale,
 			.uv_offset = casted_material_p->uv_offset
