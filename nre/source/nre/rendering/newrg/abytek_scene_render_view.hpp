@@ -57,12 +57,4 @@ namespace nre::newrg
     public:
         virtual void RG_register() override;
     };
-
-
-
-    class NRE_API H_abytek_scene_render_view
-    {
-    public:
-        static TG_unordered_set<G_string> buffer_names();
-    };
 }

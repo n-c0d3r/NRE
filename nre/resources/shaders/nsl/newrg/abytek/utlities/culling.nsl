@@ -2,6 +2,8 @@ import(nrhi)
 
 
 
+@slot(NRE_NEWRG_ABYTEK_CULL_OPTIONS_BUFFER_SLOT)
+@slot_space(NRE_NEWRG_ABYTEK_CULL_OPTIONS_BUFFER_SLOT_SPACE)
 resource cull_options_buffer(
     ConstantBuffer
 )

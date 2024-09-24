@@ -9,7 +9,9 @@
 #include <nre/rendering/newrg/indirect_argument_list.hpp>
 #include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
-#include <nre/rendering/newrg/instance_compute_binder_signature_1cbv_srv.hpp>
+#include <nre/rendering/newrg/abytek_instance_culling_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instance_id_initializing_binder_signature.hpp>
+#include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/actor/actor.hpp>
 
 
@@ -35,6 +37,10 @@ namespace nre::newrg
                 H_abytek_drawable_material::RG_register_upload_dynamic();
             }
         );
+
+        // register binder signatures
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_instance_culling_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_instance_id_initializing_binder_signature>();
     }
     F_abytek_render_path::~F_abytek_render_path()
     {

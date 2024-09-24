@@ -2,6 +2,8 @@ import(nrhi)
 
 
 
+@slot(NRE_NEWRG_ABYTEK_SCENE_RENDER_VIEW_BUFFER_SLOT)
+@slot_space(NRE_NEWRG_ABYTEK_SCENE_RENDER_VIEW_BUFFER_SLOT_SPACE)
 resource scene_render_view_buffer(
     ConstantBuffer
 )

@@ -55,3 +55,5 @@
 #include <nre/rendering/customized_nsl_shader_compiler.hpp>
 
 #include <nre/rendering/geometry_utilities.hpp>
+
+#include <nre/rendering/bind_table.hpp>

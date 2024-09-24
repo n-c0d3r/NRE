@@ -173,11 +173,4 @@ namespace nre::newrg
             }
         }
     }
-
-
-
-    TG_unordered_set<G_string> H_abytek_scene_render_view::buffer_names()
-    {
-        return { "scene_render_view_buffer" };
-    }
 }
