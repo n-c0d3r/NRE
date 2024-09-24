@@ -7,7 +7,7 @@
 
 namespace nre::newrg
 {
-    struct F_abytek_view_buffer_data
+    struct F_abytek_scene_render_view_data
     {
         F_matrix4x4_f32 world_to_view_matrix;
         F_matrix4x4_f32 view_to_world_matrix;

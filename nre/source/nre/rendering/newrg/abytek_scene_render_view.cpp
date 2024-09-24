@@ -1,5 +1,5 @@
 #include <nre/rendering/newrg/abytek_scene_render_view.hpp>
-#include <nre/rendering/newrg/abytek_view_buffer_data.hpp>
+#include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
 #include <nre/actor/actor.hpp>
@@ -117,11 +117,11 @@ namespace nre::newrg
 
             // upload view buffer data
             {
-                F_abytek_view_buffer_data view_buffer_data;
-                view_buffer_data.world_to_view_matrix = view_matrix;
-                view_buffer_data.view_to_world_matrix = invert(view_matrix);
-                view_buffer_data.view_to_clip_matrix = projection_matrix;
-                view_buffer_data.clip_to_view_matrix = invert(projection_matrix);
+                F_abytek_scene_render_view_data scene_render_view_data;
+                scene_render_view_data.world_to_view_matrix = view_matrix;
+                scene_render_view_data.view_to_world_matrix = invert(view_matrix);
+                scene_render_view_data.view_to_clip_matrix = projection_matrix;
+                scene_render_view_data.clip_to_view_matrix = invert(projection_matrix);
 
                 F_vector4_f32 clip_corners[8] = {
                     F_vector4_f32(-1, -1, 0, 1),
@@ -137,7 +137,7 @@ namespace nre::newrg
 
                 for(u32 i = 0; i < 8; ++i)
                 {
-                    corners[i] = view_buffer_data.clip_to_view_matrix * clip_corners[i];
+                    corners[i] = scene_render_view_data.clip_to_view_matrix * clip_corners[i];
                     corners[i] /= corners[i].w;
                 }
 
@@ -161,16 +161,23 @@ namespace nre::newrg
                         )
                     );
 
-                    view_buffer_data.frustum_planes[i] = {
+                    scene_render_view_data.frustum_planes[i] = {
                         normal,
                         dot(pivot, normal)
                     };
                 }
 
                 rg_view_buffer_offset_ = uniform_transient_resource_uploader_p->T_enqueue_upload(
-                    view_buffer_data
+                    scene_render_view_data
                 );
             }
         }
+    }
+
+
+
+    TG_unordered_set<G_string> H_abytek_scene_render_view::buffer_names()
+    {
+        return { "scene_render_view_buffer" };
     }
 }
