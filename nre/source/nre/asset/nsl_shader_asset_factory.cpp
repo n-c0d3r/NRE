@@ -107,6 +107,8 @@ namespace nre {
 
 		compiled_result.finalize();
 
+		const auto& reflection = compiled_result.reflection;
+
 		TG_vector<TU<A_pipeline_state>> pipeline_state_p_vector;
 
 		if(nsl_create_pipeline_states)
@@ -116,6 +118,22 @@ namespace nre {
 				NRE_MAIN_DEVICE(),
 				compiled_result
 			);
+
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+		for(u32 i = 0; i < reflection.pipeline_states.size(); ++i)
+		{
+			auto& pipeline_state_reflection = reflection.pipeline_states[i];
+			auto& pipeline_state_p = pipeline_state_p_vector[i];
+
+			pipeline_state_p->set_debug_name(
+				(
+					abs_path
+					+ "::"
+					+ pipeline_state_reflection.name
+				).c_str()
+			);
+		}
+#endif
 
 		return TS<F_nsl_shader_asset>()(
 			abs_path,
