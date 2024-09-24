@@ -27,7 +27,7 @@ namespace
         F_descriptor_cpu_address cpu_address = page.base_cpu_address() + descriptor_allocation.placed_range.begin * descriptor_increment_size;
 
         H_descriptor::initialize_sampler_state(
-            NCPP_FOH_VALID(page.heap_p),
+            device_p,
             cpu_address,
             desc
         );

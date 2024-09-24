@@ -90,7 +90,7 @@ namespace nre::newrg
         u64 descriptor_stride = external_descriptor_p_->descriptor_stride();
 
         H_descriptor::initialize_resource_view(
-            NCPP_FOH_VALID(page.heap_p),
+            NRE_MAIN_DEVICE(),
             descriptor_handle_range.base_cpu_address() + index * descriptor_stride,
             desc
         );
@@ -113,7 +113,7 @@ namespace nre::newrg
         u64 descriptor_stride = external_descriptor_p_->descriptor_stride();
 
         H_descriptor::initialize_sampler_state(
-            NCPP_FOH_VALID(page.heap_p),
+            NRE_MAIN_DEVICE(),
             descriptor_handle_range.base_cpu_address() + index * descriptor_stride,
             desc
         );
