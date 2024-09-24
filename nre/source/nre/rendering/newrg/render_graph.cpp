@@ -443,21 +443,20 @@ namespace nre::newrg
         {
             auto& access_dependencies = resource_p->access_dependencies_;
 
-            if(access_dependencies.size())
+            for(auto& access_dependency : access_dependencies)
             {
-                auto& first_access_dependency = access_dependencies.front();
-
-                F_render_pass* access_dependency_pass_p = pass_span[first_access_dependency.pass_id];
+                F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
 
                 // sentinel passes must not affect resource allocation
                 if(access_dependency_pass_p->is_sentinel())
                 {
                     if(resource_p->is_available_at_the_beginning_of_frame())
-                        resource_p->min_pass_id_ = first_access_dependency.pass_id;
+                        resource_p->min_pass_id_ = access_dependency.pass_id;
                     continue;
                 }
 
-                resource_p->min_pass_id_ = first_access_dependency.pass_id;
+                resource_p->min_pass_id_ = access_dependency.pass_id;
+                break;
             }
         }
     }
@@ -468,21 +467,21 @@ namespace nre::newrg
         for(F_render_resource* resource_p : resource_span)
         {
             auto& access_dependencies = resource_p->access_dependencies_;
-            if(access_dependencies.size())
-            {
-                auto& last_access_dependency = access_dependencies.back();
 
-                F_render_pass* access_dependency_pass_p = pass_span[last_access_dependency.pass_id];
+            for(auto& access_dependency : access_dependencies)
+            {
+                F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
 
                 // sentinel passes must not affect resource allocation
                 if(access_dependency_pass_p->is_sentinel())
                 {
                     if(resource_p->is_available_until_the_end_of_frame())
-                        resource_p->max_pass_id_ = last_access_dependency.pass_id;
+                        resource_p->max_pass_id_ = access_dependency.pass_id;
                     continue;
                 }
 
-                resource_p->max_pass_id_ = last_access_dependency.pass_id;
+                resource_p->max_pass_id_ = access_dependency.pass_id;
+                break;
             }
         }
     }
@@ -941,7 +940,10 @@ namespace nre::newrg
                         F_render_pass_id aliased_resource_max_sync_pass_id = aliased_resource_max_sync_pass_id_vector[i];
                         F_render_pass_id& max_sync_pass_id = max_sync_pass_ids[i];
 
-                        NCPP_ASSERT(aliased_resource_max_sync_pass_id < pass_id);
+                        NCPP_ASSERT(
+                            (aliased_resource_max_sync_pass_id < pass_id)
+                            || (aliased_resource_max_sync_pass_id == NCPP_U32_MAX)
+                        );
 
                         if(max_sync_pass_id == NCPP_U32_MAX)
                         {
