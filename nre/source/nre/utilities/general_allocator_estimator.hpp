@@ -68,6 +68,6 @@ namespace nre
             sz size,
             u64 alignment = 1
         );
-        void deallocate(F_allocation allocation);
+        sz deallocate(F_allocation allocation);
     };
 }

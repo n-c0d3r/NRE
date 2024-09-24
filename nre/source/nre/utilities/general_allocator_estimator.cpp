@@ -116,8 +116,10 @@ namespace nre
 
         return eastl::nullopt;
     }
-    void F_general_allocator_estimator::deallocate(F_general_allocator_estimator::F_allocation allocation)
+    sz F_general_allocator_estimator::deallocate(F_general_allocator_estimator::F_allocation allocation)
     {
+        sz result = 0;
+
         // search for allocated range
         u32 allocated_range_index = NCPP_U32_MAX;
         u32 allocated_range_count = allocated_ranges_.size();
@@ -131,6 +133,7 @@ namespace nre
             )
             {
                 allocated_range_index = i;
+                result = allocated_range.end - allocated_range.begin;
                 break;
             }
         }
@@ -182,5 +185,7 @@ namespace nre
             };
             free_ranges_.push_back(new_free_range);
         }
+
+        return result;
     }
 }

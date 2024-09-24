@@ -36,6 +36,7 @@ namespace nre::newrg
     public:
         NCPP_FORCE_INLINE auto& table() noexcept { return table_; }
         NCPP_FORCE_INLINE const auto& table() const noexcept { return table_; }
+        NCPP_FORCE_INLINE const auto& primitive_count() const noexcept { return table_.pool_data_distributor().id_count(); }
 
 
 

@@ -3,6 +3,7 @@
 #include <nre/rendering/newrg/indirect_argument_list.hpp>
 #include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
+#include <nre/rendering/newrg/dispatch_indirect_argument_list_layout.hpp>
 
 
 
@@ -24,6 +25,7 @@ namespace nre::newrg
 
         draw_indexed_instanced_indirect_argument_list_layout_p_ = TU<F_draw_indexed_instanced_indirect_argument_list_layout>()();
         draw_instanced_indirect_argument_list_layout_p_ = TU<F_draw_instanced_indirect_argument_list_layout>()();
+        dispatch_indirect_argument_list_layout_p_ = TU<F_dispatch_indirect_argument_list_layout>()();
     }
     F_indirect_command_system::~F_indirect_command_system()
     {

@@ -158,7 +158,7 @@ namespace nre::newrg
             }
             NCPP_FORCE_INLINE b8 is_complete(u64 target_value) const noexcept
             {
-                return (target_value >= value);
+                return (target_value <= value);
             }
             NCPP_FORCE_INLINE void wait(u64 target_value) const noexcept
             {

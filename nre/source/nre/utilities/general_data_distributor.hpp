@@ -13,12 +13,14 @@ namespace nre
     private:
         sz page_capacity_ = 0;
         TG_vector<F_general_allocator_estimator> pages_;
+        sz id_count_;
 
     public:
         NCPP_FORCE_INLINE sz page_capacity() const noexcept { return page_capacity_; }
         NCPP_FORCE_INLINE const auto& pages() const noexcept { return pages_; }
         NCPP_FORCE_INLINE sz page_count() const noexcept { return pages_.size(); }
         NCPP_FORCE_INLINE sz capacity() const noexcept { return page_count() * page_capacity_; }
+        NCPP_FORCE_INLINE sz id_count() const noexcept { return id_count_; }
 
 
 
@@ -107,6 +109,8 @@ namespace nre
 
             create_page_internal();
 
+            id_count_ += count;
+
             return page_count * page_capacity_ + pages_.back().try_allocate(count, alignment).value();
         }
         void deregister_id(sz id)
@@ -115,7 +119,7 @@ namespace nre
 
             NCPP_ASSERT(page_index < pages_.size());
 
-            pages_[page_index].deallocate(id - page_index * page_capacity_);
+            id_count_ -= pages_[page_index].deallocate(id - page_index * page_capacity_);
         }
     };
 }

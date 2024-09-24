@@ -14,6 +14,7 @@ namespace nre
         sz page_capacity_ = 0;
         TG_vector<F_pool_allocator_estimator> pages_;
         asz next_id_ = 0;
+        asz id_count_ = 0;
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(b8 is_in_register_phase_ = false);
 
@@ -22,6 +23,7 @@ namespace nre
         NCPP_FORCE_INLINE const auto& pages() const noexcept { return pages_; }
         NCPP_FORCE_INLINE sz page_count() const noexcept { return pages_.size(); }
         NCPP_FORCE_INLINE sz capacity() const noexcept { return page_count() * page_capacity_; }
+        NCPP_FORCE_INLINE sz id_count() const noexcept { return id_count_; }
 
 
 
@@ -131,6 +133,8 @@ namespace nre
         {
             NCPP_ASSERT(is_in_register_phase_);
 
+            ++id_count_;
+
             sz page_count = pages_.size();
             for(sz i = page_count - 1; i != sz(-1); --i)
             {
@@ -145,6 +149,8 @@ namespace nre
         void deregister_id(sz id)
         {
             NCPP_ASSERT(is_in_register_phase_);
+
+            --id_count_;
 
             sz page_index = id / page_capacity_;
 

@@ -6,7 +6,7 @@
 #include <nre/rendering/newrg/abytek_render_path_events.hpp>
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_foundation_events.hpp>
-
+#include <nre/rendering/newrg/indirect_command_batch.hpp>
 
 
 namespace nre
