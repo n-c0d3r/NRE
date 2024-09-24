@@ -10,6 +10,9 @@
 #include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/dispatch_indirect_argument_list_layout.hpp>
+#include <nre/rendering/newrg/draw_instanced_indirect_argument_list.hpp>
+#include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list.hpp>
+#include <nre/rendering/newrg/dispatch_indirect_argument_list.hpp>
 #include <nre/rendering/newrg/abytek_cull_instances_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_initialize_instance_ids_binder_signature.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
@@ -85,21 +88,22 @@ namespace nre::newrg
                     auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
                     auto primitive_count = render_primitive_data_pool_p->primitive_count();
 
-                    F_indirect_argument_list initialize_instance_ids_argument_list(
-                        F_dispatch_indirect_argument_list_layout::instance_p()
-                    );
-                    initialize_instance_ids_argument_list.dispatch(
-                        0,
-                        0,
-                        F_vector3_u32 {
-                            u32(
-                                ceil(f32(primitive_count) / 64.0f)
-                            ),
-                            1,
-                            1
-                        }
-                    );
-                    F_indirect_command_batch initialize_instance_ids_command_batch = initialize_instance_ids_argument_list.build();
+                    // initialize instance ids
+                    {
+                        F_dispatch_indirect_argument_list initialize_instance_ids_argument_list(1);
+                        initialize_instance_ids_argument_list.dispatch(
+                            0,
+                            0,
+                            F_vector3_u32 {
+                                u32(
+                                    ceil(f32(primitive_count) / 64.0f)
+                                ),
+                                1,
+                                1
+                            }
+                        );
+                        F_indirect_command_batch initialize_instance_ids_command_batch = initialize_instance_ids_argument_list.build();
+                    }
 
                     clear_view(
                         NCPP_FOH_VALID(casted_view_p)

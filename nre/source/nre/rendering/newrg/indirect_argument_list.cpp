@@ -14,8 +14,8 @@ namespace nre::newrg
         layout_p_(layout_p.no_requirements()),
         command_count_(command_count)
     {
-        NCPP_ASSERT(command_count_);
-        allocate_data_internal();
+        if(command_count_)
+            allocate_data_internal();
     }
     F_indirect_argument_list::~F_indirect_argument_list()
     {

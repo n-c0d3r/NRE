@@ -13,7 +13,7 @@ namespace nre::newrg
 
 
 
-    class NRE_API F_indirect_argument_list final
+    class NRE_API F_indirect_argument_list
     {
     private:
         TK<F_indirect_argument_list_layout> layout_p_;
@@ -33,8 +33,8 @@ namespace nre::newrg
 
     public:
         F_indirect_argument_list() = default;
-        F_indirect_argument_list(TKPA_valid<F_indirect_argument_list_layout> layout_p, u32 command_count = 1);
-        ~F_indirect_argument_list();
+        F_indirect_argument_list(TKPA_valid<F_indirect_argument_list_layout> layout_p, u32 command_count);
+        virtual ~F_indirect_argument_list();
 
         F_indirect_argument_list(const F_indirect_argument_list& x);
         F_indirect_argument_list& operator = (const F_indirect_argument_list& x);
