@@ -941,6 +941,8 @@ namespace nre::newrg
                         F_render_pass_id aliased_resource_max_sync_pass_id = aliased_resource_max_sync_pass_id_vector[i];
                         F_render_pass_id& max_sync_pass_id = max_sync_pass_ids[i];
 
+                        NCPP_ASSERT(aliased_resource_max_sync_pass_id < pass_id);
+
                         if(max_sync_pass_id == NCPP_U32_MAX)
                         {
                             max_sync_pass_id = aliased_resource_max_sync_pass_id;
@@ -1035,6 +1037,7 @@ namespace nre::newrg
                 && (b.placed_range.begin < a.placed_range.end)
             )
             {
+                new_a = a;
                 new_a.placed_range.end = b.placed_range.begin;
                 return true;
             }
@@ -1044,9 +1047,22 @@ namespace nre::newrg
                 && (b.placed_range.end > a.placed_range.begin)
             )
             {
+                new_a = a;
                 new_a.placed_range.begin = b.placed_range.end;
                 return true;
             }
+
+            if(
+                (b.placed_range.begin <= a.placed_range.begin)
+                && (b.placed_range.end >= a.placed_range.end)
+            )
+            {
+                new_a = a;
+                new_a.placed_range.end = new_a.placed_range.begin;
+                return true;
+            }
+
+            return false;
         };
 
         auto resource_span = resource_p_owf_stack_.item_span();
