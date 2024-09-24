@@ -62,9 +62,9 @@ namespace nre {
 					<< E_log_color::V_FOREGROUND_YELLOW
 					<< error_group_p->abs_path()
 					<< T_cout_lowlight("] [")
-					<< T_cout_value(coord.first)
+					<< T_cout_value(coord.first + 1)
 					<< T_cout_lowlight(", ")
-					<< T_cout_value(coord.second)
+					<< T_cout_value(coord.second + 1)
 					<< T_cout_lowlight("]: ")
 					<< error.description
 					<< std::endl;
