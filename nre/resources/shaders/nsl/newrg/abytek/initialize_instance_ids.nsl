@@ -18,10 +18,17 @@ resource instance_ids(
 
 
 
+@thread_group_size(64 1 1)
 compute_shader CS_initialize_instance_ids(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
 {
+    u32 instance_id = global_thread_id.x;
+
+    if(instance_id < instance_count)
+    {
+        instance_ids[instance_id] = instance_id;
+    }
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_INITIALIZE_INSTANCE_IDS_BINDER_SIGNATURE)
