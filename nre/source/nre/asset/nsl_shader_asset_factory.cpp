@@ -22,20 +22,52 @@ namespace nre {
 		auto& error_group_p_stack = error_storage_p->group_p_stack();
 		auto& error_group_p_container = error_group_p_stack.get_container();
 
+		auto shader_module_manager_p = shader_compiler_p->shader_module_manager_p();
+
 		for(auto& error_group_p : error_group_p_container)
 		{
 			auto& error_stack = error_group_p->stack();
 			auto& error_container = error_stack.get_container();
 
-			std::cout << "[" << error_group_p->abs_path() << "]" << std::endl;
+			const auto& abs_path = error_group_p->abs_path();
+			auto unit_p = shader_module_manager_p->abs_path_to_translation_unit_p().find(abs_path)->second;
+
+			const auto& raw_src_content = unit_p->raw_src_content();
+			const auto& preprocessed_src = unit_p->preprocessed_src();
+
+			TG_vector<eastl::pair<sz, sz>> coords;
+			coords.reserve(raw_src_content.size());
+			eastl::pair<sz, sz> next_coord = { 0, 0 };
+			for(auto character : raw_src_content)
+			{
+				coords.push_back(next_coord);
+				next_coord.first++;
+				if(character == '\n')
+				{
+					next_coord = { 0, next_coord.second + 1 };
+				}
+			}
+
 			for(auto it = error_container.begin(); it != error_container.end(); ++it)
 			{
 				auto& error = *it;
 
-				for(u32 i = 0; i < NCPP_TAB_SIZE; ++i)
-					std::cout << ' ';
+				sz raw_location = preprocessed_src.raw_locations[error.location];
+				auto coord = coords[raw_location];
 
-				std::cout << error.description << std::endl;
+				std::cout
+					<< E_log_color::V_FOREGROUND_BRIGHT_RED
+					<< "ERROR"
+					<< T_cout_lowlight(" [")
+					<< E_log_color::V_FOREGROUND_YELLOW
+					<< error_group_p->abs_path()
+					<< T_cout_lowlight("] [")
+					<< T_cout_value(coord.first)
+					<< T_cout_lowlight(", ")
+					<< T_cout_value(coord.second)
+					<< T_cout_lowlight("]: ")
+					<< error.description
+					<< std::endl;
 			}
 		}
 	}
