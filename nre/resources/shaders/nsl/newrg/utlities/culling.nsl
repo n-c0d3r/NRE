@@ -1,0 +1,11 @@
+import(nrhi)
+
+
+
+resource cull_options_buffer(
+    ConstantBuffer
+)
+@buffer(cull_options_buffer)
+uniform __cull_options___(
+    float4x4
+)

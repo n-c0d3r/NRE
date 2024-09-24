@@ -134,6 +134,8 @@ namespace nre::newrg
 
     F_resource_gpu_virtual_address F_transient_resource_readback::query_gpu_virtual_address(sz offset)
     {
+        NCPP_ASSERT(offset != sz(-1));
+        NCPP_ASSERT(target_resource_p_->rhi_p());
         return target_resource_p_->rhi_p()->gpu_virtual_address() + offset;
     }
 }

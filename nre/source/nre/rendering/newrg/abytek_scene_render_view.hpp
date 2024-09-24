@@ -25,6 +25,8 @@ namespace nre::newrg
         F_render_frame_buffer* rg_main_frame_buffer_p_ = 0;
         F_render_frame_buffer* rg_depth_only_frame_buffer_p_ = 0;
 
+        sz rg_view_buffer_offset_ = sz(-1);
+
     public:
         F_vector4 clear_color = F_vector4::zero();
 
@@ -35,6 +37,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE F_render_resource* rg_depth_texture_p() const noexcept { return rg_depth_texture_p_; }
         NCPP_FORCE_INLINE F_render_frame_buffer* rg_main_frame_buffer_p() const noexcept { return rg_main_frame_buffer_p_; }
         NCPP_FORCE_INLINE F_render_frame_buffer* rg_depth_only_frame_buffer_p() const noexcept { return rg_depth_only_frame_buffer_p_; }
+
+        NCPP_FORCE_INLINE sz rg_view_buffer_offset() const noexcept { return rg_view_buffer_offset_; }
 
 
 
