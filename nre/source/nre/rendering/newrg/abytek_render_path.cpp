@@ -48,6 +48,7 @@ namespace nre::newrg
         initialize_instance_ids_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
             "shaders/nsl/newrg/abytek/initialize_instance_ids.nsl"
         ).T_cast<A_cached_pso_shader_asset>();
+        initialize_instance_ids_pso_p_ = { initialize_instance_ids_shader_asset_p_->pipeline_state_p_vector()[0] };
     }
     F_abytek_render_path::~F_abytek_render_path()
     {
