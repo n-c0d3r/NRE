@@ -9,9 +9,11 @@
 #include <nre/rendering/newrg/indirect_argument_list.hpp>
 #include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
-#include <nre/rendering/newrg/abytek_instance_culling_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_instance_id_initializing_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_cull_instances_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_initialize_instance_ids_binder_signature.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
+#include <nre/asset/asset_system.hpp>
+#include <nre/asset/cached_pso_shader_asset.hpp>
 #include <nre/actor/actor.hpp>
 
 
@@ -39,8 +41,13 @@ namespace nre::newrg
         );
 
         // register binder signatures
-        F_binder_signature_manager::instance_p()->T_register<F_abytek_instance_culling_binder_signature>();
-        F_binder_signature_manager::instance_p()->T_register<F_abytek_instance_id_initializing_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_cull_instances_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_initialize_instance_ids_binder_signature>();
+
+        // load shaders
+        initialize_instance_ids_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+            "shaders/nsl/newrg/abytek/initialize_instance_ids.nsl"
+        ).T_cast<A_cached_pso_shader_asset>();
     }
     F_abytek_render_path::~F_abytek_render_path()
     {

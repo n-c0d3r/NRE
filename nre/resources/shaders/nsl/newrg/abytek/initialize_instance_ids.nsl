@@ -1,0 +1,24 @@
+
+@slot(0)
+resource uniform_buffer(
+    ConstantBuffer
+)
+
+@buffer(uniform_buffer)
+uniform instance_count(u32)
+
+@slot(1)
+resource instance_ids(
+    RWBuffer(u32)
+)
+
+
+
+compute_shader CS_initialize_instance_ids(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+}
+
+@root_signature(NRE_NEWRG_ABYTEK_INITIALIZE_INSTANCE_IDS_BINDER_SIGNATURE)
+pipeline_state PSO_initialize_instance_ids(CS_initialize_instance_ids)

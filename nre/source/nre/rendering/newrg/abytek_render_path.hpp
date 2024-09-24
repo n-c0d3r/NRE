@@ -9,6 +9,11 @@
 
 
 
+namespace nre
+{
+    class A_cached_pso_shader_asset;
+}
+
 namespace nre::newrg
 {
     class F_render_graph;
@@ -24,10 +29,14 @@ namespace nre::newrg
         F_render_foundation_rg_register_render_primitive_data_event::F_listener_handle rg_register_render_primitive_data_listener_handle_;
         F_render_foundation_rg_register_render_primitive_data_upload_event::F_listener_handle rg_register_render_primitive_data_upload_listener_handle_;
 
+        TS<A_cached_pso_shader_asset> initialize_instance_ids_shader_asset_p_;
+
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_register_view_event_
         );
+
+        NCPP_FORCE_INLINE auto initialize_instance_ids_shader_asset_p() const noexcept { return NCPP_FOH_VALID(initialize_instance_ids_shader_asset_p_); }
 
 
 

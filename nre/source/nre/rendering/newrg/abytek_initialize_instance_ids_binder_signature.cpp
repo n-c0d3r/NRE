@@ -1,14 +1,14 @@
-#include <nre/rendering/newrg/abytek_instance_id_initializing_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_initialize_instance_ids_binder_signature.hpp>
 
 
 
 namespace nre::newrg
 {
-    TK<F_abytek_instance_id_initializing_binder_signature> F_abytek_instance_id_initializing_binder_signature::instance_p_;
+    TK<F_abytek_initialize_instance_ids_binder_signature> F_abytek_initialize_instance_ids_binder_signature::instance_p_;
 
 
 
-    F_abytek_instance_id_initializing_binder_signature::F_abytek_instance_id_initializing_binder_signature() :
+    F_abytek_initialize_instance_ids_binder_signature::F_abytek_initialize_instance_ids_binder_signature() :
         A_binder_signature(
             {
                 .param_descs = {
@@ -30,7 +30,7 @@ namespace nre::newrg
                     )
                 }
             },
-            "NRE_NEWRG_ABYTEK_INSTANCE_ID_INITIALIZING_BINDER_SIGNATURE"
+            "NRE_NEWRG_ABYTEK_INITIALIZE_INSTANCE_IDS_BINDER_SIGNATURE"
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
