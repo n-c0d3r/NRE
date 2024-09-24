@@ -154,7 +154,25 @@ namespace nre::newrg
 
             NCPP_FORCE_INLINE void signal(u64 new_value) noexcept
             {
-                value = new_value;
+                u64 last_value = value;
+
+                if(last_value >= new_value)
+                    return;
+
+                while(
+                    !(
+                        ((au64&)value).compare_exchange_weak(
+                            last_value,
+                            new_value,
+                            eastl::memory_order_release,
+                            eastl::memory_order_relaxed
+                        )
+                    )
+                )
+                {
+                    if(last_value >= new_value)
+                        return;
+                }
             }
             NCPP_FORCE_INLINE b8 is_complete(u64 target_value) const noexcept
             {

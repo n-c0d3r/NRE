@@ -1934,6 +1934,8 @@ namespace nre::newrg
                 if(local_max_sync_pass_id == NCPP_U32_MAX)
                     continue;
 
+                NCPP_ASSERT(local_max_sync_pass_id <= pass_p->id());
+
                 F_render_pass_id& max_sync_pass_id = max_sync_pass_ids[
                     sync_render_worker_index
                 ];
