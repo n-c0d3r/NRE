@@ -15,6 +15,7 @@ namespace nre::newrg
             | ED_resource_flag::INDIRECT_ARGUMENT_BUFFER
             | ED_resource_flag::CONSTANT_BUFFER
             | ED_resource_flag::UNORDERED_ACCESS
+            | ED_resource_flag::STRUCTURED
         ),
         add_resource_state_stack_(add_resource_state_stack_capacity),
         initial_value_stack_(initial_value_stack_capacity)
