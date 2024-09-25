@@ -10,11 +10,20 @@
 
 namespace nre {
 
-	F_nsl_shader_asset_factory::F_nsl_shader_asset_factory() :
-		A_asset_factory({ "nsl" })
+	F_nsl_shader_asset_factory::F_nsl_shader_asset_factory(const TG_vector<G_string>& file_extensions) :
+		A_asset_factory(file_extensions)
 	{
 	}
 	F_nsl_shader_asset_factory::~F_nsl_shader_asset_factory() {
+	}
+
+	b8 F_nsl_shader_asset_factory::process(
+		const G_string& raw_src_content,
+		const G_string& abs_path,
+		TG_vector<eastl::pair<G_string, G_string>>& additional_macros
+	)
+	{
+		return true;
 	}
 
 	TS<A_asset> F_nsl_shader_asset_factory::build_from_memory(const G_string& abs_path, const F_asset_buffer& buffer)
@@ -26,15 +35,27 @@ namespace nre {
 			buffer.size()
 		);
 
+		TG_vector<eastl::pair<G_string, G_string>> additional_macros;
 		F_nsl_compiled_result compiled_result;
 		TG_vector<TU<A_pipeline_state>> pipeline_state_p_vector;
+
+		if(
+			!process(
+				raw_src_content,
+				abs_path,
+				additional_macros
+			)
+		)
+		{
+			return null;
+		}
 
 		if(
 			!(
 				F_nsl_shader_system::instance_p()->compile(
 					raw_src_content,
 					abs_path,
-					{},
+					additional_macros,
 					compiled_result,
 					pipeline_state_p_vector
 				)
