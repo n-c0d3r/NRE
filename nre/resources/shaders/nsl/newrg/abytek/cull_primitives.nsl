@@ -7,14 +7,14 @@ import(newrg/abytek/bbox.nsh)
 @slot(0)
 @slot_space(0)
 resource primitive_transforms(
-    Buffer(float4x4)
+    StructuredBuffer(float4x4)
     -1
 )
 
 @slot(0)
 @slot_space(1)
 resource primitive_last_transforms(
-    Buffer(float4x4)
+    StructuredBuffer(float4x4)
     -1
 )
 
@@ -27,29 +27,54 @@ resource primitive_mesh_ids(
 
 @slot(0)
 @slot_space(3)
+resource mesh_bboxes(
+    StructuredBuffer(F_bbox)
+    -1
+)
+
+@slot(0)
+@slot_space(4)
 resource cull_options(
     ConstantBuffer
 )
 
+@buffer(cull_options)
+uniform primitive_id_offset(u32)
+
+@buffer(cull_options)
+uniform primitive_count(u32)
+
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
-define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(3)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
 import(newrg/abytek/view.nsh)
 
 @slot(0)
-@slot_space(3)
+@slot_space(4)
+resource primitive_ids(
+    Buffer(u32)
+)
+
+@slot(0)
+@slot_space(4)
 resource visible_primitive_counts(
     RWBuffer(u32)
 )
 
 @slot(1)
-@slot_space(3)
+@slot_space(4)
 resource visible_primitive_ids(
     RWBuffer(u32)
 )
 
-@slot(0)
-@slot_space(4)
-resource mesh_bboxes(
-    StructuredBuffer(F_bbox)
-    -1
+
+
+@thread_group_size(64 1 1)
+compute_shader CS_cull_primitives(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
 )
+{
+    u32 primitive_id_index = global_thread_id.x;
+}
+
+@root_signature(NRE_NEWRG_ABYTEK_CULL_PRIMITIVES_BINDER_SIGNATURE)
+pipeline_state PSO_cull_primitives(CS_cull_primitives)

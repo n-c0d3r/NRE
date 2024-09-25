@@ -45,6 +45,17 @@ namespace nre::newrg
                             }
                         }
                     ),
+                    F_root_param_desc( // mesh bboxes
+                        F_root_descriptor_table_desc{
+                            .range_descs = {
+                                F_descriptor_range_desc {
+                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
+                                    .descriptor_count = u32(-1),
+                                    .register_space = 3
+                                }
+                            }
+                        }
+                    ),
                     F_root_param_desc( // 2CBVs (cull options, scene render view) + 1UAV (indirect arguments) + 1UAV (visible primitive ids)
                         F_root_descriptor_table_desc{
                             .range_descs = {
@@ -52,30 +63,25 @@ namespace nre::newrg
                                     .type = ED_descriptor_range_type::CONSTANT_BUFFER,
                                     .descriptor_count = 2,
                                     .base_register = 0,
-                                    .register_space = 3
+                                    .register_space = 4
+                                },
+                                F_descriptor_range_desc {
+                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
+                                    .descriptor_count = 1,
+                                    .base_register = 0,
+                                    .register_space = 4
                                 },
                                 F_descriptor_range_desc {
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
                                     .descriptor_count = 1,
                                     .base_register = 0,
-                                    .register_space = 3
+                                    .register_space = 4
                                 },
                                 F_descriptor_range_desc {
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
                                     .descriptor_count = 1,
                                     .base_register = 1,
-                                    .register_space = 3
-                                }
-                            }
-                        }
-                    ),
-                    F_root_param_desc( // mesh bbox
-                        F_root_descriptor_table_desc{
-                            .range_descs = {
-                                F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
-                                    .descriptor_count = u32(-1),
-                                    .register_space = 3
+                                    .register_space = 4
                                 }
                             }
                         }

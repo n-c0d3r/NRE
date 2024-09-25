@@ -53,9 +53,9 @@ namespace nre::newrg
     public:
         TF_general_gpu_data_table() = default;
         TF_general_gpu_data_table(
-            ED_resource_flag flags,
-            ED_resource_heap_type heap_type,
-            ED_resource_state initial_state,
+            TG_array<ED_resource_flag, row_count> flags,
+            TG_array<ED_resource_heap_type, row_count> heap_types,
+            TG_array<ED_resource_state, row_count> initial_states,
             sz page_capacity_in_elements = 1024,
             sz page_count = 0
             NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name = "")
@@ -65,8 +65,8 @@ namespace nre::newrg
         {
             T_setup_row<0>(
                 flags,
-                heap_type,
-                initial_state,
+                heap_types,
+                initial_states,
                 page_capacity_in_elements,
                 page_count
                 NRE_OPTIONAL_DEBUG_PARAM(name)
@@ -119,9 +119,9 @@ namespace nre::newrg
     private:
         template<sz row_index__>
         void T_setup_row(
-            ED_resource_flag flags,
-            ED_resource_heap_type heap_type,
-            ED_resource_state initial_state,
+            TG_array<ED_resource_flag, row_count> flags,
+            TG_array<ED_resource_heap_type, row_count> heap_types,
+            TG_array<ED_resource_state, row_count> initial_states,
             sz page_capacity_in_elements = 1024,
             sz page_count = 0
             NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name = "")
@@ -131,8 +131,8 @@ namespace nre::newrg
             {
                 T_setup_row<(row_index__ + 1 < row_count) ? (row_index__ + 1) : 0>(
                     flags,
-                    heap_type,
-                    initial_state,
+                    heap_types,
+                    initial_states,
                     page_capacity_in_elements,
                     page_count,
                     name
@@ -142,9 +142,9 @@ namespace nre::newrg
             using F_element = typename F_element_targ_list::template TF_at<row_index__>;
 
             eastl::get<row_index__>(gpu_large_data_list_tuple_) = TF_gpu_large_data_list<F_element>(
-                flags,
-                heap_type,
-                initial_state,
+                flags[row_index__],
+                heap_types[row_index__],
+                initial_states[row_index__],
                 0,
                 page_capacity_in_elements,
                 page_count

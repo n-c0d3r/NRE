@@ -10,9 +10,21 @@ namespace nre::newrg
 
     F_render_primitive_data_pool::F_render_primitive_data_pool() :
         table_(
-            ED_resource_flag::SHADER_RESOURCE,
-            ED_resource_heap_type::DEFAULT,
-            ED_resource_state::COMMON,
+            {
+                ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
+                ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
+                ED_resource_flag::SHADER_RESOURCE
+            },
+            {
+                ED_resource_heap_type::DEFAULT,
+                ED_resource_heap_type::DEFAULT,
+                ED_resource_heap_type::DEFAULT
+            },
+            {
+                ED_resource_state::COMMON,
+                ED_resource_state::COMMON,
+                ED_resource_state::COMMON
+            },
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS,
             0,
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_SUBPAGE_COUNT_PER_PAGE
