@@ -4,6 +4,7 @@
 #include <nre/rendering/newrg/abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/render_pass_utilities.hpp>
+#include <nre/rendering/newrg/render_resource_utilities.hpp>
 #include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/indirect_command_system.hpp>
 #include <nre/rendering/newrg/indirect_argument_list.hpp>
@@ -85,24 +86,44 @@ namespace nre::newrg
                 TK<F_abytek_scene_render_view> casted_view_p;
                 if(view_p.T_try_interface<F_abytek_scene_render_view>(casted_view_p))
                 {
+                    auto render_graph_p = F_render_graph::instance_p();
+
                     auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
                     auto primitive_count = render_primitive_data_pool_p->primitive_count();
 
-                    // initialize instance ids
+                    // initialize main instance ids
+                    F_render_resource* rg_main_instance_ids_buffer_p = H_render_resource::create_buffer(
+                        primitive_count,
+                        ED_format::R32_UINT,
+                        ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::UNORDERED_ACCESS,
+                        ED_resource_heap_type::DEFAULT,
+                        {}
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_render_path.main_instance_ids_buffers[")
+                            + casted_view_p->actor_p()->name().c_str()
+                            + "]"
+                        )
+                    );
+                    if(primitive_count)
                     {
-                        F_dispatch_indirect_argument_list initialize_instance_ids_argument_list(1);
-                        initialize_instance_ids_argument_list.dispatch(
-                            0,
-                            0,
-                            F_vector3_u32 {
-                                u32(
-                                    ceil(f32(primitive_count) / 64.0f)
-                                ),
-                                1,
-                                1
-                            }
-                        );
-                        F_indirect_command_batch initialize_instance_ids_command_batch = initialize_instance_ids_argument_list.build();
+                        // H_render_pass::dispatch(
+                        //     [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
+                        //     {
+                        //         command_list_p->ZG_bind_root_signature(
+                        //             F_abytek_initialize_instance_ids_binder_signature::instance_p()->root_signature_p()
+                        //         );
+                        //     },
+                        //     element_ceil(
+                        //         F_vector3_f32(primitive_count, 1, 1)
+                        //         / 64.0f
+                        //     ),
+                        //     0
+                        //     NRE_OPTIONAL_DEBUG_PARAM(
+                        //         F_render_frame_name("nre.newrg.abytek_render_path.initialize_instance_ids(")
+                        //         + casted_view_p->actor_p()->name().c_str()
+                        //         + ")"
+                        //     )
+                        // );
                     }
 
                     clear_view(
@@ -126,7 +147,7 @@ namespace nre::newrg
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
-        H_gpu_render_pass::clear_render_target(
+        H_render_pass::clear_render_target(
             view_p->rg_main_view_element(),
             view_p->rg_main_texture_p(),
             view_p->clear_color
@@ -138,7 +159,7 @@ namespace nre::newrg
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
-        H_gpu_render_pass::clear_depth_stencil(
+        H_render_pass::clear_depth_stencil(
             view_p->rg_depth_view_element(),
             view_p->rg_depth_texture_p(),
             ED_clear_flag::DEPTH,

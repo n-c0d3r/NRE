@@ -11,7 +11,7 @@ resource uniform_buffer(
 @buffer(uniform_buffer)
 uniform instance_count(u32)
 
-@slot(1)
+@slot(0)
 resource instance_ids(
     RWBuffer(u32)
 )

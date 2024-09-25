@@ -154,7 +154,7 @@ namespace nre::newrg
                         subpage_capacity
                     };
 
-                    H_gpu_render_pass::upload_buffer(
+                    H_render_pass::upload_buffer(
                         rg_page_p,
                         local_page_offset,
                         data_span

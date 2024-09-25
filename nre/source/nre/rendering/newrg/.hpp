@@ -89,6 +89,7 @@
 #include <nre/rendering/newrg/bind_list.hpp>
 #include <nre/rendering/newrg/rhi_resource_view_bind.hpp>
 #include <nre/rendering/newrg/render_pass_utilities.hpp>
+#include <nre/rendering/newrg/render_resource_utilities.hpp>
 #include <nre/rendering/newrg/page_resource_stream.hpp>
 #include <nre/rendering/newrg/gpu_large_data_list.hpp>
 #include <nre/rendering/newrg/gpu_page_based_uploader.hpp>

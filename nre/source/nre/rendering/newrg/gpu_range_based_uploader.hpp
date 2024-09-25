@@ -90,7 +90,7 @@ namespace nre::newrg
             sz page_index = gpu_large_data_list_p_->page_index(begin_element_index);
             sz local_element_index = gpu_large_data_list_p_->local_element_index(begin_element_index);
 
-            H_gpu_render_pass::upload_buffer(
+            H_render_pass::upload_buffer(
                 gpu_large_data_list_p_->rg_page_p(page_index),
                 local_element_index * sizeof(F_element),
                 { (u8*)data.data(), data.size() * sizeof(F_element) }

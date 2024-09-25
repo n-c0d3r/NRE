@@ -12,18 +12,20 @@ namespace nre::newrg
         A_binder_signature(
             {
                 .param_descs = {
-                    F_root_param_desc( // 1CBV (instance count) + 1UAV (instance ids)
-                        F_root_descriptor_table_desc{
+                    F_root_param_desc( // 1U32 instance count
+                        F_root_constants_desc {
+                            .base_register = 0,
+                            .constant_count = 1
+                        }
+                    ),
+                    F_root_param_desc( // 1UAV (instance ids)
+                        F_root_descriptor_table_desc {
                             .range_descs = {
-                                F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::CONSTANT_BUFFER,
-                                    .descriptor_count = 1,
-                                    .base_register = 0
-                                },
                                 F_descriptor_range_desc {
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
                                     .descriptor_count = 1,
-                                    .base_register = 1
+                                    .base_register = 0,
+                                    .register_space = 0
                                 }
                             }
                         }

@@ -125,7 +125,7 @@ namespace nre::newrg
 
                     TG_span<u8> data_span = { (u8*)(src_data_page.data()), sizeof(F_element__) * gpu_large_data_list_p_->page_capacity_in_elements() };
 
-                    H_gpu_render_pass::upload_buffer(
+                    H_render_pass::upload_buffer(
                         rg_page_p,
                         0,
                         data_span

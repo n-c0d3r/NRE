@@ -231,7 +231,7 @@ int main() {
 					}
 					sz cb_offset = uniform_transient_resource_uploader_p->T_enqueue_upload(cb_data);
 
-					F_render_pass* draw_pass_p = H_gpu_render_pass::raster(
+					F_render_pass* draw_pass_p = H_render_pass::raster(
 						[=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
 						{
 							command_list_p->ZRS_bind_viewport({
