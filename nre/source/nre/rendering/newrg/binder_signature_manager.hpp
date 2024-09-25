@@ -4,6 +4,8 @@
 
 #include <nre/prerequisites.hpp>
 
+#include <nre/rendering/nsl_shader_system.hpp>
+
 
 
 namespace nre::newrg
@@ -43,8 +45,6 @@ namespace nre::newrg
     public:
         NCPP_OBJECT(F_binder_signature_manager);
 
-
-
     public:
         void install();
 
@@ -54,6 +54,11 @@ namespace nre::newrg
         {
             TU<F_signature__> signature_p = TU<F_signature__>()(NCPP_FORWARD(args)...);
             auto keyed_signature_p = signature_p.keyed();
+
+            F_nsl_shader_system::instance_p()->define_global_macro({
+                keyed_signature_p->nsl_macro_name(),
+                G_to_string(owned_signature_p_vector_.size())
+            });
 
             owned_signature_p_vector_.push_back(std::move(signature_p));
             root_signature_p_vector_.push_back(keyed_signature_p->root_signature_p());

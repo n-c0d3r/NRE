@@ -57,3 +57,5 @@
 #include <nre/rendering/geometry_utilities.hpp>
 
 #include <nre/rendering/bind_table.hpp>
+
+#include <nre/rendering/nsl_shader_system.hpp>

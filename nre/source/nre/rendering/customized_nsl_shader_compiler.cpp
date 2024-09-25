@@ -4,6 +4,7 @@
 #include <nre/io/path.hpp>
 #include <nre/asset/text_asset.hpp>
 
+#include "nsl_shader_system.hpp"
 
 
 namespace nre
@@ -42,7 +43,25 @@ namespace nre
         G_string from_directory_path = H_path::base_name(from_unit_p->abs_path());
 
         //
-        auto abs_path_opt = H_path::find_absolute_path(path, NCPP_INIL_SPAN(from_directory_path));
+        const TG_vector<G_string>& import_directories = F_nsl_shader_system::instance_p()->import_directories();
+
+        //
+        eastl::optional<G_string> abs_path_opt = H_path::find_absolute_path(
+            path,
+            NCPP_INIL_SPAN(from_directory_path)
+        );
+        if(!abs_path_opt)
+        {
+            for(auto& import_directory : import_directories)
+            {
+                abs_path_opt = H_path::find_absolute_path(
+                    import_directory + "/" + path,
+                    NCPP_INIL_SPAN(from_directory_path)
+                );
+                if(abs_path_opt)
+                    break;
+            }
+        }
         if(!abs_path_opt)
             return eastl::nullopt;
 

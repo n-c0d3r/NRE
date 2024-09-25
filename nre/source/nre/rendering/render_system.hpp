@@ -16,6 +16,7 @@ namespace nre {
 	class F_shader_library;
 	class F_default_textures;
 	class F_material_system;
+	class F_nsl_shader_system;
 
 
 
@@ -47,6 +48,8 @@ namespace nre {
 
 		TU<F_pso_library> pso_library_p_;
 		TU<F_shader_library> shader_library_p_;
+
+		TU<F_nsl_shader_system> nsl_shader_system_p_;
 
 		b8 is_main_command_list_ended_ = true;
 

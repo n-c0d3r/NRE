@@ -8,6 +8,7 @@
 #include <nre/rendering/pso_library.hpp>
 #include <nre/rendering/shader_library.hpp>
 #include <nre/rendering/default_textures.hpp>
+#include <nre/rendering/nsl_shader_system.hpp>
 #include <nre/rendering/render_pipeline.hpp>
 #include <nre/application/application.hpp>
 #include <nre/ui/imgui.hpp>
@@ -41,6 +42,9 @@ namespace nre {
 
 		instance_ps = NCPP_KTHIS_UNSAFE();
 
+		//
+		nsl_shader_system_p_ = TU<F_nsl_shader_system>()();
+
 		// create pipeline
 		{
 #ifdef NRE_ENABLE_FIRST_RENDER_PIPELINE
@@ -67,8 +71,8 @@ namespace nre {
 		shadow_system_p_ = TU<F_shadow_system>()();
 
 		// create libraries
-		pso_library_p_ = TU<F_pso_library>();
-		shader_library_p_ = TU<F_shader_library>();
+		pso_library_p_ = TU<F_pso_library>()();
+		shader_library_p_ = TU<F_shader_library>()();
 	}
 	F_render_system::~F_render_system() {
 
@@ -92,6 +96,9 @@ namespace nre {
 
 		//
 		pipeline_p_.reset();
+
+		//
+		nsl_shader_system_p_.reset();
 	}
 
 }
