@@ -5,6 +5,7 @@
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/render_pass_utilities.hpp>
 #include <nre/rendering/newrg/render_resource_utilities.hpp>
+#include <nre/rendering/newrg/render_bind_list.hpp>
 #include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/indirect_command_system.hpp>
 #include <nre/rendering/newrg/indirect_argument_list.hpp>
@@ -14,8 +15,8 @@
 #include <nre/rendering/newrg/draw_instanced_indirect_argument_list.hpp>
 #include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list.hpp>
 #include <nre/rendering/newrg/dispatch_indirect_argument_list.hpp>
-#include <nre/rendering/newrg/abytek_cull_instances_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_initialize_instance_ids_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_cull_primitives_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_initialize_primitive_ids_binder_signature.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/render_primitive_data_pool.hpp>
 #include <nre/asset/asset_system.hpp>
@@ -47,14 +48,14 @@ namespace nre::newrg
         );
 
         // register binder signatures
-        F_binder_signature_manager::instance_p()->T_register<F_abytek_cull_instances_binder_signature>();
-        F_binder_signature_manager::instance_p()->T_register<F_abytek_initialize_instance_ids_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_cull_primitives_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_initialize_primitive_ids_binder_signature>();
 
         // load shaders
-        initialize_instance_ids_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
-            "shaders/nsl/newrg/abytek/initialize_instance_ids.nsl"
+        initialize_primitive_ids_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+            "shaders/nsl/newrg/abytek/initialize_primitive_ids.nsl"
         ).T_cast<A_cached_pso_shader_asset>();
-        initialize_instance_ids_pso_p_ = { initialize_instance_ids_shader_asset_p_->pipeline_state_p_vector()[0] };
+        initialize_primitive_ids_pso_p_ = { initialize_primitive_ids_shader_asset_p_->pipeline_state_p_vector()[0] };
     }
     F_abytek_render_path::~F_abytek_render_path()
     {
@@ -91,40 +92,20 @@ namespace nre::newrg
                     auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
                     auto primitive_count = render_primitive_data_pool_p->primitive_count();
 
-                    // initialize main instance ids
-                    F_render_resource* rg_main_instance_ids_buffer_p = H_render_resource::create_buffer(
-                        primitive_count,
-                        ED_format::R32_UINT,
-                        ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::UNORDERED_ACCESS,
-                        ED_resource_heap_type::DEFAULT,
-                        {}
+                    // initialize main primitive ids
+                    F_render_resource* rg_main_primitive_ids_buffer_p = initialize_primitive_ids(
+                        primitive_count
                         NRE_OPTIONAL_DEBUG_PARAM(
-                            F_render_frame_name("nre.newrg.abytek_render_path.main_instance_ids_buffers[")
+                            F_render_frame_name("nre.newrg.abytek_render_path.main_primitive_ids_buffers[")
                             + casted_view_p->actor_p()->name().c_str()
                             + "]"
                         )
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_render_path.initialize_primitive_ids(")
+                            + casted_view_p->actor_p()->name().c_str()
+                            + ")"
+                        )
                     );
-                    if(primitive_count)
-                    {
-                        // H_render_pass::dispatch(
-                        //     [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
-                        //     {
-                        //         command_list_p->ZG_bind_root_signature(
-                        //             F_abytek_initialize_instance_ids_binder_signature::instance_p()->root_signature_p()
-                        //         );
-                        //     },
-                        //     element_ceil(
-                        //         F_vector3_f32(primitive_count, 1, 1)
-                        //         / 64.0f
-                        //     ),
-                        //     0
-                        //     NRE_OPTIONAL_DEBUG_PARAM(
-                        //         F_render_frame_name("nre.newrg.abytek_render_path.initialize_instance_ids(")
-                        //         + casted_view_p->actor_p()->name().c_str()
-                        //         + ")"
-                        //     )
-                        // );
-                    }
 
                     clear_view(
                         NCPP_FOH_VALID(casted_view_p)
@@ -140,6 +121,68 @@ namespace nre::newrg
                 }
             }
         );
+    }
+
+    F_render_resource* F_abytek_render_path::initialize_primitive_ids(
+        u32 primitive_count
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& resource_name)
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& pass_name)
+    )
+    {
+        if(!primitive_count)
+            return 0;
+
+        F_render_resource* rg_main_primitive_ids_buffer_p = H_render_resource::create_buffer(
+            primitive_count,
+            ED_format::R32_UINT,
+            ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::UNORDERED_ACCESS,
+            ED_resource_heap_type::DEFAULT,
+            {}
+            NRE_OPTIONAL_DEBUG_PARAM(resource_name)
+        );
+
+        F_render_bind_list render_bind_list(
+            ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS
+        );
+        render_bind_list.enqueue_initialize_resource_view(
+            rg_main_primitive_ids_buffer_p,
+            ED_resource_view_type::UNORDERED_ACCESS
+        );
+
+        auto uav_element = render_bind_list[0];
+
+        auto pass_p = H_render_pass::dispatch(
+            [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
+            {
+                command_list_p->ZC_bind_root_signature(
+                    F_abytek_initialize_primitive_ids_binder_signature::instance_p()->root_signature_p()
+                );
+                command_list_p->ZC_bind_root_constant(
+                    0,
+                    primitive_count,
+                    0
+                );
+                command_list_p->ZC_bind_root_descriptor_table(
+                    1,
+                    uav_element.handle().gpu_address
+                );
+                command_list_p->ZC_bind_pipeline_state(
+                    initialize_primitive_ids_pso_p()
+                );
+            },
+            element_ceil(
+                F_vector3_f32(primitive_count, 1, 1)
+                / 64.0f
+            ),
+            0
+            NRE_OPTIONAL_DEBUG_PARAM(pass_name)
+        );
+        pass_p->add_resource_state({
+            .resource_p = rg_main_primitive_ids_buffer_p,
+            .states = ED_resource_state::UNORDERED_ACCESS
+        });
+
+        return rg_main_primitive_ids_buffer_p;
     }
 
     void F_abytek_render_path::clear_view_main_texture(

@@ -1,14 +1,14 @@
-#include <nre/rendering/newrg/abytek_cull_instances_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_cull_primitives_binder_signature.hpp>
 
 
 
 namespace nre::newrg
 {
-    TK<F_abytek_cull_instances_binder_signature> F_abytek_cull_instances_binder_signature::instance_p_;
+    TK<F_abytek_cull_primitives_binder_signature> F_abytek_cull_primitives_binder_signature::instance_p_;
 
 
 
-    F_abytek_cull_instances_binder_signature::F_abytek_cull_instances_binder_signature() :
+    F_abytek_cull_primitives_binder_signature::F_abytek_cull_primitives_binder_signature() :
         A_binder_signature(
             {
                 .param_descs = {
@@ -45,7 +45,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // 2CBVs (scene render view) + 1UAV (indirect arguments) + 1UAV (visible instance ids)
+                    F_root_param_desc( // 2CBVs (scene render view) + 1UAV (indirect arguments) + 1UAV (visible primitive ids)
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -82,7 +82,7 @@ namespace nre::newrg
                     )
                 }
             },
-            "NRE_NEWRG_ABYTEK_CULL_INSTANCES_BINDER_SIGNATURE"
+            "NRE_NEWRG_ABYTEK_CULL_PRIMITIVES_BINDER_SIGNATURE"
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
