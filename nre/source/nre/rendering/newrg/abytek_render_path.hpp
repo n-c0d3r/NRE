@@ -11,7 +11,7 @@
 
 namespace nre
 {
-    class A_cached_pso_shader_asset;
+    class F_nsl_shader_asset;
 }
 
 namespace nre::newrg
@@ -29,8 +29,10 @@ namespace nre::newrg
         F_render_foundation_rg_register_render_primitive_data_event::F_listener_handle rg_register_render_primitive_data_listener_handle_;
         F_render_foundation_rg_register_render_primitive_data_upload_event::F_listener_handle rg_register_render_primitive_data_upload_listener_handle_;
 
-        TS<A_cached_pso_shader_asset> initialize_primitive_ids_shader_asset_p_;
+        TS<F_nsl_shader_asset> initialize_primitive_ids_shader_asset_p_;
         K_compute_pipeline_state_handle initialize_primitive_ids_pso_p_;
+
+        TS<F_nsl_shader_asset> cull_primitives_shader_asset_p_;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(
@@ -39,6 +41,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto initialize_primitive_ids_shader_asset_p() const noexcept { return NCPP_FOH_VALID(initialize_primitive_ids_shader_asset_p_); }
         NCPP_FORCE_INLINE auto initialize_primitive_ids_pso_p() const noexcept { return NCPP_FOH_VALID(initialize_primitive_ids_pso_p_); }
+
+        NCPP_FORCE_INLINE auto cull_primitives_shader_asset_p() const noexcept { return NCPP_FOH_VALID(cull_primitives_shader_asset_p_); }
 
 
 

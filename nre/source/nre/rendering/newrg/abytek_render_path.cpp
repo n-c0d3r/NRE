@@ -20,7 +20,7 @@
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/render_primitive_data_pool.hpp>
 #include <nre/asset/asset_system.hpp>
-#include <nre/asset/cached_pso_shader_asset.hpp>
+#include <nre/asset/nsl_shader_asset.hpp>
 #include <nre/actor/actor.hpp>
 
 
@@ -52,10 +52,16 @@ namespace nre::newrg
         F_binder_signature_manager::instance_p()->T_register<F_abytek_initialize_primitive_ids_binder_signature>();
 
         // load shaders
-        initialize_primitive_ids_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
-            "shaders/nsl/newrg/abytek/initialize_primitive_ids.nsl"
-        ).T_cast<A_cached_pso_shader_asset>();
-        initialize_primitive_ids_pso_p_ = { initialize_primitive_ids_shader_asset_p_->pipeline_state_p_vector()[0] };
+        {
+            initialize_primitive_ids_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/initialize_primitive_ids.nsl"
+            ).T_cast<F_nsl_shader_asset>();
+            initialize_primitive_ids_pso_p_ = { initialize_primitive_ids_shader_asset_p_->pipeline_state_p_vector()[0] };
+
+            cull_primitives_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/cull_primitives.nsl"
+            ).T_cast<F_nsl_shader_asset>();
+        }
     }
     F_abytek_render_path::~F_abytek_render_path()
     {
