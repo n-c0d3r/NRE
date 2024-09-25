@@ -1,0 +1,22 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+@slot(0)
+@slot_space(4)
+resource visible_primitive_dispatch_args(
+    RWBuffer(u32)
+)
+
+void store_visible_primitive_dispatch_args(u32 visible_primitive_count)
+{
+    visible_primitive_dispatch_args[0] = (u32)(
+        (f32)visible_primitive_count
+        / (f32)NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    );
+    visible_primitive_dispatch_args[1] = NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y;
+    visible_primitive_dispatch_args[2] = NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z;
+}
+
+#define NRE_NEWRG_ABYTEK_CULL_PRIMITIVES_STORE_PRIMITIVE_COUNT(visible_primitive_count) store_visible_primitive_dispatch_args(visible_primitive_count)
+
+import(newrg/abytek/cull_primitives.nsh)

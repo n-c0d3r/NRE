@@ -73,14 +73,8 @@ namespace nre::newrg
                                 },
                                 F_descriptor_range_desc {
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
-                                    .descriptor_count = 1,
+                                    .descriptor_count = 2,
                                     .base_register = 0,
-                                    .register_space = 4
-                                },
-                                F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::UNORDERED_ACCESS,
-                                    .descriptor_count = 1,
-                                    .base_register = 1,
                                     .register_space = 4
                                 }
                             }

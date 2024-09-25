@@ -30,6 +30,7 @@ namespace nre::newrg
     public:
         F_indirect_data_list() = default;
         F_indirect_data_list(u32 stride, u32 count);
+        F_indirect_data_list(sz address_offset, u32 stride, u32 count);
         ~F_indirect_data_list();
 
         F_indirect_data_list(const F_indirect_data_list& x);

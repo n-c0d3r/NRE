@@ -58,8 +58,8 @@ namespace nre::newrg
             ).T_cast<F_nsl_shader_asset>();
             initialize_primitive_ids_pso_p_ = { initialize_primitive_ids_shader_asset_p_->pipeline_state_p_vector()[0] };
 
-            cull_primitives_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
-                "shaders/nsl/newrg/abytek/cull_primitives.nsl"
+            cull_primitives_to_dispatch_visible_primitives_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/cull_primitives_to_dispatch_visible_primitives.nsl"
             ).T_cast<F_nsl_shader_asset>();
         }
     }

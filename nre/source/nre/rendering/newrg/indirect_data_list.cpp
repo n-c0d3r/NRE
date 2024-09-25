@@ -12,6 +12,12 @@ namespace nre::newrg
     {
         allocate_data_internal();
     }
+    F_indirect_data_list::F_indirect_data_list(sz address_offset, u32 stride, u32 count) :
+        address_offset_(address_offset),
+        stride_(stride),
+        count_(count)
+    {
+    }
     F_indirect_data_list::~F_indirect_data_list()
     {
     }

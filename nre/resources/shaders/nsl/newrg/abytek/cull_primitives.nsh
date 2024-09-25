@@ -54,26 +54,36 @@ resource primitive_ids(
     Buffer(u32)
 )
 
-@slot(0)
-@slot_space(4)
-resource visible_primitive_counts(
-    RWBuffer(u32)
-)
-
 @slot(1)
 @slot_space(4)
 resource visible_primitive_ids(
     RWBuffer(u32)
 )
 
+// define NRE_NEWRG_ABYTEK_CULL_PRIMITIVES_STORE_PRIMITIVE_COUNT(u32 visible_primitive_count)
 
+void try_cull_primitives(u32 global_thread_index)
+{
+    u32 primitive_id_index = primitive_id_offset + global_thread_index;
 
-@thread_group_size(64 1 1)
+    if(global_thread_index < primitive_count)
+    {
+    }
+
+    NRE_NEWRG_ABYTEK_CULL_PRIMITIVES_STORE_PRIMITIVE_COUNT(primitive_count);
+}
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
 compute_shader CS_cull_primitives(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
 {
-    u32 primitive_id_index = global_thread_id.x;
+    u32 global_thread_index = global_thread_id.x;
+    try_cull_primitives(global_thread_index);
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_CULL_PRIMITIVES_BINDER_SIGNATURE)
