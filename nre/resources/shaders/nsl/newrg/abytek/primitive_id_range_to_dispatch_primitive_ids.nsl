@@ -1,0 +1,50 @@
+
+import(newrg/abytek/prerequisites.nsh)
+import(newrg/abytek/primitive_id.nsh)
+import(indirect_arguments.nsh)
+
+
+
+@slot(0)
+@slot_space(0)
+resource options(
+    ConstantBuffer
+)
+default_constant_buffer(options)
+uniform thread_group_size_1d(u32)
+
+@slot(1)
+@slot_space(0)
+resource primitive_id_range(
+    Buffer(F_primitive_id_range)
+)
+
+@slot(0)
+@slot_space(0)
+resource dispatch_indirect_arguments(
+    RWBuffer(F_dispatch_indirect_argument)
+)
+
+
+
+@thread_group_size(
+    1
+    1
+    1
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    dispatch_indirect_arguments[0] = uint3(
+        (u32)ceil(
+            (f32)(primitive_id_range.end - primitive_id_range.begin)
+            / (f32)thread_group_size_1d
+        ),
+        1,
+        1
+    );
+}
+
+@root_signature(NRE_NEWRG_ABYTEK_CULL_PRIMITIVES_BINDER_SIGNATURE)
+pipeline_state PSO(CS)

@@ -76,7 +76,7 @@ void try_cull_primitives(u32 global_thread_index)
     NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
     NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
 )
-compute_shader CS_cull_primitives(
+compute_shader CS(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
 {
@@ -85,4 +85,4 @@ compute_shader CS_cull_primitives(
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_CULL_PRIMITIVES_BINDER_SIGNATURE)
-pipeline_state PSO_cull_primitives(CS_cull_primitives)
+pipeline_state PSO(CS)

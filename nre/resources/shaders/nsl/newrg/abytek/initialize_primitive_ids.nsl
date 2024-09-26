@@ -19,7 +19,7 @@ resource primitive_ids(
 
 
 @thread_group_size(64 1 1)
-compute_shader CS_initialize_primitive_ids(
+compute_shader CS(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
 {
@@ -32,4 +32,4 @@ compute_shader CS_initialize_primitive_ids(
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_INITIALIZE_PRIMITIVE_IDS_BINDER_SIGNATURE)
-pipeline_state PSO_initialize_primitive_ids(CS_initialize_primitive_ids)
+pipeline_state PSO(CS)

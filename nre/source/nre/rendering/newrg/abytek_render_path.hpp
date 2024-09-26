@@ -29,6 +29,7 @@ namespace nre::newrg
         K_compute_pipeline_state_handle initialize_primitive_ids_pso_p_;
 
         TS<F_nsl_shader_asset> cull_primitives_shader_asset_p_;
+        K_compute_pipeline_state_handle cull_primitives_pso_p_;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(
@@ -39,6 +40,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto initialize_primitive_ids_pso_p() const noexcept { return NCPP_FOH_VALID(initialize_primitive_ids_pso_p_); }
 
         NCPP_FORCE_INLINE auto cull_primitives_shader_asset_p() const noexcept { return NCPP_FOH_VALID(cull_primitives_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto cull_primitives_pso_p() const noexcept { return NCPP_FOH_VALID(cull_primitives_pso_p_); }
 
 
 
@@ -62,11 +64,11 @@ namespace nre::newrg
             u32 primitive_count
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
-        void cull_primitives_to_dispatch_visible_primitives(
+        void cull_primitives(
             F_render_resource* primitive_id_buffer_p,
-            const F_indirect_command_batch& in_command_batch,
-            const F_indirect_data_batch& in_data_batch,
-            const F_indirect_data_batch& out_data_batch
+            const F_indirect_command_batch& execute_command_batch,
+            const F_indirect_data_batch& primitive_id_range_data_batch,
+            const F_indirect_data_batch& visible_primitive_id_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
 

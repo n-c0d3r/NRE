@@ -54,6 +54,7 @@ namespace nre::newrg
             cull_primitives_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
                 "shaders/nsl/newrg/abytek/cull_primitives.nsl"
             ).T_cast<F_nsl_shader_asset>();
+            cull_primitives_pso_p_ = { cull_primitives_shader_asset_p_->pipeline_state_p_vector()[0] };
         }
     }
     F_abytek_render_path::~F_abytek_render_path()
@@ -188,17 +189,17 @@ namespace nre::newrg
             .states = ED_resource_state::UNORDERED_ACCESS
         });
     }
-    void F_abytek_render_path::cull_primitives_to_dispatch_visible_primitives(
+    void F_abytek_render_path::cull_primitives(
         F_render_resource* primitive_id_buffer_p,
-        const F_indirect_command_batch& in_command_batch,
-        const F_indirect_data_batch& in_data_batch,
-        const F_indirect_data_batch& out_data_batch
+        const F_indirect_command_batch& execute_command_batch,
+        const F_indirect_data_batch& primitive_id_range_data_batch,
+        const F_indirect_data_batch& visible_primitive_id_range_data_batch
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
-        NCPP_ASSERT(in_command_batch);
-        NCPP_ASSERT(in_data_batch);
-        NCPP_ASSERT(out_data_batch);
+        NCPP_ASSERT(execute_command_batch);
+        NCPP_ASSERT(primitive_id_range_data_batch);
+        NCPP_ASSERT(visible_primitive_id_range_data_batch);
 
         // auto pass_p = H_indirect_command_batch::execute(
         //     [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
