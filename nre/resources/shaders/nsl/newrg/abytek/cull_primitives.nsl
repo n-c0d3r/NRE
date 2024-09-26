@@ -54,7 +54,7 @@ resource primitive_ids(
 @slot(1)
 @slot_space(4)
 resource visible_primitive_id_ranges(
-    RWBuffer(F2_primitive_id_range)
+    RWStructuredBuffer(F2_primitive_id_range)
 )
 
 
