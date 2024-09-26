@@ -61,10 +61,13 @@ resource visible_primitive_id_range(
 
 void try_cull_primitives(u32 global_thread_index)
 {
-    u32 primitive_id_index = primitive_id_offset + global_thread_index;
+    u32 primitive_count = primitive_id_range.end - primitive_id_range.begin;
+
+    u32 primitive_id_index = primitive_id_range.begin + global_thread_index;
 
     if(global_thread_index < primitive_count)
     {
+        F_primitive_id primitive_id = primitive_ids[primitive_id_index];
     }
 }
 
