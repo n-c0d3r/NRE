@@ -18,6 +18,8 @@ namespace nre::newrg
 {
     class F_render_graph;
     class F_indirect_argument_list_layout;
+    class F_indirect_command_batch;
+    class F_indirect_data_list;
 
 
 
@@ -58,10 +60,19 @@ namespace nre::newrg
         virtual void RG_end_register() override;
 
     public:
-        F_render_resource* initialize_primitive_ids(
+        F_render_resource* create_primitive_id_buffer(
+            NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(const F_render_frame_name& name = "")
+        );
+        void initialize_primitive_ids(
+            F_render_resource* primitive_id_buffer_p,
             u32 primitive_count
-            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& resource_name = "")
-            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& pass_name = "")
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void cull_primitives_to_dispatch_visible_primitives(
+            F_render_resource* primitive_id_buffer_p,
+            const F_indirect_command_batch& execute_command_batch,
+            const F_indirect_command_batch& result_command_batch
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
 
     public:

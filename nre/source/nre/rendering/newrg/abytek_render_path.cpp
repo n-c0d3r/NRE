@@ -9,6 +9,8 @@
 #include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/indirect_command_system.hpp>
 #include <nre/rendering/newrg/indirect_argument_list.hpp>
+#include <nre/rendering/newrg/indirect_command_batch_utilities.hpp>
+#include <nre/rendering/newrg/indirect_data_list_utilities.hpp>
 #include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/dispatch_indirect_argument_list_layout.hpp>
@@ -98,14 +100,17 @@ namespace nre::newrg
                     auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
                     auto primitive_count = render_primitive_data_pool_p->primitive_count();
 
-                    // initialize main primitive ids
-                    F_render_resource* rg_main_primitive_ids_buffer_p = initialize_primitive_ids(
-                        primitive_count
-                        NRE_OPTIONAL_DEBUG_PARAM(
-                            F_render_frame_name("nre.newrg.abytek_render_path.main_primitive_ids_buffers[")
+                    F_render_resource* rg_primitive_id_buffer_p = create_primitive_id_buffer(
+                        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
+                            F_render_frame_name("nre.newrg.abytek_render_path.primitive_id_buffers[")
                             + casted_view_p->actor_p()->name().c_str()
                             + "]"
                         )
+                    );
+
+                    initialize_primitive_ids(
+                        rg_primitive_id_buffer_p,
+                        primitive_count
                         NRE_OPTIONAL_DEBUG_PARAM(
                             F_render_frame_name("nre.newrg.abytek_render_path.initialize_primitive_ids(")
                             + casted_view_p->actor_p()->name().c_str()
@@ -129,29 +134,33 @@ namespace nre::newrg
         );
     }
 
-    F_render_resource* F_abytek_render_path::initialize_primitive_ids(
-        u32 primitive_count
-        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& resource_name)
-        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& pass_name)
+    F_render_resource* F_abytek_render_path::create_primitive_id_buffer(
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(const F_render_frame_name& name)
     )
     {
-        if(!primitive_count)
-            return 0;
-
-        F_render_resource* rg_main_primitive_ids_buffer_p = H_render_resource::create_buffer(
-            primitive_count,
+        return H_render_resource::create_buffer(
+            NRE_NEWRG_ABYTEK_PRIMITIVE_ID_BUFFER_CAPACITY,
             ED_format::R32_UINT,
             ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::UNORDERED_ACCESS,
             ED_resource_heap_type::DEFAULT,
             {}
-            NRE_OPTIONAL_DEBUG_PARAM(resource_name)
+            NRE_OPTIONAL_DEBUG_PARAM(name)
         );
+    }
+    void F_abytek_render_path::initialize_primitive_ids(
+        F_render_resource* primitive_id_buffer_p,
+        u32 primitive_count
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
+    )
+    {
+        if(!primitive_count)
+            return;
 
         F_render_bind_list render_bind_list(
             ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS
         );
         render_bind_list.enqueue_initialize_resource_view(
-            rg_main_primitive_ids_buffer_p,
+            primitive_id_buffer_p,
             ED_resource_view_type::UNORDERED_ACCESS
         );
 
@@ -181,14 +190,39 @@ namespace nre::newrg
                 / 64.0f
             ),
             0
-            NRE_OPTIONAL_DEBUG_PARAM(pass_name)
+            NRE_OPTIONAL_DEBUG_PARAM(name)
         );
         pass_p->add_resource_state({
-            .resource_p = rg_main_primitive_ids_buffer_p,
+            .resource_p = primitive_id_buffer_p,
             .states = ED_resource_state::UNORDERED_ACCESS
         });
+    }
+    void F_abytek_render_path::cull_primitives_to_dispatch_visible_primitives(
+        F_render_resource* primitive_id_buffer_p,
+        const F_indirect_command_batch& execute_command_batch,
+        const F_indirect_command_batch& result_command_batch
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
+    )
+    {
+        NCPP_ASSERT(execute_command_batch);
+        NCPP_ASSERT(result_command_batch);
 
-        return rg_main_primitive_ids_buffer_p;
+        // auto pass_p = H_indirect_command_batch::execute(
+        //     [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
+        //     {
+        //     },
+        //     execute_command_batch,
+        //     flag_combine(
+        //         E_render_pass_flag::MAIN_RENDER_WORKER,
+        //         E_render_pass_flag::GPU_ACCESS_COMPUTE
+        //     ),
+        //     0
+        //     NRE_OPTIONAL_DEBUG_PARAM(name)
+        // );
+        // pass_p->add_resource_state({
+        //     .resource_p = primitive_id_buffer_p,
+        //     .states = ED_resource_state::UNORDERED_ACCESS
+        // });
     }
 
     void F_abytek_render_path::clear_view_main_texture(

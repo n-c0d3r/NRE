@@ -9,6 +9,7 @@
 #include <nre/rendering/newrg/render_primitive_data_pool.hpp>
 #include <nre/rendering/newrg/unified_mesh_system.hpp>
 #include <nre/rendering/newrg/indirect_command_system.hpp>
+#include <nre/rendering/newrg/indirect_data_system.hpp>
 
 
 namespace nre::newrg
@@ -25,6 +26,7 @@ namespace nre::newrg
         render_primitive_data_pool_p_ = TU<F_render_primitive_data_pool>()();
         unified_mesh_system_p_ = TU<F_unified_mesh_system>()();
         indirect_command_system_p_ = TU<F_indirect_command_system>()();
+        indirect_data_system_p_ = TU<F_indirect_data_system>()();
     }
     F_render_foundation::~F_render_foundation()
     {
@@ -49,6 +51,7 @@ namespace nre::newrg
 
         uniform_transient_resource_uploader_p_->RG_begin_register();
         indirect_command_system_p_->RG_begin_register();
+        indirect_data_system_p_->RG_begin_register();
 
         unified_mesh_system_p_->RG_begin_register();
         unified_mesh_system_rg_begin_register_event_.invoke();
@@ -73,6 +76,7 @@ namespace nre::newrg
             render_path_p->RG_end_register();
         }
 
+        indirect_data_system_p_->RG_end_register();
         indirect_command_system_p_->RG_end_register();
         uniform_transient_resource_uploader_p_->RG_end_register();
 

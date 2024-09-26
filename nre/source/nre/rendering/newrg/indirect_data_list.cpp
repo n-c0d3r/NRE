@@ -1,5 +1,5 @@
 #include <nre/rendering/newrg/indirect_data_list.hpp>
-#include <nre/rendering/newrg/indirect_command_system.hpp>
+#include <nre/rendering/newrg/indirect_data_system.hpp>
 #include <nre/rendering/newrg/render_descriptor_element.hpp>
 
 
@@ -55,7 +55,7 @@ namespace nre::newrg
 
     void F_indirect_data_list::allocate_data_internal()
     {
-        address_offset_ = F_indirect_command_system::instance_p()->push(
+        address_offset_ = F_indirect_data_system::instance_p()->push(
             size(),
             size(),
             0
@@ -85,7 +85,7 @@ namespace nre::newrg
 
         F_render_graph::instance_p()->enqueue_initialize_resource_view({
             .element = descriptor_element,
-            .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+            .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
             .desc = parsed_desc
         });
     }

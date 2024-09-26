@@ -102,10 +102,13 @@
 #include <nre/rendering/newrg/render_primitive_data.hpp>
 #include <nre/rendering/newrg/indirect_command_system.hpp>
 #include <nre/rendering/newrg/indirect_command_batch.hpp>
+#include <nre/rendering/newrg/indirect_command_batch_utilities.hpp>
 #include <nre/rendering/newrg/indirect_argument_list.hpp>
 #include <nre/rendering/newrg/indirect_argument_table.hpp>
 #include <nre/rendering/newrg/indirect_argument_list_layout.hpp>
+#include <nre/rendering/newrg/indirect_data_system.hpp>
 #include <nre/rendering/newrg/indirect_data_list.hpp>
+#include <nre/rendering/newrg/indirect_data_list_utilities.hpp>
 #include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/dispatch_indirect_argument_list_layout.hpp>
