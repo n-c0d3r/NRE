@@ -2,11 +2,16 @@
 
 #include <nre/prerequisites.hpp>
 
+#include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/render_path.hpp>
 #include <nre/rendering/newrg/abytek_render_path_events.hpp>
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_foundation_events.hpp>
 #include <nre/rendering/newrg/indirect_command_batch.hpp>
+#include <nre/rendering/newrg/indirect_argument_list.hpp>
+#include <nre/rendering/newrg/indirect_command_batch_utilities.hpp>
+#include <nre/rendering/newrg/indirect_data_list.hpp>
+#include <nre/rendering/newrg/indirect_data_batch_utilities.hpp>
 
 
 namespace nre
@@ -16,13 +21,6 @@ namespace nre
 
 namespace nre::newrg
 {
-    class F_render_graph;
-    class F_indirect_argument_list_layout;
-    class F_indirect_command_batch;
-    class F_indirect_data_list;
-
-
-
     class NRE_API F_abytek_render_path : public F_render_path
     {
     private:
@@ -70,8 +68,10 @@ namespace nre::newrg
         );
         void cull_primitives_to_dispatch_visible_primitives(
             F_render_resource* primitive_id_buffer_p,
-            const F_indirect_command_batch& execute_command_batch,
-            const F_indirect_command_batch& result_command_batch
+            const F_indirect_command_batch& in_command_batch,
+            const F_indirect_data_batch& in_data_batch,
+            const F_indirect_command_batch& out_command_batch,
+            const F_indirect_data_batch& out_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
 

@@ -12,12 +12,6 @@ namespace nre::newrg
     {
         allocate_data_internal();
     }
-    F_indirect_data_list::F_indirect_data_list(sz address_offset, u32 stride, u32 count) :
-        address_offset_(address_offset),
-        stride_(stride),
-        count_(count)
-    {
-    }
     F_indirect_data_list::~F_indirect_data_list()
     {
     }
@@ -25,7 +19,11 @@ namespace nre::newrg
     F_indirect_data_list::F_indirect_data_list(const F_indirect_data_list& x) :
         F_indirect_data_list(x.stride_, x.count_)
     {
-        allocate_data_internal();
+        memcpy(
+            data_.data(),
+            x.data_.data(),
+            size()
+        );
     }
     F_indirect_data_list& F_indirect_data_list::operator = (const F_indirect_data_list& x)
     {
@@ -34,59 +32,86 @@ namespace nre::newrg
 
         allocate_data_internal();
 
+        memcpy(
+            data_.data(),
+            x.data_.data(),
+            size()
+        );
+
         return *this;
     }
 
     F_indirect_data_list::F_indirect_data_list(F_indirect_data_list&& x) noexcept :
-        address_offset_(x.address_offset_),
         stride_(x.stride_),
-        count_(x.count_)
+        count_(x.count_),
+        data_(x.data_)
     {
         x.reset();
     }
     F_indirect_data_list& F_indirect_data_list::operator = (F_indirect_data_list&& x) noexcept
     {
-        address_offset_ = x.address_offset_;
         stride_ = x.stride_;
         count_ = x.count_;
+        data_ = x.data_;
+
+        x.reset();
 
         return *this;
     }
 
     void F_indirect_data_list::allocate_data_internal()
     {
-        address_offset_ = F_indirect_data_system::instance_p()->push(
-            size(),
-            size(),
-            0
-        );
+        data_ = {
+            (u8*)(
+                F_reference_render_frame_allocator().allocate(
+                    size(),
+                    size(),
+                    0,
+                    0
+                )
+            ),
+            size()
+        };
     }
 
     void F_indirect_data_list::reset()
     {
-        address_offset_ = sz(-1);
         stride_ = 0;
         count_ = 0;
+        data_ = {};
     }
 
-    void F_indirect_data_list::enqueue_initialize_resource_view(
+    F_indirect_data_batch F_indirect_data_list::build()
+    {
+        auto indirect_data_system_p = F_indirect_data_system::instance_p();
+
+        sz offset = indirect_data_system_p->push(
+            size(),
+            stride()
+        );
+
+        indirect_data_system_p->enqueue_initial_value(
+            data_,
+            offset
+        );
+
+        return {
+            offset,
+            stride_,
+            count_
+        };
+    }
+
+    void F_indirect_data_list::set(
         u32 data_index,
-        u32 data_count,
-        const F_render_descriptor_element& descriptor_element,
-        const F_resource_view_desc& desc
+        u32 data_offset,
+        const TG_span<u8>& value
     )
     {
-        NCPP_ASSERT(data_index < count_);
-        NCPP_ASSERT(data_count);
-
-        F_resource_view_desc parsed_desc = desc;
-        parsed_desc.mem_offset = address_offset_ + stride_ * data_index;
-        parsed_desc.overrided_size = stride_ * data_count;
-
-        F_render_graph::instance_p()->enqueue_initialize_resource_view({
-            .element = descriptor_element,
-            .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
-            .desc = parsed_desc
-        });
+        memcpy(
+            data_.data() + stride_ * data_index + data_offset,
+            value.data(),
+            value.size()
+        );
     }
 }

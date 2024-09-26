@@ -2,6 +2,8 @@
 
 #include <nre/prerequisites.hpp>
 
+#include <nre/rendering/newrg/indirect_data_batch.hpp>
+
 
 
 namespace nre::newrg
@@ -15,22 +17,21 @@ namespace nre::newrg
     class NRE_API F_indirect_data_list final
     {
     private:
-        sz address_offset_ = sz(-1);
         u32 stride_ = 0;
         u32 count_ = 0;
+        TG_span<u8> data_;
 
     public:
-        NCPP_FORCE_INLINE sz address_offset() const noexcept { return address_offset_; }
         NCPP_FORCE_INLINE u32 stride() const noexcept { return stride_; }
         NCPP_FORCE_INLINE u32 count() const noexcept { return count_; }
         NCPP_FORCE_INLINE sz size() const noexcept { return stride_ * count_; }
+        NCPP_FORCE_INLINE const auto& data() const noexcept { return data_; }
 
 
 
     public:
         F_indirect_data_list() = default;
         F_indirect_data_list(u32 stride, u32 count);
-        F_indirect_data_list(sz address_offset, u32 stride, u32 count);
         ~F_indirect_data_list();
 
         F_indirect_data_list(const F_indirect_data_list& x);
@@ -46,25 +47,31 @@ namespace nre::newrg
         void reset();
 
     public:
-        void enqueue_initialize_resource_view(
+        F_indirect_data_batch build();
+
+    public:
+        void set(
             u32 data_index,
-            u32 data_count,
-            const F_render_descriptor_element& descriptor_element,
-            const F_resource_view_desc& desc
+            u32 data_offset,
+            const TG_span<u8>& value
         );
-        NCPP_FORCE_INLINE void enqueue_initialize_resource_view(
+        template<typename F__>
+        NCPP_FORCE_INLINE void T_set(
             u32 data_index,
-            u32 data_count,
-            const F_render_descriptor_element& descriptor_element,
-            ED_resource_view_type type
+            u32 data_offset,
+            F__&& value
         )
         {
-            enqueue_initialize_resource_view(
+            set(
                 data_index,
-                data_count,
-                descriptor_element,
+                data_offset,
                 {
-                    .type = type
+                    (u8*)&value,
+                    sizeof(
+                        std::remove_const_t<
+                            std::remove_reference_t<F__>
+                        >
+                    )
                 }
             );
         }

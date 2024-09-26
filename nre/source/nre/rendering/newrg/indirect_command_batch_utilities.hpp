@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nre/rendering/newrg/indirect_command_batch.hpp>
-#include <nre/rendering/newrg/indirect_data_list.hpp>
 
 
 

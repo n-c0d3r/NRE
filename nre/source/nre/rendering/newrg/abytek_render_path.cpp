@@ -8,9 +8,7 @@
 #include <nre/rendering/newrg/render_bind_list.hpp>
 #include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/indirect_command_system.hpp>
-#include <nre/rendering/newrg/indirect_argument_list.hpp>
-#include <nre/rendering/newrg/indirect_command_batch_utilities.hpp>
-#include <nre/rendering/newrg/indirect_data_list_utilities.hpp>
+#include <nre/rendering/newrg/indirect_data_system.hpp>
 #include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/dispatch_indirect_argument_list_layout.hpp>
@@ -199,13 +197,17 @@ namespace nre::newrg
     }
     void F_abytek_render_path::cull_primitives_to_dispatch_visible_primitives(
         F_render_resource* primitive_id_buffer_p,
-        const F_indirect_command_batch& execute_command_batch,
-        const F_indirect_command_batch& result_command_batch
+        const F_indirect_command_batch& in_command_batch,
+        const F_indirect_data_batch& in_data_batch,
+        const F_indirect_command_batch& out_command_batch,
+        const F_indirect_data_batch& out_data_batch
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
-        NCPP_ASSERT(execute_command_batch);
-        NCPP_ASSERT(result_command_batch);
+        NCPP_ASSERT(in_command_batch);
+        NCPP_ASSERT(in_data_batch);
+        NCPP_ASSERT(out_command_batch);
+        NCPP_ASSERT(out_data_batch);
 
         // auto pass_p = H_indirect_command_batch::execute(
         //     [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
