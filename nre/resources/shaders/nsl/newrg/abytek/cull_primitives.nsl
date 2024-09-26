@@ -39,7 +39,7 @@ resource cull_options(
     ConstantBuffer
 )
 default_constant_buffer(cull_options)
-uniform primitive_id_range(F_primitive_id_range)
+uniform primitive_id_range(F2_primitive_id_range)
 
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
@@ -53,22 +53,27 @@ resource primitive_ids(
 
 @slot(1)
 @slot_space(4)
-resource visible_primitive_id_range(
-    RWBuffer(F_primitive_id_range)
+resource visible_primitive_id_ranges(
+    RWBuffer(F2_primitive_id_range)
 )
 
 
 
 void try_cull_primitives(u32 global_thread_index)
 {
-    u32 primitive_count = primitive_id_range.end - primitive_id_range.begin;
+    u32 primitive_id_index = primitive_id_range.offset + global_thread_index;
 
-    u32 primitive_id_index = primitive_id_range.begin + global_thread_index;
+    if(global_thread_index >= primitive_id_range.count)
+        return;
+        
+    F_primitive_id primitive_id = primitive_ids[primitive_id_index];
 
-    if(global_thread_index < primitive_count)
-    {
-        F_primitive_id primitive_id = primitive_ids[primitive_id_index];
-    }
+    u32 output_location;
+    InterlockedAdd(
+        visible_primitive_id_ranges[0].count,
+        1,
+        output_location
+    );
 }
 
 @thread_group_size(

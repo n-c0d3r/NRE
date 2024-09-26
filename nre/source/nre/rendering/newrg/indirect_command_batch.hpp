@@ -44,24 +44,42 @@ namespace nre::newrg
 
     public:
         void enqueue_initialize_resource_view(
-            u32 data_index,
-            u32 data_count,
+            u32 command_index,
+            u32 command_count,
             const F_render_descriptor_element& descriptor_element,
             const F_resource_view_desc& desc
         );
         NCPP_FORCE_INLINE void enqueue_initialize_resource_view(
-            u32 data_index,
-            u32 data_count,
+            u32 command_index,
+            u32 command_count,
             const F_render_descriptor_element& descriptor_element,
             ED_resource_view_type type
         )
         {
             enqueue_initialize_resource_view(
-                data_index,
-                data_count,
+                command_index,
+                command_count,
                 descriptor_element,
                 {
                     .type = type
+                }
+            );
+        }
+        NCPP_FORCE_INLINE void enqueue_initialize_resource_view(
+            u32 command_index,
+            u32 command_count,
+            const F_render_descriptor_element& descriptor_element,
+            ED_resource_view_type type,
+            ED_format format
+        )
+        {
+            enqueue_initialize_resource_view(
+                command_index,
+                command_count,
+                descriptor_element,
+                {
+                    .type = type,
+                    .overrided_format = format
                 }
             );
         }

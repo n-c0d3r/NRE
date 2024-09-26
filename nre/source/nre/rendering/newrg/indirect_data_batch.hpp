@@ -62,6 +62,24 @@ namespace nre::newrg
                 }
             );
         }
+        NCPP_FORCE_INLINE void enqueue_initialize_resource_view(
+            u32 data_index,
+            u32 data_count,
+            const F_render_descriptor_element& descriptor_element,
+            ED_resource_view_type type,
+            ED_format format
+        )
+        {
+            enqueue_initialize_resource_view(
+                data_index,
+                data_count,
+                descriptor_element,
+                {
+                    .type = type,
+                    .overrided_format = format
+                }
+            );
+        }
 
     public:
         NCPP_FORCE_INLINE b8 is_valid() const noexcept
