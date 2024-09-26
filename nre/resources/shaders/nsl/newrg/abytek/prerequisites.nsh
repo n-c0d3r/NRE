@@ -1,5 +1,6 @@
 
 import(nrhi)
+import(indirect_arguments.nsh)
 
 define NSL_DISABLE_AUTO_SLOTS
 
