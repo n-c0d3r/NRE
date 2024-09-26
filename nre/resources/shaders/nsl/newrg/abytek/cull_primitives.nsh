@@ -69,8 +69,6 @@ void try_cull_primitives(u32 global_thread_index)
     if(global_thread_index < primitive_count)
     {
     }
-
-    NRE_NEWRG_ABYTEK_CULL_PRIMITIVES_STORE_PRIMITIVE_COUNT(primitive_count);
 }
 
 @thread_group_size(
