@@ -49,6 +49,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE ED_resource_flag resource_flags() const noexcept { return resource_flags_; }
         NCPP_FORCE_INLINE F_render_resource* target_resource_p() const noexcept { return target_resource_p_; }
 
+        NCPP_FORCE_INLINE sz resource_size() const noexcept { return resource_size_.load(eastl::memory_order_acquire); }
+
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
             NCPP_FORCE_INLINE const auto& name() const noexcept { return name_; }
         );
@@ -57,18 +59,16 @@ namespace nre::newrg
 
     public:
         F_gpu_driven_stack(
-            ED_resource_flag additional_resource_flags,
+            ED_resource_flag resource_flags,
             u32 add_resource_state_stack_capacity,
             u32 initial_value_stack_capacity
             NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name)
         );
-        ~F_gpu_driven_stack();
-
-
+        virtual ~F_gpu_driven_stack();
 
     public:
-        void RG_begin_register();
-        void RG_end_register();
+        virtual void RG_begin_register();
+        virtual void RG_end_register();
 
     public:
         /**

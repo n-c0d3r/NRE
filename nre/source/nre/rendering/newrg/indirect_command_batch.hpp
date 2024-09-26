@@ -9,7 +9,7 @@
 
 namespace nre::newrg
 {
-    class NRE_API F_indirect_command_batch final
+    class NRE_API F_indirect_command_batch
     {
     private:
         TK<A_command_signature> signature_p_;
@@ -27,10 +27,14 @@ namespace nre::newrg
         F_indirect_command_batch() = default;
         F_indirect_command_batch(
             TKPA_valid<A_command_signature> signature_p,
-            sz address_offset,
-            u32 count = 1
+            u32 count
         );
-        ~F_indirect_command_batch() = default;
+        F_indirect_command_batch(
+            TKPA_valid<A_command_signature> signature_p,
+            sz address_offset,
+            u32 count
+        );
+        virtual ~F_indirect_command_batch() = default;
 
         F_indirect_command_batch(const F_indirect_command_batch& x) = default;
         F_indirect_command_batch& operator = (const F_indirect_command_batch& x) = default;

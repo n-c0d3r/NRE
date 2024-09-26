@@ -4,7 +4,7 @@
 #include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/dispatch_indirect_argument_list_layout.hpp>
-
+#include <nre/rendering/newrg/render_resource_utilities.hpp>
 
 
 namespace nre::newrg
@@ -15,7 +15,11 @@ namespace nre::newrg
 
     F_indirect_command_system::F_indirect_command_system() :
         F_gpu_driven_stack(
-            ED_resource_flag::NONE,
+            ED_resource_flag::INDIRECT_ARGUMENT_BUFFER
+            | ED_resource_flag::CONSTANT_BUFFER
+            | ED_resource_flag::UNORDERED_ACCESS
+            | ED_resource_flag::SHADER_RESOURCE
+            | ED_resource_flag::STRUCTURED,
             NRE_NEWRG_MAX_INDIRECT_COMMAND_COUNT,
             NRE_NEWRG_MAX_INDIRECT_COMMAND_COUNT
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.indirect_command_system")
@@ -30,8 +34,6 @@ namespace nre::newrg
     F_indirect_command_system::~F_indirect_command_system()
     {
     }
-
-
 
     void F_indirect_command_system::execute(
         TKPA_valid<A_command_list> command_list_p,

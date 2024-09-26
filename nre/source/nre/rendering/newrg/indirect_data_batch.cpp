@@ -6,11 +6,26 @@
 
 namespace nre::newrg
 {
+    F_indirect_data_batch::F_indirect_data_batch(u32 stride, u32 count) :
+        stride_(stride),
+        count_(count)
+    {
+        if(count && stride)
+        {
+            address_offset_ = F_indirect_data_system::instance_p()->push(
+                stride * count,
+                stride
+            );
+        }
+    }
     F_indirect_data_batch::F_indirect_data_batch(sz address_offset, u32 stride, u32 count) :
         address_offset_(address_offset),
         stride_(stride),
         count_(count)
     {
+        NCPP_ASSERT(address_offset);
+        NCPP_ASSERT(stride);
+        NCPP_ASSERT(count);
     }
     F_indirect_data_batch::~F_indirect_data_batch()
     {

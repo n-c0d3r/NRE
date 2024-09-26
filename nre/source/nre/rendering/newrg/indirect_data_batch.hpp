@@ -29,6 +29,7 @@ namespace nre::newrg
 
     public:
         F_indirect_data_batch() = default;
+        F_indirect_data_batch(u32 stride, u32 count);
         F_indirect_data_batch(sz address_offset, u32 stride, u32 count);
         ~F_indirect_data_batch();
 

@@ -27,29 +27,45 @@ namespace nre::newrg
     class H_abytek_cull_primitives_binder_signature
     {
     public:
-        struct H_slots
+        struct H_primitive_transforms
         {
-            static constexpr u32 primitive_transforms = 0;
-            static constexpr u32 primitive_last_transforms = 0;
-            static constexpr u32 primitive_mesh_ids = 0;
-            static constexpr u32 mesh_bboxes = 0;
-            static constexpr u32 cull_options = 0;
-            static constexpr u32 view_buffer = 1;
-            static constexpr u32 primitive_ids = 0;
-            static constexpr u32 visible_primitive_ids = 1;
-            static constexpr u32 external_output = 0;
+            static constexpr u32 slot = 0;
+            static constexpr u32 slot_space = 0;
         };
-        struct H_slot_spaces
+        struct H_primitive_last_transforms
         {
-            static constexpr u32 primitive_transforms = 0;
-            static constexpr u32 primitive_last_transforms = 1;
-            static constexpr u32 primitive_mesh_ids = 2;
-            static constexpr u32 mesh_bboxes = 3;
-            static constexpr u32 cull_options = 4;
-            static constexpr u32 view_buffer = 4;
-            static constexpr u32 primitive_ids = 4;
-            static constexpr u32 visible_primitive_ids = 4;
-            static constexpr u32 external_output = 4;
+            static constexpr u32 slot = 0;
+            static constexpr u32 slot_space = 1;
+        };
+        struct H_primitive_mesh_ids
+        {
+            static constexpr u32 slot = 0;
+            static constexpr u32 slot_space = 2;
+        };
+        struct H_mesh_bboxes
+        {
+            static constexpr u32 slot = 0;
+            static constexpr u32 slot_space = 3;
+        };
+        struct H_cull_options
+        {
+            static constexpr u32 slot = 0;
+            static constexpr u32 slot_space = 4;
+        };
+        struct H_view_buffer
+        {
+            static constexpr u32 slot = 1;
+            static constexpr u32 slot_space = 4;
+        };
+        struct H_primitive_ids
+        {
+            static constexpr u32 slot = 0;
+            static constexpr u32 slot_space = 4;
+        };
+        struct H_visible_primitive_id_range
+        {
+            static constexpr u32 slot = 1;
+            static constexpr u32 slot_space = 4;
         };
     };
 }

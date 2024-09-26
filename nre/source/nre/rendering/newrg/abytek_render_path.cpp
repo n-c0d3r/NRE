@@ -7,14 +7,7 @@
 #include <nre/rendering/newrg/render_resource_utilities.hpp>
 #include <nre/rendering/newrg/render_bind_list.hpp>
 #include <nre/rendering/newrg/render_foundation.hpp>
-#include <nre/rendering/newrg/indirect_command_system.hpp>
-#include <nre/rendering/newrg/indirect_data_system.hpp>
-#include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
-#include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
-#include <nre/rendering/newrg/dispatch_indirect_argument_list_layout.hpp>
-#include <nre/rendering/newrg/draw_instanced_indirect_argument_list.hpp>
-#include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list.hpp>
-#include <nre/rendering/newrg/dispatch_indirect_argument_list.hpp>
+#include <nre/rendering/newrg/indirect_utilities.hpp>
 #include <nre/rendering/newrg/abytek_cull_primitives_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_initialize_primitive_ids_binder_signature.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
@@ -58,8 +51,8 @@ namespace nre::newrg
             ).T_cast<F_nsl_shader_asset>();
             initialize_primitive_ids_pso_p_ = { initialize_primitive_ids_shader_asset_p_->pipeline_state_p_vector()[0] };
 
-            cull_primitives_to_dispatch_visible_primitives_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
-                "shaders/nsl/newrg/abytek/cull_primitives_to_dispatch_visible_primitives.nsl"
+            cull_primitives_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/cull_primitives.nsl"
             ).T_cast<F_nsl_shader_asset>();
         }
     }
@@ -199,14 +192,12 @@ namespace nre::newrg
         F_render_resource* primitive_id_buffer_p,
         const F_indirect_command_batch& in_command_batch,
         const F_indirect_data_batch& in_data_batch,
-        const F_indirect_command_batch& out_command_batch,
         const F_indirect_data_batch& out_data_batch
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
         NCPP_ASSERT(in_command_batch);
         NCPP_ASSERT(in_data_batch);
-        NCPP_ASSERT(out_command_batch);
         NCPP_ASSERT(out_data_batch);
 
         // auto pass_p = H_indirect_command_batch::execute(

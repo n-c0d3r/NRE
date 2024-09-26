@@ -34,12 +34,10 @@ namespace nre::newrg
 
     public:
         F_indirect_command_system();
-        ~F_indirect_command_system();
+        ~F_indirect_command_system() override;
 
     public:
         NCPP_OBJECT(F_indirect_command_system);
-
-
 
     public:
         void execute(

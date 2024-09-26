@@ -17,16 +17,13 @@ require(!NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE)
 resource view_buffer(
     ConstantBuffer
 )
-
-@buffer(view_buffer)
+default_constant_buffer(view_buffer)
 uniform world_to_view_matrix(
     float4x4
 )
-@buffer(view_buffer)
 uniform view_to_clip_matrix(
     float4x4
 )
-@buffer(view_buffer)
 uniform view_frustum_planes(
     float4(4)
 )

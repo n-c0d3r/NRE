@@ -7,6 +7,23 @@ namespace nre::newrg
 {
     F_indirect_command_batch::F_indirect_command_batch(
         TKPA_valid<A_command_signature> signature_p,
+        u32 count
+    ) :
+        signature_p_(signature_p.no_requirements()),
+        count_(count)
+    {
+        if(count)
+        {
+            auto stride = signature_p->desc().stride;
+
+            address_offset_ = F_indirect_command_system::instance_p()->push(
+                stride * count,
+                stride
+            );
+        }
+    }
+    F_indirect_command_batch::F_indirect_command_batch(
+        TKPA_valid<A_command_signature> signature_p,
         sz address_offset,
         u32 count
     ) :
@@ -14,6 +31,7 @@ namespace nre::newrg
         address_offset_(address_offset),
         count_(count)
     {
+        NCPP_ASSERT(address_offset);
         NCPP_ASSERT(count);
     }
 

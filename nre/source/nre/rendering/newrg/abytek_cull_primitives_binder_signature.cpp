@@ -56,18 +56,12 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // 2CBVs (cull options, scene render view) + 1UAV (indirect arguments) + 1UAV (visible primitive ids)
+                    F_root_param_desc( // 2CBVs (cull options, scene render view) + 2UAV (primitive ids, visible primitive id range)
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
                                     .type = ED_descriptor_range_type::CONSTANT_BUFFER,
                                     .descriptor_count = 2,
-                                    .base_register = 0,
-                                    .register_space = 4
-                                },
-                                F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
-                                    .descriptor_count = 1,
                                     .base_register = 0,
                                     .register_space = 4
                                 },

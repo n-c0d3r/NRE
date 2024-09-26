@@ -1,6 +1,7 @@
 
 import(newrg/abytek/prerequisites.nsh)
 import(newrg/abytek/bbox.nsh)
+import(newrg/abytek/primitive_id.nsh)
 
 
 
@@ -37,12 +38,8 @@ resource mesh_bboxes(
 resource cull_options(
     ConstantBuffer
 )
-
-@buffer(cull_options)
-uniform primitive_id_offset(u32)
-
-@buffer(cull_options)
-uniform primitive_count(u32)
+default_constant_buffer(cull_options)
+uniform primitive_id_range(F_primitive_range)
 
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
@@ -51,16 +48,16 @@ import(newrg/abytek/view.nsh)
 @slot(0)
 @slot_space(4)
 resource primitive_ids(
-    Buffer(u32)
+    RWBuffer(u32)
 )
 
 @slot(1)
 @slot_space(4)
-resource visible_primitive_ids(
-    RWBuffer(u32)
+resource visible_primitive_id_range(
+    RWBuffer(F_primitive_range)
 )
 
-// define NRE_NEWRG_ABYTEK_CULL_PRIMITIVES_STORE_PRIMITIVE_COUNT(u32 visible_primitive_count)
+
 
 void try_cull_primitives(u32 global_thread_index)
 {

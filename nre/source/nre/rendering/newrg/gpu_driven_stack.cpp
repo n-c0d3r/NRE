@@ -5,18 +5,12 @@
 namespace nre::newrg
 {
     F_gpu_driven_stack::F_gpu_driven_stack(
-        ED_resource_flag additional_resource_flags,
+        ED_resource_flag resource_flags,
         u32 add_resource_state_stack_capacity,
         u32 initial_value_stack_capacity
         NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name)
     ) :
-        resource_flags_(
-            additional_resource_flags
-            | ED_resource_flag::INDIRECT_ARGUMENT_BUFFER
-            | ED_resource_flag::CONSTANT_BUFFER
-            | ED_resource_flag::UNORDERED_ACCESS
-            | ED_resource_flag::STRUCTURED
-        ),
+        resource_flags_(resource_flags),
         add_resource_state_stack_(add_resource_state_stack_capacity),
         initial_value_stack_(initial_value_stack_capacity)
         NRE_OPTIONAL_DEBUG_PARAM(name_(name))
@@ -115,6 +109,8 @@ namespace nre::newrg
             )
             NRE_OPTIONAL_DEBUG_PARAM((name_ + ".target_resource").c_str())
         );
+
+        // target_resource_p_->enable_concurrent_write({ 0, NCPP_U32_MAX });
 
         //
         auto add_resource_state_span = add_resource_state_stack_.item_span();

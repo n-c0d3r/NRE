@@ -14,7 +14,7 @@ namespace nre::newrg
 
 
 
-    class NRE_API F_indirect_data_list final
+    class NRE_API F_indirect_data_list
     {
     private:
         u32 stride_ = 0;
@@ -32,7 +32,7 @@ namespace nre::newrg
     public:
         F_indirect_data_list() = default;
         F_indirect_data_list(u32 stride, u32 count);
-        ~F_indirect_data_list();
+        virtual ~F_indirect_data_list();
 
         F_indirect_data_list(const F_indirect_data_list& x);
         F_indirect_data_list& operator = (const F_indirect_data_list& x);

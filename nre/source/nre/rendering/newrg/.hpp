@@ -100,22 +100,7 @@
 #include <nre/rendering/newrg/general_gpu_data_table.hpp>
 #include <nre/rendering/newrg/gpu_data_table_render_bind_list.hpp>
 #include <nre/rendering/newrg/render_primitive_data.hpp>
-#include <nre/rendering/newrg/indirect_command_system.hpp>
-#include <nre/rendering/newrg/indirect_command_batch.hpp>
-#include <nre/rendering/newrg/indirect_command_batch_utilities.hpp>
-#include <nre/rendering/newrg/indirect_argument_list.hpp>
-#include <nre/rendering/newrg/indirect_argument_table.hpp>
-#include <nre/rendering/newrg/indirect_argument_list_layout.hpp>
-#include <nre/rendering/newrg/indirect_data_system.hpp>
-#include <nre/rendering/newrg/indirect_data_batch.hpp>
-#include <nre/rendering/newrg/indirect_data_batch_utilities.hpp>
-#include <nre/rendering/newrg/indirect_data_list.hpp>
-#include <nre/rendering/newrg/draw_instanced_indirect_argument_list_layout.hpp>
-#include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list_layout.hpp>
-#include <nre/rendering/newrg/dispatch_indirect_argument_list_layout.hpp>
-#include <nre/rendering/newrg/draw_instanced_indirect_argument_list.hpp>
-#include <nre/rendering/newrg/draw_indexed_instanced_indirect_argument_list.hpp>
-#include <nre/rendering/newrg/dispatch_indirect_argument_list.hpp>
+#include <nre/rendering/newrg/indirect_utilities.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif
