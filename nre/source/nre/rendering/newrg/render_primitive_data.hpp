@@ -7,7 +7,7 @@
 namespace nre::newrg
 {
     using F_render_actor_transform = F_matrix4x4_f32;
-    using F_render_actor_mesh_id = u32;
+    using F_render_actor_mesh_id = u16;
 
     using F_render_primitive_data_targ_list = TF_template_targ_list<
         F_render_actor_transform,

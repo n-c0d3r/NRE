@@ -27,10 +27,10 @@ struct F_vertex_data(
 
 define F_cluster_id(u32)
 struct F_cluster_header(
-    vertex_offset(F_global_vertex_id)
-    vertex_count(F_global_vertex_id)
-    local_triangle_vertex_id_offset(F_global_vertex_id)
-    local_triangle_vertex_id_count(F_global_vertex_id)
+    vertex_offset(u32)
+    vertex_count(u32)
+    local_triangle_vertex_id_offset(u32)
+    local_triangle_vertex_id_count(u32)
 )
 struct F_cluster_id_range(
     begin(F_cluster_id)
@@ -64,18 +64,25 @@ struct F_dag_node_culling_data(
     ___padding_1___(f32)
 )
 
+struct F_mesh_header(
+    cluster_count(u32)
+    cluster_offset(u32)
 
+    dag_node_count(u32)
+    dag_node_offset(u32)
 
-define F_primitive_id(u32)
+    root_dag_node_count(u32)
+    root_dag_node_offset(u32)
 
-define F_primitive_dag_node_id(u32)
-struct F_primitive_dag_node_header(
-    primitive_id(F_primitive_id)
-    payload_id(F_dag_node_id)
+    subpage_count(u32)
+    subpage_offset(u32)
 )
-struct F_primitive_dag_node_range(
-    offset(F_primitive_dag_node_id)
-    count(F_primitive_dag_node_id)
+struct F_mesh_subpage_header(
+    vertex_count(u32)
+    vertex_offset(u32)
+
+    index_count(u32)
+    index_offset(u32)
 )
 
 
@@ -85,4 +92,30 @@ struct F_bbox(
     ___padding_0___(float)
     max_position(float3)
     ___padding_1___(float)
+)
+
+
+
+define F_instance_id(u32)
+
+define F_instanced_dag_node_id(u32)
+struct F_instanced_dag_node_range(
+    offset(u32)
+    count(u32)
+)
+struct F_instanced_dag_node_header(
+    instance_id(F_instance_id)
+    mesh_id(u16)
+    local_dag_node_id(u16)
+)
+
+define F_instanced_cluster_id(u32)
+struct F_instanced_cluster_range(
+    offset(u32)
+    count(u32)
+)
+struct F_instanced_cluster_header(
+    instance_id(F_instance_id)
+    mesh_id(u16)
+    local_cluster_id(u16)
 )

@@ -4,6 +4,7 @@
 
 #include <nre/rendering/newrg/cacheable_pool_gpu_data_table.hpp>
 #include <nre/rendering/newrg/render_primitive_data.hpp>
+#include <nre/rendering/newrg/gpu_data_table_render_bind_list.hpp>
 
 
 
@@ -13,6 +14,7 @@ namespace nre::newrg
     {
     public:
         using F_table = typename F_render_primitive_data_targ_list::template TF_apply<TF_cacheable_pool_gpu_data_table>;
+        using F_table_render_bind_list = F_render_primitive_data_targ_list::template TF_apply<TF_cacheable_pool_gpu_data_table_render_bind_list>;
 
 
 
@@ -26,6 +28,7 @@ namespace nre::newrg
 
     private:
         F_table table_;
+        F_table_render_bind_list* table_render_bind_list_p_;
 
         TG_queue<eastl::function<void()>> rg_register_queue_;
         pac::F_spin_lock rg_register_lock_;
@@ -35,6 +38,8 @@ namespace nre::newrg
 
     public:
         NCPP_FORCE_INLINE auto& table() noexcept { return table_; }
+        NCPP_FORCE_INLINE auto table_render_bind_list_p() noexcept { return table_render_bind_list_p_; }
+        NCPP_FORCE_INLINE auto& table_render_bind_list() noexcept { return *table_render_bind_list_p_; }
         NCPP_FORCE_INLINE const auto& table() const noexcept { return table_; }
         NCPP_FORCE_INLINE const auto& primitive_count() const noexcept { return table_.pool_data_distributor().id_count(); }
 
@@ -46,8 +51,6 @@ namespace nre::newrg
 
     public:
         NCPP_OBJECT(F_render_primitive_data_pool);
-
-
 
     public:
         void RG_begin_register();
