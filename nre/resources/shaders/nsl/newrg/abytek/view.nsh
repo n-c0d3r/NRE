@@ -22,7 +22,13 @@ resource view_buffer(
 uniform world_to_view_matrix(
     float4x4
 )
+uniform view_to_world_matrix(
+    float4x4
+)
 uniform view_to_clip_matrix(
+    float4x4
+)
+uniform clip_to_view_matrix(
     float4x4
 )
 uniform view_frustum_planes(

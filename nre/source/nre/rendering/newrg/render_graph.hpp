@@ -557,6 +557,20 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
+        F_render_resource* create_resource_delay();
+        /**
+         *  Thread-safe
+         */
+        void finalize_resource_creation(
+            F_render_resource* resource_p,
+            const F_resource_desc& desc
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , const F_render_frame_name& name = ""
+#endif
+        );
+        /**
+         *  Thread-safe
+         */
         F_render_resource* create_resource(
             const F_resource_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER

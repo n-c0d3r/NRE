@@ -23,7 +23,6 @@ namespace nre::newrg
         stride_(stride),
         count_(count)
     {
-        NCPP_ASSERT(address_offset);
         NCPP_ASSERT(stride);
         NCPP_ASSERT(count);
     }
@@ -43,7 +42,7 @@ namespace nre::newrg
         u32 data_count,
         const F_render_descriptor_element& descriptor_element,
         const F_resource_view_desc& desc
-    )
+    ) const
     {
         NCPP_ASSERT(data_index < count_);
         NCPP_ASSERT(data_count);

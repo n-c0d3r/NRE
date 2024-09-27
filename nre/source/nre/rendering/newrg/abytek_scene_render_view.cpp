@@ -35,7 +35,7 @@ namespace nre::newrg
         rg_main_frame_buffer_p_ = 0;
         rg_depth_only_frame_buffer_p_ = 0;
 
-        rg_view_buffer_offset_ = sz(-1);
+        rg_view_data_uniform_batch_.reset();
 
         F_scene_render_view::RG_register();
 
@@ -167,9 +167,11 @@ namespace nre::newrg
                     };
                 }
 
-                rg_view_buffer_offset_ = uniform_transient_resource_uploader_p->T_enqueue_upload(
-                    scene_render_view_data
-                );
+                rg_view_data_uniform_batch_ = {
+                    uniform_transient_resource_uploader_p->T_enqueue_upload(
+                        scene_render_view_data
+                    )
+                };
             }
         }
     }

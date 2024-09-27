@@ -20,7 +20,7 @@ resource instance_mesh_ids(
 
 @slot(0 3)
 resource mesh_headers(
-    Buffer(F_mesh_header)
+    StructuredBuffer(F_mesh_header)
 )
 
 @slot(0 4)

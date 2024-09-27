@@ -31,7 +31,6 @@ namespace nre::newrg
         address_offset_(address_offset),
         count_(count)
     {
-        NCPP_ASSERT(address_offset);
         NCPP_ASSERT(count);
     }
 
@@ -47,7 +46,7 @@ namespace nre::newrg
         u32 command_count,
         const F_render_descriptor_element& descriptor_element,
         const F_resource_view_desc& desc
-    )
+    ) const
     {
         NCPP_ASSERT(command_index < count_);
         NCPP_ASSERT(command_count);

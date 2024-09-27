@@ -45,13 +45,13 @@ namespace nre::newrg
             u32 data_count,
             const F_render_descriptor_element& descriptor_element,
             const F_resource_view_desc& desc
-        );
+        ) const;
         NCPP_FORCE_INLINE void enqueue_initialize_resource_view(
             u32 data_index,
             u32 data_count,
             const F_render_descriptor_element& descriptor_element,
             ED_resource_view_type type
-        )
+        ) const
         {
             enqueue_initialize_resource_view(
                 data_index,
@@ -68,7 +68,7 @@ namespace nre::newrg
             const F_render_descriptor_element& descriptor_element,
             ED_resource_view_type type,
             ED_format format
-        )
+        ) const
         {
             enqueue_initialize_resource_view(
                 data_index,

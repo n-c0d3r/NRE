@@ -3250,6 +3250,39 @@ namespace nre::newrg
         is_in_execution_.store(false, eastl::memory_order_release);
     }
 
+    F_render_resource* F_render_graph::create_resource_delay()
+    {
+        return T_allocate<F_render_resource>();
+    }
+
+    void F_render_graph::finalize_resource_creation(
+        F_render_resource* resource_p,
+        const F_resource_desc& desc
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+        , const F_render_frame_name& name
+#endif
+    )
+    {
+        F_resource_desc* desc_to_create_p = T_create<F_resource_desc>(desc);
+
+        new(resource_p) F_render_resource(
+            desc_to_create_p
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
+            , name
+#endif
+        );
+
+        T_register(resource_p);
+
+        resource_p->id_ = resource_p_owf_stack_.push_and_return_index(resource_p);
+
+        prologue_pass_p_->add_resource_state({
+            .resource_p = resource_p,
+            .states = desc.initial_state,
+            .enable_states_optimization = false
+        });
+    }
+
     F_render_resource* F_render_graph::create_resource(
         const F_resource_desc& desc
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER

@@ -9,10 +9,12 @@ namespace nre::newrg
 {
     F_transient_resource_uploader::F_transient_resource_uploader(
         ED_resource_flag resource_flags,
+        sz alignment,
         sz upload_queue_capacity,
         sz add_resource_state_queue_capacity
     ) :
         resource_flags_(resource_flags),
+        alignment_(alignment),
         upload_queue_(upload_queue_capacity),
         add_resource_state_queue_(add_resource_state_queue_capacity)
     {
@@ -87,7 +89,7 @@ namespace nre::newrg
 
         //
         upload_resource_p_ = 0;
-        target_resource_p_ = 0;
+        target_resource_p_ = render_graph_p->create_resource_delay();
     }
     void F_transient_resource_uploader::RG_end_register()
     {
@@ -97,55 +99,62 @@ namespace nre::newrg
 
         //
         sz total_upload_heap_size = total_upload_heap_size_.load(eastl::memory_order_acquire);
-        if(total_upload_heap_size)
+        if(!total_upload_heap_size)
         {
-            //
-            upload_resource_p_ = render_graph_p->create_resource(
-                H_resource_desc::create_buffer_desc(
-                    total_upload_heap_size,
-                    1,
-                    ED_resource_flag::NONE,
-                    ED_resource_heap_type::GREAD_CWRITE,
-                    ED_resource_state::_GENERIC_READ
-                )
-                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.upload_resource")
-            );
-            map_pass_p_->add_resource_state({
-                .resource_p = upload_resource_p_,
-                .states = ED_resource_state::_GENERIC_READ
-            });
-            upload_pass_p_->add_resource_state({
-                .resource_p = upload_resource_p_,
-                .states = ED_resource_state::COPY_SOURCE
-            });
-
-            //
-            target_resource_p_ = render_graph_p->create_resource(
-                H_resource_desc::create_buffer_desc(
-                    total_upload_heap_size,
-                    1,
-                    ED_resource_flag::NONE,
-                    ED_resource_heap_type::GREAD_GWRITE,
-                    ED_resource_state::COPY_DEST
-                )
-                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.target_resource")
-            );
-            upload_pass_p_->add_resource_state({
-                .resource_p = target_resource_p_,
-                .states = ED_resource_state::COPY_DEST
-            });
-
-            //
-            auto add_resource_state_span = add_resource_state_queue_.item_span();
-            for(auto& add_resource_state : add_resource_state_span)
-            {
-                add_resource_state.pass_p->add_resource_state({
-                    .resource_p = target_resource_p_,
-                    .states = add_resource_state.states
-                });
-            }
-            add_resource_state_queue_.reset();
+            target_resource_p_ = 0;
+            return;
         }
+
+        total_upload_heap_size = align_size(total_upload_heap_size, alignment_);
+        total_upload_heap_size_.store(total_upload_heap_size_);
+
+        //
+        upload_resource_p_ = render_graph_p->create_resource(
+            H_resource_desc::create_buffer_desc(
+                total_upload_heap_size,
+                1,
+                ED_resource_flag::NONE,
+                ED_resource_heap_type::GREAD_CWRITE,
+                ED_resource_state::_GENERIC_READ
+            )
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.upload_resource")
+        );
+        map_pass_p_->add_resource_state({
+            .resource_p = upload_resource_p_,
+            .states = ED_resource_state::_GENERIC_READ
+        });
+        upload_pass_p_->add_resource_state({
+            .resource_p = upload_resource_p_,
+            .states = ED_resource_state::COPY_SOURCE
+        });
+
+        //
+        render_graph_p->finalize_resource_creation(
+            target_resource_p_,
+            H_resource_desc::create_buffer_desc(
+                total_upload_heap_size,
+                1,
+                resource_flags_,
+                ED_resource_heap_type::GREAD_GWRITE,
+                ED_resource_state::COPY_DEST
+            )
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.target_resource")
+        );
+        upload_pass_p_->add_resource_state({
+            .resource_p = target_resource_p_,
+            .states = ED_resource_state::COPY_DEST
+        });
+
+        //
+        auto add_resource_state_span = add_resource_state_queue_.item_span();
+        for(auto& add_resource_state : add_resource_state_span)
+        {
+            add_resource_state.pass_p->add_resource_state({
+                .resource_p = target_resource_p_,
+                .states = add_resource_state.states
+            });
+        }
+        add_resource_state_queue_.reset();
     }
 
     sz F_transient_resource_uploader::enqueue_upload(const TG_span<u8>& data, sz alignment, sz alignment_offset)
@@ -191,7 +200,11 @@ namespace nre::newrg
     TK<F_uniform_transient_resource_uploader> F_uniform_transient_resource_uploader::instance_p_;
 
     F_uniform_transient_resource_uploader::F_uniform_transient_resource_uploader() :
-        F_transient_resource_uploader(ED_resource_flag::CONSTANT_BUFFER)
+        F_transient_resource_uploader(
+            ED_resource_flag::CONSTANT_BUFFER
+            | ED_resource_flag::SHADER_RESOURCE
+            | ED_resource_flag::STRUCTURED
+        )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
     }

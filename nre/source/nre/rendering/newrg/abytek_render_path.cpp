@@ -11,10 +11,13 @@
 #include <nre/rendering/newrg/abytek_expand_instances_binder_signature.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/render_primitive_data_pool.hpp>
+#include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
+#include <nre/rendering/newrg/transient_resource_uploader.hpp>
+#include <nre/rendering/newrg/unified_mesh_system.hpp>
+#include <nre/rendering/nsl_shader_system.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/nsl_shader_asset.hpp>
 #include <nre/actor/actor.hpp>
-
 
 
 namespace nre::newrg
@@ -41,6 +44,20 @@ namespace nre::newrg
 
         // register binder signatures
         F_binder_signature_manager::instance_p()->T_register<F_abytek_expand_instances_binder_signature>();
+
+        // setup nsl
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X",
+            G_to_string(NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y",
+            G_to_string(1)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z",
+            G_to_string(1)
+        });
 
         // load shaders
         {
@@ -83,7 +100,54 @@ namespace nre::newrg
                     auto render_graph_p = F_render_graph::instance_p();
 
                     auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
-                    auto primitive_count = render_primitive_data_pool_p->primitive_count();
+                    auto instance_count = render_primitive_data_pool_p->primitive_count();
+
+                    F_render_resource* rg_instanced_dag_node_header_buffer_p = H_render_resource::create_buffer(
+                        NRE_NEWRG_ABYTEK_MAX_INSTANCED_DAG_NODE_COUNT,
+                        (
+                            4 // instance id
+                            + 2 // mesh id
+                            + 2 // local dag node id
+                        ),
+                        ED_resource_flag::SHADER_RESOURCE
+                        | ED_resource_flag::UNORDERED_ACCESS
+                        | ED_resource_flag::STRUCTURED,
+                        ED_resource_heap_type::DEFAULT,
+                        {}
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_render_path.instanced_dag_node_header_buffer[")
+                            + casted_view_p->actor_p()->name().c_str()
+                            + "]"
+                        )
+                    );
+
+                    F_indirect_data_list instanced_dag_node_range_data_list(
+                        4 + 4,
+                        1
+                    );
+                    instanced_dag_node_range_data_list.T_set<u32>(
+                        0,
+                        0,
+                        0
+                    );
+                    instanced_dag_node_range_data_list.T_set<u32>(
+                        0,
+                        4,
+                        0
+                    );
+
+                    F_indirect_data_batch instanced_dag_node_range_data_batch = instanced_dag_node_range_data_list.build();
+
+                    expand_instances(
+                        NCPP_FOH_VALID(casted_view_p),
+                        rg_instanced_dag_node_header_buffer_p,
+                        instanced_dag_node_range_data_batch
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_render_path.expand_instances(")
+                            + casted_view_p->actor_p()->name().c_str()
+                            + ")"
+                        )
+                    );
 
                     clear_view(
                         NCPP_FOH_VALID(casted_view_p)
@@ -99,6 +163,78 @@ namespace nre::newrg
                 }
             }
         );
+    }
+
+    void F_abytek_render_path::expand_instances(
+        TKPA_valid<F_abytek_scene_render_view> view_p,
+        F_render_resource* rg_instanced_dag_node_header_buffer_p,
+        const F_indirect_data_batch& instanced_dag_node_range_data_batch
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
+    )
+    {
+        auto render_graph_p = F_render_graph::instance_p();
+
+        auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
+        auto instance_count = render_primitive_data_pool_p->primitive_count();
+
+        auto& instance_bind_lists = render_primitive_data_pool_p->table_render_bind_list();
+        auto& instance_transform_bind_list = instance_bind_lists.bases()[
+            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM
+        ];
+        auto& instance_last_transform_bind_list = instance_bind_lists.bases()[
+            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_TRANSFORM
+        ];
+        auto& instance_mesh_id_bind_list = instance_bind_lists.bases()[
+            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID
+        ];
+
+        auto instance_transform_srv_element = instance_transform_bind_list[0];
+        auto instance_last_transform_srv_element = instance_last_transform_bind_list[0];
+        auto instance_mesh_id_srv_element = instance_mesh_id_bind_list[0];
+
+        auto unified_mesh_system_p = F_unified_mesh_system::instance_p();
+
+        auto& mesh_header_bind_list = unified_mesh_system_p->mesh_table_render_bind_list().bases()[0];
+        auto& mesh_bbox_bind_list = unified_mesh_system_p->mesh_table_render_bind_list().bases()[1];
+
+        auto mesh_header_srv_element = mesh_header_bind_list[0];
+        auto mesh_bbox_srv_element = mesh_bbox_bind_list[0];
+
+        F_render_bind_list main_render_bind_list(
+            ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
+            3
+            NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
+        );
+        view_p->rg_view_data_uniform_batch().enqueue_initialize_cbv(
+            main_render_bind_list[0]
+        );
+        main_render_bind_list.enqueue_initialize_resource_view(
+            rg_instanced_dag_node_header_buffer_p,
+            ED_resource_view_type::UNORDERED_ACCESS,
+            1
+        );
+        instanced_dag_node_range_data_batch.enqueue_initialize_resource_view(
+            0,
+            1,
+            main_render_bind_list[2],
+            ED_resource_view_type::UNORDERED_ACCESS
+        );
+
+        // H_render_pass::dispatch(
+        //     [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+        //     {
+        //     },
+        //     element_ceil(
+        //         F_vector3_f32(
+        //             instance_count,
+        //             1,
+        //             1
+        //         )
+        //         / f32(NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+        //     ),
+        //     0
+        //     NRE_OPTIONAL_DEBUG_PARAM(name)
+        // );
     }
 
     void F_abytek_render_path::clear_view_main_texture(

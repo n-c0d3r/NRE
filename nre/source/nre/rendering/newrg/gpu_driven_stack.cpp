@@ -29,15 +29,16 @@ namespace nre::newrg
             is_started_register_ = true;
         );
 
+        auto render_graph_p = F_render_graph::instance_p();
+
         //
-        target_resource_p_ = 0;
+        target_resource_p_ = render_graph_p->create_resource_delay();
         upload_resource_p_ = 0;
         upload_pass_p_ = 0;
         copy_pass_p_ = 0;
         resource_size_ = 0;
 
         //
-        auto render_graph_p = F_render_graph::instance_p();
         upload_pass_p_ = render_graph_p->create_pass(
             [this](F_render_pass*, TKPA<A_command_list>)
             {
@@ -95,13 +96,17 @@ namespace nre::newrg
             is_started_register_ = false;
         );
 
-        if(!resource_size_)
-            return;
-
         auto render_graph_p = F_render_graph::instance_p();
 
+        if(!resource_size_)
+        {
+            target_resource_p_ = 0;
+            return;
+        }
+
         //
-        target_resource_p_ = render_graph_p->create_resource(
+        render_graph_p->finalize_resource_creation(
+            target_resource_p_,
             H_resource_desc::create_buffer_desc(
                 resource_size_,
                 1,

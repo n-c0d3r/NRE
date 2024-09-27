@@ -67,19 +67,28 @@ namespace nre::newrg
                             }
                         }
                     ),
+                    F_root_param_desc( // options
+                        F_root_constants_desc {
+                            .base_register = 0,
+                            .register_space = 5,
+                            .constant_count = 1
+                        }
+                    ),
                     F_root_param_desc(
                         F_root_descriptor_table_desc{
                             .range_descs = {
-                                F_descriptor_range_desc { // 2CBVs (cull options, scene render view)
+                                F_descriptor_range_desc { // 1CBV (scene render view)
                                     .type = ED_descriptor_range_type::CONSTANT_BUFFER,
-                                    .descriptor_count = 2,
-                                    .base_register = 0,
+                                    .descriptor_count = 1,
+                                    .offset_in_descriptors_from_table_start = 0,
+                                    .base_register = 1,
                                     .register_space = 5
                                 },
                                 F_descriptor_range_desc { // 2UAVs (instanced dag node headers, instanced dag node range)
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
                                     .descriptor_count = 2,
-                                    .base_register = 0,
+                                    .offset_in_descriptors_from_table_start = 1,
+                                    .base_register = 2,
                                     .register_space = 5
                                 }
                             }

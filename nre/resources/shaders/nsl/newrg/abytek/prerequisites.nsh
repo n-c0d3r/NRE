@@ -6,10 +6,6 @@ import(indirect_arguments.nsh)
 
 define NSL_DISABLE_AUTO_SLOTS
 
-define NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X(64)
-define NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y(1)
-define NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z(1)
-
 
 
 define F_global_vertex_id(u32)

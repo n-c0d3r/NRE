@@ -37,7 +37,7 @@ namespace nre::newrg
 
         //
         readback_resource_p_ = 0;
-        target_resource_p_ = 0;
+        target_resource_p_ = render_graph_p->create_resource_delay();
     }
     void F_transient_resource_readback::RG_end_register()
     {
@@ -47,60 +47,64 @@ namespace nre::newrg
 
         //
         sz total_readback_heap_size = total_readback_heap_size_.load(eastl::memory_order_acquire);
-        if(total_readback_heap_size)
+        if(!total_readback_heap_size)
         {
-            readback_resource_p_ = render_graph_p->create_resource(
-                H_resource_desc::create_buffer_desc(
-                    total_readback_heap_size,
-                    1,
-                    ED_resource_flag::NONE,
-                    ED_resource_heap_type::CREAD_GWRITE,
-                    ED_resource_state::COPY_DEST
-                )
-                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_readback.readback_resource")
-            );
-            target_resource_p_ = render_graph_p->create_resource(
-                H_resource_desc::create_buffer_desc(
-                    total_readback_heap_size,
-                    1,
-                    ED_resource_flag::NONE,
-                    ED_resource_heap_type::GREAD_GWRITE,
-                    ED_resource_state::COPY_SOURCE
-                )
-                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_readback.target_resource")
-            );
-
-            //
-            auto readback_pass_span = readback_pass_queue_.item_span();
-            for(auto& readback_pass : readback_pass_span)
-            {
-                readback_pass.copy_pass_p->add_resource_state({
-                    .resource_p = readback_resource_p_,
-                    .states = ED_resource_state::COPY_DEST
-                });
-                readback_pass.copy_pass_p->add_resource_state({
-                    .resource_p = target_resource_p_,
-                    .states = ED_resource_state::COPY_SOURCE
-                });
-
-                readback_pass.readback_pass_p->add_resource_state({
-                    .resource_p = readback_resource_p_,
-                    .states = ED_resource_state::COPY_DEST
-                });
-            }
-            readback_pass_queue_.reset();
-
-            //
-            auto add_resource_state_span = add_resource_state_queue_.item_span();
-            for(auto& add_resource_state : add_resource_state_span)
-            {
-                add_resource_state.pass_p->add_resource_state({
-                    .resource_p = target_resource_p_,
-                    .states = add_resource_state.states
-                });
-            }
-            add_resource_state_queue_.reset();
+            target_resource_p_ = 0;
+            return;
         }
+
+        readback_resource_p_ = render_graph_p->create_resource(
+            H_resource_desc::create_buffer_desc(
+                total_readback_heap_size,
+                1,
+                ED_resource_flag::NONE,
+                ED_resource_heap_type::CREAD_GWRITE,
+                ED_resource_state::COPY_DEST
+            )
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_readback.readback_resource")
+        );
+        render_graph_p->finalize_resource_creation(
+            target_resource_p_,
+            H_resource_desc::create_buffer_desc(
+                total_readback_heap_size,
+                1,
+                ED_resource_flag::NONE,
+                ED_resource_heap_type::GREAD_GWRITE,
+                ED_resource_state::COPY_SOURCE
+            )
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_readback.target_resource")
+        );
+
+        //
+        auto readback_pass_span = readback_pass_queue_.item_span();
+        for(auto& readback_pass : readback_pass_span)
+        {
+            readback_pass.copy_pass_p->add_resource_state({
+                .resource_p = readback_resource_p_,
+                .states = ED_resource_state::COPY_DEST
+            });
+            readback_pass.copy_pass_p->add_resource_state({
+                .resource_p = target_resource_p_,
+                .states = ED_resource_state::COPY_SOURCE
+            });
+
+            readback_pass.readback_pass_p->add_resource_state({
+                .resource_p = readback_resource_p_,
+                .states = ED_resource_state::COPY_DEST
+            });
+        }
+        readback_pass_queue_.reset();
+
+        //
+        auto add_resource_state_span = add_resource_state_queue_.item_span();
+        for(auto& add_resource_state : add_resource_state_span)
+        {
+            add_resource_state.pass_p->add_resource_state({
+                .resource_p = target_resource_p_,
+                .states = add_resource_state.states
+            });
+        }
+        add_resource_state_queue_.reset();
     }
 
     sz F_transient_resource_readback::enqueue_readback(sz size, sz alignment, sz alignment_offset)

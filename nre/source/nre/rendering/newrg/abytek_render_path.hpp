@@ -50,6 +50,14 @@ namespace nre::newrg
         virtual void RG_end_register() override;
 
     public:
+        void expand_instances(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_dag_node_header_buffer_p,
+            const F_indirect_data_batch& instanced_dag_node_range_data_batch
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+
+    public:
         void clear_view_main_texture(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")

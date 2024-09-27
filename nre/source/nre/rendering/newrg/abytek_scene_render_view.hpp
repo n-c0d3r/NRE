@@ -4,7 +4,8 @@
 
 #include <nre/rendering/newrg/scene_render_view.hpp>
 #include <nre/rendering/newrg/render_descriptor_element.hpp>
-
+#include <nre/rendering/newrg/render_uniform_batch.hpp>
+#include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
 
 
 namespace nre::newrg
@@ -25,7 +26,7 @@ namespace nre::newrg
         F_render_frame_buffer* rg_main_frame_buffer_p_ = 0;
         F_render_frame_buffer* rg_depth_only_frame_buffer_p_ = 0;
 
-        sz rg_view_buffer_offset_ = sz(-1);
+        TF_render_uniform_batch<F_abytek_scene_render_view_data> rg_view_data_uniform_batch_;
 
     public:
         F_vector4 clear_color = F_vector4::zero();
@@ -38,7 +39,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE F_render_frame_buffer* rg_main_frame_buffer_p() const noexcept { return rg_main_frame_buffer_p_; }
         NCPP_FORCE_INLINE F_render_frame_buffer* rg_depth_only_frame_buffer_p() const noexcept { return rg_depth_only_frame_buffer_p_; }
 
-        NCPP_FORCE_INLINE sz rg_view_buffer_offset() const noexcept { return rg_view_buffer_offset_; }
+        NCPP_FORCE_INLINE auto rg_view_data_uniform_batch() const noexcept { return rg_view_data_uniform_batch_; }
 
 
 
