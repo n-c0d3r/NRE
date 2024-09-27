@@ -34,7 +34,7 @@ namespace nre::newrg
         pac::F_spin_lock rg_register_lock_;
 
         TG_queue<eastl::function<void()>> rg_register_upload_queue_;
-        pac::F_spin_lock rg_register_upload_lock_;
+        pac::F_spin_lock rg_register_upload_lock_; 
 
     public:
         NCPP_FORCE_INLINE auto& table() noexcept { return table_; }

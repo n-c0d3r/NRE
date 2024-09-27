@@ -8,8 +8,7 @@
 #include <nre/rendering/newrg/render_bind_list.hpp>
 #include <nre/rendering/newrg/render_foundation.hpp>
 #include <nre/rendering/newrg/indirect_utilities.hpp>
-#include <nre/rendering/newrg/abytek_cull_primitives_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_initialize_primitive_ids_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_expand_instances_binder_signature.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/render_primitive_data_pool.hpp>
 #include <nre/asset/asset_system.hpp>
@@ -41,8 +40,7 @@ namespace nre::newrg
         );
 
         // register binder signatures
-        F_binder_signature_manager::instance_p()->T_register<F_abytek_cull_primitives_binder_signature>();
-        F_binder_signature_manager::instance_p()->T_register<F_abytek_initialize_primitive_ids_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_expand_instances_binder_signature>();
 
         // load shaders
         {

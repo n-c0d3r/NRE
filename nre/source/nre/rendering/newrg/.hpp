@@ -16,8 +16,7 @@
 #include <nre/rendering/newrg/abytek_drawable.hpp>
 #include <nre/rendering/newrg/abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/simple_abytek_drawable_material.hpp>
-#include <nre/rendering/newrg/abytek_cull_primitives_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_initialize_primitive_ids_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_expand_instances_binder_signature.hpp>
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>

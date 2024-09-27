@@ -1,2 +1,47 @@
 
 import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+@slot_space(0)
+resource instance_transforms(
+    StructuredBuffer(f32x4x4)
+)
+
+@slot(0)
+@slot_space(1)
+resource instance_last_transforms(
+    StructuredBuffer(f32x4x4)
+)
+
+@slot(0)
+@slot_space(2)
+resource instance_mesh_ids(
+    Buffer(F_mesh_id)
+)
+
+@slot(0)
+@slot_space(3)
+resource instance_mesh_bboxes(
+    StructuredBuffer(F_bbox)
+)
+
+@slot(0)
+@slot_space(4)
+resource options(
+    ConstantBuffer
+)
+default_constant_buffer(options)
+uniform instance_count(F_instance_id)
+
+
+
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+}
+
+@root_signature(NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BINDER_SIGNATURE)
+pipeline_state PSO(CS)

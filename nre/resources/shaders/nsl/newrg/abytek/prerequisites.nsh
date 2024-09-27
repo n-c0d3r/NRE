@@ -25,16 +25,17 @@ struct F_vertex_data(
     texcoord(f32x2)
 )
 
-define F_cluster_id(u32)
+define F_global_cluster_id(u32)
+define F_local_cluster_id(u16)
 struct F_cluster_header(
     vertex_offset(u32)
     vertex_count(u32)
     local_triangle_vertex_id_offset(u32)
     local_triangle_vertex_id_count(u32)
 )
-struct F_cluster_id_range(
-    begin(F_cluster_id)
-    end(F_cluster_id)
+struct F_global_cluster_id_range(
+    begin(F_global_cluster_id)
+    end(F_global_cluster_id)
 )
 
 struct F_cluster_culling_data(
@@ -85,6 +86,8 @@ struct F_mesh_subpage_header(
     index_offset(u32)
 )
 
+define F_mesh_id(u16)
+
 
 
 struct F_bbox(
@@ -116,6 +119,6 @@ struct F_instanced_cluster_range(
 )
 struct F_instanced_cluster_header(
     instance_id(F_instance_id)
-    mesh_id(u16)
+    mesh_id(F_mesh_id)
     local_cluster_id(u16)
 )
