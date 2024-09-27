@@ -67,55 +67,139 @@ namespace nre::newrg
         F_render_frame_name name_;
 #endif
 
-    public:
-        NCPP_FORCE_INLINE F_render_resource_id id() const noexcept { return id_; }
+#ifdef NCPP_ENABLE_ASSERT
+        b8 is_creation_finalized_ = true;
+#endif
 
-        NCPP_FORCE_INLINE TKPA<A_resource> rhi_p() const noexcept { return rhi_p_; }
+    public:
+        NCPP_FORCE_INLINE F_render_resource_id id() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return id_;
+        }
+
+        NCPP_FORCE_INLINE TKPA<A_resource> rhi_p() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return rhi_p_;
+        }
 
         NCPP_FORCE_INLINE b8 need_to_create() const noexcept
         {
+            NCPP_ASSERT(is_creation_finalized_);
             return (desc_to_create_p_ != 0);
         }
         NCPP_FORCE_INLINE b8 need_to_deallocate() const noexcept
         {
+            NCPP_ASSERT(is_creation_finalized_);
             return (
                 !is_permanent()
                 && !need_to_export()
             );
         }
 
-        NCPP_FORCE_INLINE const auto& access_dependencies() const noexcept { return access_dependencies_; }
-        NCPP_FORCE_INLINE const auto& access_counts() const noexcept { return access_counts_; }
-        NCPP_FORCE_INLINE u32 accessable_render_worker_count() const noexcept { return accessable_render_worker_count_; }
+        NCPP_FORCE_INLINE const auto& access_dependencies() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return access_dependencies_;
+        }
+        NCPP_FORCE_INLINE const auto& access_counts() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return access_counts_;
+        }
+        NCPP_FORCE_INLINE u32 accessable_render_worker_count() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return accessable_render_worker_count_;
+        }
 
-        NCPP_FORCE_INLINE F_render_pass_id min_pass_id() const noexcept { return min_pass_id_; }
-        NCPP_FORCE_INLINE F_render_pass_id max_pass_id() const noexcept { return max_pass_id_; }
+        NCPP_FORCE_INLINE F_render_pass_id min_pass_id() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return min_pass_id_;
+        }
+        NCPP_FORCE_INLINE F_render_pass_id max_pass_id() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return max_pass_id_;
+        }
 
-        NCPP_FORCE_INLINE const auto& allocation() const noexcept { return allocation_; }
+        NCPP_FORCE_INLINE const auto& allocation() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return allocation_;
+        }
 
-        NCPP_FORCE_INLINE const auto& export_lock() const noexcept { return export_lock_; }
-        NCPP_FORCE_INLINE auto& export_lock() noexcept { return export_lock_; }
-        NCPP_FORCE_INLINE auto& external_p() const noexcept { return external_p_; }
-        NCPP_FORCE_INLINE b8 need_to_export() const noexcept { return external_p_; }
+        NCPP_FORCE_INLINE const auto& export_lock() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return export_lock_;
+        }
+        NCPP_FORCE_INLINE auto& export_lock() noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return export_lock_;
+        }
+        NCPP_FORCE_INLINE auto& external_p() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return external_p_;
+        }
+        NCPP_FORCE_INLINE b8 need_to_export() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return external_p_;
+        }
 
-        NCPP_FORCE_INLINE b8 is_permanent() const noexcept { return is_permanent_; }
+        NCPP_FORCE_INLINE b8 is_permanent() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return is_permanent_;
+        }
 
-        NCPP_FORCE_INLINE ED_resource_state default_states() const noexcept { return default_states_; }
+        NCPP_FORCE_INLINE ED_resource_state default_states() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return default_states_;
+        }
 
-        NCPP_FORCE_INLINE const auto& aliased_resource_p_vector() const noexcept { return aliased_resource_p_vector_; }
+        NCPP_FORCE_INLINE const auto& aliased_resource_p_vector() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return aliased_resource_p_vector_;
+        }
 
-        NCPP_FORCE_INLINE const auto& min_sync_pass_id_vector() const noexcept { return min_sync_pass_id_vector_; }
-        NCPP_FORCE_INLINE const auto& max_sync_pass_id_vector() const noexcept { return max_sync_pass_id_vector_; }
+        NCPP_FORCE_INLINE const auto& min_sync_pass_id_vector() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return min_sync_pass_id_vector_;
+        }
+        NCPP_FORCE_INLINE const auto& max_sync_pass_id_vector() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return max_sync_pass_id_vector_;
+        }
 
-        NCPP_FORCE_INLINE const auto& concurrent_write_pass_id_ranges() const noexcept { return concurrent_write_pass_id_ranges_; }
+        NCPP_FORCE_INLINE const auto& concurrent_write_pass_id_ranges() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return concurrent_write_pass_id_ranges_;
+        }
 
-        NCPP_FORCE_INLINE ED_resource_heap_type heap_type() const noexcept { return heap_type_; }
+        NCPP_FORCE_INLINE ED_resource_heap_type heap_type() const noexcept
+        {
+            NCPP_ASSERT(is_creation_finalized_);
+            return heap_type_;
+        }
         NCPP_FORCE_INLINE b8 is_available_until_the_end_of_frame() const noexcept
         {
+            NCPP_ASSERT(is_creation_finalized_);
             return (heap_type_ == ED_resource_heap_type::CREAD_GWRITE);
         }
         NCPP_FORCE_INLINE b8 is_available_at_the_beginning_of_frame() const noexcept
         {
+            NCPP_ASSERT(is_creation_finalized_);
             return (heap_type_ == ED_resource_heap_type::GREAD_CWRITE);
         }
 

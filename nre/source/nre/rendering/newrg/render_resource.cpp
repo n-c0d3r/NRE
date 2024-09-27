@@ -104,6 +104,7 @@ namespace nre::newrg
 
     void F_render_resource::enable_concurrent_write(const F_render_pass_id_range& pass_id_range)
     {
+        NCPP_ASSERT(is_creation_finalized_);
         NCPP_ASSERT(pass_id_range.end > pass_id_range.begin) << "invalid pass id range";
 
         if(concurrent_write_pass_id_ranges_.size())

@@ -1342,6 +1342,8 @@ namespace nre::newrg
             auto& desc = resource_view_initialize.desc;
             desc.resource_p = resource_p->rhi_p();
 
+            NCPP_ASSERT(resource_p->is_creation_finalized_);
+
             auto& descriptor_allocation = descriptor_p->allocation_;
             auto& descriptor_handle_range = descriptor_p->handle_range_;
 
@@ -3254,7 +3256,13 @@ namespace nre::newrg
 
     F_render_resource* F_render_graph::create_resource_delay()
     {
-        return T_allocate<F_render_resource>();
+        F_render_resource* resource_p = T_allocate<F_render_resource>();
+
+#ifdef NCPP_ENABLE_ASSERT
+        resource_p->is_creation_finalized_ = false;
+#endif
+
+        return resource_p;
     }
 
     void F_render_graph::finalize_resource_creation(
@@ -3273,6 +3281,10 @@ namespace nre::newrg
             , name
 #endif
         );
+
+#ifdef NCPP_ENABLE_ASSERT
+        resource_p->is_creation_finalized_ = true;
+#endif
 
         T_register(resource_p);
 
