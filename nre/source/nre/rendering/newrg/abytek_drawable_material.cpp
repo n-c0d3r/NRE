@@ -28,6 +28,15 @@ namespace nre::newrg
                 F_render_primitive_data_pool::instance_p()->table().deregister_id(id);
             }
         );
+        F_render_primitive_data_pool::instance_p()->enqueue_rg_register_upload(
+            [id = render_primitive_data_id_]()
+            {
+                F_render_primitive_data_pool::instance_p()->table().T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(
+                    id,
+                    NCPP_U16_MAX
+                );
+            }
+        );
     }
 
     void A_abytek_drawable_material::ready()
@@ -43,7 +52,6 @@ namespace nre::newrg
                 }
             }
         );
-
         F_render_primitive_data_pool::instance_p()->enqueue_rg_register_upload(
             [oref = NCPP_KTHIS_UNSAFE()]()
             {
@@ -121,7 +129,7 @@ namespace nre::newrg
         }
         NCPP_ASSERT(
             (mesh_id == NCPP_U32_MAX)
-            || (mesh_id <= NCPP_U16_MAX)
+            || (mesh_id < NCPP_U16_MAX)
         );
         auto& last_mesh_id = table.T_element<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(render_primitive_data_id_);
         if(last_mesh_id != mesh_id)
