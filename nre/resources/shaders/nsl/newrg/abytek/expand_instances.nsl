@@ -50,6 +50,11 @@ resource instanced_dag_node_ranges(
 
 
 
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
 compute_shader CS(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
