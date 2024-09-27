@@ -468,8 +468,10 @@ namespace nre::newrg
         {
             auto& access_dependencies = resource_p->access_dependencies_;
 
-            for(auto& access_dependency : access_dependencies)
+            for(auto it = access_dependencies.rbegin(); it != access_dependencies.rend(); ++it)
             {
+                auto& access_dependency = *it;
+
                 F_render_pass* access_dependency_pass_p = pass_span[access_dependency.pass_id];
 
                 // sentinel passes must not affect resource allocation
@@ -961,6 +963,25 @@ namespace nre::newrg
 
     void F_render_graph::calculate_resource_allocations_internal()
     {
+        auto resource_span = resource_p_owf_stack_.item_span();
+
+        // for unused resources
+        for(F_render_resource* resource_p : resource_span)
+        {
+            b8 is_unused = (resource_p->min_pass_id_ == NCPP_U32_MAX);
+
+            // allocate
+            if(resource_p->need_to_create() && is_unused)
+            {
+                const auto& desc = *(resource_p->desc_to_create_p_);
+                auto& allocator = find_resource_allocator(desc.type, desc.flags, desc.heap_type);
+                resource_p->allocation_ = allocator.allocate(
+                    desc.size,
+                    desc.alignment
+                );
+            }
+        }
+
         // for usable resources
         auto pass_span = pass_p_owf_stack_.item_span();
         for(F_render_pass* pass_p : pass_span)
@@ -989,28 +1010,9 @@ namespace nre::newrg
         }
 
         // for unused resources
-        auto resource_span = resource_p_owf_stack_.item_span();
         for(F_render_resource* resource_p : resource_span)
         {
-            //
-            b8 is_unused = true;
-            for(auto& access_dependency : resource_p->access_dependencies_)
-            {
-                auto pass_p = pass_span[access_dependency.pass_id];
-                if(!(pass_p->is_sentinel()))
-                    is_unused = false;
-            }
-
-            // allocate
-            if(resource_p->need_to_create() && is_unused)
-            {
-                const auto& desc = *(resource_p->desc_to_create_p_);
-                auto& allocator = find_resource_allocator(desc.type, desc.flags, desc.heap_type);
-                resource_p->allocation_ = allocator.allocate(
-                    desc.size,
-                    desc.alignment
-                );
-            }
+            b8 is_unused = (resource_p->max_pass_id_ == NCPP_U32_MAX);
 
             // deallocate
             if(resource_p->need_to_deallocate() && is_unused)
