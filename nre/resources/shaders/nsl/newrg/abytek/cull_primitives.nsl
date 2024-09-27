@@ -68,6 +68,11 @@ void try_cull_primitives(u32 global_thread_index)
         
     F_primitive_id primitive_id = primitive_ids[primitive_id_index];
 
+    if(global_thread_id == 0)
+    {
+        visible_primitive_id_ranges[0].offset = primitive_id_range.offset + primitive_id_range.count;
+    }
+
     u32 output_location;
     InterlockedAdd(
         visible_primitive_id_ranges[0].count,
