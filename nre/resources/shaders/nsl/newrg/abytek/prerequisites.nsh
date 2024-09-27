@@ -40,11 +40,30 @@ struct F_cluster_id_range(
 struct F_cluster_culling_data(
     pivot(f32x3)
     min_forward_dot(f32)
-    scaled_up(f32x3)
+    scaled_right(f32x3)
     ___padding_0___(f32)
+    scaled_up(f32x3)
+    ___padding_1___(f32)
     scaled_forward(f32x3)
-    right_scale_factor(f32)
+    ___padding_2___(f32)
 )
+
+define F_dag_node_id(u32)
+struct F_dag_node_header(
+    child_node_ids(F_dag_node_id 4)
+)
+
+struct F_dag_node_culling_data(
+    pivot(f32x3)
+    min_forward_dot(f32)
+    scaled_right(f32x3)
+    ___padding_0___(f32)
+    scaled_up(f32x3)
+    threshold(f32)
+    scaled_forward(f32x3)
+    ___padding_1___(f32)
+)
+
 
 
 define F_primitive_id(u32)
