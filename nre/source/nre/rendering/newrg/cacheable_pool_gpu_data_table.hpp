@@ -154,8 +154,8 @@ namespace nre::newrg
                     heap_types,
                     initial_states,
                     page_capacity_in_elements,
-                    page_count,
-                    name
+                    page_count
+                    NRE_OPTIONAL_DEBUG_PARAM(name)
                 );
             }
 
