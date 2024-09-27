@@ -854,11 +854,9 @@ namespace nre::newrg
                         pivot,
                         min_forward_dot
                     };
+                    dag_sorted_cluster_culling_data.scaled_right = right * right_scale_factor;
                     dag_sorted_cluster_culling_data.scaled_up = up * up_scale_factor;
-                    dag_sorted_cluster_culling_data.scaled_forward_and_right_scale_factor = {
-                        forward * forward_scale_factor,
-                        right_scale_factor
-                    };
+                    dag_sorted_cluster_culling_data.scaled_forward = forward * forward_scale_factor;
                 }
             },
             {
@@ -894,9 +892,9 @@ namespace nre::newrg
                 auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
                 F_vector3_f32 pivot = dag_sorted_cluster_culling_data.pivot();
-                F_vector3_f32 scaled_right = dag_sorted_cluster_culling_data.scaled_right();
+                F_vector3_f32 scaled_right = dag_sorted_cluster_culling_data.scaled_right;
                 F_vector3_f32 scaled_up = dag_sorted_cluster_culling_data.scaled_up;
-                F_vector3_f32 scaled_forward = dag_sorted_cluster_culling_data.scaled_forward();
+                F_vector3_f32 scaled_forward = dag_sorted_cluster_culling_data.scaled_forward;
 
                 cluster_corner_array[0] = (
                     pivot
@@ -1050,7 +1048,7 @@ namespace nre::newrg
                             auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
                             forward += normalize(
-                                dag_sorted_cluster_culling_data.scaled_forward()
+                                dag_sorted_cluster_culling_data.scaled_forward
                             );
                         }
                         forward = normalize(forward);
@@ -1069,7 +1067,7 @@ namespace nre::newrg
 
                             f32 forward_dot = dot(
                                 forward,
-                                normalize(dag_sorted_cluster_culling_data.scaled_forward())
+                                normalize(dag_sorted_cluster_culling_data.scaled_forward)
                             );
 
                             min_forward_dot = eastl::min(min_forward_dot, forward_dot);
@@ -1220,14 +1218,12 @@ namespace nre::newrg
                             pivot,
                             min_forward_dot
                         };
+                        dag_node_culling_data.scaled_right = right * right_scale_factor;
                         dag_node_culling_data.scaled_up_and_threshold = {
                             up * up_scale_factor,
                             threshold
                         };
-                        dag_node_culling_data.scaled_forward_and_right_scale_factor = {
-                            forward * forward_scale_factor,
-                            right_scale_factor
-                        };
+                        dag_node_culling_data.scaled_forward = forward * forward_scale_factor;
                     }
                 },
                 {
@@ -1249,9 +1245,9 @@ namespace nre::newrg
                 auto dag_node_culling_data = data.dag_node_culling_datas[dag_sorted_dag_node_id];
 
                 F_vector3_f32 pivot = dag_node_culling_data.pivot();
-                F_vector3_f32 scaled_right = dag_node_culling_data.scaled_right();
+                F_vector3_f32 scaled_right = dag_node_culling_data.scaled_right;
                 F_vector3_f32 scaled_up = dag_node_culling_data.scaled_up();
-                F_vector3_f32 scaled_forward = dag_node_culling_data.scaled_forward();
+                F_vector3_f32 scaled_forward = dag_node_culling_data.scaled_forward;
 
                 dag_node_corner_array[0] = (
                     pivot
@@ -1315,7 +1311,7 @@ namespace nre::newrg
                     F_vector3_f32 center = dag_node_culling_data.pivot();
 
                     // calculate forward
-                    F_vector3_f32 forward = normalize(dag_node_culling_data.scaled_forward());
+                    F_vector3_f32 forward = normalize(dag_node_culling_data.scaled_forward);
 
                     // calculate min forward dot
                     f32 min_forward_dot = dag_node_culling_data.min_forward_dot();
@@ -1324,7 +1320,7 @@ namespace nre::newrg
                     F_vector3_f32 up = normalize(dag_node_culling_data.scaled_up());
 
                     // calculate right
-                    F_vector3_f32 right = normalize(dag_node_culling_data.scaled_right());
+                    F_vector3_f32 right = normalize(dag_node_culling_data.scaled_right);
 
                     // calculate pivot
                     F_vector3_f32 pivot;
@@ -1470,14 +1466,12 @@ namespace nre::newrg
                             pivot,
                             min_forward_dot
                         };
+                        dag_node_culling_data.scaled_right = right * right_scale_factor;
                         dag_node_culling_data.scaled_up_and_threshold = {
                             up * up_scale_factor,
                             threshold
                         };
-                        dag_node_culling_data.scaled_forward_and_right_scale_factor = {
-                            forward * forward_scale_factor,
-                            right_scale_factor
-                        };
+                        dag_node_culling_data.scaled_forward = forward * forward_scale_factor;
                     }
                 },
                 {
@@ -1538,9 +1532,9 @@ namespace nre::newrg
 
                 auto& cluster_culling_data = data.dag_sorted_cluster_culling_datas[cluster_id];
 
-                F_vector3_f32 scaled_right = cluster_culling_data.scaled_right();
+                F_vector3_f32 scaled_right = cluster_culling_data.scaled_right;
                 F_vector3_f32 scaled_up = cluster_culling_data.scaled_up;
-                F_vector3_f32 scaled_forward = cluster_culling_data.scaled_forward();
+                F_vector3_f32 scaled_forward = cluster_culling_data.scaled_forward;
 
                 F_matrix3x3_f32 scaled_local_to_world_matrix = {
                     scaled_right,

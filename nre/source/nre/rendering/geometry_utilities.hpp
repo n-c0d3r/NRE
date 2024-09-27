@@ -192,8 +192,9 @@ namespace nre
     struct NCPP_ALIGN(16) F_cluster_culling_data
     {
         F_vector4_f32 pivot_and_min_forward_dot;
+        F_vector3_f32 scaled_right;
         F_vector3_f32 scaled_up;
-        F_vector4_f32 scaled_forward_and_right_scale_factor;
+        F_vector3_f32 scaled_forward;
 
         NCPP_FORCE_INLINE F_vector3_f32 pivot() const noexcept
         {
@@ -203,22 +204,9 @@ namespace nre
         {
             return pivot_and_min_forward_dot.w;
         }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_right() const noexcept
-        {
-            return normalize(
-                cross(
-                    scaled_up,
-                    scaled_forward()
-                )
-            );
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_forward() const noexcept
-        {
-            return scaled_forward_and_right_scale_factor.xyz();
-        }
         NCPP_FORCE_INLINE f32 right_scale_factor() const noexcept
         {
-            return scaled_forward_and_right_scale_factor.w;
+            return length(scaled_right);
         }
         NCPP_FORCE_INLINE f32 up_scale_factor() const noexcept
         {
@@ -226,7 +214,7 @@ namespace nre
         }
         NCPP_FORCE_INLINE f32 forward_scale_factor() const noexcept
         {
-            return length(scaled_forward());
+            return length(scaled_forward);
         }
     };
 
@@ -238,8 +226,9 @@ namespace nre
     struct NCPP_ALIGN(16) F_dag_node_culling_data
     {
         F_vector4_f32 pivot_and_min_forward_dot;
+        F_vector3_f32 scaled_right;
         F_vector4_f32 scaled_up_and_threshold;
-        F_vector4_f32 scaled_forward_and_right_scale_factor;
+        F_vector3_f32 scaled_forward;
 
         NCPP_FORCE_INLINE F_vector3_f32 pivot() const noexcept
         {
@@ -249,26 +238,13 @@ namespace nre
         {
             return pivot_and_min_forward_dot.w;
         }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_right() const noexcept
-        {
-            return normalize(
-                cross(
-                    scaled_up(),
-                    scaled_forward()
-                )
-            );
-        }
         NCPP_FORCE_INLINE F_vector3_f32 scaled_up() const noexcept
         {
             return scaled_up_and_threshold.xyz();
         }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_forward() const noexcept
-        {
-            return scaled_forward_and_right_scale_factor.xyz();
-        }
         NCPP_FORCE_INLINE f32 right_scale_factor() const noexcept
         {
-            return scaled_forward_and_right_scale_factor.w;
+            return length(scaled_right);
         }
         NCPP_FORCE_INLINE f32 up_scale_factor() const noexcept
         {
@@ -276,7 +252,7 @@ namespace nre
         }
         NCPP_FORCE_INLINE f32 forward_scale_factor() const noexcept
         {
-            return length(scaled_forward());
+            return length(scaled_forward);
         }
         NCPP_FORCE_INLINE f32 threshold() const noexcept
         {

@@ -46,15 +46,10 @@ namespace nre::newrg
 
         // load shaders
         {
-            initialize_primitive_ids_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
-                "shaders/nsl/newrg/abytek/initialize_primitive_ids.nsl"
-            ).T_cast<F_nsl_shader_asset>();
-            initialize_primitive_ids_pso_p_ = { initialize_primitive_ids_shader_asset_p_->pipeline_state_p_vector()[0] };
-
-            cull_primitives_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
-                "shaders/nsl/newrg/abytek/cull_primitives.nsl"
-            ).T_cast<F_nsl_shader_asset>();
-            cull_primitives_pso_p_ = { cull_primitives_shader_asset_p_->pipeline_state_p_vector()[0] };
+            // cull_primitives_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+            //     "shaders/nsl/newrg/abytek/cull_primitives.nsl"
+            // ).T_cast<F_nsl_shader_asset>();
+            // cull_primitives_pso_p_ = { cull_primitives_shader_asset_p_->pipeline_state_p_vector()[0] };
         }
     }
     F_abytek_render_path::~F_abytek_render_path()
@@ -92,24 +87,6 @@ namespace nre::newrg
                     auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
                     auto primitive_count = render_primitive_data_pool_p->primitive_count();
 
-                    F_render_resource* rg_primitive_id_buffer_p = create_primitive_id_buffer(
-                        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
-                            F_render_frame_name("nre.newrg.abytek_render_path.primitive_id_buffers[")
-                            + casted_view_p->actor_p()->name().c_str()
-                            + "]"
-                        )
-                    );
-
-                    initialize_primitive_ids(
-                        rg_primitive_id_buffer_p,
-                        primitive_count
-                        NRE_OPTIONAL_DEBUG_PARAM(
-                            F_render_frame_name("nre.newrg.abytek_render_path.initialize_primitive_ids(")
-                            + casted_view_p->actor_p()->name().c_str()
-                            + ")"
-                        )
-                    );
-
                     clear_view(
                         NCPP_FOH_VALID(casted_view_p)
                         NRE_OPTIONAL_DEBUG_PARAM(
@@ -126,69 +103,6 @@ namespace nre::newrg
         );
     }
 
-    F_render_resource* F_abytek_render_path::create_primitive_id_buffer(
-        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(const F_render_frame_name& name)
-    )
-    {
-        return H_render_resource::create_buffer(
-            NRE_NEWRG_ABYTEK_PRIMITIVE_ID_BUFFER_CAPACITY,
-            ED_format::R32_UINT,
-            ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::UNORDERED_ACCESS,
-            ED_resource_heap_type::DEFAULT,
-            {}
-            NRE_OPTIONAL_DEBUG_PARAM(name)
-        );
-    }
-    void F_abytek_render_path::initialize_primitive_ids(
-        F_render_resource* primitive_id_buffer_p,
-        u32 primitive_count
-        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
-    )
-    {
-        if(!primitive_count)
-            return;
-
-        F_render_bind_list render_bind_list(
-            ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS
-        );
-        render_bind_list.enqueue_initialize_resource_view(
-            primitive_id_buffer_p,
-            ED_resource_view_type::UNORDERED_ACCESS
-        );
-
-        auto uav_element = render_bind_list[0];
-
-        auto pass_p = H_render_pass::dispatch(
-            [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
-            {
-                command_list_p->ZC_bind_root_signature(
-                    F_abytek_initialize_primitive_ids_binder_signature::instance_p()->root_signature_p()
-                );
-                command_list_p->ZC_bind_root_constant(
-                    0,
-                    primitive_count,
-                    0
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    1,
-                    uav_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_pipeline_state(
-                    initialize_primitive_ids_pso_p()
-                );
-            },
-            element_ceil(
-                F_vector3_f32(primitive_count, 1, 1)
-                / 64.0f
-            ),
-            0
-            NRE_OPTIONAL_DEBUG_PARAM(name)
-        );
-        pass_p->add_resource_state({
-            .resource_p = primitive_id_buffer_p,
-            .states = ED_resource_state::UNORDERED_ACCESS
-        });
-    }
     void F_abytek_render_path::cull_primitives(
         F_render_resource* primitive_id_buffer_p,
         const F_indirect_command_batch& execute_command_batch,
