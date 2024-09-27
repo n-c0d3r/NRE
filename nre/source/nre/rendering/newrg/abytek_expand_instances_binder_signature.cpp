@@ -12,7 +12,7 @@ namespace nre::newrg
         A_binder_signature(
             {
                 .param_descs = {
-                    F_root_param_desc( // render primitive data transform
+                    F_root_param_desc( // instance transform
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -23,7 +23,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // render primitive data last transform
+                    F_root_param_desc( // instance last transform
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -34,7 +34,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // render primitive data mesh id
+                    F_root_param_desc( // instance mesh id
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -45,7 +45,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // mesh bboxes
+                    F_root_param_desc( // mesh headers
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -56,20 +56,31 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // 2CBVs (cull options, scene render view) + 2UAV (primitive ids, visible primitive id range)
+                    F_root_param_desc( // mesh bboxes
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
+                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
+                                    .descriptor_count = u32(-1),
+                                    .register_space = 4
+                                }
+                            }
+                        }
+                    ),
+                    F_root_param_desc(
+                        F_root_descriptor_table_desc{
+                            .range_descs = {
+                                F_descriptor_range_desc { // 2CBVs (cull options, scene render view)
                                     .type = ED_descriptor_range_type::CONSTANT_BUFFER,
                                     .descriptor_count = 2,
                                     .base_register = 0,
-                                    .register_space = 4
+                                    .register_space = 5
                                 },
-                                F_descriptor_range_desc {
+                                F_descriptor_range_desc { // 2UAVs (instanced dag node headers, instanced dag node range)
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
                                     .descriptor_count = 2,
                                     .base_register = 0,
-                                    .register_space = 4
+                                    .register_space = 5
                                 }
                             }
                         }

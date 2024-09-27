@@ -3,36 +3,50 @@ import(newrg/abytek/prerequisites.nsh)
 
 
 
-@slot(0)
-@slot_space(0)
+@slot(0 0)
 resource instance_transforms(
     StructuredBuffer(f32x4x4)
 )
 
-@slot(0)
-@slot_space(1)
+@slot(0 1)
 resource instance_last_transforms(
     StructuredBuffer(f32x4x4)
 )
 
-@slot(0)
-@slot_space(2)
+@slot(0 2)
 resource instance_mesh_ids(
     Buffer(F_mesh_id)
 )
 
-@slot(0)
-@slot_space(3)
-resource instance_mesh_bboxes(
+@slot(0 3)
+resource mesh_headers(
+    Buffer(F_mesh_header)
+)
+
+@slot(0 4)
+resource mesh_bboxes(
     StructuredBuffer(F_bbox)
 )
 
-@slot(0)
-@slot_space(4)
+@slot(0 5)
 resource options(
     ConstantBuffer
 )
 uniform instance_count(F_instance_id)
+
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(5)
+import(newrg/abytek/view.nsh)
+
+@slot(0 5)
+resource instanced_dag_node_headers(
+    RWStructuredBuffer(F_instanced_dag_node_header)
+)
+
+@slot(1 5)
+resource instanced_dag_node_ranges(
+    RWStructuredBuffer(F_instanced_dag_node_range)
+)
 
 
 
@@ -40,6 +54,11 @@ compute_shader CS(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
 {
+    u32 global_thread_index = global_thread_id.x;
+
+    if(global_thread_index < instance_count)
+    {
+    }
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BINDER_SIGNATURE)

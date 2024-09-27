@@ -25,16 +25,16 @@ namespace nre::newrg
         F_render_foundation_rg_register_render_primitive_data_event::F_listener_handle rg_register_render_primitive_data_listener_handle_;
         F_render_foundation_rg_register_render_primitive_data_upload_event::F_listener_handle rg_register_render_primitive_data_upload_listener_handle_;
 
-        // TS<F_nsl_shader_asset> cull_primitives_shader_asset_p_;
-        // K_compute_pipeline_state_handle cull_primitives_pso_p_;
+        TS<F_nsl_shader_asset> expand_instances_shader_asset_p_;
+        K_compute_pipeline_state_handle expand_instances_pso_p_;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_register_view_event_
         );
 
-        // NCPP_FORCE_INLINE auto cull_primitives_shader_asset_p() const noexcept { return NCPP_FOH_VALID(cull_primitives_shader_asset_p_); }
-        // NCPP_FORCE_INLINE auto cull_primitives_pso_p() const noexcept { return NCPP_FOH_VALID(cull_primitives_pso_p_); }
+        NCPP_FORCE_INLINE auto expand_instances_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_instances_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto expand_instances_pso_p() const noexcept { return NCPP_FOH_VALID(expand_instances_pso_p_); }
 
 
 
@@ -48,15 +48,6 @@ namespace nre::newrg
     public:
         virtual void RG_begin_register() override;
         virtual void RG_end_register() override;
-
-    public:
-        void cull_primitives(
-            F_render_resource* primitive_id_buffer_p,
-            const F_indirect_command_batch& execute_command_batch,
-            const F_indirect_data_batch& primitive_id_range_data_batch,
-            const F_indirect_data_batch& visible_primitive_id_range_data_batch
-            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
-        );
 
     public:
         void clear_view_main_texture(

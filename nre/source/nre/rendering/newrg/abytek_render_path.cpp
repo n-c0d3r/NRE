@@ -44,10 +44,10 @@ namespace nre::newrg
 
         // load shaders
         {
-            // cull_primitives_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
-            //     "shaders/nsl/newrg/abytek/cull_primitives.nsl"
-            // ).T_cast<F_nsl_shader_asset>();
-            // cull_primitives_pso_p_ = { cull_primitives_shader_asset_p_->pipeline_state_p_vector()[0] };
+            expand_instances_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/expand_instances.nsl"
+            ).T_cast<F_nsl_shader_asset>();
+            expand_instances_pso_p_ = { expand_instances_shader_asset_p_->pipeline_state_p_vector()[0] };
         }
     }
     F_abytek_render_path::~F_abytek_render_path()
@@ -99,36 +99,6 @@ namespace nre::newrg
                 }
             }
         );
-    }
-
-    void F_abytek_render_path::cull_primitives(
-        F_render_resource* primitive_id_buffer_p,
-        const F_indirect_command_batch& execute_command_batch,
-        const F_indirect_data_batch& primitive_id_range_data_batch,
-        const F_indirect_data_batch& visible_primitive_id_range_data_batch
-        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
-    )
-    {
-        NCPP_ASSERT(execute_command_batch);
-        NCPP_ASSERT(primitive_id_range_data_batch);
-        NCPP_ASSERT(visible_primitive_id_range_data_batch);
-
-        // auto pass_p = H_indirect_command_batch::execute(
-        //     [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
-        //     {
-        //     },
-        //     execute_command_batch,
-        //     flag_combine(
-        //         E_render_pass_flag::MAIN_RENDER_WORKER,
-        //         E_render_pass_flag::GPU_ACCESS_COMPUTE
-        //     ),
-        //     0
-        //     NRE_OPTIONAL_DEBUG_PARAM(name)
-        // );
-        // pass_p->add_resource_state({
-        //     .resource_p = primitive_id_buffer_p,
-        //     .states = ED_resource_state::UNORDERED_ACCESS
-        // });
     }
 
     void F_abytek_render_path::clear_view_main_texture(

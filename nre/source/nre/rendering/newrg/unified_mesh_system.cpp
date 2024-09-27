@@ -2,6 +2,7 @@
 #include <nre/rendering/newrg/unified_mesh_asset_factory.hpp>
 #include <nre/rendering/newrg/unified_mesh.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
+#include <nre/rendering/nsl_shader_system.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/io/file_saver_system.hpp>
 #include <nre/io/file_loader_system.hpp>
@@ -100,6 +101,45 @@ namespace nre::newrg
 
         NRE_FILE_SAVER_SYSTEM()->T_registry_saver<F_compressed_unified_mesh_data_file_saver>();
         NRE_FILE_LOADER_SYSTEM()->T_registry_loader<F_compressed_unified_mesh_data_file_loader>();
+
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS",
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_SUBPAGE_HEADER_TABLE_PAGE_CAPACITY_IN_ELEMENTS",
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_SUBPAGE_HEADER_TABLE_PAGE_CAPACITY_IN_ELEMENTS)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS",
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_DAG_TABLE_PAGE_CAPACITY_IN_ELEMENTS",
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_DAG_TABLE_PAGE_CAPACITY_IN_ELEMENTS)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER",
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER",
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS",
+            G_to_string(
+                NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+                * NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER
+            )
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS",
+            G_to_string(
+                NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+                * NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3
+            )
+        });
     }
     F_unified_mesh_system::~F_unified_mesh_system()
     {
