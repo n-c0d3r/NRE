@@ -17,7 +17,6 @@ require(!NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE)
 resource view_buffer(
     ConstantBuffer
 )
-default_constant_buffer(view_buffer)
 uniform world_to_view_matrix(
     float4x4
 )

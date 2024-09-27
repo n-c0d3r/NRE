@@ -32,7 +32,6 @@ resource instance_mesh_bboxes(
 resource options(
     ConstantBuffer
 )
-default_constant_buffer(options)
 uniform instance_count(F_instance_id)
 
 
