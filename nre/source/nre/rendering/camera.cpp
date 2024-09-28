@@ -67,6 +67,20 @@ namespace nre {
 			break;
 		}
 
+		switch(render_view_p_->depth_mode)
+		{
+		case E_render_view_depth_mode::REVERSE:
+			render_view_p_->projection_matrix = F_matrix4x4_f32(
+				F_vector4_f32::right(),
+				F_vector4_f32::up(),
+				-F_vector4_f32::forward(),
+				F_vector4_f32::forward() + F_vector4_f32::future()
+			) * render_view_p_->projection_matrix;
+			break;
+		default:
+			break;
+		}
+
 		render_view_p_->view_matrix = invert(transform_node_p_->transform);
 	}
 

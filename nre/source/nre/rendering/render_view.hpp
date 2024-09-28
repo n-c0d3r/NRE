@@ -60,6 +60,14 @@ namespace nre
 
 
 
+	enum class E_render_view_depth_mode
+	{
+		DEFAULT,
+		REVERSE
+	};
+
+
+
 	class I_scene_render_view {};
 
 
@@ -82,6 +90,7 @@ namespace nre
 	public:
 		F_matrix4x4 projection_matrix = T_identity<F_matrix4x4>();
 		F_matrix4x4 view_matrix = T_identity<F_matrix4x4>();
+		E_render_view_depth_mode depth_mode = E_render_view_depth_mode::DEFAULT;
 
 	public:
 		NCPP_FORCE_INLINE A_render_view_mask mask() const noexcept { return mask_; }

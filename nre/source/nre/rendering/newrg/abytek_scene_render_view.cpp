@@ -14,6 +14,8 @@ namespace nre::newrg
         )
     {
         NRE_ACTOR_COMPONENT_REGISTER(F_abytek_scene_render_view);
+
+        depth_mode = E_render_view_depth_mode::REVERSE;
     }
     F_abytek_scene_render_view::~F_abytek_scene_render_view()
     {
@@ -127,14 +129,14 @@ namespace nre::newrg
                 f32 far_plane = NMATH_F32_NEGATIVE_INFINITY;
 
                 F_vector4_f32 clip_corners[8] = {
-                    F_vector4_f32(-1, -1, 0, 1),
-                    F_vector4_f32(-1, 1, 0, 1),
-                    F_vector4_f32(1, 1, 0, 1),
-                    F_vector4_f32(1, -1, 0, 1),
                     F_vector4_f32(-1, -1, 1, 1),
                     F_vector4_f32(-1, 1, 1, 1),
                     F_vector4_f32(1, 1, 1, 1),
-                    F_vector4_f32(1, -1, 1, 1)
+                    F_vector4_f32(1, -1, 1, 1),
+                    F_vector4_f32(-1, -1, 0, 1),
+                    F_vector4_f32(-1, 1, 0, 1),
+                    F_vector4_f32(1, 1, 0, 1),
+                    F_vector4_f32(1, -1, 0, 1)
                 };
                 F_vector4_f32 corners[8];
 
@@ -166,7 +168,7 @@ namespace nre::newrg
 
                     scene_render_view_data.frustum_planes[i] = {
                         normal,
-                        dot(pivot, normal)
+                        -dot(pivot, normal)
                     };
                     near_plane = eastl::min(
                         near_plane,
@@ -188,11 +190,11 @@ namespace nre::newrg
 
                 scene_render_view_data.frustum_planes[4] = {
                     -F_vector3_f32::forward(),
-                    near_plane
+                    -near_plane
                 };
                 scene_render_view_data.frustum_planes[5] = {
                     F_vector3_f32::forward(),
-                    far_plane
+                    -far_plane
                 };
 
                 rg_view_data_uniform_batch_ = {

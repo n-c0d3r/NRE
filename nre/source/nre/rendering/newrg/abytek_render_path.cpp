@@ -374,7 +374,7 @@ namespace nre::newrg
             view_p->rg_depth_view_element(),
             view_p->rg_depth_texture_p(),
             ED_clear_flag::DEPTH,
-            1.0f,
+            0.0f,
             0
             NRE_OPTIONAL_DEBUG_PARAM(name)
         );
