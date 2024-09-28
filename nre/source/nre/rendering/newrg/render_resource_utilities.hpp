@@ -13,13 +13,23 @@ namespace nre::newrg
     class NRE_API H_render_resource
     {
     public:
-    	struct F_additional_desc
+    	struct F_additional_buffer_desc
     	{
     		ED_resource_state initial_state = ED_resource_state::COMMON;
 
 #ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
     		ED_resource_layout layout = ED_resource_layout::ROW_MAJOR;
 			u64 alignment = u64(ED_resource_placement_alignment::DEFAULT);
+#endif // NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
+    	};
+    	struct F_additional_texture_desc
+    	{
+    		ED_resource_state initial_state = ED_resource_state::COMMON;
+
+#ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
+    		ED_resource_layout layout = ED_resource_layout::UNKNOWN;
+    		u64 alignment = u64(ED_resource_placement_alignment::DEFAULT);
+    		F_resource_clear_value clear_value;
 #endif // NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
     	};
 
@@ -31,7 +41,7 @@ namespace nre::newrg
             u32 stride,
             ED_resource_flag flags = ED_resource_flag::NONE,
             ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
-            const F_additional_desc& additional_desc = {}
+            const F_additional_buffer_desc& additional_desc = {}
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         )
         {
@@ -48,7 +58,8 @@ namespace nre::newrg
 
 #ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 					, additional_desc.layout,
-					additional_desc.alignment
+					additional_desc.alignment,
+					{}
 #endif // NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 				)
 				NRE_OPTIONAL_DEBUG_PARAM(name)
@@ -61,7 +72,7 @@ namespace nre::newrg
             ED_format format,
             ED_resource_flag flags = ED_resource_flag::NONE,
             ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
-			const F_additional_desc& additional_desc = {}
+			const F_additional_buffer_desc& additional_desc = {}
 			NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
 		)
         {
@@ -78,7 +89,8 @@ namespace nre::newrg
 
 #ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 					, additional_desc.layout,
-					additional_desc.alignment
+					additional_desc.alignment,
+					{}
 #endif // NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 				)
 				NRE_OPTIONAL_DEBUG_PARAM(name)
@@ -91,7 +103,7 @@ namespace nre::newrg
             u32 count,
             ED_resource_flag flags = ED_resource_flag::NONE,
             ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
-			const F_additional_desc& additional_desc = {}
+			const F_additional_buffer_desc& additional_desc = {}
 			NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         ) {
             return create_buffer(
@@ -111,7 +123,7 @@ namespace nre::newrg
             u32 mip_level_count = 1,
             ED_resource_flag flags = ED_resource_flag::NONE,
             ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
-			const F_additional_desc& additional_desc = {}
+			const F_additional_texture_desc& additional_desc = {}
 			NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
 		)
         {
@@ -129,7 +141,8 @@ namespace nre::newrg
 
 #ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 					, additional_desc.layout,
-					additional_desc.alignment
+					additional_desc.alignment,
+					additional_desc.clear_value
 #endif // NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 				)
 				NRE_OPTIONAL_DEBUG_PARAM(name)
@@ -145,7 +158,7 @@ namespace nre::newrg
 			F_sample_desc sample_desc = F_sample_desc{},
             ED_resource_flag flags = ED_resource_flag::NONE,
             ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
-			const F_additional_desc& additional_desc = {}
+			const F_additional_texture_desc& additional_desc = {}
 			NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
 		)
         {
@@ -165,7 +178,8 @@ namespace nre::newrg
 
 #ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 					, additional_desc.layout,
-					additional_desc.alignment
+					additional_desc.alignment,
+					additional_desc.clear_value
 #endif // NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 				)
 				NRE_OPTIONAL_DEBUG_PARAM(name)
@@ -181,7 +195,7 @@ namespace nre::newrg
             u32 mip_level_count = 1,
             ED_resource_flag flags = ED_resource_flag::NONE,
             ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
-			const F_additional_desc& additional_desc = {}
+			const F_additional_texture_desc& additional_desc = {}
 			NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
 		)
         {
@@ -201,7 +215,8 @@ namespace nre::newrg
 
 #ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 					, additional_desc.layout,
-					additional_desc.alignment
+					additional_desc.alignment,
+					additional_desc.clear_value
 #endif // NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 				)
 				NRE_OPTIONAL_DEBUG_PARAM(name)
@@ -218,7 +233,7 @@ namespace nre::newrg
 			F_sample_desc sample_desc = F_sample_desc{},
 			ED_resource_flag flags = ED_resource_flag::NONE,
 			ED_resource_heap_type heap_type = ED_resource_heap_type::GREAD_GWRITE,
-			const F_additional_desc& additional_desc = {}
+			const F_additional_texture_desc& additional_desc = {}
 			NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
 		)
 		{
@@ -239,7 +254,8 @@ namespace nre::newrg
 
 #ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 					, additional_desc.layout,
-					additional_desc.alignment
+					additional_desc.alignment,
+					additional_desc.clear_value
 #endif // NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_MANAGEMENT
 				)
 				NRE_OPTIONAL_DEBUG_PARAM(name)

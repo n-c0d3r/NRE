@@ -2,7 +2,9 @@
 #include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
+#include <nre/rendering/newrg/render_resource_utilities.hpp>
 #include <nre/actor/actor.hpp>
+
 
 
 namespace nre::newrg
@@ -30,6 +32,8 @@ namespace nre::newrg
 
     void F_abytek_scene_render_view::RG_register()
     {
+        NCPP_ASSERT(depth_mode == E_render_view_depth_mode::REVERSE);
+
         rg_main_view_element_ = {};
         rg_main_texture_p_ = 0;
         rg_depth_view_element_ = {};
@@ -69,15 +73,19 @@ namespace nre::newrg
                     .descriptor_p = rg_main_view_p
                 };
 
-                rg_depth_texture_p_ = render_graph_p->create_resource(
-                    H_resource_desc::create_texture_2d_desc(
-                        texture_size.width,
-                        texture_size.height,
-                        ED_format::D32_FLOAT,
-                        1,
-                        {},
-                        ED_resource_flag::DEPTH_STENCIL
-                    )
+                rg_depth_texture_p_ = H_render_resource::create_texture_2d(
+                    texture_size.width,
+                    texture_size.height,
+                    ED_format::D32_FLOAT,
+                    1,
+                    {},
+                    ED_resource_flag::DEPTH_STENCIL,
+                    ED_resource_heap_type::DEFAULT,
+                    {
+                        .clear_value = F_resource_clear_value {
+                            .depth = 0.0f // reverse depth
+                        }
+                    }
                     NRE_OPTIONAL_DEBUG_PARAM(
                         F_render_frame_name("nre.newrg.abytek_scene_render_view.depth_textures[")
                         + actor_p()->name().c_str()
