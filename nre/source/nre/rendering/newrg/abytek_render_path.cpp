@@ -195,15 +195,11 @@ namespace nre::newrg
         auto& instance_transform_bind_list = instance_bind_lists.bases()[
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM
         ];
-        auto& instance_last_transform_bind_list = instance_bind_lists.bases()[
-            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_TRANSFORM
-        ];
         auto& instance_mesh_id_bind_list = instance_bind_lists.bases()[
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID
         ];
 
         auto instance_transform_srv_element = instance_transform_bind_list[0];
-        auto instance_last_transform_srv_element = instance_last_transform_bind_list[0];
         auto instance_mesh_id_srv_element = instance_mesh_id_bind_list[0];
 
         auto unified_mesh_system_p = F_unified_mesh_system::instance_p();
@@ -221,7 +217,7 @@ namespace nre::newrg
             3
             NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
         );
-        view_p->rg_view_data_uniform_batch().enqueue_initialize_cbv(
+        view_p->rg_data_batch().enqueue_initialize_cbv(
             main_render_bind_list[0]
         );
         main_render_bind_list.enqueue_initialize_resource_view(
@@ -250,27 +246,23 @@ namespace nre::newrg
                 );
                 command_list_p->ZC_bind_root_descriptor_table(
                     1,
-                    instance_last_transform_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    2,
                     instance_mesh_id_srv_element.handle().gpu_address
                 );
                 command_list_p->ZC_bind_root_descriptor_table(
-                    3,
+                    2,
                     mesh_header_srv_element.handle().gpu_address
                 );
                 command_list_p->ZC_bind_root_descriptor_table(
-                    4,
+                    3,
                     mesh_bbox_srv_element.handle().gpu_address
                 );
                 command_list_p->ZC_bind_root_constant(
-                    5,
+                    4,
                     instance_count,
                     0
                 );
                 command_list_p->ZC_bind_root_descriptor_table(
-                    6,
+                    5,
                     main_descriptor_element.handle().gpu_address
                 );
                 command_list_p->ZC_bind_pipeline_state(
@@ -290,17 +282,6 @@ namespace nre::newrg
         );
         render_primitive_data_table.T_for_each_rg_page<
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM
-        >(
-            [&](F_render_resource* rg_page_p)
-            {
-                pass_p->add_resource_state({
-                    .resource_p = rg_page_p,
-                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
-                });
-            }
-        );
-        render_primitive_data_table.T_for_each_rg_page<
-            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_TRANSFORM
         >(
             [&](F_render_resource* rg_page_p)
             {

@@ -10,41 +10,36 @@ resource instance_transforms(
 )
 
 @slot(0 1)
-resource instance_last_transforms(
-    StructuredBuffer(f32x4x4)
-)
-
-@slot(0 2)
 resource instance_mesh_ids(
     Buffer(F_mesh_id)
 )
 
-@slot(0 3)
+@slot(0 2)
 resource mesh_headers(
     StructuredBuffer(F_mesh_header)
 )
 
-@slot(0 4)
+@slot(0 3)
 resource mesh_bboxes(
     StructuredBuffer(F_bbox)
 )
 
-@slot(0 5)
+@slot(0 4)
 resource options(
     ConstantBuffer
 )
 uniform instance_count(F_instance_id)
 
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
-define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(5)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
 import(newrg/abytek/view.nsh)
 
-@slot(0 5)
+@slot(0 4)
 resource instanced_dag_node_headers(
     RWStructuredBuffer(F_instanced_dag_node_header)
 )
 
-@slot(1 5)
+@slot(1 4)
 resource instanced_dag_node_ranges(
     RWStructuredBuffer(F_instanced_dag_node_range)
 )
@@ -72,9 +67,104 @@ compute_shader CS(
     F_mesh_id mesh_id = instance_mesh_ids[instance_id];
 
     b8 is_culled = (mesh_id == INVALID_MESH_ID);
-
     if(is_culled)
         return;
+
+    float4x4 local_to_world_matrix = instance_transforms[instance_id];
+    float4x4 local_to_view_matrix = mul(world_to_view_matrix, local_to_world_matrix);
+
+    F_bbox bbox = mesh_bboxes[mesh_id];
+
+    float4 view_bbox_corners[8];
+    view_bbox_corners[0] = mul(
+        local_to_view_matrix,
+        float4(
+            bbox.min_position.x,
+            bbox.min_position.y,
+            bbox.min_position.z,
+            1.0f
+        )
+    );
+    view_bbox_corners[1] = mul(
+        local_to_view_matrix,
+        float4(
+            bbox.max_position.x,
+            bbox.min_position.y,
+            bbox.min_position.z,
+            1.0f
+        )
+    );
+    view_bbox_corners[2] = mul(
+        local_to_view_matrix,
+        float4(
+            bbox.min_position.x,
+            bbox.max_position.y,
+            bbox.min_position.z,
+            1.0f
+        )
+    );
+    view_bbox_corners[3] = mul(
+        local_to_view_matrix,
+        float4(
+            bbox.min_position.x,
+            bbox.min_position.y,
+            bbox.max_position.z,
+            1.0f
+        )
+    );
+    view_bbox_corners[4] = mul(
+        local_to_view_matrix,
+        float4(
+            bbox.max_position.x,
+            bbox.max_position.y,
+            bbox.min_position.z,
+            1.0f
+        )
+    );
+    view_bbox_corners[5] = mul(
+        local_to_view_matrix,
+        float4(
+            bbox.min_position.x,
+            bbox.max_position.y,
+            bbox.max_position.z,
+            1.0f
+        )
+    );
+    view_bbox_corners[6] = mul(
+        local_to_view_matrix,
+        float4(
+            bbox.max_position.x,
+            bbox.min_position.y,
+            bbox.max_position.z,
+            1.0f
+        )
+    );
+    view_bbox_corners[7] = mul(
+        local_to_view_matrix,
+        float4(
+            bbox.max_position.x,
+            bbox.max_position.y,
+            bbox.max_position.z,
+            1.0f
+        )
+    );
+    
+    float4 ndc_bbox_corners[8];
+    for(u32 i = 0; i < 8; ++i)
+    {
+        ndc_bbox_corners[i] = view_to_ndc(
+            view_to_clip_matrix,
+            view_bbox_corners[i]  
+        );
+    }
+
+    is_culled = is_culled || !is_cuboid_overlap_frustum(
+        view_to_clip_matrix,
+        view_near_plane,
+        view_far_plane,
+        view_bbox_corners,
+        ndc_bbox_corners
+    );
 
     F_mesh_header mesh_header = mesh_headers[mesh_id];
 

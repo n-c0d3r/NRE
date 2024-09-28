@@ -41,7 +41,8 @@ namespace nre::newrg
         rg_main_frame_buffer_p_ = 0;
         rg_depth_only_frame_buffer_p_ = 0;
 
-        rg_view_data_uniform_batch_.reset();
+        rg_last_data_batch_.reset();
+        rg_data_batch_.reset();
 
         F_scene_render_view::RG_register();
 
@@ -127,11 +128,10 @@ namespace nre::newrg
 
             // upload view buffer data
             {
-                F_abytek_scene_render_view_data scene_render_view_data;
-                scene_render_view_data.world_to_view_matrix = view_matrix;
-                scene_render_view_data.view_to_world_matrix = invert(view_matrix);
-                scene_render_view_data.view_to_clip_matrix = projection_matrix;
-                scene_render_view_data.clip_to_view_matrix = invert(projection_matrix);
+                data_.world_to_view_matrix = view_matrix;
+                data_.view_to_world_matrix = invert(view_matrix);
+                data_.view_to_clip_matrix = projection_matrix;
+                data_.clip_to_view_matrix = invert(projection_matrix);
 
                 f32 near_plane = NMATH_F32_INFINITY;
                 f32 far_plane = NMATH_F32_NEGATIVE_INFINITY;
@@ -150,7 +150,7 @@ namespace nre::newrg
 
                 for(u32 i = 0; i < 8; ++i)
                 {
-                    corners[i] = scene_render_view_data.clip_to_view_matrix * clip_corners[i];
+                    corners[i] = data_.clip_to_view_matrix * clip_corners[i];
                     corners[i] /= corners[i].w;
                 }
 
@@ -174,7 +174,7 @@ namespace nre::newrg
                         )
                     );
 
-                    scene_render_view_data.frustum_planes[i] = {
+                    data_.frustum_planes[i] = {
                         normal,
                         -dot(pivot, normal)
                     };
@@ -196,18 +196,31 @@ namespace nre::newrg
                     );
                 }
 
-                scene_render_view_data.frustum_planes[4] = {
+                data_.frustum_planes[4] = {
                     -F_vector3_f32::forward(),
                     -near_plane
                 };
-                scene_render_view_data.frustum_planes[5] = {
+                data_.frustum_planes[5] = {
                     F_vector3_f32::forward(),
-                    -far_plane
+                    far_plane
                 };
+                data_.near_plane = near_plane;
+                data_.far_plane = far_plane;
 
-                rg_view_data_uniform_batch_ = {
+                if(is_first_register_)
+                {
+                    is_first_register_ = false;
+                    last_data_ = data_;
+                }
+
+                rg_data_batch_ = {
                     uniform_transient_resource_uploader_p->T_enqueue_upload(
-                        scene_render_view_data
+                        data_
+                    )
+                };
+                rg_last_data_batch_ = {
+                    uniform_transient_resource_uploader_p->T_enqueue_upload(
+                        last_data_
                     )
                 };
             }

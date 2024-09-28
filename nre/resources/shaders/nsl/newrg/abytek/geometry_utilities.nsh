@@ -3,42 +3,55 @@ import(newrg/abytek/prerequisites.nsh)
 
 
 
-f32 plane_signed_distance(
-    float4 plane,
-    float3 p
-)
-{
-    return dot(p, plane.xyz) + plane.w;
-}
-
-b8 is_point_in_frustum(
-    float4 planes[6],
-    float3 p
-)
-{
-    return (
-        (plane_signed_distance(planes[0], p) <= 0.0f)
-        && (plane_signed_distance(planes[1], p) <= 0.0f)
-        && (plane_signed_distance(planes[2], p) <= 0.0f)
-        && (plane_signed_distance(planes[3], p) <= 0.0f)
-        && (plane_signed_distance(planes[4], p) <= 0.0f)
-        && (plane_signed_distance(planes[5], p) <= 0.0f)
-    );
-}
-
-b8 is_point_in_projection(
+float4 view_to_ndc(
     float4x4 projection_matrix,
-    float3 p
+    float4 p_4d
 )
 {
-    float4 clip_p = mul(projection_matrix, float4(p, 1.0f));
-    float3 ndc_p = clip_p.xyz / clip_p.w;
+    float4 clip_p = mul(projection_matrix, p_4d);
+    return clip_p / clip_p.w;
+}
+
+
+
+b8 is_cuboid_overlap_frustum(
+    float4x4 projection_matrix,
+    float near_plane,
+    float far_plane,
+    float4 corners[8],
+    float4 ndc_corners[8]
+)
+{
+    float3 min_xyz = float3(9999999.0f, 9999999.0f, 9999999.0f);
+    float3 max_xyz = -min_xyz;
+    for(u32 i = 0; i < 8; ++i)
+    {
+        float4 corner = corners[i];
+        float4 ndc_corner = ndc_corners[i];
+        float3 xyz = float3(
+            ndc_corner.xy,
+            corner.z
+        );
+
+        max_xyz = max(max_xyz, xyz);
+        min_xyz = min(min_xyz, xyz);
+    }
 
     return (
-        (ndc_p.x >= -1.0f)
-        && (ndc_p.x <= 1.0f)  
-        && (ndc_p.y >= -1.0f) 
-        && (ndc_p.y <= 1.0f) 
-        && (ndc_p.z >= 0.0f) 
+        (
+            (min_xyz.x - near_plane)
+            * (max_xyz.x - far_plane)
+            < 0.0f
+        )
+        && (
+            (min_xyz.y - (-1.0f))
+            * (max_xyz.y - (1.0f))
+            < 0.0f
+        )
+        && (
+            (min_xyz.z - (-1.0f))
+            * (max_xyz.z - (1.0f))
+            < 0.0f
+        )
     );
 }

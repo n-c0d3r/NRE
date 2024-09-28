@@ -26,7 +26,13 @@ namespace nre::newrg
         F_render_frame_buffer* rg_main_frame_buffer_p_ = 0;
         F_render_frame_buffer* rg_depth_only_frame_buffer_p_ = 0;
 
-        TF_render_uniform_batch<F_abytek_scene_render_view_data> rg_view_data_uniform_batch_;
+        F_abytek_scene_render_view_data data_;
+        F_abytek_scene_render_view_data last_data_;
+
+        TF_render_uniform_batch<F_abytek_scene_render_view_data> rg_data_batch_;
+        TF_render_uniform_batch<F_abytek_scene_render_view_data> rg_last_data_batch_;
+
+        b8 is_first_register_ = true;
 
     public:
         F_vector4 clear_color = F_vector4::zero();
@@ -39,7 +45,11 @@ namespace nre::newrg
         NCPP_FORCE_INLINE F_render_frame_buffer* rg_main_frame_buffer_p() const noexcept { return rg_main_frame_buffer_p_; }
         NCPP_FORCE_INLINE F_render_frame_buffer* rg_depth_only_frame_buffer_p() const noexcept { return rg_depth_only_frame_buffer_p_; }
 
-        NCPP_FORCE_INLINE auto rg_view_data_uniform_batch() const noexcept { return rg_view_data_uniform_batch_; }
+        NCPP_FORCE_INLINE const auto& data() const noexcept { return data_; }
+        NCPP_FORCE_INLINE const auto& last_data() const noexcept { return last_data_; }
+
+        NCPP_FORCE_INLINE auto rg_data_batch() const noexcept { return rg_data_batch_; }
+        NCPP_FORCE_INLINE auto rg_last_data_batch() const noexcept { return rg_last_data_batch_; }
 
 
 
