@@ -50,6 +50,10 @@ resource instanced_dag_node_ranges(
 
 
 
+groupshared u32 group_instanced_dag_node_offset;
+
+
+
 @thread_group_size(
     NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
     NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
@@ -73,24 +77,35 @@ compute_shader CS(
 
     F_mesh_header mesh_header = mesh_headers[mesh_id];
 
-    u32 local_dag_node_offset = WavePrefixSum(mesh_header.dag_node_count);
-    u32 thread_group_dag_node_count = WaveActiveSum(mesh_header.dag_node_count);
+    u32 local_root_dag_node_offset = WavePrefixSum(mesh_header.root_dag_node_count);
+    u32 local_root_dag_node_count = WaveActiveSum(mesh_header.root_dag_node_count);
 
     GroupMemoryBarrierWithGroupSync();
 
-    if(local_dag_node_offset == 0)
+    if(local_root_dag_node_offset == 0)
     {
-        instanced_dag_node_ranges[0].count = thread_group_dag_node_count;
-
-        u32 instance_dag_node_offset;
         InterlockedAdd(
             instanced_dag_node_ranges[0].count,
-            thread_group_dag_node_count,
-            instance_dag_node_offset
+            local_root_dag_node_count,
+            group_instanced_dag_node_offset
         );
     }
 
     GroupMemoryBarrierWithGroupSync();
+
+    u32 instanced_dag_node_offset = group_instanced_dag_node_offset + local_root_dag_node_offset;
+
+    for(u32 i = 0; i < mesh_header.root_dag_node_count; ++i)
+    {
+        F_instanced_dag_node_header instanced_dag_node_header;
+        instanced_dag_node_header.instance_id = instance_id;
+        instanced_dag_node_header.mesh_id = mesh_id;
+        instanced_dag_node_header.local_dag_node_id = (u16)(
+            (mesh_header.root_dag_node_offset - mesh_header.dag_node_offset) + i
+        );
+
+        instanced_dag_node_headers[instanced_dag_node_offset + i] = instanced_dag_node_header;
+    }
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BINDER_SIGNATURE)
