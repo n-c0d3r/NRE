@@ -56,6 +56,7 @@ namespace nre::newrg
         F_resource_view_desc parsed_desc = desc;
         parsed_desc.mem_offset = address_offset_ + stride * command_index;
         parsed_desc.overrided_size = stride * command_count;
+        parsed_desc.overrided_stride = stride;
 
         F_render_graph::instance_p()->enqueue_initialize_resource_view({
             .element = descriptor_element,
