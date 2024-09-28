@@ -167,6 +167,9 @@ namespace nre::newrg
                     };
                 }
 
+                scene_render_view_data.near_plane = near_plane;
+                scene_render_view_data.far_plane = far_plane;
+
                 rg_view_data_uniform_batch_ = {
                     uniform_transient_resource_uploader_p->T_enqueue_upload(
                         scene_render_view_data

@@ -82,6 +82,8 @@ namespace nre
 	public:
 		F_matrix4x4 projection_matrix = T_identity<F_matrix4x4>();
 		F_matrix4x4 view_matrix = T_identity<F_matrix4x4>();
+		f32 near_plane = 0.01f;
+		f32 far_plane = 1000.0f;
 
 	public:
 		NCPP_FORCE_INLINE A_render_view_mask mask() const noexcept { return mask_; }
