@@ -104,11 +104,22 @@ namespace nre::newrg
             return;
         }
 
+        // for constant buffer views
+        if(
+            flag_is_has(
+                resource_flags_,
+                ED_resource_flag::CONSTANT_BUFFER
+            )
+        )
+        {
+            resource_size_.fetch_add(NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT);
+        }
+
         //
         render_graph_p->finalize_resource_creation(
             target_resource_p_,
             H_resource_desc::create_buffer_desc(
-                resource_size_ + NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT,
+                resource_size_,
                 1,
                 resource_flags_
             )
