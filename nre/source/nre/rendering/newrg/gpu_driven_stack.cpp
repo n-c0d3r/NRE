@@ -108,7 +108,7 @@ namespace nre::newrg
         render_graph_p->finalize_resource_creation(
             target_resource_p_,
             H_resource_desc::create_buffer_desc(
-                resource_size_,
+                resource_size_ + NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT,
                 1,
                 resource_flags_
             )

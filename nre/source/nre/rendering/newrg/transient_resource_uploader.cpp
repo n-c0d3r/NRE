@@ -9,12 +9,12 @@ namespace nre::newrg
 {
     F_transient_resource_uploader::F_transient_resource_uploader(
         ED_resource_flag resource_flags,
-        sz alignment,
+        sz min_alignment,
         sz upload_queue_capacity,
         sz add_resource_state_queue_capacity
     ) :
         resource_flags_(resource_flags),
-        alignment_(alignment),
+        min_alignment_(min_alignment),
         upload_queue_(upload_queue_capacity),
         add_resource_state_queue_(add_resource_state_queue_capacity)
     {
@@ -105,9 +105,6 @@ namespace nre::newrg
             return;
         }
 
-        total_upload_heap_size = align_size(total_upload_heap_size, alignment_);
-        total_upload_heap_size_.store(total_upload_heap_size_);
-
         //
         upload_resource_p_ = render_graph_p->create_resource(
             H_resource_desc::create_buffer_desc(
@@ -161,11 +158,13 @@ namespace nre::newrg
     {
         NCPP_ASSERT(is_started_rg_register_);
 
-        sz actual_size = data.size() + alignment;
+        sz actual_alignment = align_size(alignment, min_alignment_);
+
+        sz actual_size = data.size() + actual_alignment;
 
         sz raw_offset = total_upload_heap_size_.fetch_add(actual_size, eastl::memory_order_acq_rel);
 
-        sz offset = align_address(raw_offset + alignment_offset, alignment) - alignment_offset;
+        sz offset = align_address(raw_offset + alignment_offset, actual_alignment) - alignment_offset;
 
         upload_queue_.push({
             .data = data,
@@ -203,7 +202,8 @@ namespace nre::newrg
         F_transient_resource_uploader(
             ED_resource_flag::CONSTANT_BUFFER
             | ED_resource_flag::SHADER_RESOURCE
-            | ED_resource_flag::STRUCTURED
+            | ED_resource_flag::STRUCTURED,
+            NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();

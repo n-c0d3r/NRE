@@ -49,13 +49,18 @@ namespace nre::newrg
     ) const
     {
         NCPP_ASSERT(command_index < count_);
-        NCPP_ASSERT(command_count);
+        NCPP_ASSERT(command_index + command_count <= count_);
 
         auto stride = signature_p_->desc().stride;
 
+        sz alignment = (desc.type == ED_resource_view_type::CONSTANT_BUFFER) ? NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT : 1;
+
         F_resource_view_desc parsed_desc = desc;
         parsed_desc.mem_offset = address_offset_ + stride * command_index;
-        parsed_desc.overrided_size = stride * command_count;
+        parsed_desc.overrided_size = align_size(
+            stride * command_count,
+            alignment
+        );
         parsed_desc.overrided_stride = stride;
 
         F_render_graph::instance_p()->enqueue_initialize_resource_view({

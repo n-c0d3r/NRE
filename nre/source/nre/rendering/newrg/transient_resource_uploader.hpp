@@ -18,7 +18,7 @@ namespace nre::newrg
     {
     private:
         ED_resource_flag resource_flags_;
-        sz alignment_;
+        sz min_alignment_;
 
         F_render_pass* map_pass_p_ = 0;
         F_render_pass* upload_pass_p_ = 0;
@@ -45,7 +45,7 @@ namespace nre::newrg
 
     public:
         NCPP_FORCE_INLINE ED_resource_flag resource_flags() const noexcept { return resource_flags_; }
-        NCPP_FORCE_INLINE sz alignment() const noexcept { return alignment_; }
+        NCPP_FORCE_INLINE sz min_alignment() const noexcept { return min_alignment_; }
         NCPP_FORCE_INLINE F_render_pass* map_pass_p() const noexcept { return map_pass_p_; }
         NCPP_FORCE_INLINE F_render_pass* upload_pass_p() const noexcept { return upload_pass_p_; }
         NCPP_FORCE_INLINE F_render_resource* upload_resource_p() const noexcept { return upload_resource_p_; }
@@ -56,7 +56,7 @@ namespace nre::newrg
     public:
         F_transient_resource_uploader(
             ED_resource_flag resource_flags,
-            sz alignment = 256,
+            sz min_alignment = 1,
             sz upload_queue_capacity = NRE_TRANSIENT_RESOURCE_UPLOADER_DEFAULT_UPLOAD_QUEUE_CAPACITY,
             sz add_resource_state_queue_capacity = NRE_TRANSIENT_RESOURCE_UPLOADER_DEFAULT_ADD_RESOURCE_STATE_QUEUE_CAPACITY
         );
@@ -82,7 +82,7 @@ namespace nre::newrg
          *  Thread-safe
          *  Return: offset
          */
-        sz enqueue_upload(const TG_span<u8>& data, sz alignment = 256, sz alignment_offset = 0);
+        sz enqueue_upload(const TG_span<u8>& data, sz alignment = 1, sz alignment_offset = 0);
         /**
          *  Thread-safe
          *  Return: offset

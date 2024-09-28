@@ -58,6 +58,18 @@ namespace nre::newrg
             "NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z",
             G_to_string(1)
         });
+#ifdef NRE_NEWRG_ABYTEK_ENABLE_INSTANCE_CULLING_FRUSTUM
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_ENABLE_INSTANCE_CULLING_FRUSTUM",
+            ""
+        });
+#endif
+#ifdef NRE_NEWRG_ABYTEK_ENABLE_INSTANCE_CULLING_OCCLUSION
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_ENABLE_INSTANCE_CULLING_OCCLUSION",
+            ""
+        });
+#endif
 
         // load shaders
         {

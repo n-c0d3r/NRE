@@ -78,8 +78,7 @@ namespace nre::newrg
                 command_count,
                 descriptor_element,
                 {
-                    .type = type,
-                    .overrided_format = format
+                    .type = type
                 }
             );
         }
