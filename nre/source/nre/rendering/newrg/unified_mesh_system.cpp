@@ -460,9 +460,13 @@ namespace nre::newrg
 
                     mesh_p->last_frame_dag_node_id_ = dag_table_.register_id(dag_node_count);
 
+                    auto& last_dag_level_header = compressed_data.dag_level_headers.back();
+
                     auto& mesh_header = mesh_table_.T_element(mesh_p->last_frame_id_);
                     mesh_header.dag_node_offset = mesh_p->last_frame_dag_node_id_;
                     mesh_header.dag_node_count = dag_node_count;
+                    mesh_header.root_dag_node_offset = mesh_header.dag_node_offset + last_dag_level_header.begin;
+                    mesh_header.root_dag_node_count = last_dag_level_header.end - last_dag_level_header.begin;
                 }
 
                 dag_table_.RG_end_register();
