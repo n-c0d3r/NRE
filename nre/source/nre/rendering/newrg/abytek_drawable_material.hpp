@@ -63,6 +63,8 @@ namespace nre::newrg
     protected:
         virtual void ready();
         virtual void render_tick();
+        virtual void active();
+        virtual void deactive();
 
     public:
         void set_static(b8 value = true);

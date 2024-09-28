@@ -177,6 +177,8 @@ namespace nre::newrg
         auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
         auto instance_count = render_primitive_data_pool_p->primitive_count();
 
+        auto& render_primitive_data_table = render_primitive_data_pool_p->table();
+
         auto& instance_bind_lists = render_primitive_data_pool_p->table_render_bind_list();
         auto& instance_transform_bind_list = instance_bind_lists.bases()[
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM
@@ -193,6 +195,8 @@ namespace nre::newrg
         auto instance_mesh_id_srv_element = instance_mesh_id_bind_list[0];
 
         auto unified_mesh_system_p = F_unified_mesh_system::instance_p();
+
+        auto& mesh_table = unified_mesh_system_p->mesh_table();
 
         auto& mesh_header_bind_list = unified_mesh_system_p->mesh_table_render_bind_list().bases()[0];
         auto& mesh_bbox_bind_list = unified_mesh_system_p->mesh_table_render_bind_list().bases()[1];
@@ -220,21 +224,121 @@ namespace nre::newrg
             ED_resource_view_type::UNORDERED_ACCESS
         );
 
-        // H_render_pass::dispatch(
-        //     [=](F_render_pass*, TKPA<A_command_list> command_list_p)
-        //     {
-        //     },
-        //     element_ceil(
-        //         F_vector3_f32(
-        //             instance_count,
-        //             1,
-        //             1
-        //         )
-        //         / f32(NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
-        //     ),
-        //     0
-        //     NRE_OPTIONAL_DEBUG_PARAM(name)
-        // );
+        auto main_descriptor_element = main_render_bind_list[0];
+
+        auto pass_p = H_render_pass::dispatch(
+            [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+            {
+                command_list_p->ZC_bind_root_signature(
+                    F_abytek_expand_instances_binder_signature::instance_p()->root_signature_p()
+                );
+                command_list_p->ZC_bind_root_descriptor_table(
+                    0,
+                    instance_transform_srv_element.handle().gpu_address
+                );
+                command_list_p->ZC_bind_root_descriptor_table(
+                    1,
+                    instance_last_transform_srv_element.handle().gpu_address
+                );
+                command_list_p->ZC_bind_root_descriptor_table(
+                    2,
+                    instance_mesh_id_srv_element.handle().gpu_address
+                );
+                command_list_p->ZC_bind_root_descriptor_table(
+                    3,
+                    mesh_header_srv_element.handle().gpu_address
+                );
+                command_list_p->ZC_bind_root_descriptor_table(
+                    4,
+                    mesh_bbox_srv_element.handle().gpu_address
+                );
+                command_list_p->ZC_bind_root_constant(
+                    5,
+                    instance_count,
+                    0
+                );
+                command_list_p->ZC_bind_root_descriptor_table(
+                    6,
+                    main_descriptor_element.handle().gpu_address
+                );
+                command_list_p->ZC_bind_pipeline_state(
+                    NCPP_FOH_VALID(expand_instances_pso_p_)
+                );
+            },
+            element_ceil(
+                F_vector3_f32(
+                    instance_count,
+                    1,
+                    1
+                )
+                / f32(NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+            ),
+            0
+            NRE_OPTIONAL_DEBUG_PARAM(name)
+        );
+        render_primitive_data_table.T_for_each_rg_page<
+            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM
+        >(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        render_primitive_data_table.T_for_each_rg_page<
+            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_TRANSFORM
+        >(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        render_primitive_data_table.T_for_each_rg_page<
+            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID
+        >(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        mesh_table.T_for_each_rg_page<0>(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        mesh_table.T_for_each_rg_page<1>(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        pass_p->add_resource_state({
+            .resource_p = F_uniform_transient_resource_uploader::instance_p()->target_resource_p(),
+            .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+        });
+        pass_p->add_resource_state({
+            .resource_p = rg_instanced_dag_node_header_buffer_p,
+            .states = ED_resource_state::UNORDERED_ACCESS
+        });
+        pass_p->add_resource_state({
+            .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+            .states = ED_resource_state::UNORDERED_ACCESS
+        });
     }
 
     void F_abytek_render_path::clear_view_main_texture(

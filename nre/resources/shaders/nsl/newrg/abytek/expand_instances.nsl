@@ -59,11 +59,43 @@ compute_shader CS(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
 {
-    u32 global_thread_index = global_thread_id.x;
+    F_instance_id instance_id = global_thread_id.x;
 
-    if(global_thread_index < instance_count)
-    {
-    }
+    F_instanced_dag_node_range dag_node_range;
+    dag_node_range.offset = 4;
+    dag_node_range.count = 2;
+    instanced_dag_node_ranges[0] = dag_node_range;
+
+    // if(instance_id >= instance_count)
+    //     return;
+        
+    // F_mesh_id mesh_id = instance_mesh_ids[instance_id];
+
+    // b8 is_culled = (mesh_id == INVALID_MESH_ID);
+
+    // if(is_culled)
+    //     return;
+
+    // F_mesh_header mesh_header = mesh_headers[mesh_id];
+
+    // u32 local_dag_node_offset = WavePrefixSum(mesh_header.dag_node_count);
+    // u32 thread_group_dag_node_count = WaveActiveSum(mesh_header.dag_node_count);
+
+    // GroupMemoryBarrierWithGroupSync();
+
+    // if(local_dag_node_offset == 0)
+    // {
+    //     instanced_dag_node_ranges[0].count = thread_group_dag_node_count;
+
+    //     u32 instance_dag_node_offset;
+    //     InterlockedAdd(
+    //         instanced_dag_node_ranges[0].offset,
+    //         thread_group_dag_node_count,
+    //         instance_dag_node_offset
+    //     );
+    // }
+
+    // GroupMemoryBarrierWithGroupSync();
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BINDER_SIGNATURE)

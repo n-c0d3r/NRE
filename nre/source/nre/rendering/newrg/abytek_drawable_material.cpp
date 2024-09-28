@@ -25,7 +25,7 @@ namespace nre::newrg
         F_render_primitive_data_pool::instance_p()->enqueue_rg_register(
             [id = render_primitive_data_id_]()
             {
-                F_render_primitive_data_pool::instance_p()->table().deregister_id(id);
+                F_render_primitive_data_pool::instance_p()->deregister_id(id);
             }
         );
         F_render_primitive_data_pool::instance_p()->enqueue_rg_register_upload(
@@ -43,6 +43,15 @@ namespace nre::newrg
     {
         A_material::ready();
 
+        F_render_primitive_data_pool::instance_p()->enqueue_rg_register_upload(
+            [oref = NCPP_KTHIS_UNSAFE()]()
+            {
+                if(oref)
+                {
+                    oref->RG_setup();
+                }
+            }
+        );
         F_render_primitive_data_pool::instance_p()->enqueue_rg_register(
             [oref = NCPP_KTHIS_UNSAFE()]()
             {
@@ -65,6 +74,63 @@ namespace nre::newrg
     void A_abytek_drawable_material::render_tick()
     {
         A_material::render_tick();
+    }
+    void A_abytek_drawable_material::active()
+    {
+        F_render_primitive_data_pool::instance_p()->enqueue_rg_register_upload(
+            [this, oref = NCPP_KTHIS_UNSAFE()]()
+            {
+                if(oref)
+                {
+                    auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
+
+                    auto& table = render_primitive_data_pool_p->table();
+
+                    u32 mesh_id = NCPP_U32_MAX;
+                    const auto& mesh_p = drawable_p_->mesh_p;
+                    if(mesh_p)
+                    {
+                        mesh_id = mesh_p->last_frame_id();
+                    }
+                    NCPP_ASSERT(
+                        (mesh_id == NCPP_U32_MAX)
+                        || (mesh_id < NCPP_U16_MAX)
+                    );
+
+                    auto& last_mesh_id = table.T_element<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(render_primitive_data_id_);
+                    if(last_mesh_id != mesh_id)
+                    {
+                        table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(
+                            render_primitive_data_id_,
+                            (u16)mesh_id
+                        );
+                    }
+                }
+            }
+        );
+    }
+    void A_abytek_drawable_material::deactive()
+    {
+        F_render_primitive_data_pool::instance_p()->enqueue_rg_register_upload(
+            [this, oref = NCPP_KTHIS_UNSAFE()]()
+            {
+                if(oref)
+                {
+                    auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
+
+                    auto& table = render_primitive_data_pool_p->table();
+
+                    auto& last_mesh_id = table.T_element<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(render_primitive_data_id_);
+                    if(last_mesh_id != NCPP_U16_MAX)
+                    {
+                        table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(
+                            render_primitive_data_id_,
+                            NCPP_U16_MAX
+                        );
+                    }
+                }
+            }
+        );
     }
 
     void A_abytek_drawable_material::set_static(b8 value)
@@ -99,7 +165,7 @@ namespace nre::newrg
         auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
 
         if(render_primitive_data_id_ == NCPP_U32_MAX)
-            render_primitive_data_id_ = render_primitive_data_pool_p->table().register_id();
+            render_primitive_data_id_ = render_primitive_data_pool_p->register_id();
     }
     void A_abytek_drawable_material::RG_register_upload()
     {
@@ -108,6 +174,7 @@ namespace nre::newrg
         F_matrix4x4_f32 local_to_world_matrix = transform_node_p_->local_to_world_matrix();
 
         auto& table = render_primitive_data_pool_p->table();
+
         if(local_to_world_matrix != last_local_to_world_matrix_)
         {
             table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM>(
@@ -119,25 +186,6 @@ namespace nre::newrg
                 last_local_to_world_matrix_
             );
             last_local_to_world_matrix_ = local_to_world_matrix;
-        }
-
-        const auto& mesh_p = drawable_p_->mesh_p;
-        u32 mesh_id = NCPP_U32_MAX;
-        if(mesh_p)
-        {
-            mesh_id = mesh_p->last_frame_id();
-        }
-        NCPP_ASSERT(
-            (mesh_id == NCPP_U32_MAX)
-            || (mesh_id < NCPP_U16_MAX)
-        );
-        auto& last_mesh_id = table.T_element<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(render_primitive_data_id_);
-        if(last_mesh_id != mesh_id)
-        {
-            table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(
-                render_primitive_data_id_,
-                (u16)mesh_id
-            );
         }
     }
 

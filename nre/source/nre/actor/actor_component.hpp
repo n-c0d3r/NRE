@@ -20,7 +20,7 @@ namespace nre {
 
 	private:
 		TK_valid<F_actor> actor_p_;
-		b8 is_active_ = true;
+		b8 is_active_ = false;
 		b8 is_active_next_frame_ = true;
 
 	protected:
@@ -44,8 +44,11 @@ namespace nre {
 
 	protected:
 		virtual void ready();
+		virtual void destroy();
 		virtual void gameplay_tick();
 		virtual void render_tick();
+		virtual void active();
+		virtual void deactive();
 
 	public:
 		void set_active(b8 value);

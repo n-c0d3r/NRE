@@ -34,14 +34,17 @@ namespace nre::newrg
         pac::F_spin_lock rg_register_lock_;
 
         TG_queue<eastl::function<void()>> rg_register_upload_queue_;
-        pac::F_spin_lock rg_register_upload_lock_; 
+        pac::F_spin_lock rg_register_upload_lock_;
+
+        au32 primitive_count_ = 0;
 
     public:
         NCPP_FORCE_INLINE auto& table() noexcept { return table_; }
         NCPP_FORCE_INLINE auto table_render_bind_list_p() noexcept { return table_render_bind_list_p_; }
         NCPP_FORCE_INLINE auto& table_render_bind_list() noexcept { return *table_render_bind_list_p_; }
         NCPP_FORCE_INLINE const auto& table() const noexcept { return table_; }
-        NCPP_FORCE_INLINE const auto& primitive_count() const noexcept { return table_.pool_data_distributor().id_count(); }
+        NCPP_FORCE_INLINE auto primitive_count() const noexcept { return primitive_count_.load(); }
+        NCPP_FORCE_INLINE auto active_primitive_count() const noexcept { return table_.pool_data_distributor().id_count(); }
 
 
 
@@ -59,6 +62,10 @@ namespace nre::newrg
     public:
         void RG_begin_register_upload();
         void RG_end_register_upload();
+
+    public:
+        u32 register_id();
+        void deregister_id(u32 id);
 
     public:
         void enqueue_rg_register(const eastl::function<void()>& callback);

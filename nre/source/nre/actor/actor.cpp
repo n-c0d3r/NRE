@@ -18,6 +18,7 @@ namespace nre {
 
 		for(i32 i = component_vector_.size() - 1; i >= 0; --i)
 		{
+			component_vector_[i]->destroy();
 			component_vector_[i].reset();
 		}
 	}

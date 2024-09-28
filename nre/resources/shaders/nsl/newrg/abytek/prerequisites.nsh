@@ -22,7 +22,9 @@ struct F_vertex_data(
 )
 
 define F_global_cluster_id(u32)
+define INVALID_GLOBAL_CLUSTER_ID(0xFFFFFFFF)
 define F_local_cluster_id(u16)
+define INVALID_LOCAL_CLUSTER_ID(0xFFFF)
 struct F_cluster_header(
     vertex_offset(u32)
     vertex_count(u32)
@@ -46,6 +48,7 @@ struct F_cluster_culling_data(
 )
 
 define F_dag_node_id(u32)
+define INVALID_DAG_NODE_ID(0xFFFFFFFF)
 struct F_dag_node_header(
     child_node_ids(F_dag_node_id 4)
 )

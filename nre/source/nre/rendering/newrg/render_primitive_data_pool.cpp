@@ -101,6 +101,32 @@ namespace nre::newrg
         );
     }
 
+    u32 F_render_primitive_data_pool::register_id()
+    {
+        u32 result = table_.register_id();
+
+        {
+            u32 potential_primitive_count = result + 1;
+
+            u32 last_primitive_count = primitive_count_.load();
+
+            if(potential_primitive_count > last_primitive_count)
+            {
+                while(!(primitive_count_.compare_exchange_weak(last_primitive_count, potential_primitive_count)))
+                {
+                    if(last_primitive_count >= potential_primitive_count)
+                        break;
+                }
+            }
+        }
+
+        return result;
+    }
+    void F_render_primitive_data_pool::deregister_id(u32 id)
+    {
+        table_.deregister_id(id);
+    }
+
     void F_render_primitive_data_pool::enqueue_rg_register(const eastl::function<void()>& callback)
     {
         NCPP_SCOPED_LOCK(rg_register_lock_);

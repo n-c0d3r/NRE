@@ -120,6 +120,7 @@ namespace nre::newrg
         {
             resource_states = (
                 resource_states
+                | ED_resource_state::INPUT_AND_CONSTANT_BUFFER
                 | ED_resource_state::UNORDERED_ACCESS
                 | ED_resource_state::NON_PIXEL_SHADER_RESOURCE
                 | ED_resource_state::INDIRECT_ARGUMENT
@@ -130,6 +131,7 @@ namespace nre::newrg
         {
             resource_states = (
                 resource_states
+                | ED_resource_state::INPUT_AND_CONSTANT_BUFFER
                 | ED_resource_state::UNORDERED_ACCESS
                 | ED_resource_state::NON_PIXEL_SHADER_RESOURCE
                 | ED_resource_state::INDIRECT_ARGUMENT

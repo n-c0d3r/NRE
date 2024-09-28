@@ -228,6 +228,32 @@ namespace nre::newrg
         /**
          *  Thread-safe
          */
+        template<sz row_index__ = 0>
+        NCPP_FORCE_INLINE void T_for_each_page(auto&& callback) const noexcept
+        {
+            const auto& page_p_vector = eastl::get<row_index__>(gpu_large_data_list_tuple_).page_p_vector();
+
+            for(const auto& page_p : page_p_vector)
+            {
+                callback(page_p);
+            }
+        }
+        /**
+         *  Thread-safe
+         */
+        template<sz row_index__ = 0>
+        NCPP_FORCE_INLINE void T_for_each_rg_page(auto&& callback) const noexcept
+        {
+            const auto& rg_page_p_vector = eastl::get<row_index__>(gpu_large_data_list_tuple_).rg_page_p_vector();
+
+            for(const auto& rg_page_p : rg_page_p_vector)
+            {
+                callback(rg_page_p);
+            }
+        }
+        /**
+         *  Thread-safe
+         */
         NCPP_FORCE_INLINE sz capacity() const noexcept
         {
             return general_data_distributor_.capacity();
