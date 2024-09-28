@@ -24,6 +24,8 @@ b8 is_cuboid_overlap_frustum(
 {
     float3 min_xyz = float3(9999999.0f, 9999999.0f, 9999999.0f);
     float3 max_xyz = -min_xyz;
+    
+    [unroll]
     for(u32 i = 0; i < 8; ++i)
     {
         float4 corner = corners[i];

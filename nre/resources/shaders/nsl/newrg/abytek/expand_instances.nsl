@@ -150,6 +150,7 @@ compute_shader CS(
     );
     
     float4 ndc_bbox_corners[8];
+    [unroll]
     for(u32 i = 0; i < 8; ++i)
     {
         ndc_bbox_corners[i] = view_to_ndc(

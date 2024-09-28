@@ -223,6 +223,8 @@ namespace nre::newrg
                         last_data_
                     )
                 };
+
+                last_data_ = data_;
             }
         }
     }
