@@ -12,11 +12,13 @@ namespace nre::newrg
         sz min_alignment,
         sz upload_queue_capacity,
         sz add_resource_state_queue_capacity
+        NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name)
     ) :
         resource_flags_(resource_flags),
         min_alignment_(min_alignment),
         upload_queue_(upload_queue_capacity),
         add_resource_state_queue_(add_resource_state_queue_capacity)
+        NRE_OPTIONAL_DEBUG_PARAM(name_(name))
     {
     }
     F_transient_resource_uploader::~F_transient_resource_uploader()
@@ -114,7 +116,7 @@ namespace nre::newrg
                 ED_resource_heap_type::GREAD_CWRITE,
                 ED_resource_state::_GENERIC_READ
             )
-            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.upload_resource")
+            NRE_OPTIONAL_DEBUG_PARAM((name_ + ".upload_resource").c_str())
         );
         map_pass_p_->add_resource_state({
             .resource_p = upload_resource_p_,
@@ -135,7 +137,7 @@ namespace nre::newrg
                 ED_resource_heap_type::GREAD_GWRITE,
                 ED_resource_state::COPY_DEST
             )
-            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.transient_resource_uploader.target_resource")
+            NRE_OPTIONAL_DEBUG_PARAM((name_ + ".target_resource").c_str())
         );
         upload_pass_p_->add_resource_state({
             .resource_p = target_resource_p_,
@@ -203,7 +205,10 @@ namespace nre::newrg
             ED_resource_flag::CONSTANT_BUFFER
             | ED_resource_flag::SHADER_RESOURCE
             | ED_resource_flag::STRUCTURED,
-            NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT
+            NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT,
+            NRE_TRANSIENT_RESOURCE_UPLOADER_DEFAULT_UPLOAD_QUEUE_CAPACITY,
+            NRE_TRANSIENT_RESOURCE_UPLOADER_DEFAULT_ADD_RESOURCE_STATE_QUEUE_CAPACITY
+            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.uniform_transient_resource_uploader")
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();

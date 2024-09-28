@@ -13,8 +13,6 @@ namespace nre::newrg
         F_matrix4x4_f32 view_to_world_matrix;
         F_matrix4x4_f32 view_to_clip_matrix;
         F_matrix4x4_f32 clip_to_view_matrix;
-        F_vector4_f32 frustum_planes[4];
-        f32 near_plane;
-        f32 far_plane;
+        F_vector4_f32 frustum_planes[6];
     };
 }

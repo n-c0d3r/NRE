@@ -43,6 +43,8 @@ namespace nre::newrg
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(b8 is_started_rg_register_ = false);
 
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(F_debug_name name_);
+
     public:
         NCPP_FORCE_INLINE ED_resource_flag resource_flags() const noexcept { return resource_flags_; }
         NCPP_FORCE_INLINE sz min_alignment() const noexcept { return min_alignment_; }
@@ -50,6 +52,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE F_render_pass* upload_pass_p() const noexcept { return upload_pass_p_; }
         NCPP_FORCE_INLINE F_render_resource* upload_resource_p() const noexcept { return upload_resource_p_; }
         NCPP_FORCE_INLINE F_render_resource* target_resource_p() const noexcept { return target_resource_p_; }
+
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(const F_debug_name& name() const noexcept { return name_; });
 
 
 
@@ -59,6 +63,7 @@ namespace nre::newrg
             sz min_alignment = 1,
             sz upload_queue_capacity = NRE_TRANSIENT_RESOURCE_UPLOADER_DEFAULT_UPLOAD_QUEUE_CAPACITY,
             sz add_resource_state_queue_capacity = NRE_TRANSIENT_RESOURCE_UPLOADER_DEFAULT_ADD_RESOURCE_STATE_QUEUE_CAPACITY
+            NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name = "")
         );
         virtual ~F_transient_resource_uploader();
 

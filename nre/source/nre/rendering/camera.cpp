@@ -68,9 +68,6 @@ namespace nre {
 		}
 
 		render_view_p_->view_matrix = invert(transform_node_p_->transform);
-
-		render_view_p_->near_plane = near_plane;
-		render_view_p_->far_plane = far_plane;
 	}
 
 }

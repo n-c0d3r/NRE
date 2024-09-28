@@ -34,3 +34,5 @@ uniform clip_to_view_matrix(
 uniform view_frustum_planes(
     float4(4)
 )
+uniform view_near_plane(f32)
+uniform view_far_plane(f32)

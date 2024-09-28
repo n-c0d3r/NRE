@@ -123,6 +123,9 @@ namespace nre::newrg
                 scene_render_view_data.view_to_clip_matrix = projection_matrix;
                 scene_render_view_data.clip_to_view_matrix = invert(projection_matrix);
 
+                f32 near_plane = NMATH_F32_INFINITY;
+                f32 far_plane = NMATH_F32_NEGATIVE_INFINITY;
+
                 F_vector4_f32 clip_corners[8] = {
                     F_vector4_f32(-1, -1, 0, 1),
                     F_vector4_f32(-1, 1, 0, 1),
@@ -165,10 +168,32 @@ namespace nre::newrg
                         normal,
                         dot(pivot, normal)
                     };
+                    near_plane = eastl::min(
+                        near_plane,
+                        corners[i].z
+                    );
+                    near_plane = eastl::min(
+                        near_plane,
+                        corners[i + 4].z
+                    );
+                    far_plane = eastl::max(
+                        far_plane,
+                        corners[i].z
+                    );
+                    far_plane = eastl::max(
+                        far_plane,
+                        corners[i + 4].z
+                    );
                 }
 
-                scene_render_view_data.near_plane = near_plane;
-                scene_render_view_data.far_plane = far_plane;
+                scene_render_view_data.frustum_planes[4] = {
+                    -F_vector3_f32::forward(),
+                    near_plane
+                };
+                scene_render_view_data.frustum_planes[5] = {
+                    F_vector3_f32::forward(),
+                    far_plane
+                };
 
                 rg_view_data_uniform_batch_ = {
                     uniform_transient_resource_uploader_p->T_enqueue_upload(
