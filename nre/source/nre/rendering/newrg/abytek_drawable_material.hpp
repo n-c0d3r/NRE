@@ -38,6 +38,7 @@ namespace nre::newrg
         u32 render_primitive_data_id_ = NCPP_U32_MAX;
 
         F_matrix4x4_f32 last_local_to_world_matrix_;
+        b8 is_first_upload_ = true;
 
     public:
         NCPP_FORCE_INLINE b8 is_static() const noexcept { return is_static_; }

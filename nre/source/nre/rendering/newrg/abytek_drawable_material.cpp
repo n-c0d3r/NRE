@@ -161,6 +161,7 @@ namespace nre::newrg
 
     void A_abytek_drawable_material::RG_setup()
     {
+        NCPP_ASSERT(is_first_upload_);
         last_local_to_world_matrix_ = transform_node_p_->local_to_world_matrix();
     }
     void A_abytek_drawable_material::RG_register()
@@ -178,8 +179,13 @@ namespace nre::newrg
 
         auto& table = render_primitive_data_pool_p->table();
 
-        if(local_to_world_matrix != last_local_to_world_matrix_)
+        if(
+            (local_to_world_matrix != last_local_to_world_matrix_)
+            || is_first_upload_
+        )
         {
+            is_first_upload_ = false;
+
             table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM>(
                 render_primitive_data_id_,
                 local_to_world_matrix
