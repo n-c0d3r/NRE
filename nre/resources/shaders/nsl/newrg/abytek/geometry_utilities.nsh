@@ -22,8 +22,8 @@ b8 is_cuboid_overlap_frustum(
     float4 ndc_corners[8]
 )
 {
-    float3 min_xyz = float3(9999999.0f, 9999999.0f, 9999999.0f);
-    float3 max_xyz = -min_xyz;
+    float3 min_xyz = float3(ndc_corners[0].xy, corners[0].z);
+    float3 max_xyz = min_xyz;
     
     [unroll]
     for(u32 i = 0; i < 8; ++i)
@@ -40,20 +40,36 @@ b8 is_cuboid_overlap_frustum(
     }
 
     return (
-        (
-            (min_xyz.z - near_plane)
-            * (max_xyz.z - far_plane)
-            < 0.0f
+        true
+        // && !(
+        //     (
+        //         (min_xyz.z < near_plane)
+        //         && (max_xyz.z < near_plane)
+        //     )
+        //     || (
+        //         (min_xyz.z > far_plane)
+        //         && (max_xyz.z > far_plane)
+        //     )
+        // )
+        && !(
+            (
+                (min_xyz.x < -1.0f)
+                && (max_xyz.x < -1.0f)
+            )
+            || (
+                (min_xyz.x > 1.0f)
+                && (max_xyz.x > 1.0f)
+            )
         )
-        && (
-            (min_xyz.x - (-1.0f))
-            * (max_xyz.x - (1.0f))
-            < 0.0f
-        )
-        && (
-            (min_xyz.y - (-1.0f))
-            * (max_xyz.y - (1.0f))
-            < 0.0f
+        && !(
+            (
+                (min_xyz.y < -1.0f)
+                && (max_xyz.y < -1.0f)
+            )
+            || (
+                (min_xyz.y > 1.0f)
+                && (max_xyz.y > 1.0f)
+            )
         )
     );
 }
