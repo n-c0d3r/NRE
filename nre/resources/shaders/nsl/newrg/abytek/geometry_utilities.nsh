@@ -41,18 +41,18 @@ b8 is_cuboid_overlap_frustum(
 
     return (
         (
-            (min_xyz.x - near_plane)
-            * (max_xyz.x - far_plane)
+            (min_xyz.z - near_plane)
+            * (max_xyz.z - far_plane)
+            < 0.0f
+        )
+        && (
+            (min_xyz.x - (-1.0f))
+            * (max_xyz.x - (1.0f))
             < 0.0f
         )
         && (
             (min_xyz.y - (-1.0f))
             * (max_xyz.y - (1.0f))
-            < 0.0f
-        )
-        && (
-            (min_xyz.z - (-1.0f))
-            * (max_xyz.z - (1.0f))
             < 0.0f
         )
     );
