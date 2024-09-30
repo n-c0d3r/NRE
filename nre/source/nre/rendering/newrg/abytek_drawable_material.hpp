@@ -80,6 +80,16 @@ namespace nre::newrg
     class NRE_API H_abytek_drawable_material
     {
     public:
+        static void T_for_each(auto&& callback)
+        {
+            NRE_MATERIAL_SYSTEM()->T_for_each<A_abytek_drawable_material>(
+                [&](TKPA_valid<A_material> material_p)
+                {
+                    TK_valid<A_abytek_drawable_material> casted_material_p = material_p.T_cast<A_abytek_drawable_material>();
+                    callback(casted_material_p);
+                }
+            );
+        }
         static void T_for_each_dynamic(auto&& callback)
         {
             NRE_MATERIAL_SYSTEM()->T_for_each<I_abytek_drawable_material_can_be_dynamic>(

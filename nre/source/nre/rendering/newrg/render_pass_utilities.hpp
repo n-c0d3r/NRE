@@ -353,5 +353,89 @@ namespace nre::newrg
                 NRE_OPTIONAL_DEBUG_PARAM(name)
             );
         }
+
+    public:
+        template<E_render_pass_flag additional_flags__ = E_render_pass_flag::MAIN_RENDER_WORKER>
+        static F_render_pass* T_draw(
+            auto&& functor,
+            u32 vertex_count,
+            u32 vertex_offset,
+            F_render_binder_group* binder_group_p = 0
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            return T_raster<additional_flags__>(
+                [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
+                {
+                    functor(pass_p, command_list_p);
+                    command_list_p->async_draw(
+                        vertex_count,
+                        vertex_offset
+                    );
+                },
+                binder_group_p
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );;
+        }
+        NCPP_FORCE_INLINE static F_render_pass* draw(
+            auto&& functor,
+            u32 vertex_count,
+            u32 vertex_offset,
+            F_render_binder_group* binder_group_p = 0
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            return T_draw(
+                NCPP_FORWARD(functor),
+                vertex_count,
+                vertex_offset,
+                binder_group_p
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+        }
+
+    public:
+        template<E_render_pass_flag additional_flags__ = E_render_pass_flag::MAIN_RENDER_WORKER>
+        static F_render_pass* T_draw_indexed(
+            auto&& functor,
+            u32 index_count,
+            u32 index_offset,
+            u32 vertex_offset,
+            F_render_binder_group* binder_group_p = 0
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            return T_raster<additional_flags__>(
+                [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
+                {
+                    functor(pass_p, command_list_p);
+                    command_list_p->async_draw_indexed(
+                        index_count,
+                        index_offset,
+                        vertex_offset
+                    );
+                },
+                binder_group_p
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );;
+        }
+        NCPP_FORCE_INLINE static F_render_pass* draw_indexed(
+            auto&& functor,
+            u32 index_count,
+            u32 index_offset,
+            u32 vertex_offset,
+            F_render_binder_group* binder_group_p = 0
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            return T_draw_indexed(
+                NCPP_FORWARD(functor),
+                index_count,
+                index_offset,
+                vertex_offset,
+                binder_group_p
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+        }
     };
 }

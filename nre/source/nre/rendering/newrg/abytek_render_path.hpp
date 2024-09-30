@@ -8,6 +8,9 @@
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_foundation_events.hpp>
 #include <nre/rendering/newrg/indirect_utilities.hpp>
+#include <nre/asset/static_mesh_asset.hpp>
+#include <nre/rendering/static_mesh.hpp>
+
 
 
 namespace nre
@@ -28,6 +31,29 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> expand_instances_shader_asset_p_;
         K_compute_pipeline_state_handle expand_instances_pso_p_;
 
+        TS<F_nsl_shader_asset> draw_instance_bbox_shader_asset_p_;
+        K_graphics_pipeline_state_handle draw_instance_bbox_pso_p_;
+
+        TS<F_static_mesh_asset> unit_cube_static_mesh_asset_p_;
+        TS<F_static_mesh> unit_cube_static_mesh_p_;
+
+    public:
+        struct F_draw_instance_bboxes_options
+        {
+            b8 enable = true;
+            F_vector3_f32 color = F_vector3_f32::up();
+        };
+        struct F_draw_instance_bbox_global_options_data
+        {
+            F_vector3_f32 color;
+        };
+        struct F_draw_instance_bbox_per_object_options_data
+        {
+            F_matrix4x4_f32 local_to_world_matrix;
+            F_box_f32 bbox;
+        };
+        F_draw_instance_bboxes_options draw_instance_bboxes_options;
+
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_register_view_event_
@@ -35,6 +61,12 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto expand_instances_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_instances_shader_asset_p_); }
         NCPP_FORCE_INLINE auto expand_instances_pso_p() const noexcept { return NCPP_FOH_VALID(expand_instances_pso_p_); }
+
+        NCPP_FORCE_INLINE auto draw_instance_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto draw_instance_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_pso_p_); }
+
+        NCPP_FORCE_INLINE auto unit_cube_static_mesh_asset_p() const noexcept { return NCPP_FOH_VALID(unit_cube_static_mesh_asset_p_); }
+        NCPP_FORCE_INLINE auto unit_cube_static_mesh_p() const noexcept { return NCPP_FOH_VALID(unit_cube_static_mesh_p_); }
 
 
 
@@ -67,6 +99,12 @@ namespace nre::newrg
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
         void clear_view(
+            TKPA_valid<F_abytek_scene_render_view> view_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+
+    public:
+        void draw_instance_bboxes(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );

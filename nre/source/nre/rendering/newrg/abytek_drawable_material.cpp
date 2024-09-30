@@ -13,12 +13,15 @@ namespace nre::newrg
     A_abytek_drawable_material::A_abytek_drawable_material(TKPA_valid<F_actor> actor_p, F_material_mask mask) :
         A_material(
             actor_p,
-            mask | NRE_MATERIAL_SYSTEM()->T_mask<I_abytek_drawable_material_can_be_dynamic>()
+            mask
+            | NRE_MATERIAL_SYSTEM()->T_mask<A_abytek_drawable_material>()
+            | NRE_MATERIAL_SYSTEM()->T_mask<I_abytek_drawable_material_can_be_dynamic>()
         ),
         drawable_p_(actor_p->T_component<F_abytek_drawable>()),
         transform_node_p_(actor_p->T_component<F_transform_node>())
     {
         NRE_ACTOR_COMPONENT_REGISTER(A_abytek_drawable_material);
+        NRE_ACTOR_COMPONENT_REGISTER(I_abytek_drawable_material_can_be_dynamic);
     }
     A_abytek_drawable_material::~A_abytek_drawable_material()
     {

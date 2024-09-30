@@ -55,7 +55,7 @@ int main() {
 	spectator_p->move_speed = 4.0f;
 
 	spectator_view_p->bind_output(NRE_MAIN_SWAPCHAIN());
-	spectator_view_p->clear_color = F_vector4::forward();
+	spectator_view_p->clear_color = F_vector4::one() * 0.2f;
 
 
 

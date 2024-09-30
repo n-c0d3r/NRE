@@ -26,7 +26,7 @@ namespace nre::newrg
             .desc = {
                 .type = ED_resource_view_type::CONSTANT_BUFFER,
                 .mem_offset = u32(address_offset_),
-                .overrided_size = stride_
+                .overrided_size = eastl::max<sz>(stride_, NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT)
             }
         });
     }
