@@ -21,6 +21,17 @@ namespace nre::newrg
                                 }
                             }
                         }
+                    ),
+                    F_root_param_desc(
+                        F_root_descriptor_table_desc{
+                            .range_descs = {
+                                F_descriptor_range_desc { // dag node culling datas
+                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
+                                    .descriptor_count = u32(-1),
+                                    .register_space = 1
+                                }
+                            }
+                        }
                     )
                 },
 			    .flags = ED_root_signature_flag::ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT

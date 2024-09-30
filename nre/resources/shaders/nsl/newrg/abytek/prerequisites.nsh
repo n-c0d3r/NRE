@@ -59,9 +59,11 @@ struct F_dag_node_culling_data(
     scaled_right(f32x3)
     ___padding_0___(f32)
     scaled_up(f32x3)
-    threshold(f32)
-    scaled_forward(f32x3)
     ___padding_1___(f32)
+    scaled_forward(f32x3)
+    ___padding_2___(f32)
+    sphere_center(f32x3)
+    sphere_radius(f32)
 )
 
 struct F_mesh_header(

@@ -487,11 +487,11 @@ namespace nre::newrg
                     );
                     dag_table_.T_upload<1>(
                         mesh_p->last_frame_dag_node_id_,
-                        (TG_vector<F_dag_node_culling_data>&)compressed_data.dag_node_headers
+                        (TG_vector<F_dag_node_culling_data>&)compressed_data.dag_node_culling_datas
                     );
                     dag_table_.T_upload<2>(
                         mesh_p->last_frame_dag_node_id_,
-                        (TG_vector<F_cluster_id_range>&)compressed_data.dag_node_headers
+                        (TG_vector<F_cluster_id_range>&)compressed_data.dag_cluster_id_ranges
                     );
                 }
             }

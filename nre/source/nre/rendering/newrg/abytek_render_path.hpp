@@ -70,10 +70,8 @@ namespace nre::newrg
         struct F_draw_dag_node_bbox_per_object_options_data
         {
             F_matrix4x4_f32 local_to_world_matrix;
-            F_vector3_f32 pivot;
-            F_vector3_f32 scaled_right;
-            F_vector3_f32 scaled_up;
-            F_vector3_f32 scaled_forward;
+            u32 dag_node_offset;
+            u32 dag_node_count;
         };
         F_draw_dag_node_bboxes_options draw_dag_node_bboxes_options;
 

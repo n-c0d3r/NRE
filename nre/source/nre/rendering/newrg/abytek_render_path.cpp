@@ -576,6 +576,10 @@ namespace nre::newrg
         auto unified_mesh_system_p = F_unified_mesh_system::instance_p();
 
         auto& mesh_table = unified_mesh_system_p->mesh_table();
+        auto& dag_table = unified_mesh_system_p->dag_table();
+
+        auto& dag_node_culling_table_bind_list = unified_mesh_system_p->dag_table_render_bind_list().bases()[1];
+        auto dag_node_culling_descriptor_element = dag_node_culling_table_bind_list[0];
 
         F_draw_dag_node_bbox_global_options_data global_options_data;
         global_options_data.color = draw_dag_node_bboxes_options.color;
@@ -594,6 +598,8 @@ namespace nre::newrg
                 view_p,
                 &render_primitive_data_table,
                 &mesh_table,
+                &dag_table,
+                dag_node_culling_descriptor_element,
                 unit_cube_buffer_p,
                 global_options_uniform_batch
                 NRE_OPTIONAL_DEBUG_PARAM(name)
@@ -614,104 +620,116 @@ namespace nre::newrg
                 if(!compressed_data)
                     return;
 
+                auto mesh_id = mesh_p->last_frame_id();
+                if(mesh_id == NCPP_U32_MAX)
+                    return;
+
+                auto& mesh_header = mesh_table.T_element<0>(mesh_id);
+
                 const auto& dag_level_headers = compressed_data.dag_level_headers;
-                const auto& dag_level_header = dag_level_headers.back();//dag_level_headers[draw_dag_node_bboxes_options.level];
+                const auto& dag_level_header = dag_level_headers[draw_dag_node_bboxes_options.level];
 
                 auto& transform_node_p = material_p->transform_node_p();
 
-                F_draw_dag_node_bbox_per_object_options_data per_object_options_data;
-                per_object_options_data.local_to_world_matrix = transform_node_p->local_to_world_matrix();
+                F_draw_dag_node_bbox_per_object_options_data per_object_options_data = {
+                    per_object_options_data.local_to_world_matrix = transform_node_p->local_to_world_matrix(),
+                    per_object_options_data.dag_node_offset = mesh_header.dag_node_offset + dag_level_header.begin,
+                    per_object_options_data.dag_node_count = dag_level_header.end - dag_level_header.begin
+                };
 
-                for(u32 dag_node_id = dag_level_header.begin; dag_node_id != dag_level_header.end; ++dag_node_id)
-                {
-                    const auto& dag_node_culling_data = compressed_data.dag_node_culling_datas[dag_node_id];
+                TF_render_uniform_batch<F_draw_dag_node_bbox_per_object_options_data> per_object_options_uniform_batch = {
+                    F_uniform_transient_resource_uploader::instance_p()->T_enqueue_upload(
+                        per_object_options_data
+                    )
+                };
 
-                    per_object_options_data.pivot = dag_node_culling_data.pivot();
-                    per_object_options_data.scaled_right = dag_node_culling_data.scaled_right;
-                    per_object_options_data.scaled_up = dag_node_culling_data.scaled_up;
-                    per_object_options_data.scaled_forward = dag_node_culling_data.scaled_forward;
+                F_render_bind_list main_render_bind_list(
+                    ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
+                    3
+                    NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
+                );
+                global_options_uniform_batch.enqueue_initialize_cbv(
+                    main_render_bind_list[0]
+                );
+                per_object_options_uniform_batch.enqueue_initialize_cbv(
+                    main_render_bind_list[1]
+                );
+                view_p->rg_data_batch().enqueue_initialize_cbv(
+                    main_render_bind_list[2]
+                );
 
-                    TF_render_uniform_batch<F_draw_dag_node_bbox_per_object_options_data> per_object_options_uniform_batch = {
-                        F_uniform_transient_resource_uploader::instance_p()->T_enqueue_upload(
-                            per_object_options_data
-                        )
-                    };
+                auto main_descriptor_element = main_render_bind_list[0];
 
-                    F_render_bind_list main_render_bind_list(
-                        ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
-                        3
-                        NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
-                    );
-                    global_options_uniform_batch.enqueue_initialize_cbv(
-                        main_render_bind_list[0]
-                    );
-                    per_object_options_uniform_batch.enqueue_initialize_cbv(
-                        main_render_bind_list[1]
-                    );
-                    view_p->rg_data_batch().enqueue_initialize_cbv(
-                        main_render_bind_list[2]
-                    );
+                F_render_pass* pass_p = H_render_pass::draw_indexed_instanced(
+                    [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+                    {
+                        command_list_p->ZG_bind_root_signature(
+                            F_abytek_draw_dag_node_bbox_binder_signature::instance_p()->root_signature_p()
+                        );
+                        command_list_p->ZG_bind_root_descriptor_table(
+                            0,
+                            main_descriptor_element.handle().gpu_address
+                        );
+                        command_list_p->ZG_bind_root_descriptor_table(
+                            1,
+                            dag_node_culling_descriptor_element.handle().gpu_address
+                        );
+                        command_list_p->ZIA_bind_index_buffer(
+                            NCPP_FOH_VALID(unit_cube_buffer_p->index_buffer_p()),
+                            0
+                        );
+                        command_list_p->ZIA_bind_input_buffer(
+                            NCPP_FOH_VALID(unit_cube_buffer_p->input_buffer_p(0)),
+                            0,
+                            0
+                        );
+                        command_list_p->ZRS_bind_viewport({
+                            .max_xy = view_p->size()
+                        });
+                        command_list_p->ZOM_bind_frame_buffer(
+                            NCPP_FOH_VALID(
+                                view_p->rg_main_frame_buffer_p()->rhi_p()
+                            )
+                        );
+                        command_list_p->ZG_bind_pipeline_state(
+                            NCPP_FOH_VALID(draw_dag_node_bbox_pso_p_)
+                        );
+                    },
+                    unit_cube_buffer_p->uploaded_index_count(),
+                    dag_level_header.end - dag_level_header.begin,
+                    0,
+                    0,
+                    0,
+                    0
+                    NRE_OPTIONAL_DEBUG_PARAM(
+                        name
+                        + ".draw_passes["
+                        + material_p->actor_p()->name().c_str()
+                        + "]"
+                    )
+                );
 
-                    auto main_descriptor_element = main_render_bind_list[0];
-
-                    F_render_pass* pass_p = H_render_pass::draw_indexed(
-                        [=](F_render_pass*, TKPA<A_command_list> command_list_p)
-                        {
-                            command_list_p->ZG_bind_root_signature(
-                                F_abytek_draw_instance_bbox_binder_signature::instance_p()->root_signature_p()
-                            );
-                            command_list_p->ZG_bind_root_descriptor_table(
-                                0,
-                                main_descriptor_element.handle().gpu_address
-                            );
-                            command_list_p->ZIA_bind_index_buffer(
-                                NCPP_FOH_VALID(unit_cube_buffer_p->index_buffer_p()),
-                                0
-                            );
-                            command_list_p->ZIA_bind_input_buffer(
-                                NCPP_FOH_VALID(unit_cube_buffer_p->input_buffer_p(0)),
-                                0,
-                                0
-                            );
-                            command_list_p->ZRS_bind_viewport({
-                                .max_xy = view_p->size()
-                            });
-                            command_list_p->ZOM_bind_frame_buffer(
-                                NCPP_FOH_VALID(
-                                    view_p->rg_main_frame_buffer_p()->rhi_p()
-                                )
-                            );
-                            command_list_p->ZG_bind_pipeline_state(
-                                NCPP_FOH_VALID(draw_instance_bbox_pso_p_)
-                            );
-                        },
-                        unit_cube_buffer_p->uploaded_index_count(),
-                        0,
-                        0,
-                        0
-                        NRE_OPTIONAL_DEBUG_PARAM(
-                            name
-                            + ".draw_passes["
-                            + material_p->actor_p()->name().c_str()
-                            + "]["
-                            + G_to_string(dag_node_id - dag_level_header.begin).c_str()
-                            + "]"
-                        )
-                    );
-
-                    pass_p->add_resource_state({
-                        .resource_p = F_uniform_transient_resource_uploader::instance_p()->target_resource_p(),
-                        .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
-                    });
-                    pass_p->add_resource_state({
-                        .resource_p = view_p->rg_main_texture_p(),
-                        .states = ED_resource_state::RENDER_TARGET
-                    });
-                    pass_p->add_resource_state({
-                        .resource_p = view_p->rg_depth_texture_p(),
-                        .states = ED_resource_state::DEPTH_WRITE
-                    });
-                }
+                dag_table.T_for_each_rg_page<1>(
+                    [&](F_render_resource* rg_page_p)
+                    {
+                        pass_p->add_resource_state({
+                            .resource_p = rg_page_p,
+                            .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                        });
+                    }
+                );
+                pass_p->add_resource_state({
+                    .resource_p = F_uniform_transient_resource_uploader::instance_p()->target_resource_p(),
+                    .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+                });
+                pass_p->add_resource_state({
+                    .resource_p = view_p->rg_main_texture_p(),
+                    .states = ED_resource_state::RENDER_TARGET
+                });
+                pass_p->add_resource_state({
+                    .resource_p = view_p->rg_depth_texture_p(),
+                    .states = ED_resource_state::DEPTH_WRITE
+                });
             }
         );
     }

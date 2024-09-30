@@ -130,7 +130,7 @@ namespace nre::newrg
                 NRE_OPTIONAL_DEBUG_PARAM(name_ + "[" + G_to_string(row_index__).c_str() + ": " + T_type_fullname<typename F_element_targ_list::template TF_at<row_index__>>() + "]")
             );
 
-            auto& gpu_large_data_list = table_p_->T_gpu_large_data_list_tuple<row_index__>();
+            auto& gpu_large_data_list = table_p_->template T_gpu_large_data_list_tuple<row_index__>();
             auto& rg_page_p_vector = gpu_large_data_list.rg_page_p_vector();
 
             for(sz i = 0; i < usuable_page_count; ++i)
