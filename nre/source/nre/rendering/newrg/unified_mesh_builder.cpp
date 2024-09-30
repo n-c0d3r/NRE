@@ -708,8 +708,11 @@ namespace nre::newrg
                 auto& dag_sorted_cluster_header = data.dag_sorted_cluster_headers[dag_sorted_cluster_id];
                 auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
-                // calculate center
-                F_vector3_f32 center = F_vector3_f32::zero();
+                // calculate bbox
+                F_box_f32 bbox = {
+                    F_vector3_f32::infinity(),
+                    F_vector3_f32::negative_infinity()
+                };
                 {
                     for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
                     {
@@ -717,32 +720,13 @@ namespace nre::newrg
 
                         auto& vertex_data = data.vertex_datas[vertex_id];
 
-                        center += vertex_data.position;
-                    }
-                    center /= f32(dag_sorted_cluster_header.vertex_count);
-                }
-
-                // calculate forward
-                F_vector3_f32 forward = F_vector3_f32::zero();
-                {
-                    for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
-                    {
-                        F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
-
-                        auto& vertex_data = data.vertex_datas[vertex_id];
-
-                        forward += normalize(vertex_data.normal);
-                    }
-                    forward = normalize(forward);
-
-                    if(forward == F_vector3_f32::zero())
-                    {
-                        forward = F_vector3_f32::forward();
+                        bbox = bbox.expand(vertex_data.position);
                     }
                 }
 
-                // calculate min forward dot
-                f32 min_forward_dot = 1.0f;
+                // calculate cone
+                F_vector3_f32 cone_direction = F_vector3_f32::zero();
+                f32 cone_angle_dot = 1.0f;
                 {
                     for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
                     {
@@ -750,138 +734,38 @@ namespace nre::newrg
 
                         auto& vertex_data = data.vertex_datas[vertex_id];
 
-                        f32 forward_dot = dot(
-                            forward,
+                        cone_direction += normalize(vertex_data.normal);
+                    }
+                    cone_direction = normalize(cone_direction);
+
+                    if(cone_direction == F_vector3_f32::zero())
+                    {
+                        cone_direction = F_vector3_f32::forward();
+                    }
+                }
+                {
+                    for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
+                    {
+                        F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
+
+                        auto& vertex_data = data.vertex_datas[vertex_id];
+
+                        f32 angle_dot = dot(
+                            cone_direction,
                             normalize(vertex_data.normal)
                         );
 
-                        min_forward_dot = eastl::min(min_forward_dot, forward_dot);
+                        cone_angle_dot = eastl::min(cone_angle_dot, angle_dot);
                     }
-                }
-
-                // calculate up
-                F_vector3_f32 up = tangent_to_normal(forward);
-
-                // calculate right
-                F_vector3_f32 right = cross(up, forward);
-
-                // calculate pivot
-                F_vector3_f32 pivot;
-                {
-                    f32 min_right_scale_factor = 0.0f;
-                    f32 min_up_scale_factor = 0.0f;
-                    f32 min_forward_scale_factor = 0.0f;
-
-                    f32 max_right_scale_factor = 0.0f;
-                    f32 max_up_scale_factor = 0.0f;
-                    f32 max_forward_scale_factor = 0.0f;
-
-                    for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
-                    {
-                        F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
-
-                        auto& vertex_data = data.vertex_datas[vertex_id];
-
-                        F_vector3_f32 center_to_vertex_position = vertex_data.position - center;
-
-                        f32 right_scale_factor = dot(right, center_to_vertex_position);
-                        f32 up_scale_factor = dot(up, center_to_vertex_position);
-                        f32 forward_scale_factor = dot(forward, center_to_vertex_position);
-
-                        min_right_scale_factor = eastl::min(min_right_scale_factor, right_scale_factor);
-                        min_up_scale_factor = eastl::min(min_up_scale_factor, up_scale_factor);
-                        min_forward_scale_factor = eastl::min(min_forward_scale_factor, forward_scale_factor);
-
-                        max_right_scale_factor = eastl::max(max_right_scale_factor, right_scale_factor);
-                        max_up_scale_factor = eastl::max(max_up_scale_factor, up_scale_factor);
-                        max_forward_scale_factor = eastl::max(max_forward_scale_factor, forward_scale_factor);
-                    }
-                    pivot = (
-                        center
-                        + right * (min_right_scale_factor + max_right_scale_factor) * 0.5f
-                        + up * (min_up_scale_factor + max_up_scale_factor) * 0.5f
-                        + forward * min_forward_scale_factor
-                    );
-                }
-
-                // calculate forward scale factor
-                f32 forward_scale_factor = 0.0f;
-                {
-                    for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
-                    {
-                        F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
-
-                        auto& vertex_data = data.vertex_datas[vertex_id];
-
-                        F_vector3_f32 pivot_to_vertex_position = vertex_data.position - pivot;
-
-                        f32 distance_to_pivot_in_forward_axis = abs(
-                            dot(
-                                forward,
-                                pivot_to_vertex_position
-                            )
-                        );
-
-                        forward_scale_factor = eastl::max(distance_to_pivot_in_forward_axis, forward_scale_factor);
-                    }
-                    forward_scale_factor = eastl::max(forward_scale_factor, T_default_tolerance<f32>);
-                }
-
-                // calculate up scale factor
-                f32 up_scale_factor = 0.0f;
-                {
-                    for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
-                    {
-                        F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
-
-                        auto& vertex_data = data.vertex_datas[vertex_id];
-
-                        F_vector3_f32 pivot_to_vertex_position = vertex_data.position - pivot;
-
-                        f32 distance_to_pivot_in_up_axis = abs(
-                            dot(
-                                up,
-                                pivot_to_vertex_position
-                            )
-                        );
-
-                        up_scale_factor = eastl::max(distance_to_pivot_in_up_axis, up_scale_factor);
-                    }
-                    up_scale_factor = eastl::max(up_scale_factor, T_default_tolerance<f32>);
-                }
-
-                // calculate right scale factor
-                f32 right_scale_factor = 0.0f;
-                {
-                    for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
-                    {
-                        F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
-
-                        auto& vertex_data = data.vertex_datas[vertex_id];
-
-                        F_vector3_f32 pivot_to_vertex_position = vertex_data.position - pivot;
-
-                        f32 distance_to_pivot_in_right_axis = abs(
-                            dot(
-                                right,
-                                pivot_to_vertex_position
-                            )
-                        );
-
-                        right_scale_factor = eastl::max(distance_to_pivot_in_right_axis, right_scale_factor);
-                    }
-                    right_scale_factor = eastl::max(right_scale_factor, T_default_tolerance<f32>);
                 }
 
                 // store back culling data
                 {
-                    dag_sorted_cluster_culling_data.pivot_and_min_forward_dot = {
-                        pivot,
-                        min_forward_dot
+                    dag_sorted_cluster_culling_data.bbox = bbox;
+                    dag_sorted_cluster_culling_data.cone_direction_and_cone_angle_dot = {
+                        cone_direction,
+                        cone_angle_dot
                     };
-                    dag_sorted_cluster_culling_data.right_and_right_scale_factor = { right, right_scale_factor };
-                    dag_sorted_cluster_culling_data.up_and_up_scale_factor = { up, up_scale_factor };
-                    dag_sorted_cluster_culling_data.forward_and_forward_scale_factor = { forward, forward_scale_factor };
                 }
             },
             {
@@ -900,73 +784,6 @@ namespace nre::newrg
 
         //
         data.dag_node_culling_datas.resize(dag_node_count);
-
-        //
-        using F_cluster_corner_array = TG_array<F_vector3_f32, 8>;
-        TG_vector<F_cluster_corner_array> cluster_corner_arrays(cluster_count);
-
-        // build cluster_corner_arrays
-        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-            [&](F_cluster_id dag_sorted_cluster_id)
-            {
-                auto& cluster_corner_array = cluster_corner_arrays[dag_sorted_cluster_id];
-                auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
-
-                F_vector3_f32 pivot = dag_sorted_cluster_culling_data.pivot();
-                F_vector3_f32 scaled_right = dag_sorted_cluster_culling_data.scaled_right();
-                F_vector3_f32 scaled_up = dag_sorted_cluster_culling_data.scaled_up();
-                F_vector3_f32 scaled_forward = dag_sorted_cluster_culling_data.scaled_forward();
-
-                cluster_corner_array[0] = (
-                    pivot
-                    - scaled_right
-                    - scaled_up
-                );
-                cluster_corner_array[1] = (
-                    pivot
-                    - scaled_right
-                    - scaled_up
-                    + 1.0f * scaled_forward
-                );
-                cluster_corner_array[2] = (
-                    pivot
-                    - scaled_right
-                    + scaled_up
-                );
-                cluster_corner_array[3] = (
-                    pivot
-                    + scaled_right
-                    - scaled_up
-                );
-                cluster_corner_array[4] = (
-                    pivot
-                    - scaled_right
-                    + scaled_up
-                    + 1.0f * scaled_forward
-                );
-                cluster_corner_array[5] = (
-                    pivot
-                    + scaled_right
-                    + scaled_up
-                );
-                cluster_corner_array[6] = (
-                    pivot
-                    + scaled_right
-                    - scaled_up
-                    + 1.0f * scaled_forward
-                );
-                cluster_corner_array[7] = (
-                    pivot
-                    + scaled_right
-                    + scaled_up
-                    + 1.0f * scaled_forward
-                );
-            },
-            {
-                .parallel_count = cluster_count,
-                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
-            }
-        );
 
         // build dag_node_culling_datas based on clusters
         for(u32 level_index = 0; level_index < level_count; ++level_index)
@@ -990,8 +807,11 @@ namespace nre::newrg
                     //
                     F_cluster_id local_dag_sorted_cluster_count = dag_sorted_cluster_id_range.end - dag_sorted_cluster_id_range.begin;
 
-                    // calculate center
-                    F_vector3_f32 center = F_vector3_f32::zero();
+                    // calculate bbox
+                    F_box_f32 bbox = {
+                        F_vector3_f32::infinity(),
+                        F_vector3_f32::negative_infinity()
+                    };
                     {
                         for(
                             u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
@@ -1001,13 +821,13 @@ namespace nre::newrg
                         {
                             auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
-                            center += dag_sorted_cluster_culling_data.pivot_and_min_forward_dot.xyz();
+                            bbox = bbox.expand(dag_sorted_cluster_culling_data.bbox);
                         }
-                        center /= f32(local_dag_sorted_cluster_count);
                     }
 
-                    // calculate forward
-                    F_vector3_f32 forward = F_vector3_f32::zero();
+                    // calculate cone
+                    F_vector3_f32 cone_direction = F_vector3_f32::zero();
+                    f32 cone_angle_dot = 1.0f;
                     {
                         for(
                             u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
@@ -1017,18 +837,15 @@ namespace nre::newrg
                         {
                             auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
-                            forward += dag_sorted_cluster_culling_data.forward();
+                            cone_direction += normalize(dag_sorted_cluster_culling_data.cone_direction());
                         }
-                        forward = normalize(forward);
+                        cone_direction = normalize(cone_direction);
 
-                        if(forward == F_vector3_f32::zero())
+                        if(cone_direction == F_vector3_f32::zero())
                         {
-                            forward = F_vector3_f32::forward();
+                            cone_direction = F_vector3_f32::forward();
                         }
                     }
-
-                    // calculate min forward dot
-                    f32 min_forward_dot = 1.0f;
                     {
                         for(
                             u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
@@ -1039,166 +856,20 @@ namespace nre::newrg
                             auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
                             f32 dir_dot1 = dot(
-                                forward,
-                                dag_sorted_cluster_culling_data.forward()
+                                cone_direction,
+                                normalize(dag_sorted_cluster_culling_data.cone_direction())
                             );
                             f32 dir_angle1 = abs(acos(dir_dot1));
-                            f32 dir_angle2 = abs(acos(dag_sorted_cluster_culling_data.min_forward_dot()));
+                            f32 dir_angle2 = abs(acos(dag_sorted_cluster_culling_data.cone_angle_dot()));
                             dir_angle2 = eastl::min(dir_angle2, 1_pi - dir_angle1);
                             f32 dir_angle = dir_angle1 + dir_angle2;
 
-                            min_forward_dot = eastl::min(min_forward_dot, cos(dir_angle));
+                            cone_angle_dot = eastl::min(cone_angle_dot, cos(dir_angle));
                         }
                     }
 
-                    // calculate up
-                    F_vector3_f32 up = tangent_to_normal(forward);
-
-                    // calculate right
-                    F_vector3_f32 right = cross(up, forward);
-
-                    // calculate pivot
-                    F_vector3_f32 pivot;
-                    {
-                        f32 min_right_scale_factor = 0.0f;
-                        f32 min_up_scale_factor = 0.0f;
-                        f32 min_forward_scale_factor = 0.0f;
-
-                        f32 max_right_scale_factor = 0.0f;
-                        f32 max_up_scale_factor = 0.0f;
-                        f32 max_forward_scale_factor = 0.0f;
-
-                        for(
-                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                            ++dag_sorted_cluster_id
-                        )
-                        {
-                            auto cluster_corner_array = cluster_corner_arrays[dag_sorted_cluster_id];
-
-                            for(auto& cluster_corner : cluster_corner_array)
-                            {
-                                F_vector3_f32 center_to_cluster_corner = (
-                                    cluster_corner
-                                    - center
-                                );
-
-                                f32 right_scale_factor = dot(right, center_to_cluster_corner);
-                                f32 up_scale_factor = dot(up, center_to_cluster_corner);
-                                f32 forward_scale_factor = dot(forward, center_to_cluster_corner);
-
-                                min_right_scale_factor = eastl::min(min_right_scale_factor, right_scale_factor);
-                                min_up_scale_factor = eastl::min(min_up_scale_factor, up_scale_factor);
-                                min_forward_scale_factor = eastl::min(min_forward_scale_factor, forward_scale_factor);
-
-                                max_right_scale_factor = eastl::max(max_right_scale_factor, right_scale_factor);
-                                max_up_scale_factor = eastl::max(max_up_scale_factor, up_scale_factor);
-                                max_forward_scale_factor = eastl::max(max_forward_scale_factor, forward_scale_factor);
-                            }
-                        }
-                        pivot = (
-                            center
-                            + right * (min_right_scale_factor + max_right_scale_factor) * 0.5f
-                            + up * (min_up_scale_factor + max_up_scale_factor) * 0.5f
-                            + forward * min_forward_scale_factor
-                        );
-                    }
-
-                    // calculate forward scale factor
-                    f32 forward_scale_factor = 0.0f;
-                    {
-                        for(
-                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                            ++dag_sorted_cluster_id
-                        )
-                        {
-                            auto cluster_corner_array = cluster_corner_arrays[dag_sorted_cluster_id];
-
-                            for(auto& cluster_corner : cluster_corner_array)
-                            {
-                                F_vector3_f32 pivot_to_cluster_corner = (
-                                    cluster_corner
-                                    - pivot
-                                );
-
-                                f32 distance_to_pivot_in_forward_axis = abs(
-                                    dot(
-                                        forward,
-                                        pivot_to_cluster_corner
-                                    )
-                                );
-
-                                forward_scale_factor = eastl::max(distance_to_pivot_in_forward_axis, forward_scale_factor);
-                            }
-                        }
-                    }
-
-                    // calculate up scale factor
-                    f32 up_scale_factor = 0.0f;
-                    {
-                        for(
-                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                            ++dag_sorted_cluster_id
-                        )
-                        {
-                            auto cluster_corner_array = cluster_corner_arrays[dag_sorted_cluster_id];
-
-                            for(auto& cluster_corner : cluster_corner_array)
-                            {
-                                F_vector3_f32 pivot_to_cluster_corner = (
-                                    cluster_corner
-                                    - pivot
-                                );
-
-                                f32 distance_to_pivot_in_up_axis = abs(
-                                    dot(
-                                        up,
-                                        pivot_to_cluster_corner
-                                    )
-                                );
-
-                                up_scale_factor = eastl::max(distance_to_pivot_in_up_axis, up_scale_factor);
-                            }
-                        }
-                    }
-
-                    // calculate right scale factor
-                    f32 right_scale_factor = 0.0f;
-                    {
-                        for(
-                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                            ++dag_sorted_cluster_id
-                        )
-                        {
-                            auto cluster_corner_array = cluster_corner_arrays[dag_sorted_cluster_id];
-
-                            for(auto& cluster_corner : cluster_corner_array)
-                            {
-                                F_vector3_f32 pivot_to_cluster_corner = (
-                                cluster_corner
-                                    - pivot
-                                );
-
-                                f32 distance_to_pivot_in_right_axis = abs(
-                                    dot(
-                                        right,
-                                        pivot_to_cluster_corner
-                                    )
-                                );
-
-                                right_scale_factor = eastl::max(distance_to_pivot_in_right_axis, right_scale_factor);
-                            }
-                        }
-                    }
-
-                    // sphere bounds
-                    F_vector3_f32 sphere_center = (
-                        pivot + forward_scale_factor * forward * 0.5f
-                    );
-                    f32 sphere_radius = 0.0f;
+                    // calculate error_sphere
+                    F_sphere_f32 error_sphere = { bbox.center() };
                     {
                         for(
                             u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
@@ -1210,33 +881,23 @@ namespace nre::newrg
 
                             for(u32 i = 0; i < cluster_header.vertex_count; ++i)
                             {
-                                F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
+                               F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
 
                                 auto& vertex_data = data.vertex_datas[vertex_id];
 
-                                F_vector3_f32 vertex_to_sphere_center = vertex_data.position - sphere_center;
-
-                                sphere_radius = eastl::max(
-                                    sphere_radius,
-                                    length(vertex_to_sphere_center)
-                                );
+                                error_sphere = error_sphere.expand(vertex_data.position);
                             }
                         }
                     }
 
                     // store back culling data
                     {
-                        dag_node_culling_data.pivot_and_min_forward_dot = {
-                            pivot,
-                            min_forward_dot
+                        dag_node_culling_data.bbox = bbox;
+                        dag_node_culling_data.cone_direction_and_cone_angle_dot = {
+                            cone_direction,
+                            cone_angle_dot
                         };
-                        dag_node_culling_data.right_and_right_scale_factor = { right, right_scale_factor };
-                        dag_node_culling_data.up_and_up_scale_factor = { up, up_scale_factor };
-                        dag_node_culling_data.forward_and_forward_scale_factor = { forward, forward_scale_factor };
-                        dag_node_culling_data.sphere_center_and_radius = {
-                            sphere_center,
-                            sphere_radius
-                        };
+                        dag_node_culling_data.error_sphere = error_sphere;
                     }
                 },
                 {
@@ -1246,278 +907,104 @@ namespace nre::newrg
             );
         }
 
-        // //
-        // using F_dag_node_corner_array = TG_array<F_vector3_f32, 8>;
-        // TG_vector<F_dag_node_corner_array> dag_node_corner_arrays(dag_node_count);
-        //
-        // // build dag_node_culling_datas based on childs
-        // for(u32 level_index = 0; level_index < level_count; ++level_index)
-        // {
-        //     auto& dag_level_header = data.dag_level_headers[level_index];
-        //
-        //     //
-        //     F_dag_node_id local_level_dag_node_count = dag_level_header.end - dag_level_header.begin;
-        //
-        //     //
-        //     NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-        //         [&](F_dag_node_id local_level_dag_node_id)
-        //         {
-        //             F_dag_node_id dag_node_id = dag_level_header.begin + local_level_dag_node_id;
-        //
-        //             //
-        //             auto& dag_node_header = data.dag_node_headers[dag_node_id];
-        //             auto& dag_node_culling_data = data.dag_node_culling_datas[dag_node_id];
-        //
-        //             // calculate center
-        //             F_vector3_f32 center = dag_node_culling_data.pivot();
-        //
-        //             // calculate forward
-        //             F_vector3_f32 forward = dag_node_culling_data.forward();
-        //
-        //             // calculate min forward dot
-        //             f32 min_forward_dot = dag_node_culling_data.min_forward_dot();
-        //
-        //             // calculate up
-        //             F_vector3_f32 up = dag_node_culling_data.up();
-        //
-        //             // calculate right
-        //             F_vector3_f32 right = dag_node_culling_data.right();
-        //
-        //             // calculate pivot
-        //             F_vector3_f32 pivot;
-        //             {
-        //                 f32 min_right_scale_factor = 0.0f;
-        //                 f32 min_up_scale_factor = 0.0f;
-        //                 f32 min_forward_scale_factor = 0.0f;
-        //
-        //                 f32 max_right_scale_factor = 0.0f;
-        //                 f32 max_up_scale_factor = 0.0f;
-        //                 f32 max_forward_scale_factor = 0.0f;
-        //
-        //                 for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
-        //                 {
-        //                     F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
-        //
-        //                     if(dag_child_id == NCPP_U32_MAX)
-        //                         continue;
-        //
-        //                     auto child_corner_array = dag_node_corner_arrays[dag_child_id];
-        //
-        //                     for(auto& corner : child_corner_array)
-        //                     {
-        //                         F_vector3_f32 center_to_cluster_corner = (
-        //                             corner
-        //                             - center
-        //                         );
-        //
-        //                         f32 right_scale_factor = dot(right, center_to_cluster_corner);
-        //                         f32 up_scale_factor = dot(up, center_to_cluster_corner);
-        //                         f32 forward_scale_factor = dot(forward, center_to_cluster_corner);
-        //
-        //                         min_right_scale_factor = eastl::min(min_right_scale_factor, right_scale_factor);
-        //                         min_up_scale_factor = eastl::min(min_up_scale_factor, up_scale_factor);
-        //                         min_forward_scale_factor = eastl::min(min_forward_scale_factor, forward_scale_factor);
-        //
-        //                         max_right_scale_factor = eastl::max(max_right_scale_factor, right_scale_factor);
-        //                         max_up_scale_factor = eastl::max(max_up_scale_factor, up_scale_factor);
-        //                         max_forward_scale_factor = eastl::max(max_forward_scale_factor, forward_scale_factor);
-        //                     }
-        //                 }
-        //                 pivot = (
-        //                     center
-        //                     + right * (min_right_scale_factor + max_right_scale_factor) * 0.5f
-        //                     + up * (min_up_scale_factor + max_up_scale_factor) * 0.5f
-        //                     + forward * min_forward_scale_factor
-        //                 );
-        //             }
-        //
-        //             // calculate forward scale factor
-        //             f32 forward_scale_factor = dag_node_culling_data.forward_scale_factor();
-        //             {
-        //                 for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
-        //                 {
-        //                     F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
-        //
-        //                     if(dag_child_id == NCPP_U32_MAX)
-        //                         continue;
-        //
-        //                     auto child_corner_array = dag_node_corner_arrays[dag_child_id];
-        //
-        //                     for(auto& corner : child_corner_array)
-        //                     {
-        //                         F_vector3_f32 pivot_to_cluster_corner = (
-        //                             corner
-        //                             - pivot
-        //                         );
-        //
-        //                         f32 distance_to_pivot_in_forward_axis = abs(
-        //                             dot(
-        //                                 forward,
-        //                                 pivot_to_cluster_corner
-        //                             )
-        //                         );
-        //
-        //                         forward_scale_factor = eastl::max(distance_to_pivot_in_forward_axis, forward_scale_factor);
-        //                     }
-        //                 }
-        //             }
-        //
-        //             // calculate up scale factor
-        //             f32 up_scale_factor = dag_node_culling_data.up_scale_factor();
-        //             {
-        //                 for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
-        //                 {
-        //                     F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
-        //
-        //                     if(dag_child_id == NCPP_U32_MAX)
-        //                         continue;
-        //
-        //                     auto child_corner_array = dag_node_corner_arrays[dag_child_id];
-        //
-        //                     for(auto& corner : child_corner_array)
-        //                     {
-        //                         F_vector3_f32 pivot_to_cluster_corner = (
-        //                             corner
-        //                             - pivot
-        //                         );
-        //
-        //                         f32 distance_to_pivot_in_up_axis = abs(
-        //                             dot(
-        //                                 up,
-        //                                 pivot_to_cluster_corner
-        //                             )
-        //                         );
-        //
-        //                         up_scale_factor = eastl::max(distance_to_pivot_in_up_axis, up_scale_factor);
-        //                     }
-        //                 }
-        //             }
-        //
-        //             // calculate right scale factor
-        //             f32 right_scale_factor = dag_node_culling_data.right_scale_factor();
-        //             {
-        //                 for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
-        //                 {
-        //                     F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
-        //
-        //                     if(dag_child_id == NCPP_U32_MAX)
-        //                         continue;
-        //
-        //                     auto child_corner_array = dag_node_corner_arrays[dag_child_id];
-        //
-        //                     for(auto& corner : child_corner_array)
-        //                     {
-        //                         F_vector3_f32 pivot_to_cluster_corner = (
-        //                             corner
-        //                             - pivot
-        //                         );
-        //
-        //                         f32 distance_to_pivot_in_right_axis = abs(
-        //                             dot(
-        //                                 right,
-        //                                 pivot_to_cluster_corner
-        //                             )
-        //                         );
-        //
-        //                         right_scale_factor = eastl::max(distance_to_pivot_in_right_axis, right_scale_factor);
-        //                     }
-        //                 }
-        //             }
-        //
-        //             // sphere bounds
-        //             F_vector3_f32 sphere_center = dag_node_culling_data.sphere_center();
-        //             f32 sphere_radius = dag_node_culling_data.sphere_radius();
-        //             {
-        //                 for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
-        //                 {
-        //                     F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
-        //
-        //                     if(dag_child_id == NCPP_U32_MAX)
-        //                         continue;
-        //
-        //                     auto& dag_child_culling_data = data.dag_node_culling_datas[dag_child_id];
-        //
-        //                     sphere_radius = eastl::max<f32>(
-        //                         sphere_radius,
-        //                         length(sphere_center - dag_child_culling_data.sphere_center())
-        //                         + dag_child_culling_data.sphere_radius()
-        //                     );
-        //                 }
-        //             }
-        //
-        //             // store back culling data
-        //             {
-        //                 dag_node_culling_data.pivot_and_min_forward_dot = {
-        //                     pivot,
-        //                     min_forward_dot
-        //                 };
-        //                 dag_node_culling_data.right_and_right_scale_factor = { right, right_scale_factor };
-        //                 dag_node_culling_data.up_and_up_scale_factor = { up, up_scale_factor };
-        //                 dag_node_culling_data.forward_and_forward_scale_factor = { forward, forward_scale_factor };
-        //                 dag_node_culling_data.sphere_center_and_radius = {
-        //                     sphere_center,
-        //                     sphere_radius
-        //                 };
-        //             }
-        //
-        //             // dag_node_corner_array
-        //             auto& dag_node_corner_array = dag_node_corner_arrays[dag_node_id];
-        //
-        //             F_vector3_f32 scaled_right = dag_node_culling_data.scaled_right();
-        //             F_vector3_f32 scaled_up = dag_node_culling_data.scaled_up();
-        //             F_vector3_f32 scaled_forward = dag_node_culling_data.scaled_forward();
-        //
-        //             dag_node_corner_array[0] = (
-        //                 pivot
-        //                 - scaled_right
-        //                 - scaled_up
-        //             );
-        //             dag_node_corner_array[1] = (
-        //                 pivot
-        //                 - scaled_right
-        //                 - scaled_up
-        //                 + 1.0f * scaled_forward
-        //             );
-        //             dag_node_corner_array[2] = (
-        //                 pivot
-        //                 - scaled_right
-        //                 + scaled_up
-        //             );
-        //             dag_node_corner_array[3] = (
-        //                 pivot
-        //                 + scaled_right
-        //                 - scaled_up
-        //             );
-        //             dag_node_corner_array[4] = (
-        //                 pivot
-        //                 - scaled_right
-        //                 + scaled_up
-        //                 + 1.0f * scaled_forward
-        //             );
-        //             dag_node_corner_array[5] = (
-        //                 pivot
-        //                 + scaled_right
-        //                 + scaled_up
-        //             );
-        //             dag_node_corner_array[6] = (
-        //                 pivot
-        //                 + scaled_right
-        //                 - scaled_up
-        //                 + 1.0f * scaled_forward
-        //             );
-        //             dag_node_corner_array[7] = (
-        //                 pivot
-        //                 + scaled_right
-        //                 + scaled_up
-        //                 + 1.0f * scaled_forward
-        //             );
-        //         },
-        //         {
-        //             .parallel_count = local_level_dag_node_count,
-        //             .batch_size = eastl::max<u32>(ceil(f32(local_level_dag_node_count) / 128.0f), 32)
-        //         }
-        //     );
-        // }
+        // build dag_node_culling_datas based on childs
+        for(u32 level_index = 0; level_index < level_count; ++level_index)
+        {
+            auto& dag_level_header = data.dag_level_headers[level_index];
+
+            //
+            F_dag_node_id local_level_dag_node_count = dag_level_header.end - dag_level_header.begin;
+
+            //
+            NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+                [&](F_dag_node_id local_level_dag_node_id)
+                {
+                    F_dag_node_id dag_node_id = dag_level_header.begin + local_level_dag_node_id;
+
+                    //
+                    auto& dag_node_header = data.dag_node_headers[dag_node_id];
+                    auto& dag_node_culling_data = data.dag_node_culling_datas[dag_node_id];
+
+                    // calculate bbox
+                    F_box_f32 bbox = dag_node_culling_data.bbox;
+                    {
+                        for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
+                        {
+                            F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
+
+                            if(dag_child_id == NCPP_U32_MAX)
+                                continue;
+
+                            auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
+
+                            bbox = bbox.expand(child_dag_node_culling_data.bbox);
+                        }
+                    }
+
+                    // calculate cone
+                    F_vector3_f32 cone_direction = dag_node_culling_data.cone_direction();
+                    f32 cone_angle_dot = dag_node_culling_data.cone_angle_dot();
+                    {
+                        for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
+                        {
+                            F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
+
+                            if(dag_child_id == NCPP_U32_MAX)
+                                continue;
+
+                            auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
+
+                            f32 dir_dot1 = dot(
+                                cone_direction,
+                                normalize(child_dag_node_culling_data.cone_direction())
+                            );
+                            f32 dir_angle1 = abs(acos(dir_dot1));
+                            f32 dir_angle2 = abs(acos(child_dag_node_culling_data.cone_angle_dot()));
+                            dir_angle2 = eastl::min(dir_angle2, 1_pi - dir_angle1);
+                            f32 dir_angle = dir_angle1 + dir_angle2;
+
+                            cone_angle_dot = eastl::min(cone_angle_dot, cos(dir_angle));
+                        }
+                    }
+
+                    // calculate error_sphere
+                    F_sphere_f32 error_sphere = dag_node_culling_data.error_sphere;
+                    {
+                        for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
+                        {
+                            F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
+
+                            if(dag_child_id == NCPP_U32_MAX)
+                                continue;
+
+                            auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
+
+                            error_sphere.center_and_radius = {
+                                error_sphere.center(),
+                                eastl::max<f32>(
+                                    error_sphere.radius(),
+                                    child_dag_node_culling_data.error_sphere.radius()
+                                )
+                            };
+                        }
+                    }
+
+                    // store back culling data
+                    {
+                        dag_node_culling_data.bbox = bbox;
+                        dag_node_culling_data.cone_direction_and_cone_angle_dot = {
+                            cone_direction,
+                            cone_angle_dot
+                        };
+                        dag_node_culling_data.error_sphere = error_sphere;
+                    }
+                },
+                {
+                    .parallel_count = local_level_dag_node_count,
+                    .batch_size = eastl::max<u32>(ceil(f32(local_level_dag_node_count) / 128.0f), 32)
+                }
+            );
+        }
     }
 
     F_compressed_unified_mesh_data H_unified_mesh_builder::compress(
@@ -1539,12 +1026,10 @@ namespace nre::newrg
         {
             auto& vertex_data = data.vertex_datas[i];
 
-            result.bbox.min = element_min(
-                result.bbox.min,
+            result.bbox = result.bbox.expand(
                 vertex_data.position
             );
-            result.bbox.max = element_max(
-                result.bbox.max,
+            result.bbox = result.bbox.expand(
                 vertex_data.position
             );
         }
@@ -1569,21 +1054,30 @@ namespace nre::newrg
                 F_cluster_id cluster_id = vertex_cluster_ids[vertex_id];
 
                 auto& cluster_culling_data = data.dag_sorted_cluster_culling_datas[cluster_id];
+                auto& bbox = cluster_culling_data.bbox;
 
-                F_vector3_f32 scaled_right = cluster_culling_data.scaled_right();
-                F_vector3_f32 scaled_up = cluster_culling_data.scaled_up();
-                F_vector3_f32 scaled_forward = cluster_culling_data.scaled_forward();
+                auto bbox_delta = bbox.max - bbox.min;
 
-                F_matrix3x3_f32 scaled_local_to_world_matrix = {
-                    scaled_right,
-                    scaled_up,
-                    scaled_forward
+                F_matrix4x4_f32 scaled_local_to_world_matrix = {
+                    bbox_delta.x * F_vector4_f32::right(),
+                    bbox_delta.y * F_vector4_f32::up(),
+                    bbox_delta.z * F_vector4_f32::forward(),
+                    F_vector4_f32 { bbox.min, 1.0f }
                 };
-                F_matrix3x3_f32 world_to_scaled_local_matrix = invert(scaled_local_to_world_matrix);
+                F_matrix4x4_f32 world_to_scaled_local_matrix = invert(scaled_local_to_world_matrix);
 
-                F_vector3_f32 local_position = world_to_scaled_local_matrix * raw_vertex_data.position;
-                F_vector3_f32 local_normal = world_to_scaled_local_matrix * raw_vertex_data.position;
-                F_vector3_f32 local_tangent = world_to_scaled_local_matrix * raw_vertex_data.position;
+                F_vector3_f32 local_position = (
+                    world_to_scaled_local_matrix
+                    * F_vector4_f32 { raw_vertex_data.position, 1.0f }
+                ).xyz();
+                F_vector3_f32 local_normal = (
+                    world_to_scaled_local_matrix
+                    * F_vector4_f32 { raw_vertex_data.normal, 1.0f }
+                ).xyz();
+                F_vector3_f32 local_tangent = (
+                    world_to_scaled_local_matrix
+                    * F_vector4_f32 { raw_vertex_data.tangent, 1.0f }
+                ).xyz();
 
                 compressed_vertex_data.local_position_components[0] = format_encode_f32_to_f16_data(local_position.x);
                 compressed_vertex_data.local_position_components[1] = format_encode_f32_to_f16_data(local_position.y);

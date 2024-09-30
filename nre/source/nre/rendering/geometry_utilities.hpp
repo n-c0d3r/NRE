@@ -191,54 +191,16 @@ namespace nre
     };
     struct NCPP_ALIGN(16) F_cluster_culling_data
     {
-        F_vector4_f32 pivot_and_min_forward_dot;
-        F_vector4_f32 right_and_right_scale_factor;
-        F_vector4_f32 up_and_up_scale_factor;
-        F_vector4_f32 forward_and_forward_scale_factor;
+        F_box_f32 bbox;
+        F_vector4_f32 cone_direction_and_cone_angle_dot;
 
-        NCPP_FORCE_INLINE F_vector3_f32 pivot() const noexcept
+        NCPP_FORCE_INLINE F_vector3_f32 cone_direction() const noexcept
         {
-            return pivot_and_min_forward_dot.xyz();
+            return cone_direction_and_cone_angle_dot.xyz();
         }
-        NCPP_FORCE_INLINE f32 min_forward_dot() const noexcept
+        NCPP_FORCE_INLINE f32 cone_angle_dot() const noexcept
         {
-            return pivot_and_min_forward_dot.w;
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 right() const noexcept
-        {
-            return right_and_right_scale_factor.xyz();
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 up() const noexcept
-        {
-            return up_and_up_scale_factor.xyz();
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 forward() const noexcept
-        {
-            return forward_and_forward_scale_factor.xyz();
-        }
-        NCPP_FORCE_INLINE f32 right_scale_factor() const noexcept
-        {
-            return right_and_right_scale_factor.w;
-        }
-        NCPP_FORCE_INLINE f32 up_scale_factor() const noexcept
-        {
-            return up_and_up_scale_factor.w;
-        }
-        NCPP_FORCE_INLINE f32 forward_scale_factor() const noexcept
-        {
-            return forward_and_forward_scale_factor.w;
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_right() const noexcept
-        {
-            return right() * right_scale_factor();
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_up() const noexcept
-        {
-            return up() * up_scale_factor();
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_forward() const noexcept
-        {
-            return forward() * forward_scale_factor();
+            return cone_direction_and_cone_angle_dot.w;
         }
     };
 
@@ -249,63 +211,17 @@ namespace nre
     };
     struct NCPP_ALIGN(16) F_dag_node_culling_data
     {
-        F_vector4_f32 pivot_and_min_forward_dot;
-        F_vector4_f32 right_and_right_scale_factor;
-        F_vector4_f32 up_and_up_scale_factor;
-        F_vector4_f32 forward_and_forward_scale_factor;
-        F_vector4_f32 sphere_center_and_radius;
+        F_box_f32 bbox;
+        F_vector4_f32 cone_direction_and_cone_angle_dot;
+        F_sphere_f32 error_sphere;
 
-        NCPP_FORCE_INLINE F_vector3_f32 pivot() const noexcept
+        NCPP_FORCE_INLINE F_vector3_f32 cone_direction() const noexcept
         {
-            return pivot_and_min_forward_dot.xyz();
+            return cone_direction_and_cone_angle_dot.xyz();
         }
-        NCPP_FORCE_INLINE f32 min_forward_dot() const noexcept
+        NCPP_FORCE_INLINE f32 cone_angle_dot() const noexcept
         {
-            return pivot_and_min_forward_dot.w;
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 right() const noexcept
-        {
-            return right_and_right_scale_factor.xyz();
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 up() const noexcept
-        {
-            return up_and_up_scale_factor.xyz();
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 forward() const noexcept
-        {
-            return forward_and_forward_scale_factor.xyz();
-        }
-        NCPP_FORCE_INLINE f32 right_scale_factor() const noexcept
-        {
-            return right_and_right_scale_factor.w;
-        }
-        NCPP_FORCE_INLINE f32 up_scale_factor() const noexcept
-        {
-            return up_and_up_scale_factor.w;
-        }
-        NCPP_FORCE_INLINE f32 forward_scale_factor() const noexcept
-        {
-            return forward_and_forward_scale_factor.w;
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_right() const noexcept
-        {
-            return right() * right_scale_factor();
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_up() const noexcept
-        {
-            return up() * up_scale_factor();
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_forward() const noexcept
-        {
-            return forward() * forward_scale_factor();
-        }
-        NCPP_FORCE_INLINE F_vector3_f32 sphere_center() const noexcept
-        {
-            return sphere_center_and_radius.xyz();
-        }
-        NCPP_FORCE_INLINE f32 sphere_radius() const noexcept
-        {
-            return sphere_center_and_radius.w;
+            return cone_direction_and_cone_angle_dot.w;
         }
     };
 

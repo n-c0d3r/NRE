@@ -8,6 +8,15 @@ define NSL_DISABLE_AUTO_SLOTS
 
 
 
+struct F_bbox(
+    min_position(float3)
+    ___padding_0___(float)
+    max_position(float3)
+    ___padding_1___(float)
+)
+
+
+
 define F_global_vertex_id(u32)
 define F_local_cluster_vertex_id(u8)
 
@@ -37,14 +46,9 @@ struct F_global_cluster_id_range(
 )
 
 struct F_cluster_culling_data(
-    pivot(f32x3)
-    min_forward_dot(f32)
-    right(f32x3)
-    right_scale_factor(f32)
-    up(f32x3)
-    up_scale_factor(f32)
-    forward(f32x3)
-    forward_scale_factor(f32)
+    bbox(F_bbox)
+    cone_direction(f32x3)
+    cone_angle_dot(f32)
 )
 
 define F_dag_node_id(u32)
@@ -54,16 +58,11 @@ struct F_dag_node_header(
 )
 
 struct F_dag_node_culling_data(
-    pivot(f32x3)
-    min_forward_dot(f32)
-    right(f32x3)
-    right_scale_factor(f32)
-    up(f32x3)
-    up_scale_factor(f32)
-    forward(f32x3)
-    forward_scale_factor(f32)
-    sphere_center(f32x3)
-    sphere_radius(f32)
+    bbox(F_bbox)
+    cone_direction(f32x3)
+    cone_angle_dot(f32)
+    error_sphere_center(f32x3)
+    error_sphere_radius(f32)
 )
 
 struct F_mesh_header(
@@ -89,15 +88,6 @@ struct F_mesh_subpage_header(
 
 define F_mesh_id(u16)
 define INVALID_MESH_ID(0xFFFF)
-
-
-
-struct F_bbox(
-    min_position(float3)
-    ___padding_0___(float)
-    max_position(float3)
-    ___padding_1___(float)
-)
 
 
 
