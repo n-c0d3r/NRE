@@ -57,19 +57,19 @@ vertex_shader VS(
         dag_node_id % NRE_NEWRG_UNIFIED_MESH_DAG_TABLE_PAGE_CAPACITY_IN_ELEMENTS
     ];
 
+    float3 min_position = culling_data.pivot
+        - culling_data.right * culling_data.right_scale_factor
+        - culling_data.up * culling_data.up_scale_factor;
+
+    float3 t = vertex_position * 0.5f + 0.5f * float3(1, 1, 1);
+
     float4 vertex_world_position = mul(
         local_to_world_matrix,
         float4(
-            lerp(
-                culling_data.pivot
-                - culling_data.scaled_right 
-                - culling_data.scaled_up,
-                culling_data.pivot 
-                + culling_data.scaled_right 
-                + culling_data.scaled_up 
-                + culling_data.scaled_forward,
-                vertex_position * 0.5f + 0.5f * float3(1, 1, 1)
-            ), 
+            min_position
+            + t.x * culling_data.right * culling_data.right_scale_factor * 2.0f
+            + t.y * culling_data.up * culling_data.up_scale_factor * 2.0f
+            + t.z * culling_data.forward * culling_data.forward_scale_factor, 
             1.0f
         )
     );

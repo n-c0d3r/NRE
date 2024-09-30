@@ -734,6 +734,11 @@ namespace nre::newrg
                         forward += normalize(vertex_data.normal);
                     }
                     forward = normalize(forward);
+
+                    if(forward == F_vector3_f32::zero())
+                    {
+                        forward = F_vector3_f32::forward();
+                    }
                 }
 
                 // calculate min forward dot
@@ -755,15 +760,22 @@ namespace nre::newrg
                 }
 
                 // calculate up
-                F_vector3_f32 up = normal_to_tangent(forward);
+                F_vector3_f32 up = tangent_to_normal(forward);
 
                 // calculate right
-                F_vector3_f32 right = normal_to_bitangent(forward);
+                F_vector3_f32 right = cross(up, forward);
 
                 // calculate pivot
                 F_vector3_f32 pivot;
                 {
+                    f32 min_right_scale_factor = 0.0f;
+                    f32 min_up_scale_factor = 0.0f;
                     f32 min_forward_scale_factor = 0.0f;
+
+                    f32 max_right_scale_factor = 0.0f;
+                    f32 max_up_scale_factor = 0.0f;
+                    f32 max_forward_scale_factor = 0.0f;
+
                     for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
                     {
                         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
@@ -772,11 +784,24 @@ namespace nre::newrg
 
                         F_vector3_f32 center_to_vertex_position = vertex_data.position - center;
 
+                        f32 right_scale_factor = dot(right, center_to_vertex_position);
+                        f32 up_scale_factor = dot(up, center_to_vertex_position);
                         f32 forward_scale_factor = dot(forward, center_to_vertex_position);
 
+                        min_right_scale_factor = eastl::min(min_right_scale_factor, right_scale_factor);
+                        min_up_scale_factor = eastl::min(min_up_scale_factor, up_scale_factor);
                         min_forward_scale_factor = eastl::min(min_forward_scale_factor, forward_scale_factor);
+
+                        max_right_scale_factor = eastl::max(max_right_scale_factor, right_scale_factor);
+                        max_up_scale_factor = eastl::max(max_up_scale_factor, up_scale_factor);
+                        max_forward_scale_factor = eastl::max(max_forward_scale_factor, forward_scale_factor);
                     }
-                    pivot = center + forward * min_forward_scale_factor;
+                    pivot = (
+                        center
+                        + right * (min_right_scale_factor + max_right_scale_factor) * 0.5f
+                        + up * (min_up_scale_factor + max_up_scale_factor) * 0.5f
+                        + forward * min_forward_scale_factor
+                    );
                 }
 
                 // calculate forward scale factor
@@ -854,9 +879,9 @@ namespace nre::newrg
                         pivot,
                         min_forward_dot
                     };
-                    dag_sorted_cluster_culling_data.scaled_right = right * right_scale_factor;
-                    dag_sorted_cluster_culling_data.scaled_up = up * up_scale_factor;
-                    dag_sorted_cluster_culling_data.scaled_forward = forward * forward_scale_factor;
+                    dag_sorted_cluster_culling_data.right_and_right_scale_factor = { right, right_scale_factor };
+                    dag_sorted_cluster_culling_data.up_and_up_scale_factor = { up, up_scale_factor };
+                    dag_sorted_cluster_culling_data.forward_and_forward_scale_factor = { forward, forward_scale_factor };
                 }
             },
             {
@@ -877,12 +902,8 @@ namespace nre::newrg
         data.dag_node_culling_datas.resize(dag_node_count);
 
         //
-        using F_cluster_corner_array = TG_array<F_vector3_f32, 6>;
+        using F_cluster_corner_array = TG_array<F_vector3_f32, 8>;
         TG_vector<F_cluster_corner_array> cluster_corner_arrays(cluster_count);
-
-        //
-        TG_vector<f32> cluster_avg_edge_lengths(cluster_count);
-        for(auto& cluster_avg_edge_length : cluster_avg_edge_lengths) cluster_avg_edge_length = NMATH_F32_INFINITY;
 
         // build cluster_corner_arrays
         NTS_AWAIT_BLOCKABLE NTS_ASYNC(
@@ -892,9 +913,9 @@ namespace nre::newrg
                 auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
                 F_vector3_f32 pivot = dag_sorted_cluster_culling_data.pivot();
-                F_vector3_f32 scaled_right = dag_sorted_cluster_culling_data.scaled_right;
-                F_vector3_f32 scaled_up = dag_sorted_cluster_culling_data.scaled_up;
-                F_vector3_f32 scaled_forward = dag_sorted_cluster_culling_data.scaled_forward;
+                F_vector3_f32 scaled_right = dag_sorted_cluster_culling_data.scaled_right();
+                F_vector3_f32 scaled_up = dag_sorted_cluster_culling_data.scaled_up();
+                F_vector3_f32 scaled_forward = dag_sorted_cluster_culling_data.scaled_forward();
 
                 cluster_corner_array[0] = (
                     pivot
@@ -911,86 +932,35 @@ namespace nre::newrg
                     pivot
                     - scaled_right
                     + scaled_up
-                    + 1.0f * scaled_forward
                 );
                 cluster_corner_array[3] = (
                     pivot
                     + scaled_right
-                    + scaled_up
-                    + 1.0f * scaled_forward
+                    - scaled_up
                 );
                 cluster_corner_array[4] = (
                     pivot
-                    + scaled_right
+                    - scaled_right
                     + scaled_up
+                    + 1.0f * scaled_forward
                 );
                 cluster_corner_array[5] = (
                     pivot
                     + scaled_right
-                    - scaled_up
+                    + scaled_up
                 );
-            },
-            {
-                .parallel_count = cluster_count,
-                .batch_size = eastl::max<u32>(ceil(f32(cluster_count) / 128.0f), 32)
-            }
-            );
-
-        // build cluster_avg_edge_lengths
-        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-            [&](F_cluster_id dag_sorted_cluster_id)
-            {
-                auto& cluster_avg_edge_length = cluster_avg_edge_lengths[dag_sorted_cluster_id];
-                auto& cluster_header = data.cluster_headers[dag_sorted_cluster_id];
-
-                if(cluster_header.local_triangle_vertex_id_count)
-                {
-                    f32 avg_edge_length = 0.0f;
-                    for(u32 i = 0; i < cluster_header.local_triangle_vertex_id_count; i += 3)
-                    {
-                        auto local_index0 = data.local_cluster_triangle_vertex_ids[
-                            cluster_header.local_triangle_vertex_id_offset
-                            + i
-                        ];
-                        auto local_index1 = data.local_cluster_triangle_vertex_ids[
-                            cluster_header.local_triangle_vertex_id_offset
-                            + i
-                            + 1
-                        ];
-                        auto local_index2 = data.local_cluster_triangle_vertex_ids[
-                            cluster_header.local_triangle_vertex_id_offset
-                            + i
-                            + 2
-                        ];
-
-                        F_global_vertex_id vertex_id0 = (
-                            cluster_header.vertex_offset
-                            + F_global_vertex_id(local_index0)
-                        );
-                        F_global_vertex_id vertex_id1 = (
-                            cluster_header.vertex_offset
-                            + F_global_vertex_id(local_index1)
-                            );
-                        F_global_vertex_id vertex_id2 = (
-                            cluster_header.vertex_offset
-                            + F_global_vertex_id(local_index2)
-                        );
-
-                        auto& vertex_data0 = data.vertex_datas[vertex_id0];
-                        auto& vertex_data1 = data.vertex_datas[vertex_id1];
-                        auto& vertex_data2 = data.vertex_datas[vertex_id2];
-
-                        avg_edge_length += length(vertex_data0.position - vertex_data1.position);
-                        avg_edge_length += length(vertex_data1.position - vertex_data2.position);
-                        avg_edge_length += length(vertex_data2.position - vertex_data0.position);
-                    }
-                    avg_edge_length /= f32(cluster_header.local_triangle_vertex_id_count);
-                    cluster_avg_edge_length = avg_edge_length;
-                }
-                else
-                {
-                    cluster_avg_edge_length = T_default_tolerance<f32>;
-                }
+                cluster_corner_array[6] = (
+                    pivot
+                    + scaled_right
+                    - scaled_up
+                    + 1.0f * scaled_forward
+                );
+                cluster_corner_array[7] = (
+                    pivot
+                    + scaled_right
+                    + scaled_up
+                    + 1.0f * scaled_forward
+                );
             },
             {
                 .parallel_count = cluster_count,
@@ -1047,11 +1017,14 @@ namespace nre::newrg
                         {
                             auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
 
-                            forward += normalize(
-                                dag_sorted_cluster_culling_data.scaled_forward
-                            );
+                            forward += dag_sorted_cluster_culling_data.forward();
                         }
                         forward = normalize(forward);
+
+                        if(forward == F_vector3_f32::zero())
+                        {
+                            forward = F_vector3_f32::forward();
+                        }
                     }
 
                     // calculate min forward dot
@@ -1067,7 +1040,7 @@ namespace nre::newrg
 
                             f32 dir_dot1 = dot(
                                 forward,
-                                normalize(dag_sorted_cluster_culling_data.scaled_forward)
+                                dag_sorted_cluster_culling_data.forward()
                             );
                             f32 dir_angle1 = abs(acos(dir_dot1));
                             f32 dir_angle2 = abs(acos(dag_sorted_cluster_culling_data.min_forward_dot()));
@@ -1079,15 +1052,22 @@ namespace nre::newrg
                     }
 
                     // calculate up
-                    F_vector3_f32 up = normal_to_tangent(forward);
+                    F_vector3_f32 up = tangent_to_normal(forward);
 
                     // calculate right
-                    F_vector3_f32 right = normal_to_bitangent(forward);
+                    F_vector3_f32 right = cross(up, forward);
 
                     // calculate pivot
                     F_vector3_f32 pivot;
                     {
+                        f32 min_right_scale_factor = 0.0f;
+                        f32 min_up_scale_factor = 0.0f;
                         f32 min_forward_scale_factor = 0.0f;
+
+                        f32 max_right_scale_factor = 0.0f;
+                        f32 max_up_scale_factor = 0.0f;
+                        f32 max_forward_scale_factor = 0.0f;
+
                         for(
                             u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
                             dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
@@ -1103,12 +1083,25 @@ namespace nre::newrg
                                     - center
                                 );
 
+                                f32 right_scale_factor = dot(right, center_to_cluster_corner);
+                                f32 up_scale_factor = dot(up, center_to_cluster_corner);
                                 f32 forward_scale_factor = dot(forward, center_to_cluster_corner);
 
+                                min_right_scale_factor = eastl::min(min_right_scale_factor, right_scale_factor);
+                                min_up_scale_factor = eastl::min(min_up_scale_factor, up_scale_factor);
                                 min_forward_scale_factor = eastl::min(min_forward_scale_factor, forward_scale_factor);
+
+                                max_right_scale_factor = eastl::max(max_right_scale_factor, right_scale_factor);
+                                max_up_scale_factor = eastl::max(max_up_scale_factor, up_scale_factor);
+                                max_forward_scale_factor = eastl::max(max_forward_scale_factor, forward_scale_factor);
                             }
                         }
-                        pivot = center + forward * min_forward_scale_factor;
+                        pivot = (
+                            center
+                            + right * (min_right_scale_factor + max_right_scale_factor) * 0.5f
+                            + up * (min_up_scale_factor + max_up_scale_factor) * 0.5f
+                            + forward * min_forward_scale_factor
+                        );
                     }
 
                     // calculate forward scale factor
@@ -1155,7 +1148,7 @@ namespace nre::newrg
                             for(auto& cluster_corner : cluster_corner_array)
                             {
                                 F_vector3_f32 pivot_to_cluster_corner = (
-                                cluster_corner
+                                    cluster_corner
                                     - pivot
                                 );
 
@@ -1237,9 +1230,9 @@ namespace nre::newrg
                             pivot,
                             min_forward_dot
                         };
-                        dag_node_culling_data.scaled_right = right * right_scale_factor;
-                        dag_node_culling_data.scaled_up = up * up_scale_factor;
-                        dag_node_culling_data.scaled_forward = forward * forward_scale_factor;
+                        dag_node_culling_data.right_and_right_scale_factor = { right, right_scale_factor };
+                        dag_node_culling_data.up_and_up_scale_factor = { up, up_scale_factor };
+                        dag_node_culling_data.forward_and_forward_scale_factor = { forward, forward_scale_factor };
                         dag_node_culling_data.sphere_center_and_radius = {
                             sphere_center,
                             sphere_radius
@@ -1254,60 +1247,8 @@ namespace nre::newrg
         }
 
         //
-        using F_dag_node_corner_array = TG_array<F_vector3_f32, 6>;
+        using F_dag_node_corner_array = TG_array<F_vector3_f32, 8>;
         TG_vector<F_dag_node_corner_array> dag_node_corner_arrays(dag_node_count);
-
-        // build dag_node_corner_arrays
-        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-            [&](F_dag_node_id dag_sorted_dag_node_id)
-            {
-                auto& dag_node_corner_array = dag_node_corner_arrays[dag_sorted_dag_node_id];
-                auto dag_node_culling_data = data.dag_node_culling_datas[dag_sorted_dag_node_id];
-
-                F_vector3_f32 pivot = dag_node_culling_data.pivot();
-                F_vector3_f32 scaled_right = dag_node_culling_data.scaled_right;
-                F_vector3_f32 scaled_up = dag_node_culling_data.scaled_up;
-                F_vector3_f32 scaled_forward = dag_node_culling_data.scaled_forward;
-
-                dag_node_corner_array[0] = (
-                    pivot
-                    - scaled_right
-                    - scaled_up
-                );
-                dag_node_corner_array[1] = (
-                    pivot
-                    - scaled_right
-                    - scaled_up
-                    + 1.0f * scaled_forward
-                );
-                dag_node_corner_array[2] = (
-                    pivot
-                    - scaled_right
-                    + scaled_up
-                    + 1.0f * scaled_forward
-                );
-                dag_node_corner_array[3] = (
-                    pivot
-                    + scaled_right
-                    + scaled_up
-                    + 1.0f * scaled_forward
-                );
-                dag_node_corner_array[4] = (
-                    pivot
-                    + scaled_right
-                    + scaled_up
-                );
-                dag_node_corner_array[5] = (
-                    pivot
-                    + scaled_right
-                    - scaled_up
-                );
-            },
-            {
-                .parallel_count = dag_node_count,
-                .batch_size = eastl::max<u32>(ceil(f32(dag_node_count) / 128.0f), 32)
-            }
-        );
 
         // build dag_node_culling_datas based on childs
         for(u32 level_index = 0; level_index < level_count; ++level_index)
@@ -1331,21 +1272,28 @@ namespace nre::newrg
                     F_vector3_f32 center = dag_node_culling_data.pivot();
 
                     // calculate forward
-                    F_vector3_f32 forward = normalize(dag_node_culling_data.scaled_forward);
+                    F_vector3_f32 forward = dag_node_culling_data.forward();
 
                     // calculate min forward dot
                     f32 min_forward_dot = dag_node_culling_data.min_forward_dot();
 
                     // calculate up
-                    F_vector3_f32 up = normalize(dag_node_culling_data.scaled_up);
+                    F_vector3_f32 up = dag_node_culling_data.up();
 
                     // calculate right
-                    F_vector3_f32 right = normalize(dag_node_culling_data.scaled_right);
+                    F_vector3_f32 right = dag_node_culling_data.right();
 
                     // calculate pivot
                     F_vector3_f32 pivot;
                     {
+                        f32 min_right_scale_factor = 0.0f;
+                        f32 min_up_scale_factor = 0.0f;
                         f32 min_forward_scale_factor = 0.0f;
+
+                        f32 max_right_scale_factor = 0.0f;
+                        f32 max_up_scale_factor = 0.0f;
+                        f32 max_forward_scale_factor = 0.0f;
+
                         for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
                         {
                             F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
@@ -1362,12 +1310,25 @@ namespace nre::newrg
                                     - center
                                 );
 
+                                f32 right_scale_factor = dot(right, center_to_cluster_corner);
+                                f32 up_scale_factor = dot(up, center_to_cluster_corner);
                                 f32 forward_scale_factor = dot(forward, center_to_cluster_corner);
 
+                                min_right_scale_factor = eastl::min(min_right_scale_factor, right_scale_factor);
+                                min_up_scale_factor = eastl::min(min_up_scale_factor, up_scale_factor);
                                 min_forward_scale_factor = eastl::min(min_forward_scale_factor, forward_scale_factor);
+
+                                max_right_scale_factor = eastl::max(max_right_scale_factor, right_scale_factor);
+                                max_up_scale_factor = eastl::max(max_up_scale_factor, up_scale_factor);
+                                max_forward_scale_factor = eastl::max(max_forward_scale_factor, forward_scale_factor);
                             }
                         }
-                        pivot = center + forward * min_forward_scale_factor;
+                        pivot = (
+                            center
+                            + right * (min_right_scale_factor + max_right_scale_factor) * 0.5f
+                            + up * (min_up_scale_factor + max_up_scale_factor) * 0.5f
+                            + forward * min_forward_scale_factor
+                        );
                     }
 
                     // calculate forward scale factor
@@ -1490,14 +1451,66 @@ namespace nre::newrg
                             pivot,
                             min_forward_dot
                         };
-                        dag_node_culling_data.scaled_right = right * right_scale_factor;
-                        dag_node_culling_data.scaled_up = up * up_scale_factor;
-                        dag_node_culling_data.scaled_forward = forward * forward_scale_factor;
+                        dag_node_culling_data.right_and_right_scale_factor = { right, right_scale_factor };
+                        dag_node_culling_data.up_and_up_scale_factor = { up, up_scale_factor };
+                        dag_node_culling_data.forward_and_forward_scale_factor = { forward, forward_scale_factor };
                         dag_node_culling_data.sphere_center_and_radius = {
                             sphere_center,
                             sphere_radius
                         };
                     }
+
+                    // dag_node_corner_array
+                    auto& dag_node_corner_array = dag_node_corner_arrays[dag_node_id];
+
+                    F_vector3_f32 scaled_right = dag_node_culling_data.scaled_right();
+                    F_vector3_f32 scaled_up = dag_node_culling_data.scaled_up();
+                    F_vector3_f32 scaled_forward = dag_node_culling_data.scaled_forward();
+
+                    dag_node_corner_array[0] = (
+                        pivot
+                        - scaled_right
+                        - scaled_up
+                    );
+                    dag_node_corner_array[1] = (
+                        pivot
+                        - scaled_right
+                        - scaled_up
+                        + 1.0f * scaled_forward
+                    );
+                    dag_node_corner_array[2] = (
+                        pivot
+                        - scaled_right
+                        + scaled_up
+                    );
+                    dag_node_corner_array[3] = (
+                        pivot
+                        + scaled_right
+                        - scaled_up
+                    );
+                    dag_node_corner_array[4] = (
+                        pivot
+                        - scaled_right
+                        + scaled_up
+                        + 1.0f * scaled_forward
+                    );
+                    dag_node_corner_array[5] = (
+                        pivot
+                        + scaled_right
+                        + scaled_up
+                    );
+                    dag_node_corner_array[6] = (
+                        pivot
+                        + scaled_right
+                        - scaled_up
+                        + 1.0f * scaled_forward
+                    );
+                    dag_node_corner_array[7] = (
+                        pivot
+                        + scaled_right
+                        + scaled_up
+                        + 1.0f * scaled_forward
+                    );
                 },
                 {
                     .parallel_count = local_level_dag_node_count,
@@ -1557,9 +1570,9 @@ namespace nre::newrg
 
                 auto& cluster_culling_data = data.dag_sorted_cluster_culling_datas[cluster_id];
 
-                F_vector3_f32 scaled_right = cluster_culling_data.scaled_right;
-                F_vector3_f32 scaled_up = cluster_culling_data.scaled_up;
-                F_vector3_f32 scaled_forward = cluster_culling_data.scaled_forward;
+                F_vector3_f32 scaled_right = cluster_culling_data.scaled_right();
+                F_vector3_f32 scaled_up = cluster_culling_data.scaled_up();
+                F_vector3_f32 scaled_forward = cluster_culling_data.scaled_forward();
 
                 F_matrix3x3_f32 scaled_local_to_world_matrix = {
                     scaled_right,

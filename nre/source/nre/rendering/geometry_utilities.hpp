@@ -192,9 +192,9 @@ namespace nre
     struct NCPP_ALIGN(16) F_cluster_culling_data
     {
         F_vector4_f32 pivot_and_min_forward_dot;
-        F_vector3_f32 scaled_right;
-        F_vector3_f32 scaled_up;
-        F_vector3_f32 scaled_forward;
+        F_vector4_f32 right_and_right_scale_factor;
+        F_vector4_f32 up_and_up_scale_factor;
+        F_vector4_f32 forward_and_forward_scale_factor;
 
         NCPP_FORCE_INLINE F_vector3_f32 pivot() const noexcept
         {
@@ -204,17 +204,41 @@ namespace nre
         {
             return pivot_and_min_forward_dot.w;
         }
+        NCPP_FORCE_INLINE F_vector3_f32 right() const noexcept
+        {
+            return right_and_right_scale_factor.xyz();
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 up() const noexcept
+        {
+            return up_and_up_scale_factor.xyz();
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 forward() const noexcept
+        {
+            return forward_and_forward_scale_factor.xyz();
+        }
         NCPP_FORCE_INLINE f32 right_scale_factor() const noexcept
         {
-            return length(scaled_right);
+            return right_and_right_scale_factor.w;
         }
         NCPP_FORCE_INLINE f32 up_scale_factor() const noexcept
         {
-            return length(scaled_up);
+            return up_and_up_scale_factor.w;
         }
         NCPP_FORCE_INLINE f32 forward_scale_factor() const noexcept
         {
-            return length(scaled_forward);
+            return forward_and_forward_scale_factor.w;
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 scaled_right() const noexcept
+        {
+            return right() * right_scale_factor();
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 scaled_up() const noexcept
+        {
+            return up() * up_scale_factor();
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 scaled_forward() const noexcept
+        {
+            return forward() * forward_scale_factor();
         }
     };
 
@@ -226,9 +250,9 @@ namespace nre
     struct NCPP_ALIGN(16) F_dag_node_culling_data
     {
         F_vector4_f32 pivot_and_min_forward_dot;
-        F_vector3_f32 scaled_right;
-        F_vector3_f32 scaled_up;
-        F_vector3_f32 scaled_forward;
+        F_vector4_f32 right_and_right_scale_factor;
+        F_vector4_f32 up_and_up_scale_factor;
+        F_vector4_f32 forward_and_forward_scale_factor;
         F_vector4_f32 sphere_center_and_radius;
 
         NCPP_FORCE_INLINE F_vector3_f32 pivot() const noexcept
@@ -239,17 +263,41 @@ namespace nre
         {
             return pivot_and_min_forward_dot.w;
         }
+        NCPP_FORCE_INLINE F_vector3_f32 right() const noexcept
+        {
+            return right_and_right_scale_factor.xyz();
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 up() const noexcept
+        {
+            return up_and_up_scale_factor.xyz();
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 forward() const noexcept
+        {
+            return forward_and_forward_scale_factor.xyz();
+        }
         NCPP_FORCE_INLINE f32 right_scale_factor() const noexcept
         {
-            return length(scaled_right);
+            return right_and_right_scale_factor.w;
         }
         NCPP_FORCE_INLINE f32 up_scale_factor() const noexcept
         {
-            return length(scaled_up);
+            return up_and_up_scale_factor.w;
         }
         NCPP_FORCE_INLINE f32 forward_scale_factor() const noexcept
         {
-            return length(scaled_forward);
+            return forward_and_forward_scale_factor.w;
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 scaled_right() const noexcept
+        {
+            return right() * right_scale_factor();
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 scaled_up() const noexcept
+        {
+            return up() * up_scale_factor();
+        }
+        NCPP_FORCE_INLINE F_vector3_f32 scaled_forward() const noexcept
+        {
+            return forward() * forward_scale_factor();
         }
         NCPP_FORCE_INLINE F_vector3_f32 sphere_center() const noexcept
         {
