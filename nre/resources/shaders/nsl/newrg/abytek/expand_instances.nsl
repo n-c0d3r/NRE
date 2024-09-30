@@ -7,21 +7,25 @@ import(newrg/abytek/geometry_utilities.nsh)
 @slot(0 0)
 resource instance_transforms(
     StructuredBuffer(f32x4x4)
+    -1
 )
 
 @slot(0 1)
 resource instance_mesh_ids(
     Buffer(F_mesh_id)
+    -1
 )
 
 @slot(0 2)
 resource mesh_headers(
     StructuredBuffer(F_mesh_header)
+    -1
 )
 
 @slot(0 3)
 resource mesh_bboxes(
     StructuredBuffer(F_bbox)
+    -1
 )
 
 @slot(0 4)
@@ -64,16 +68,28 @@ compute_shader CS(
     if(instance_id >= instance_count)
         return;
         
-    F_mesh_id mesh_id = instance_mesh_ids[instance_id];
+    F_mesh_id mesh_id = instance_mesh_ids[
+        instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ];
 
     b8 is_culled = (mesh_id == INVALID_MESH_ID);
     if(is_culled)
         return;
 
-    float4x4 local_to_world_matrix = instance_transforms[instance_id];
+    float4x4 local_to_world_matrix = instance_transforms[
+        instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ];
     float4x4 local_to_view_matrix = mul(world_to_view_matrix, local_to_world_matrix);
 
-    F_bbox bbox = mesh_bboxes[mesh_id];
+    F_bbox bbox = mesh_bboxes[
+        mesh_id / NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        mesh_id % NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ];
 
     float4 view_bbox_corners[8];
     view_bbox_corners[0] = mul(
@@ -170,7 +186,11 @@ compute_shader CS(
     if(is_culled)
         return;
 
-    F_mesh_header mesh_header = mesh_headers[mesh_id];
+    F_mesh_header mesh_header = mesh_headers[
+        mesh_id / NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        mesh_id % NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ];
 
     u32 local_root_dag_node_offset = WavePrefixSum(mesh_header.root_dag_node_count);
     u32 local_root_dag_node_count = WaveActiveSum(mesh_header.root_dag_node_count);

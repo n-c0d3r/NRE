@@ -1,4 +1,5 @@
 #include <nre/rendering/newrg/render_primitive_data_pool.hpp>
+#include <nre/rendering/nsl_shader_system.hpp>
 
 
 
@@ -32,6 +33,11 @@ namespace nre::newrg
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
+
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS",
+            G_to_string(NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS)
+        });
     }
     F_render_primitive_data_pool::~F_render_primitive_data_pool()
     {
