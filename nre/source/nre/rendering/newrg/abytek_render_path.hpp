@@ -34,6 +34,9 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> draw_instance_bbox_shader_asset_p_;
         K_graphics_pipeline_state_handle draw_instance_bbox_pso_p_;
 
+        TS<F_nsl_shader_asset> draw_dag_node_bbox_shader_asset_p_;
+        K_graphics_pipeline_state_handle draw_dag_node_bbox_pso_p_;
+
         TS<F_static_mesh_asset> unit_cube_static_mesh_asset_p_;
         TS<F_static_mesh> unit_cube_static_mesh_p_;
 
@@ -53,6 +56,26 @@ namespace nre::newrg
             F_box_f32 bbox;
         };
         F_draw_instance_bboxes_options draw_instance_bboxes_options;
+
+        struct F_draw_dag_node_bboxes_options
+        {
+            b8 enable = true;
+            u32 level = 0;
+            F_vector3_f32 color = F_vector3_f32::forward();
+        };
+        struct F_draw_dag_node_bbox_global_options_data
+        {
+            F_vector3_f32 color;
+        };
+        struct F_draw_dag_node_bbox_per_object_options_data
+        {
+            F_matrix4x4_f32 local_to_world_matrix;
+            F_vector3_f32 pivot;
+            F_vector3_f32 scaled_right;
+            F_vector3_f32 scaled_up;
+            F_vector3_f32 scaled_forward;
+        };
+        F_draw_dag_node_bboxes_options draw_dag_node_bboxes_options;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(
@@ -105,6 +128,10 @@ namespace nre::newrg
 
     public:
         void draw_instance_bboxes(
+            TKPA_valid<F_abytek_scene_render_view> view_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void draw_dag_node_bboxes(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );

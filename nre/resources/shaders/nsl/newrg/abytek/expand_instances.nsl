@@ -167,6 +167,9 @@ compute_shader CS(
         ndc_bbox_corners
     );
 
+    if(is_culled)
+        return;
+
     F_mesh_header mesh_header = mesh_headers[mesh_id];
 
     u32 local_root_dag_node_offset = WavePrefixSum(mesh_header.root_dag_node_count);
