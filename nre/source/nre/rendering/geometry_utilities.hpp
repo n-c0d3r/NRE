@@ -227,8 +227,9 @@ namespace nre
     {
         F_vector4_f32 pivot_and_min_forward_dot;
         F_vector3_f32 scaled_right;
-        F_vector4_f32 scaled_up_and_threshold;
+        F_vector3_f32 scaled_up;
         F_vector3_f32 scaled_forward;
+        F_vector4_f32 sphere_center_and_radius;
 
         NCPP_FORCE_INLINE F_vector3_f32 pivot() const noexcept
         {
@@ -238,25 +239,25 @@ namespace nre
         {
             return pivot_and_min_forward_dot.w;
         }
-        NCPP_FORCE_INLINE F_vector3_f32 scaled_up() const noexcept
-        {
-            return scaled_up_and_threshold.xyz();
-        }
         NCPP_FORCE_INLINE f32 right_scale_factor() const noexcept
         {
             return length(scaled_right);
         }
         NCPP_FORCE_INLINE f32 up_scale_factor() const noexcept
         {
-            return length(scaled_up());
+            return length(scaled_up);
         }
         NCPP_FORCE_INLINE f32 forward_scale_factor() const noexcept
         {
             return length(scaled_forward);
         }
-        NCPP_FORCE_INLINE f32 threshold() const noexcept
+        NCPP_FORCE_INLINE F_vector3_f32 sphere_center() const noexcept
         {
-            return scaled_up_and_threshold.w;
+            return sphere_center_and_radius.xyz();
+        }
+        NCPP_FORCE_INLINE f32 sphere_radius() const noexcept
+        {
+            return sphere_center_and_radius.w;
         }
     };
 
