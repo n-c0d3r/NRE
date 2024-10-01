@@ -683,7 +683,16 @@ namespace nre::newrg
                 // store child_node_ids
                 for(u32 local_child_cluster_index = 0; local_child_cluster_index < child_node_ids.size(); ++local_child_cluster_index)
                 {
-                    dag_node_header.child_node_ids[local_child_cluster_index] = child_node_ids[local_child_cluster_index];
+                    F_dag_node_id child_node_id = child_node_ids[local_child_cluster_index];
+
+                    auto& child_dag_node_header = data.dag_node_headers[child_node_id];
+
+                    child_dag_node_header.critical_parent_id = eastl::min(
+                        child_dag_node_header.critical_parent_id,
+                        dag_node_id
+                    );
+
+                    dag_node_header.child_node_ids[local_child_cluster_index] = child_node_id;
                 }
             },
             {
@@ -935,9 +944,12 @@ namespace nre::newrg
                             if(dag_child_id == NCPP_U32_MAX)
                                 continue;
 
+                            if(data.dag_node_headers[dag_child_id].critical_parent_id != dag_node_id)
+                                continue;
+
                             auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
 
-                            bbox = bbox.expand(child_dag_node_culling_data.bbox);
+                            bbox = bbox.expand(child_dag_node_culling_data.bbox.center());
                         }
                     }
 
@@ -950,6 +962,9 @@ namespace nre::newrg
                             F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
 
                             if(dag_child_id == NCPP_U32_MAX)
+                                continue;
+
+                            if(data.dag_node_headers[dag_child_id].critical_parent_id != dag_node_id)
                                 continue;
 
                             auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
@@ -975,6 +990,9 @@ namespace nre::newrg
                             F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
 
                             if(dag_child_id == NCPP_U32_MAX)
+                                continue;
+
+                            if(data.dag_node_headers[dag_child_id].critical_parent_id != dag_node_id)
                                 continue;
 
                             auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];

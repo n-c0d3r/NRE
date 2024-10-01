@@ -55,6 +55,8 @@ define F_dag_node_id(u32)
 define INVALID_DAG_NODE_ID(0xFFFFFFFF)
 struct F_dag_node_header(
     child_node_ids(F_dag_node_id 4)
+    critical_parent_id(F_dag_node_id)
+    ___padding_0___(u32x3)
 )
 
 struct F_dag_node_culling_data(
