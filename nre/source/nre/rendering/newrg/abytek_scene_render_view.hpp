@@ -8,6 +8,7 @@
 #include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
 
 
+
 namespace nre::newrg
 {
     class F_render_resource;

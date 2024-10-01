@@ -19,6 +19,8 @@
 #include <nre/rendering/newrg/abytek_draw_instance_bbox_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_dag_node_bbox_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_expand_instances_binder_signature.hpp>
+#include <nre/rendering/newrg/render_depth_pyramid.hpp>
+#include <nre/rendering/newrg/external_render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>

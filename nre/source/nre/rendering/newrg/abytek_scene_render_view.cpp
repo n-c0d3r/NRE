@@ -3,6 +3,8 @@
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
 #include <nre/rendering/newrg/render_resource_utilities.hpp>
+#include <nre/rendering/newrg/render_depth_pyramid.hpp>
+#include <nre/rendering/newrg/external_render_depth_pyramid.hpp>
 #include <nre/actor/actor.hpp>
 
 

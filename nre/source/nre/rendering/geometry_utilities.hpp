@@ -209,6 +209,7 @@ namespace nre
     {
         F_dag_node_id child_node_ids[4]{ NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX };
         F_dag_node_id critical_parent_id = NCPP_U32_MAX;
+        b8 is_leaf = false;
     };
     struct NCPP_ALIGN(16) F_dag_node_culling_data
     {

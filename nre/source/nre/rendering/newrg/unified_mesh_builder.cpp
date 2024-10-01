@@ -693,6 +693,7 @@ namespace nre::newrg
                     );
 
                     dag_node_header.child_node_ids[local_child_cluster_index] = child_node_id;
+                    dag_node_header.is_leaf = (child_node_ids.size() == 0);
                 }
             },
             {
