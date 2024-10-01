@@ -32,7 +32,7 @@ namespace nre::newrg
         F_scene_render_view::render_tick();
     }
 
-    void F_abytek_scene_render_view::RG_register()
+    void F_abytek_scene_render_view::RG_begin_register()
     {
         NCPP_ASSERT(depth_mode == E_render_view_depth_mode::REVERSE);
 
@@ -46,7 +46,7 @@ namespace nre::newrg
         rg_last_data_batch_.reset();
         rg_data_batch_.reset();
 
-        F_scene_render_view::RG_register();
+        F_scene_render_view::RG_begin_register();
 
         if(!is_renderable())
             return;
@@ -229,5 +229,9 @@ namespace nre::newrg
                 last_data_ = data_;
             }
         }
+    }
+    void F_abytek_scene_render_view::RG_end_register()
+    {
+        F_scene_render_view::RG_end_register();
     }
 }

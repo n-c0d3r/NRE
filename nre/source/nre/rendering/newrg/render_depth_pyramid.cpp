@@ -1,6 +1,7 @@
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/external_render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
+#include <nre/rendering/newrg/render_resource_utilities.hpp>
 
 
 
@@ -13,6 +14,31 @@ namespace nre::newrg
         size_(size)
         NRE_OPTIONAL_DEBUG_PARAM(name_(name))
     {
+        NCPP_ASSERT(
+            is_power_of_two(size.x)
+            && is_power_of_two(size.y)
+        ) << "invalid size, required to be power of 2";
+
+        u32 mip_level_count = 1 + eastl::max<u32>(
+            log2(size.x),
+            log2(size.y)
+        );
+
+        texture_2d_p_ = H_render_resource::create_texture_2d(
+            size.width,
+            size.height,
+            ED_format::D32_FLOAT,
+            mip_level_count,
+            {},
+            ED_resource_flag::SHADER_RESOURCE
+            | ED_resource_flag::UNORDERED_ACCESS,
+            ED_resource_heap_type::DEFAULT,
+            {}
+            NRE_OPTIONAL_DEBUG_PARAM(
+                name_
+                + ".texture_2d"
+            )
+        );
     }
     F_render_depth_pyramid::~F_render_depth_pyramid()
     {

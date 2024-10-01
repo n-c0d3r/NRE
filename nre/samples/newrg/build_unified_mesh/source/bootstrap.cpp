@@ -167,7 +167,7 @@ int main() {
 			auto render_graph_p = F_render_graph::instance_p();
 			auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
 
-			H_scene_render_view::RG_register_all();
+			H_scene_render_view::RG_begin_register_all();
 
 			H_scene_render_view::for_each(
 				[&](TKPA_valid<F_scene_render_view> scene_render_view_p)
@@ -299,6 +299,8 @@ int main() {
 					);
 				}
 			);
+
+			H_scene_render_view::RG_end_register_all();
 		};
 		NRE_NEWRG_RENDER_FOUNDATION_UPLOAD()
 		{

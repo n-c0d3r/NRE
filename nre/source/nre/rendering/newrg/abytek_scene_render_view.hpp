@@ -67,6 +67,7 @@ namespace nre::newrg
         virtual void render_tick() override;
 
     public:
-        virtual void RG_register() override;
+        virtual void RG_begin_register() override;
+        virtual void RG_end_register() override;
     };
 }

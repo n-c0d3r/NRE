@@ -73,7 +73,10 @@ namespace nre::newrg
         is_renderable_ = (size_.width != 0) && (size_.height != 0);
     }
 
-    void F_scene_render_view::RG_register()
+    void F_scene_render_view::RG_begin_register()
+    {
+    }
+    void F_scene_render_view::RG_end_register()
     {
     }
 
@@ -124,14 +127,25 @@ namespace nre::newrg
 
 
 
-    void H_scene_render_view::RG_register_all()
+    void H_scene_render_view::RG_begin_register_all()
     {
         for_each(
             [](TKPA_valid<A_render_view> render_view_p)
             {
                 auto scene_render_view_p = render_view_p.T_interface<F_scene_render_view>();
 
-                scene_render_view_p->RG_register();
+                scene_render_view_p->RG_begin_register();
+            }
+        );
+    }
+    void H_scene_render_view::RG_end_register_all()
+    {
+        for_each(
+            [](TKPA_valid<A_render_view> render_view_p)
+            {
+                auto scene_render_view_p = render_view_p.T_interface<F_scene_render_view>();
+
+                scene_render_view_p->RG_end_register();
             }
         );
     }

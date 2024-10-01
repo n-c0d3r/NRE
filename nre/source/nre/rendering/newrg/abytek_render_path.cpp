@@ -124,7 +124,7 @@ namespace nre::newrg
     {
         F_render_path::RG_begin_register();
 
-        H_scene_render_view::RG_register_all();
+        H_scene_render_view::RG_begin_register_all();
     }
     void F_abytek_render_path::RG_end_register()
     {
@@ -226,6 +226,8 @@ namespace nre::newrg
                 }
             }
         );
+
+        H_scene_render_view::RG_end_register_all();
     }
 
     void F_abytek_render_path::expand_instances(

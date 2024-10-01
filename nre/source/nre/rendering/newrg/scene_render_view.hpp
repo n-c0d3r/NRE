@@ -51,7 +51,8 @@ namespace nre::newrg
         virtual void update_output();
 
     public:
-        virtual void RG_register();
+        virtual void RG_begin_register();
+        virtual void RG_end_register();
 
     public:
         void unbind_output();
@@ -66,7 +67,8 @@ namespace nre::newrg
     class NRE_API H_scene_render_view
     {
     public:
-        static void RG_register_all();
+        static void RG_begin_register_all();
+        static void RG_end_register_all();
 
     public:
         static void for_each(auto&& functor, b8 require_renderable = true)
