@@ -10,9 +10,7 @@ define NSL_DISABLE_AUTO_SLOTS
 
 struct F_bbox(
     min_position(float3)
-    ___padding_0___(float)
     max_position(float3)
-    ___padding_1___(float)
 )
 
 
