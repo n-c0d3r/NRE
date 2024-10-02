@@ -247,18 +247,18 @@ namespace nre::newrg
                     optimized_geometry,
                     split_cluster_group_child_ids
                 );
-                TG_vector<u32> split_child_cluster_id_to_parent_counts(next_level_geometry.graph.size());
-                {
-                    for(auto& a : split_child_cluster_id_to_parent_counts) a = 0;
-
-                    u32 cluster_count = split_cluster_group_child_ids.size();
-                    for(u32 i = 0; i < cluster_count; ++i)
-                    {
-                        split_child_cluster_id_to_parent_counts[
-                            split_cluster_group_child_ids[i]
-                        ]++;
-                    }
-                }
+                // TG_vector<u32> split_child_cluster_id_to_parent_counts(next_level_geometry.graph.size());
+                // {
+                //     for(auto& a : split_child_cluster_id_to_parent_counts) a = 0;
+                //
+                //     u32 cluster_count = split_cluster_group_child_ids.size();
+                //     for(u32 i = 0; i < cluster_count; ++i)
+                //     {
+                //         split_child_cluster_id_to_parent_counts[
+                //             split_cluster_group_child_ids[i]
+                //         ]++;
+                //     }
+                // }
 
                 NCPP_INFO()
                     << "splitted_geometries[" << T_cout_value(cluster_level_index) << "]"
@@ -321,21 +321,20 @@ namespace nre::newrg
                             next_level_cluster_header.vertex_offset += next_level_vertex_offset;
                             next_level_cluster_header.local_triangle_vertex_id_offset += next_level_local_cluster_triangle_vertex_id_offset;
 
-                            // calculate cluster error
-                            f32 cluster_error = 0.0f;
+                            // calculate local cluster error
+                            f32 local_cluster_error = 0.0f;
                             {
                                 F_cluster_id split_cluster_group_child_id = split_cluster_group_child_ids[i];
 
-                                cluster_error = (
+                                local_cluster_error = (
                                     simplified_cluster_errors[
                                         split_cluster_group_child_id
                                     ]
-                                    / split_child_cluster_id_to_parent_counts[
-                                        split_cluster_group_child_id
-                                    ]
+                                    // / split_child_cluster_id_to_parent_counts[
+                                    //     split_cluster_group_child_id
+                                    // ]
                                 );
                             }
-                            result.cluster_errors[next_level_cluster_id] = cluster_error;
 
                             // calculate child cluster ids
                             TG_fixed_vector<F_cluster_id, 4, false> child_cluster_ids;
@@ -396,6 +395,24 @@ namespace nre::newrg
                                 }
                             }
 
+                            // calculate cluster error
+                            f32 cluster_error;
+                            for(u32 child_index = 0; child_index < 4; ++child_index)
+                            {
+                                if(child_index < child_cluster_ids.size())
+                                {
+                                    auto child_cluster_id = child_cluster_ids[child_index];
+
+                                    cluster_error += (
+                                        (1.0f + result.cluster_errors[child_cluster_id])
+                                        * (1.0f + local_cluster_error)
+                                    ) - 1.0f;
+                                }
+                            }
+                            cluster_error /= f32(child_cluster_ids.size());
+                            result.cluster_errors[next_level_cluster_id] = cluster_error;
+
+                            //
                             local_vertex_offset += next_level_cluster_header.vertex_count;
                             local_triangle_vertex_id_offset += next_level_cluster_header.local_triangle_vertex_id_count;
                         }

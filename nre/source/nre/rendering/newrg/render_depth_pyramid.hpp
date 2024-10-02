@@ -49,7 +49,7 @@ namespace nre::newrg
         void reset();
 
     public:
-        void RG_generate();
+        void RG_generate(F_render_resource* depth_texture_p);
 
     public:
         NCPP_FORCE_INLINE b8 is_valid() const noexcept

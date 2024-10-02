@@ -107,8 +107,18 @@ namespace nre::newrg
         texture_2d_p_ = 0;
     }
 
-    void F_render_depth_pyramid::RG_generate()
+    void F_render_depth_pyramid::RG_generate(F_render_resource* depth_texture_p)
     {
         NCPP_ASSERT(is_valid());
+
+        u32 mip_level_count = 1 + eastl::max<u32>(
+            log2(size_.x),
+            log2(size_.y)
+        );
+
+        u32 command_count = ceil(
+            f32(mip_level_count)
+            / f32(NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND)
+        );
     }
 }
