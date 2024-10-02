@@ -396,7 +396,7 @@ namespace nre::newrg
                             }
 
                             // calculate cluster error
-                            f32 cluster_error;
+                            f32 cluster_error = 0.0f;
                             for(u32 child_index = 0; child_index < 4; ++child_index)
                             {
                                 if(child_index < child_cluster_ids.size())
