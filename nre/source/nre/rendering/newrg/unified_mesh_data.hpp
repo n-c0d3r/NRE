@@ -33,6 +33,10 @@ namespace nre::newrg
             F_vector3_f32::infinity(),
             F_vector3_f32::negative_infinity()
         );
+        F_sphere_f32 error_sphere = F_sphere_f32(
+            F_vector3_f32::zero(),
+            0.0f
+        );
     };
     struct NCPP_ALIGN(16) F_unified_mesh_subpage_header
     {
@@ -60,6 +64,8 @@ namespace nre::newrg
         TG_vector<F_cluster_id_range> dag_sorted_cluster_id_ranges;
         TG_vector<F_dag_node_culling_data> dag_node_culling_datas;
         TG_vector<F_dag_level_header> dag_level_headers;
+
+        F_unified_mesh_culling_data culling_data;
     };
     struct F_compressed_unified_mesh_data
     {

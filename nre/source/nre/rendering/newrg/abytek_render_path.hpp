@@ -35,11 +35,17 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> draw_instance_bbox_shader_asset_p_;
         K_graphics_pipeline_state_handle draw_instance_bbox_pso_p_;
 
+        TS<F_nsl_shader_asset> draw_instance_error_sphere_shader_asset_p_;
+        K_graphics_pipeline_state_handle draw_instance_error_sphere_pso_p_;
+
         TS<F_nsl_shader_asset> draw_dag_node_bbox_shader_asset_p_;
         K_graphics_pipeline_state_handle draw_dag_node_bbox_pso_p_;
 
         TS<F_static_mesh_asset> unit_cube_static_mesh_asset_p_;
         TS<F_static_mesh> unit_cube_static_mesh_p_;
+
+        TS<F_static_mesh_asset> unit_sphere_static_mesh_asset_p_;
+        TS<F_static_mesh> unit_sphere_static_mesh_p_;
 
     public:
         struct F_draw_instance_bboxes_options
@@ -57,6 +63,22 @@ namespace nre::newrg
             F_unified_mesh_culling_data mesh_culling_data;
         };
         F_draw_instance_bboxes_options draw_instance_bboxes_options;
+
+        struct F_draw_instance_error_spheres_options
+        {
+            b8 enable = true;
+            F_vector3_f32 color = F_vector3_f32 { 1.0f, 0.75f, 0.2f };
+        };
+        struct F_draw_instance_error_sphere_global_options_data
+        {
+            F_vector3_f32 color;
+        };
+        struct F_draw_instance_error_sphere_per_object_options_data
+        {
+            F_matrix4x4_f32 local_to_world_matrix;
+            F_unified_mesh_culling_data mesh_culling_data;
+        };
+        F_draw_instance_error_spheres_options draw_instance_error_spheres_options;
 
         struct F_draw_dag_node_bboxes_options
         {
@@ -87,8 +109,14 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto draw_instance_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_shader_asset_p_); }
         NCPP_FORCE_INLINE auto draw_instance_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_pso_p_); }
 
+        NCPP_FORCE_INLINE auto draw_instance_error_sphere_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_instance_error_sphere_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto draw_instance_error_sphere_pso_p() const noexcept { return NCPP_FOH_VALID(draw_instance_error_sphere_pso_p_); }
+
         NCPP_FORCE_INLINE auto unit_cube_static_mesh_asset_p() const noexcept { return NCPP_FOH_VALID(unit_cube_static_mesh_asset_p_); }
         NCPP_FORCE_INLINE auto unit_cube_static_mesh_p() const noexcept { return NCPP_FOH_VALID(unit_cube_static_mesh_p_); }
+
+        NCPP_FORCE_INLINE auto unit_sphere_static_mesh_asset_p() const noexcept { return NCPP_FOH_VALID(unit_sphere_static_mesh_asset_p_); }
+        NCPP_FORCE_INLINE auto unit_sphere_static_mesh_p() const noexcept { return NCPP_FOH_VALID(unit_sphere_static_mesh_p_); }
 
 
 
@@ -127,6 +155,10 @@ namespace nre::newrg
 
     public:
         void draw_instance_bboxes(
+            TKPA_valid<F_abytek_scene_render_view> view_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void draw_instance_error_spheres(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );

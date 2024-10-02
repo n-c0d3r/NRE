@@ -20,6 +20,13 @@ struct F_sphere(
     radius(float)
 )
 
+struct F_cone(
+    pitvot(float3)
+    ___padding_0___(float)
+    direction(float3)
+    min_angle_dot(float)
+)
+
 
 
 define F_global_vertex_id(u32)
@@ -52,8 +59,7 @@ struct F_global_cluster_id_range(
 
 struct F_cluster_culling_data(
     bbox(F_bbox)
-    cone_direction(f32x3)
-    cone_angle_dot(f32)
+    invisible_cone(F_cone)
 )
 
 define F_dag_node_id(u32)
@@ -66,9 +72,9 @@ struct F_dag_node_header(
 
 struct F_dag_node_culling_data(
     bbox(F_bbox)
-    cone_direction(f32x3)
-    cone_angle_dot(f32)
-    error_sphere(F_sphere)
+    invisible_cone(F_cone)
+    error(f32)
+    ___padding_0___(f32x3)
 )
 
 struct F_mesh_header(
@@ -86,7 +92,7 @@ struct F_mesh_header(
 )
 struct F_mesh_culling_data(
     bbox(F_bbox)
-    // error_sphere(F_sphere)
+    error_sphere(F_sphere)
 )
 struct F_mesh_subpage_header(
     vertex_count(u32)

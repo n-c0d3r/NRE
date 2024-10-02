@@ -409,8 +409,7 @@ namespace nre::newrg
         }
 
         build_dag(result);
-        build_dag_sorted_cluster_culling_datas(result);
-        build_dag_culling_datas(result);
+        build_culling_data(result);
 
         return eastl::move(result);
     }
@@ -761,48 +760,44 @@ namespace nre::newrg
                     }
                 }
 
-                // calculate cone
-                F_vector3_f32 cone_direction = F_vector3_f32::zero();
-                f32 cone_angle_dot = 1.0f;
-                {
-                    for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
-                    {
-                        F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
-
-                        auto& vertex_data = data.vertex_datas[vertex_id];
-
-                        cone_direction += normalize(vertex_data.normal);
-                    }
-                    cone_direction = normalize(cone_direction);
-
-                    if(length(cone_direction) <= T_default_tolerance<f32>)
-                    {
-                        cone_direction = F_vector3_f32::forward();
-                    }
-                }
-                {
-                    for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
-                    {
-                        F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
-
-                        auto& vertex_data = data.vertex_datas[vertex_id];
-
-                        f32 angle_dot = dot(
-                            cone_direction,
-                            normalize(vertex_data.normal)
-                        );
-
-                        cone_angle_dot = eastl::min(cone_angle_dot, angle_dot);
-                    }
-                }
+                // calculate invisible_cone
+                // F_vector3_f32 invisible_cone_direction = F_vector3_f32::zero();
+                // f32 invisible_cone_angle_dot = 1.0f;
+                // {
+                //     for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
+                //     {
+                //         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
+                //
+                //         auto& vertex_data = data.vertex_datas[vertex_id];
+                //
+                //         invisible_cone_direction += normalize(vertex_data.normal);
+                //     }
+                //     invisible_cone_direction = normalize(invisible_cone_direction);
+                //
+                //     if(length(invisible_cone_direction) <= T_default_tolerance<f32>)
+                //     {
+                //         invisible_cone_direction = F_vector3_f32::forward();
+                //     }
+                // }
+                // {
+                //     for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
+                //     {
+                //         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
+                //
+                //         auto& vertex_data = data.vertex_datas[vertex_id];
+                //
+                //         f32 angle_dot = dot(
+                //             invisible_cone_direction,
+                //             normalize(vertex_data.normal)
+                //         );
+                //
+                //         invisible_cone_angle_dot = eastl::min(invisible_cone_angle_dot, angle_dot);
+                //     }
+                // }
 
                 // store back culling data
                 {
                     dag_sorted_cluster_culling_data.bbox = bbox;
-                    dag_sorted_cluster_culling_data.cone_direction_and_cone_angle_dot = {
-                        cone_direction,
-                        cone_angle_dot
-                    };
                 }
             },
             {
@@ -862,48 +857,48 @@ namespace nre::newrg
                         }
                     }
 
-                    // calculate cone
-                    F_vector3_f32 cone_direction = F_vector3_f32::zero();
-                    f32 cone_angle_dot = 1.0f;
-                    {
-                        for(
-                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                            ++dag_sorted_cluster_id
-                        )
-                        {
-                            auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
-
-                            cone_direction += normalize(dag_sorted_cluster_culling_data.cone_direction());
-                        }
-                        cone_direction = normalize(cone_direction);
-
-                        if(length(cone_direction) <= T_default_tolerance<f32>)
-                        {
-                            cone_direction = F_vector3_f32::forward();
-                        }
-                    }
-                    {
-                        for(
-                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                            ++dag_sorted_cluster_id
-                        )
-                        {
-                            auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
-
-                            f32 dir_dot1 = dot(
-                                cone_direction,
-                                normalize(dag_sorted_cluster_culling_data.cone_direction())
-                            );
-                            f32 dir_angle1 = abs(acos(dir_dot1));
-                            f32 dir_angle2 = abs(acos(dag_sorted_cluster_culling_data.cone_angle_dot()));
-                            dir_angle2 = eastl::min(dir_angle2, 1_pi - dir_angle1);
-                            f32 dir_angle = dir_angle1 + dir_angle2;
-
-                            cone_angle_dot = eastl::min(cone_angle_dot, cos(dir_angle));
-                        }
-                    }
+                    // calculate invisible_cone
+                    // F_vector3_f32 invisible_cone_direction = F_vector3_f32::zero();
+                    // f32 invisible_cone_angle_dot = 1.0f;
+                    // {
+                    //     for(
+                    //         u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
+                    //         dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
+                    //         ++dag_sorted_cluster_id
+                    //     )
+                    //     {
+                    //         auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
+                    //
+                    //         invisible_cone_direction += normalize(dag_sorted_cluster_culling_data.invisible_cone.direction());
+                    //     }
+                    //     invisible_cone_direction = normalize(invisible_cone_direction);
+                    //
+                    //     if(length(invisible_cone_direction) <= T_default_tolerance<f32>)
+                    //     {
+                    //         invisible_cone_direction = F_vector3_f32::forward();
+                    //     }
+                    // }
+                    // {
+                    //     for(
+                    //         u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
+                    //         dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
+                    //         ++dag_sorted_cluster_id
+                    //     )
+                    //     {
+                    //         auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
+                    //
+                    //         f32 dir_dot1 = dot(
+                    //             invisible_cone_direction,
+                    //             normalize(dag_sorted_cluster_culling_data.invisible_cone.direction())
+                    //         );
+                    //         f32 dir_angle1 = abs(acos(dir_dot1));
+                    //         f32 dir_angle2 = abs(acos(dag_sorted_cluster_culling_data.invisible_cone.min_angle_dot()));
+                    //         dir_angle2 = eastl::min(dir_angle2, 1_pi - dir_angle1);
+                    //         f32 dir_angle = dir_angle1 + dir_angle2;
+                    //
+                    //         invisible_cone_angle_dot = eastl::min(invisible_cone_angle_dot, cos(dir_angle));
+                    //     }
+                    // }
 
                     // calculate error_sphere
                     F_sphere_f32 error_sphere = { bbox.center() };
@@ -930,11 +925,7 @@ namespace nre::newrg
                     // store back culling data
                     {
                         dag_node_culling_data.bbox = bbox;
-                        dag_node_culling_data.cone_direction_and_cone_angle_dot = {
-                            cone_direction,
-                            cone_angle_dot
-                        };
-                        dag_node_culling_data.error_sphere = error_sphere;
+                        dag_node_culling_data.error = error_sphere.radius() / data.culling_data.error_sphere.radius();
                     }
                 },
                 {
@@ -978,34 +969,37 @@ namespace nre::newrg
                         }
                     }
 
-                    // calculate cone
-                    F_vector3_f32 cone_direction = dag_node_culling_data.cone_direction();
-                    f32 cone_angle_dot = dag_node_culling_data.cone_angle_dot();
-                    {
-                        for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
-                        {
-                            F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
-
-                            if(dag_child_id == NCPP_U32_MAX)
-                                continue;
-
-                            auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
-
-                            f32 dir_dot1 = dot(
-                                cone_direction,
-                                normalize(child_dag_node_culling_data.cone_direction())
-                            );
-                            f32 dir_angle1 = abs(acos(dir_dot1));
-                            f32 dir_angle2 = abs(acos(child_dag_node_culling_data.cone_angle_dot()));
-                            dir_angle2 = eastl::min(dir_angle2, 1_pi - dir_angle1);
-                            f32 dir_angle = dir_angle1 + dir_angle2;
-
-                            cone_angle_dot = eastl::min(cone_angle_dot, cos(dir_angle));
-                        }
-                    }
+                    // calculate invisible_cone
+                    // F_vector3_f32 invisible_cone_direction = dag_node_culling_data.invisible_cone_direction();
+                    // f32 invisible_cone_angle_dot = dag_node_culling_data.invisible_cone_angle_dot();
+                    // {
+                    //     for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
+                    //     {
+                    //         F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
+                    //
+                    //         if(dag_child_id == NCPP_U32_MAX)
+                    //             continue;
+                    //
+                    //         auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
+                    //
+                    //         f32 dir_dot1 = dot(
+                    //             invisible_cone_direction,
+                    //             normalize(child_dag_node_culling_data.invisible_cone_direction())
+                    //         );
+                    //         f32 dir_angle1 = abs(acos(dir_dot1));
+                    //         f32 dir_angle2 = abs(acos(child_dag_node_culling_data.invisible_cone_angle_dot()));
+                    //         dir_angle2 = eastl::min(dir_angle2, 1_pi - dir_angle1);
+                    //         f32 dir_angle = dir_angle1 + dir_angle2;
+                    //
+                    //         invisible_cone_angle_dot = eastl::min(invisible_cone_angle_dot, cos(dir_angle));
+                    //     }
+                    // }
 
                     // calculate error_sphere
-                    F_sphere_f32 error_sphere = dag_node_culling_data.error_sphere;
+                    F_sphere_f32 error_sphere = {
+                        bbox.center(),
+                        dag_node_culling_data.error * data.culling_data.error_sphere.radius()
+                    };
                     {
                         for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
                         {
@@ -1020,7 +1014,7 @@ namespace nre::newrg
                                 error_sphere.center(),
                                 eastl::max<f32>(
                                     error_sphere.radius(),
-                                    child_dag_node_culling_data.error_sphere.radius()
+                                    child_dag_node_culling_data.error
                                 )
                             };
                         }
@@ -1029,11 +1023,7 @@ namespace nre::newrg
                     // store back culling data
                     {
                         dag_node_culling_data.bbox = bbox;
-                        dag_node_culling_data.cone_direction_and_cone_angle_dot = {
-                            cone_direction,
-                            cone_angle_dot
-                        };
-                        dag_node_culling_data.error_sphere = error_sphere;
+                        dag_node_culling_data.error = error_sphere.radius() / data.culling_data.error_sphere.radius();
                     }
                 },
                 {
@@ -1042,6 +1032,40 @@ namespace nre::newrg
                 }
             );
         }
+    }
+    void H_unified_mesh_builder::build_culling_data(
+        F_raw_unified_mesh_data& data
+    )
+    {
+        auto vertex_count = data.vertex_datas.size();
+
+        for(F_global_vertex_id i = 0; i < vertex_count; ++i)
+        {
+            auto& vertex_data = data.vertex_datas[i];
+
+            data.culling_data.bbox = data.culling_data.bbox.expand(
+                vertex_data.position
+            );
+            data.culling_data.bbox = data.culling_data.bbox.expand(
+                vertex_data.position
+            );
+        }
+
+        data.culling_data.error_sphere = {
+            data.culling_data.bbox.center(),
+            0.0f
+        };
+        for(F_global_vertex_id i = 0; i < vertex_count; ++i)
+        {
+            auto& vertex_data = data.vertex_datas[i];
+
+            data.culling_data.error_sphere = data.culling_data.error_sphere.expand(
+                vertex_data.position
+            );
+        }
+
+        build_dag_sorted_cluster_culling_datas(data);
+        build_dag_culling_datas(data);
     }
 
     F_compressed_unified_mesh_data H_unified_mesh_builder::compress(
@@ -1059,17 +1083,7 @@ namespace nre::newrg
             result.local_cluster_triangle_vertex_ids[i] = data.local_cluster_triangle_vertex_ids[i];
         }
 
-        for(F_global_vertex_id i = 0; i < vertex_count; ++i)
-        {
-            auto& vertex_data = data.vertex_datas[i];
-
-            result.culling_data.bbox = result.culling_data.bbox.expand(
-                vertex_data.position
-            );
-            result.culling_data.bbox = result.culling_data.bbox.expand(
-                vertex_data.position
-            );
-        }
+        result.culling_data = data.culling_data;
 
         result.cluster_headers = data.dag_sorted_cluster_headers;
         result.cluster_culling_datas = data.dag_sorted_cluster_culling_datas;

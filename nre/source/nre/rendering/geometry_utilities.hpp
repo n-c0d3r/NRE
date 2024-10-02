@@ -192,16 +192,7 @@ namespace nre
     struct NCPP_ALIGN(16) F_cluster_culling_data
     {
         F_box_f32 bbox;
-        F_vector4_f32 cone_direction_and_cone_angle_dot;
-
-        NCPP_FORCE_INLINE F_vector3_f32 cone_direction() const noexcept
-        {
-            return cone_direction_and_cone_angle_dot.xyz();
-        }
-        NCPP_FORCE_INLINE f32 cone_angle_dot() const noexcept
-        {
-            return cone_direction_and_cone_angle_dot.w;
-        }
+        F_cone_f32 invisible_cone;
     };
 
     using F_dag_node_id = u32;
@@ -214,17 +205,8 @@ namespace nre
     struct NCPP_ALIGN(16) F_dag_node_culling_data
     {
         F_box_f32 bbox;
-        F_vector4_f32 cone_direction_and_cone_angle_dot;
-        F_sphere_f32 error_sphere;
-
-        NCPP_FORCE_INLINE F_vector3_f32 cone_direction() const noexcept
-        {
-            return cone_direction_and_cone_angle_dot.xyz();
-        }
-        NCPP_FORCE_INLINE f32 cone_angle_dot() const noexcept
-        {
-            return cone_direction_and_cone_angle_dot.w;
-        }
+        F_cone_f32 invisible_cone;
+        f32 error = NMATH_F32_INFINITY;
     };
 
     struct F_dag_level_header
