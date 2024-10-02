@@ -510,7 +510,7 @@ namespace nre::newrg
                     );
                     mesh_table_.T_enqueue_upload<1>(
                         mesh_p->last_frame_id_,
-                        mesh_p->compressed_data().bbox
+                        mesh_p->compressed_data().culling_data
                     );
                 }
 

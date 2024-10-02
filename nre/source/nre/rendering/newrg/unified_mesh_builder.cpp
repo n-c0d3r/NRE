@@ -693,7 +693,34 @@ namespace nre::newrg
                     );
 
                     dag_node_header.child_node_ids[local_child_cluster_index] = child_node_id;
-                    dag_node_header.is_leaf = (child_node_ids.size() == 0);
+                    dag_node_header.is_leaf = child_node_ids.empty();
+                }
+            },
+            {
+                .parallel_count = dag_node_count,
+                .batch_size = eastl::max<u32>(ceil(f32(dag_node_count) / 128.0f), 32)
+            }
+        );
+
+        // update dag child_node_ids
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_dag_node_id dag_node_id)
+            {
+                auto& dag_node_header = data.dag_node_headers[dag_node_id];
+
+                for(u32 i = 0; i < 4; ++i)
+                {
+                    F_dag_node_id child_node_id = dag_node_header.child_node_ids[i];
+
+                    if(child_node_id == NCPP_U32_MAX)
+                        continue;
+
+                    auto& child_dag_node_header = data.dag_node_headers[child_node_id];
+
+                    if(child_dag_node_header.critical_parent_id != dag_node_id)
+                    {
+                        dag_node_header.child_node_ids[i] = NCPP_U32_MAX;
+                    }
                 }
             },
             {
@@ -748,7 +775,7 @@ namespace nre::newrg
                     }
                     cone_direction = normalize(cone_direction);
 
-                    if(cone_direction == F_vector3_f32::zero())
+                    if(length(cone_direction) <= T_default_tolerance<f32>)
                     {
                         cone_direction = F_vector3_f32::forward();
                     }
@@ -851,7 +878,7 @@ namespace nre::newrg
                         }
                         cone_direction = normalize(cone_direction);
 
-                        if(cone_direction == F_vector3_f32::zero())
+                        if(length(cone_direction) <= T_default_tolerance<f32>)
                         {
                             cone_direction = F_vector3_f32::forward();
                         }
@@ -945,9 +972,6 @@ namespace nre::newrg
                             if(dag_child_id == NCPP_U32_MAX)
                                 continue;
 
-                            if(data.dag_node_headers[dag_child_id].critical_parent_id != dag_node_id)
-                                continue;
-
                             auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
 
                             bbox = bbox.expand(child_dag_node_culling_data.bbox.center());
@@ -963,9 +987,6 @@ namespace nre::newrg
                             F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
 
                             if(dag_child_id == NCPP_U32_MAX)
-                                continue;
-
-                            if(data.dag_node_headers[dag_child_id].critical_parent_id != dag_node_id)
                                 continue;
 
                             auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
@@ -991,9 +1012,6 @@ namespace nre::newrg
                             F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
 
                             if(dag_child_id == NCPP_U32_MAX)
-                                continue;
-
-                            if(data.dag_node_headers[dag_child_id].critical_parent_id != dag_node_id)
                                 continue;
 
                             auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
@@ -1045,10 +1063,10 @@ namespace nre::newrg
         {
             auto& vertex_data = data.vertex_datas[i];
 
-            result.bbox = result.bbox.expand(
+            result.culling_data.bbox = result.culling_data.bbox.expand(
                 vertex_data.position
             );
-            result.bbox = result.bbox.expand(
+            result.culling_data.bbox = result.culling_data.bbox.expand(
                 vertex_data.position
             );
         }

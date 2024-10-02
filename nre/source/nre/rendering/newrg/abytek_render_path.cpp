@@ -260,10 +260,10 @@ namespace nre::newrg
         auto& mesh_table = unified_mesh_system_p->mesh_table();
 
         auto& mesh_header_bind_list = unified_mesh_system_p->mesh_table_render_bind_list().bases()[0];
-        auto& mesh_bbox_bind_list = unified_mesh_system_p->mesh_table_render_bind_list().bases()[1];
+        auto& mesh_culling_data_bind_list = unified_mesh_system_p->mesh_table_render_bind_list().bases()[1];
 
         auto mesh_header_srv_element = mesh_header_bind_list[0];
-        auto mesh_bbox_srv_element = mesh_bbox_bind_list[0];
+        auto mesh_culling_data_srv_element = mesh_culling_data_bind_list[0];
 
         F_render_bind_list main_render_bind_list(
             ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
@@ -307,7 +307,7 @@ namespace nre::newrg
                 );
                 command_list_p->ZC_bind_root_descriptor_table(
                     3,
-                    mesh_bbox_srv_element.handle().gpu_address
+                    mesh_culling_data_srv_element.handle().gpu_address
                 );
                 command_list_p->ZC_bind_root_constant(
                     4,
@@ -476,13 +476,13 @@ namespace nre::newrg
                 if(mesh_id == NCPP_U16_MAX)
                     return;
 
-                const F_box_f32& mesh_bbox = mesh_table.T_element<1>(mesh_id);
+                const F_unified_mesh_culling_data& mesh_culling_data = mesh_table.T_element<1>(mesh_id);
 
                 auto& transform_node_p = material_p->transform_node_p();
 
                 F_draw_instance_bbox_per_object_options_data per_object_options_data;
                 per_object_options_data.local_to_world_matrix = transform_node_p->local_to_world_matrix();
-                per_object_options_data.bbox = mesh_bbox;
+                per_object_options_data.mesh_culling_data = mesh_culling_data;
 
                 TF_render_uniform_batch<F_draw_instance_bbox_per_object_options_data> per_object_options_uniform_batch = {
                     F_uniform_transient_resource_uploader::instance_p()->T_enqueue_upload(

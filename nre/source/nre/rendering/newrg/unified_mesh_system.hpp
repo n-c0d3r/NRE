@@ -45,7 +45,7 @@ namespace nre::newrg
 
         using F_mesh_table = TF_cacheable_pool_gpu_data_table<
             F_unified_mesh_header,
-            F_box_f32 // bbox
+            F_unified_mesh_culling_data
         >;
         F_mesh_table mesh_table_;
         TG_queue<TK<F_unified_mesh>> register_mesh_queue_;
@@ -85,7 +85,7 @@ namespace nre::newrg
 
         using F_mesh_table_render_bind_list = TF_cacheable_pool_gpu_data_table_render_bind_list<
             F_unified_mesh_header,
-            F_box_f32 // bbox
+            F_unified_mesh_culling_data
         >;
         F_mesh_table_render_bind_list* mesh_table_render_bind_list_p_ = 0;
 

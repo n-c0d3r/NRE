@@ -24,8 +24,8 @@ resource per_object_options(
 uniform local_to_world_matrix(
     float4x4
 )
-uniform bbox(
-    F_bbox
+uniform mesh_culling_data(
+    F_mesh_culling_data
 )
 
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(2)
@@ -43,8 +43,8 @@ vertex_shader VS(
         local_to_world_matrix,
         float4(
             lerp(
-                bbox.min_position,
-                bbox.max_position,
+                mesh_culling_data.bbox.min_position,
+                mesh_culling_data.bbox.max_position,
                 vertex_position * 0.5f + 0.5f * float3(1, 1, 1)
             ), 
             1.0f

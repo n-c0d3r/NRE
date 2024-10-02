@@ -27,6 +27,13 @@ namespace nre::newrg
         u32 subpage_count = 0;
         u32 subpage_offset = 0;
     };
+    struct NCPP_ALIGN(16) F_unified_mesh_culling_data
+    {
+        F_box_f32 bbox = F_box_f32(
+            F_vector3_f32::infinity(),
+            F_vector3_f32::negative_infinity()
+        );
+    };
     struct NCPP_ALIGN(16) F_unified_mesh_subpage_header
     {
         u32 vertex_count = 0;
@@ -70,10 +77,7 @@ namespace nre::newrg
         TG_vector<u32> subpage_vertex_counts;
         TG_vector<u32> subpage_local_cluster_triangle_vertex_id_counts;
 
-        F_box_f32 bbox = F_box_f32(
-            F_vector3_f32::infinity(),
-            F_vector3_f32::negative_infinity()
-        );
+        F_unified_mesh_culling_data culling_data;
 
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {

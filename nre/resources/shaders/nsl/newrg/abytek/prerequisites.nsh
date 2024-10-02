@@ -10,7 +10,14 @@ define NSL_DISABLE_AUTO_SLOTS
 
 struct F_bbox(
     min_position(float3)
+    ___padding_0___(float)
     max_position(float3)
+    ___padding_1___(float)
+)
+
+struct F_sphere(
+    center(float3)
+    radius(float)
 )
 
 
@@ -61,8 +68,7 @@ struct F_dag_node_culling_data(
     bbox(F_bbox)
     cone_direction(f32x3)
     cone_angle_dot(f32)
-    error_sphere_center(f32x3)
-    error_sphere_radius(f32)
+    error_sphere(F_sphere)
 )
 
 struct F_mesh_header(
@@ -77,6 +83,10 @@ struct F_mesh_header(
 
     subpage_count(u32)
     subpage_offset(u32)
+)
+struct F_mesh_culling_data(
+    bbox(F_bbox)
+    // error_sphere(F_sphere)
 )
 struct F_mesh_subpage_header(
     vertex_count(u32)

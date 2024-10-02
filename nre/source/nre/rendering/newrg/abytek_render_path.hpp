@@ -8,6 +8,7 @@
 #include <nre/rendering/newrg/render_frame_containers.hpp>
 #include <nre/rendering/newrg/render_foundation_events.hpp>
 #include <nre/rendering/newrg/indirect_utilities.hpp>
+#include <nre/rendering/newrg/unified_mesh_data.hpp>
 #include <nre/asset/static_mesh_asset.hpp>
 #include <nre/rendering/static_mesh.hpp>
 
@@ -53,7 +54,7 @@ namespace nre::newrg
         struct F_draw_instance_bbox_per_object_options_data
         {
             F_matrix4x4_f32 local_to_world_matrix;
-            F_box_f32 bbox;
+            F_unified_mesh_culling_data mesh_culling_data;
         };
         F_draw_instance_bboxes_options draw_instance_bboxes_options;
 
