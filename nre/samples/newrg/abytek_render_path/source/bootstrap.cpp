@@ -20,7 +20,8 @@ int main() {
 
 
 	auto render_path_p = TU<F_abytek_render_path>()();
-	render_path_p->draw_dag_node_bboxes_options.level = 0;
+	render_path_p->draw_dag_node_bboxes_options.enable = false;
+	render_path_p->draw_dag_node_outer_error_spheres_options.level = 3;
 
 
 

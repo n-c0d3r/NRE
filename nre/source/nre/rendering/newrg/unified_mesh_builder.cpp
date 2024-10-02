@@ -928,9 +928,29 @@ namespace nre::newrg
                     // }
 
                     // calculate error
-                    F_sphere_f32 outer_error_sphere = { bbox.center() };
+                    F_sphere_f32 outer_error_sphere = { F_vector3_f32::zero() };
                     f32 error_factor = 0.0f;
                     {
+                        u32 vertex_count = 0;
+                        for(
+                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
+                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
+                            ++dag_sorted_cluster_id
+                        )
+                        {
+                            auto& cluster_header = data.dag_sorted_cluster_headers[dag_sorted_cluster_id];
+
+                            for(u32 i = 0; i < cluster_header.vertex_count; ++i)
+                            {
+                               F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
+
+                                auto& vertex_data = data.vertex_datas[vertex_id];
+
+                                outer_error_sphere = { outer_error_sphere.center() + vertex_data.position };
+                                ++vertex_count;
+                            }
+                        }
+                        outer_error_sphere = { outer_error_sphere.center() / f32(vertex_count) };
                         for(
                             u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
                             dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
