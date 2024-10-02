@@ -65,6 +65,9 @@ namespace nre::newrg
         static void build_culling_data(
             F_raw_unified_mesh_data& data
         );
+        static void remove_non_critical_dag_child_ids(
+            F_raw_unified_mesh_data& data
+        );
 
     public:
         static F_compressed_unified_mesh_data compress(

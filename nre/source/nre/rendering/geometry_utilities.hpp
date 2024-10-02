@@ -206,7 +206,8 @@ namespace nre
     {
         F_box_f32 bbox;
         F_cone_f32 invisible_cone;
-        f32 error = NMATH_F32_INFINITY;
+        F_sphere_f32 error_sphere;
+        f32 error_factor = 0.0f;
     };
 
     struct F_dag_level_header
@@ -691,6 +692,7 @@ namespace nre
         );
         static F_raw_clustered_geometry simplify_clusters(
             const F_raw_clustered_geometry& geometry,
+            TG_vector<f32>& errors,
             const F_clustered_geometry_simplify_clusters_options& options = {}
         );
         static F_raw_clustered_geometry split_clusters(

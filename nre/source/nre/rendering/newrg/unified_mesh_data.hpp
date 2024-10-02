@@ -55,10 +55,12 @@ namespace nre::newrg
         TG_vector<F_raw_local_cluster_vertex_id> local_cluster_triangle_vertex_ids;
 
         TG_vector<F_cluster_header> cluster_headers;
+        TG_vector<f32> cluster_errors;
         TG_vector<F_cluster_node_header> cluster_node_headers;
         TG_vector<F_cluster_level_header> cluster_level_headers;
 
         TG_vector<F_cluster_header> dag_sorted_cluster_headers;
+        TG_vector<f32> dag_sorted_cluster_errors;
         TG_vector<F_cluster_culling_data> dag_sorted_cluster_culling_datas;
         TG_vector<F_dag_node_header> dag_node_headers;
         TG_vector<F_cluster_id_range> dag_sorted_cluster_id_ranges;

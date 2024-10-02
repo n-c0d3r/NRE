@@ -91,11 +91,13 @@ namespace nre::newrg
             );
 
             result.cluster_headers.resize(meshlet_count);
+            result.cluster_errors.resize(meshlet_count);
 
             for(u32 meshlet_index = 0; meshlet_index < meshlet_count; ++meshlet_index)
             {
                 auto& meshlet = meshlets[meshlet_index];
                 auto& cluster_header = result.cluster_headers[meshlet_index];
+                result.cluster_errors[meshlet_index] = 0.0f;
 
                 u32 vertex_count = meshlet.vertex_count;
 
@@ -209,8 +211,10 @@ namespace nre::newrg
                     << "indices: " << T_cout_value(groupped_geometry.local_cluster_triangle_vertex_ids.size());
 
                 // simplify
+                TG_vector<f32> simplified_cluster_errors;
                 F_raw_clustered_geometry simplified_geometry = H_clustered_geometry::simplify_clusters(
                     groupped_geometry,
+                    simplified_cluster_errors,
                     simplify_clusters_options
                 );
 
@@ -243,6 +247,18 @@ namespace nre::newrg
                     optimized_geometry,
                     split_cluster_group_child_ids
                 );
+                TG_vector<u32> split_child_cluster_id_to_parent_counts(next_level_geometry.graph.size());
+                {
+                    for(auto& a : split_child_cluster_id_to_parent_counts) a = 0;
+
+                    u32 cluster_count = split_cluster_group_child_ids.size();
+                    for(u32 i = 0; i < cluster_count; ++i)
+                    {
+                        split_child_cluster_id_to_parent_counts[
+                            split_cluster_group_child_ids[i]
+                        ]++;
+                    }
+                }
 
                 NCPP_INFO()
                     << "splitted_geometries[" << T_cout_value(cluster_level_index) << "]"
@@ -272,6 +288,7 @@ namespace nre::newrg
                     F_global_vertex_id next_level_local_cluster_triangle_vertex_id_offset = result.local_cluster_triangle_vertex_ids.size();
 
                     result.cluster_headers.resize(next_level_cluster_offset + next_level_cluster_count);
+                    result.cluster_errors.resize(next_level_cluster_offset + next_level_cluster_count);
 
                     result.vertex_datas.insert(
                         result.vertex_datas.end(),
@@ -303,6 +320,22 @@ namespace nre::newrg
                             next_level_cluster_header = next_level_geometry.graph[i];
                             next_level_cluster_header.vertex_offset += next_level_vertex_offset;
                             next_level_cluster_header.local_triangle_vertex_id_offset += next_level_local_cluster_triangle_vertex_id_offset;
+
+                            // calculate cluster error
+                            f32 cluster_error = 0.0f;
+                            {
+                                F_cluster_id split_cluster_group_child_id = split_cluster_group_child_ids[i];
+
+                                cluster_error = (
+                                    simplified_cluster_errors[
+                                        split_cluster_group_child_id
+                                    ]
+                                    / split_child_cluster_id_to_parent_counts[
+                                        split_cluster_group_child_id
+                                    ]
+                                );
+                            }
+                            result.cluster_errors[next_level_cluster_id] = cluster_error;
 
                             // calculate child cluster ids
                             TG_fixed_vector<F_cluster_id, 4, false> child_cluster_ids;
@@ -410,6 +443,7 @@ namespace nre::newrg
 
         build_dag(result);
         build_culling_data(result);
+        remove_non_critical_dag_child_ids(result);
 
         return eastl::move(result);
     }
@@ -531,6 +565,7 @@ namespace nre::newrg
 
         //
         data.dag_sorted_cluster_headers.resize(cluster_count);
+        data.dag_sorted_cluster_errors.resize(cluster_count);
         data.dag_node_headers.resize(cluster_count);
         data.dag_sorted_cluster_id_ranges.resize(cluster_count);
 
@@ -587,6 +622,7 @@ namespace nre::newrg
                         dag_sorted_cluster_id_range.begin = dag_sorted_cluster_id;
 
                         data.dag_sorted_cluster_headers[dag_sorted_cluster_id] = data.cluster_headers[cluster_id];
+                        data.dag_sorted_cluster_errors[dag_sorted_cluster_id] = data.cluster_errors[cluster_id];
                         dag_sorted_cluster_id_to_cluster_id[dag_sorted_cluster_id] = cluster_id;
                         cluster_id_to_dag_sorted_cluster_id[cluster_id] = dag_sorted_cluster_id;
                         ++dag_sorted_cluster_id;
@@ -601,6 +637,7 @@ namespace nre::newrg
                                     if(cluster_id != other_cluster_id)
                                     {
                                         data.dag_sorted_cluster_headers[dag_sorted_cluster_id] = data.cluster_headers[other_cluster_id];
+                                        data.dag_sorted_cluster_errors[dag_sorted_cluster_id] = data.cluster_errors[other_cluster_id];
                                         dag_sorted_cluster_id_to_cluster_id[dag_sorted_cluster_id] = other_cluster_id;
                                         cluster_id_to_dag_sorted_cluster_id[other_cluster_id] = dag_sorted_cluster_id;
                                         ++dag_sorted_cluster_id;
@@ -693,33 +730,6 @@ namespace nre::newrg
 
                     dag_node_header.child_node_ids[local_child_cluster_index] = child_node_id;
                     dag_node_header.is_leaf = child_node_ids.empty();
-                }
-            },
-            {
-                .parallel_count = dag_node_count,
-                .batch_size = eastl::max<u32>(ceil(f32(dag_node_count) / 128.0f), 32)
-            }
-        );
-
-        // update dag child_node_ids
-        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-            [&](F_dag_node_id dag_node_id)
-            {
-                auto& dag_node_header = data.dag_node_headers[dag_node_id];
-
-                for(u32 i = 0; i < 4; ++i)
-                {
-                    F_dag_node_id child_node_id = dag_node_header.child_node_ids[i];
-
-                    if(child_node_id == NCPP_U32_MAX)
-                        continue;
-
-                    auto& child_dag_node_header = data.dag_node_headers[child_node_id];
-
-                    if(child_dag_node_header.critical_parent_id != dag_node_id)
-                    {
-                        dag_node_header.child_node_ids[i] = NCPP_U32_MAX;
-                    }
                 }
             },
             {
@@ -902,6 +912,7 @@ namespace nre::newrg
 
                     // calculate error_sphere
                     F_sphere_f32 error_sphere = { bbox.center() };
+                    f32 error_factor = 0.0f;
                     {
                         for(
                             u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
@@ -919,13 +930,19 @@ namespace nre::newrg
 
                                 error_sphere = error_sphere.expand(vertex_data.position);
                             }
+
+                            error_factor += data.dag_sorted_cluster_errors[dag_sorted_cluster_id];
                         }
                     }
+                    error_factor /= f32(local_dag_sorted_cluster_count);
+                    error_factor = eastl::max<f32>(error_factor, 0.00001f);
+
 
                     // store back culling data
                     {
                         dag_node_culling_data.bbox = bbox;
-                        dag_node_culling_data.error = error_sphere.radius() / data.culling_data.error_sphere.radius();
+                        dag_node_culling_data.error_sphere = error_sphere;
+                        dag_node_culling_data.error_factor = error_factor;
                     }
                 },
                 {
@@ -963,6 +980,11 @@ namespace nre::newrg
                             if(dag_child_id == NCPP_U32_MAX)
                                 continue;
 
+                            if(data.dag_node_headers[dag_child_id].critical_parent_id != dag_node_id)
+                            {
+                                continue;
+                            }
+
                             auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
 
                             bbox = bbox.expand(child_dag_node_culling_data.bbox.center());
@@ -996,10 +1018,8 @@ namespace nre::newrg
                     // }
 
                     // calculate error_sphere
-                    F_sphere_f32 error_sphere = {
-                        bbox.center(),
-                        dag_node_culling_data.error * data.culling_data.error_sphere.radius()
-                    };
+                    F_sphere_f32 error_sphere = dag_node_culling_data.error_sphere;
+                    f32 error_factor = dag_node_culling_data.error_factor;
                     {
                         for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
                         {
@@ -1010,20 +1030,21 @@ namespace nre::newrg
 
                             auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
 
-                            error_sphere.center_and_radius = {
-                                error_sphere.center(),
-                                eastl::max<f32>(
-                                    error_sphere.radius(),
-                                    child_dag_node_culling_data.error
-                                )
-                            };
+                            error_sphere = error_sphere.expand(
+                                child_dag_node_culling_data.error_sphere
+                            );
+                            error_factor = eastl::max<f32>(
+                                error_factor,
+                                child_dag_node_culling_data.error_factor
+                            );
                         }
                     }
 
                     // store back culling data
                     {
                         dag_node_culling_data.bbox = bbox;
-                        dag_node_culling_data.error = error_sphere.radius() / data.culling_data.error_sphere.radius();
+                        dag_node_culling_data.error_sphere = error_sphere;
+                        dag_node_culling_data.error_factor = error_factor;
                     }
                 },
                 {
@@ -1067,6 +1088,38 @@ namespace nre::newrg
         build_dag_sorted_cluster_culling_datas(data);
         build_dag_culling_datas(data);
     }
+    void H_unified_mesh_builder::remove_non_critical_dag_child_ids(F_raw_unified_mesh_data& data)
+    {
+        F_dag_node_id dag_node_count = data.dag_node_headers.size();
+
+        // update dag child_node_ids
+        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
+            [&](F_dag_node_id dag_node_id)
+            {
+                auto& dag_node_header = data.dag_node_headers[dag_node_id];
+
+                for(u32 i = 0; i < 4; ++i)
+                {
+                    F_dag_node_id child_node_id = dag_node_header.child_node_ids[i];
+
+                    if(child_node_id == NCPP_U32_MAX)
+                        continue;
+
+                    auto& child_dag_node_header = data.dag_node_headers[child_node_id];
+
+                    if(child_dag_node_header.critical_parent_id != dag_node_id)
+                    {
+                        dag_node_header.child_node_ids[i] = NCPP_U32_MAX;
+                    }
+                }
+            },
+            {
+                .parallel_count = dag_node_count,
+                .batch_size = eastl::max<u32>(ceil(f32(dag_node_count) / 128.0f), 32)
+            }
+        );
+    }
+
 
     F_compressed_unified_mesh_data H_unified_mesh_builder::compress(
         const F_raw_unified_mesh_data& data

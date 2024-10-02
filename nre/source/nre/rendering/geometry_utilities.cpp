@@ -1260,6 +1260,7 @@ namespace nre
     }
     F_raw_clustered_geometry H_clustered_geometry::simplify_clusters(
         const F_raw_clustered_geometry& geometry,
+        TG_vector<f32>& errors,
         const F_clustered_geometry_simplify_clusters_options& options
     )
     {
@@ -1310,6 +1311,8 @@ namespace nre
         F_cluster_id cluster_count = result.graph.size();
         F_global_vertex_id vertex_count = result.shape.size();
         F_global_vertex_id local_cluster_triangle_vertex_id_count = result.local_cluster_triangle_vertex_ids.size();
+
+        errors.resize(cluster_count);
 
         TG_vector<u32> src_indices(local_cluster_triangle_vertex_id_count);
         TG_vector<u32> dst_indices(local_cluster_triangle_vertex_id_count);
@@ -1388,6 +1391,8 @@ namespace nre
 
                     cluster_header.local_triangle_vertex_id_count = new_index_count;
                 }
+
+                errors[cluster_id] = lod_error;
 
                 // save back dst_indices
                 u32 new_index_location = next_index_location.fetch_add(cluster_header.local_triangle_vertex_id_count);

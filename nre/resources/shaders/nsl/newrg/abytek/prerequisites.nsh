@@ -68,12 +68,14 @@ struct F_dag_node_header(
     child_node_ids(F_dag_node_id 4)
     critical_parent_id(F_dag_node_id)
     is_leaf(b8)
+    ___padding_0___(u32x2)
 )
 
 struct F_dag_node_culling_data(
     bbox(F_bbox)
     invisible_cone(F_cone)
-    error(f32)
+    error_sphere(F_sphere)
+    error_factor(f32)
     ___padding_0___(f32x3)
 )
 
