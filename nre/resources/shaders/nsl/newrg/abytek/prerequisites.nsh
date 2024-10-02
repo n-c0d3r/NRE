@@ -74,9 +74,10 @@ struct F_dag_node_header(
 struct F_dag_node_culling_data(
     bbox(F_bbox)
     invisible_cone(F_cone)
-    error_sphere(F_sphere)
+    outer_error_sphere(F_sphere)
     error_factor(f32)
-    ___padding_0___(f32x3)
+    error_radius(f32)
+    ___padding_0___(f32x2)
 )
 
 struct F_mesh_header(

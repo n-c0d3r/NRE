@@ -206,8 +206,9 @@ namespace nre
     {
         F_box_f32 bbox;
         F_cone_f32 invisible_cone;
-        F_sphere_f32 error_sphere;
+        F_sphere_f32 outer_error_sphere;
         f32 error_factor = 0.0f;
+        f32 error_radius = 0.0f;
     };
 
     struct F_dag_level_header
