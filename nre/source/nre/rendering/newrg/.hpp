@@ -20,6 +20,7 @@
 #include <nre/rendering/newrg/abytek_draw_instance_error_sphere_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_dag_node_bbox_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_dag_node_outer_error_sphere_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_draw_dag_node_error_sphere_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_expand_instances_binder_signature.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/external_render_depth_pyramid.hpp>

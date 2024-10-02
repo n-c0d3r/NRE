@@ -20,13 +20,15 @@ int main() {
 
 
 	auto render_path_p = TU<F_abytek_render_path>()();
+	render_path_p->draw_instance_error_spheres_options.enable = false;
 	render_path_p->draw_dag_node_bboxes_options.enable = false;
-	render_path_p->draw_dag_node_outer_error_spheres_options.level = 3;
+	render_path_p->draw_dag_node_outer_error_spheres_options.enable = false;
+	render_path_p->draw_dag_node_error_spheres_options.level = 2;
 
 
 
 	// unified mesh asset
-	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/hq_cube_1.obj");
 
 
 

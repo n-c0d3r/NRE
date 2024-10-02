@@ -44,6 +44,9 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> draw_dag_node_outer_error_sphere_shader_asset_p_;
         K_graphics_pipeline_state_handle draw_dag_node_outer_error_sphere_pso_p_;
 
+        TS<F_nsl_shader_asset> draw_dag_node_error_sphere_shader_asset_p_;
+        K_graphics_pipeline_state_handle draw_dag_node_error_sphere_pso_p_;
+
         TS<F_static_mesh_asset> unit_cube_static_mesh_asset_p_;
         TS<F_static_mesh> unit_cube_static_mesh_p_;
 
@@ -122,6 +125,24 @@ namespace nre::newrg
         };
         F_draw_dag_node_outer_error_spheres_options draw_dag_node_outer_error_spheres_options;
 
+        struct F_draw_dag_node_error_spheres_options
+        {
+            b8 enable = true;
+            u32 level = 0;
+            F_vector3_f32 color = { 1.0f, 0.5f, 0.0f };
+        };
+        struct F_draw_dag_node_error_sphere_global_options_data
+        {
+            F_vector3_f32 color;
+        };
+        struct F_draw_dag_node_error_sphere_per_object_options_data
+        {
+            F_matrix4x4_f32 local_to_world_matrix;
+            u32 dag_node_offset;
+            u32 dag_node_count;
+        };
+        F_draw_dag_node_error_spheres_options draw_dag_node_error_spheres_options;
+
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_register_view_event_
@@ -141,6 +162,9 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto draw_dag_node_outer_error_sphere_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_dag_node_outer_error_sphere_shader_asset_p_); }
         NCPP_FORCE_INLINE auto draw_dag_node_outer_error_sphere_pso_p() const noexcept { return NCPP_FOH_VALID(draw_dag_node_outer_error_sphere_pso_p_); }
+
+        NCPP_FORCE_INLINE auto draw_dag_node_error_sphere_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_dag_node_error_sphere_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto draw_dag_node_error_sphere_pso_p() const noexcept { return NCPP_FOH_VALID(draw_dag_node_error_sphere_pso_p_); }
 
         NCPP_FORCE_INLINE auto unit_cube_static_mesh_asset_p() const noexcept { return NCPP_FOH_VALID(unit_cube_static_mesh_asset_p_); }
         NCPP_FORCE_INLINE auto unit_cube_static_mesh_p() const noexcept { return NCPP_FOH_VALID(unit_cube_static_mesh_p_); }
@@ -200,6 +224,10 @@ namespace nre::newrg
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
         void draw_dag_node_outer_error_spheres(
+            TKPA_valid<F_abytek_scene_render_view> view_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void draw_dag_node_error_spheres(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );

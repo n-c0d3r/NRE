@@ -16,5 +16,6 @@ namespace nre::newrg
         F_vector4_f32 frustum_planes[6];
         f32 near_plane;
         f32 far_plane;
+        F_vector3_f32 view_position;
     };
 }

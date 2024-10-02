@@ -37,3 +37,6 @@ uniform view_frustum_planes(
 )
 uniform view_near_plane(f32)
 uniform view_far_plane(f32)
+uniform view_position(
+    float3
+)

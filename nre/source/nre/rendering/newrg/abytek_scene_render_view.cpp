@@ -209,6 +209,8 @@ namespace nre::newrg
                 data_.near_plane = near_plane;
                 data_.far_plane = far_plane;
 
+                data_.view_position = (data_.view_to_world_matrix * F_vector4_f32::future()).xyz();
+
                 if(is_first_register_)
                 {
                     is_first_register_ = false;

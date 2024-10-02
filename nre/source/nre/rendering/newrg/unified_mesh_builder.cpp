@@ -976,6 +976,7 @@ namespace nre::newrg
                     f32 error_radius = outer_error_sphere.radius();
 
 
+
                     // store back culling data
                     {
                         dag_node_culling_data.bbox = bbox;
@@ -1070,16 +1071,30 @@ namespace nre::newrg
 
                             auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
 
-                            outer_error_sphere = outer_error_sphere.expand(
+                            error_radius = eastl::max<f32>(
+                                error_radius,
+                                child_dag_node_culling_data.error_radius
+                            );
+                        }
+                        for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
+                        {
+                            F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
+
+                            if(dag_child_id == NCPP_U32_MAX)
+                                continue;
+
+                            auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
+
+                            outer_error_sphere = {
+                                outer_error_sphere.center(),
+                                eastl::max(error_radius, outer_error_sphere.radius())
+                            };
+                            outer_error_sphere = outer_error_sphere.expand_movable(
                                 child_dag_node_culling_data.outer_error_sphere
                             );
                             error_factor = eastl::max<f32>(
                                 error_factor,
                                 child_dag_node_culling_data.error_factor
-                            );
-                            error_radius = eastl::max<f32>(
-                                error_radius,
-                                child_dag_node_culling_data.error_radius
                             );
                         }
                     }
