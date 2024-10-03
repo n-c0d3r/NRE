@@ -20,12 +20,12 @@ int main() {
 
 
 	auto render_path_p = TU<F_abytek_render_path>()();
-	render_path_p->draw_cluster_bboxes_options.enable = false;
+	render_path_p->draw_cluster_bboxes_options.enable = true;
 	render_path_p->draw_cluster_hierarchical_bboxes_options.enable = false;
 	render_path_p->draw_cluster_outer_error_spheres_options.enable = true;
-	render_path_p->draw_cluster_outer_error_spheres_options.level = 3;
+	render_path_p->draw_cluster_outer_error_spheres_options.level = 1;
 	render_path_p->draw_cluster_error_spheres_options.enable = true;
-	render_path_p->draw_cluster_error_spheres_options.level = 3;
+	render_path_p->draw_cluster_error_spheres_options.level = 1;
 
 
 
