@@ -952,7 +952,6 @@ namespace nre::newrg
                             }
                         }
                         outer_error_sphere = { outer_error_sphere.center() / f32(vertex_count) };
-                        F_sphere_f32 local_error_sphere = outer_error_sphere;
                         for(
                             u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
                             dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
@@ -960,6 +959,17 @@ namespace nre::newrg
                         )
                         {
                             auto& cluster_header = data.dag_sorted_cluster_headers[dag_sorted_cluster_id];
+
+                            F_sphere_f32 local_error_sphere = { F_vector3_f32::zero() };
+                            for(u32 i = 0; i < cluster_header.vertex_count; ++i)
+                            {
+                               F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
+
+                                auto& vertex_data = data.vertex_datas[vertex_id];
+
+                                local_error_sphere = { local_error_sphere.center() + vertex_data.position };
+                            }
+                            local_error_sphere = { local_error_sphere.center() / f32(cluster_header.vertex_count) };
 
                             for(u32 i = 0; i < cluster_header.vertex_count; ++i)
                             {
@@ -974,14 +984,11 @@ namespace nre::newrg
                             error_factor += data.dag_sorted_cluster_errors[dag_sorted_cluster_id];
 
                             error_radius += local_error_sphere.radius();
-                            local_error_sphere = { local_error_sphere.center(), 0.0f };
                         }
                     }
                     error_factor /= f32(local_dag_sorted_cluster_count);
                     error_factor = eastl::max<f32>(error_factor, 0.00001f);
                     error_radius /= f32(local_dag_sorted_cluster_count);
-
-
 
                     // store back culling data
                     {
