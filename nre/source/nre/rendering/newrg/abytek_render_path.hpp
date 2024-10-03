@@ -80,7 +80,7 @@ namespace nre::newrg
         {
             b8 enable = true;
             u32 level = 0;
-            F_vector3_f32 color = F_vector3_f32::right();
+            F_vector3_f32 color = F_vector3_f32::forward();
         };
         struct F_draw_cluster_bbox_global_options_data
         {
