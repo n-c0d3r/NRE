@@ -1,7 +1,8 @@
 #include <nre/rendering/nsl_shader_system.hpp>
 #include <nre/rendering/customized_nsl_shader_compiler.hpp>
 #include <nre/rendering/render_system.hpp>
-
+#include <nre/asset/asset_system.hpp>
+#include <nre/asset/nsl_shader_asset.hpp>
 
 
 namespace nre
@@ -149,5 +150,22 @@ namespace nre
         pipeline_state_p_vector = eastl::move(temp_pipeline_state_p_vector);
 
         return true;
+    }
+
+    void F_nsl_shader_system::cache_shader_asset(const G_string& name, TSPA<F_nsl_shader_asset> shader_asset_p)
+    {
+        NCPP_ASSERT(!has_cached_shader_asset(name));
+
+        cached_shader_asset_map_[name] = shader_asset_p;
+    }
+    TS<F_nsl_shader_asset> F_nsl_shader_system::load_shader_asset_cacheable(const G_string& name, const G_string& path)
+    {
+        NCPP_ASSERT(!has_cached_shader_asset(name));
+
+        TS<F_nsl_shader_asset> shader_asset_p = F_asset_system::instance_p()->load_asset(path).T_cast<F_nsl_shader_asset>();
+
+        cache_shader_asset(name, shader_asset_p);
+
+        return eastl::move(shader_asset_p);
     }
 }

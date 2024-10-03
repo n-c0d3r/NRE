@@ -20,11 +20,13 @@ int main() {
 
 
 	auto render_path_p = TU<F_abytek_render_path>()();
+	render_path_p->draw_cluster_error_spheres_options.enable = true;
+	render_path_p->draw_cluster_error_spheres_options.level = 3;
 
 
 
 	// unified mesh asset
-	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/hq_cube.obj");
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
 
 
 

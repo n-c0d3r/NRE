@@ -6,6 +6,10 @@
 
 namespace nre
 {
+    class F_nsl_shader_asset;
+
+
+
     class NRE_API F_nsl_shader_system final
     {
     private:
@@ -24,10 +28,14 @@ namespace nre
 
         TG_vector<G_string> import_directories_;
 
+        TG_unordered_map<G_string, TS<F_nsl_shader_asset>> cached_shader_asset_map_;
+
     public:
         NCPP_FORCE_INLINE const auto& global_macros() const noexcept { return global_macros_; }
         NCPP_FORCE_INLINE const auto& custom_create_pipeline_states() const noexcept { return custom_create_pipeline_states_; }
         NCPP_FORCE_INLINE const auto& import_directories() const noexcept { return import_directories_; }
+
+        NCPP_FORCE_INLINE const auto& cached_shader_asset_map() const noexcept { return cached_shader_asset_map_; }
 
 
 
@@ -87,5 +95,19 @@ namespace nre
             F_nsl_compiled_result& compiled_result,
             TG_vector<TU<A_pipeline_state>>& pipeline_state_p_vector
         );
+
+    public:
+        b8 has_cached_shader_asset(const G_string& name) const noexcept
+        {
+            return (cached_shader_asset_map_.find(name) == cached_shader_asset_map_.end());
+        }
+        TS<F_nsl_shader_asset> cached_shader_asset(const G_string& name) const noexcept
+        {
+            NCPP_ASSERT(has_cached_shader_asset(name));
+
+            return cached_shader_asset_map_.find(name)->second;
+        }
+        void cache_shader_asset(const G_string& name, TSPA<F_nsl_shader_asset> shader_asset_p);
+        TS<F_nsl_shader_asset> load_shader_asset_cacheable(const G_string& name, const G_string& path);
     };
 }
