@@ -152,20 +152,44 @@ namespace nre
         return true;
     }
 
-    void F_nsl_shader_system::cache_shader_asset(const G_string& name, TSPA<F_nsl_shader_asset> shader_asset_p)
+    TS<F_nsl_shader_asset> F_nsl_shader_system::optain_reference(u64 id, const G_string& path)
     {
-        NCPP_ASSERT(!has_cached_shader_asset(name));
+        auto it = cached_shader_asset_map_.find(id);
 
-        cached_shader_asset_map_[name] = shader_asset_p;
+        if(it == cached_shader_asset_map_.end())
+        {
+            auto cached_shader_asset_p = F_asset_system::instance_p()->load_asset(path).T_cast<F_nsl_shader_asset>();
+
+            cached_shader_asset_map_[id] = {
+                cached_shader_asset_p,
+                1
+            };
+            return eastl::move(cached_shader_asset_p);
+        }
+
+        ++(it->second.second);
+        return it->second.first;
     }
-    TS<F_nsl_shader_asset> F_nsl_shader_system::load_shader_asset_cacheable(const G_string& name, const G_string& path)
+    TS<F_nsl_shader_asset> F_nsl_shader_system::optain_reference(u64 id)
     {
-        NCPP_ASSERT(!has_cached_shader_asset(name));
+        NCPP_ASSERT(has_cached_shader_asset(id));
 
-        TS<F_nsl_shader_asset> shader_asset_p = F_asset_system::instance_p()->load_asset(path).T_cast<F_nsl_shader_asset>();
+        auto it = cached_shader_asset_map_.find(id);
 
-        cache_shader_asset(name, shader_asset_p);
+        ++(it->second.second);
+        return it->second.first;
+    }
+    void F_nsl_shader_system::unreference(u64 id)
+    {
+        NCPP_ASSERT(has_cached_shader_asset(id));
 
-        return eastl::move(shader_asset_p);
+        auto it = cached_shader_asset_map_.find(id);
+
+        --(it->second.second);
+
+        if(it->second.second == 0)
+        {
+            cached_shader_asset_map_.erase(it);
+        }
     }
 }
