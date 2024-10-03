@@ -458,10 +458,10 @@ namespace nre::newrg
             }
         }
 
-        build_dag(result);
-        build_culling_data(result);
-        remove_non_critical_dag_child_ids(result);
+        //
+        build_culling_datas(result);
 
+        //
         return eastl::move(result);
     }
     TG_vector<F_vector3_f32> H_unified_mesh_builder::build_positions(
@@ -556,11 +556,30 @@ namespace nre::newrg
 
         return eastl::move(result);
     }
-    void H_unified_mesh_builder::build_dag(
+    void H_unified_mesh_builder::build_culling_datas(
         F_raw_unified_mesh_data& data
     )
     {
-        // to group clusters having same child list together
+        data.culling_data.bbox = F_box_f32 {
+            F_vector3_f32::infinity(),
+            F_vector3_f32::negative_infinity()
+        };
+
+        F_global_vertex_id vertex_count = data.vertex_datas.size();
+        for(F_global_vertex_id vertex_id = 0; vertex_id < vertex_count; ++vertex_id)
+        {
+            auto& vertex_data = data.vertex_datas[vertex_id];
+
+            data.culling_data.bbox = data.culling_data.bbox.expand(vertex_data.position);
+        }
+
+        build_cluster_hierarchical_culling_datas(data);
+    }
+    void H_unified_mesh_builder::build_cluster_hierarchical_culling_datas(
+        F_raw_unified_mesh_data& data
+    )
+    {
+        // to group clusters having the same child list together
         F_cluster_node_header_hash cluster_node_header_hash = H_clustered_geometry::build_cluster_node_header_hash(
             data.cluster_node_headers
         );
@@ -574,358 +593,75 @@ namespace nre::newrg
         u32 level_count = data.cluster_level_headers.size();
 
         //
-        data.dag_level_headers.resize(level_count);
+        data.cluster_bboxes.resize(cluster_count);
+        data.cluster_hierarchical_culling_datas.resize(cluster_count);
 
         //
-        TG_vector<F_cluster_id> dag_sorted_cluster_id_to_cluster_id(cluster_count);
-        TG_vector<F_cluster_id> cluster_id_to_dag_sorted_cluster_id(cluster_count);
-
-        //
-        data.dag_sorted_cluster_headers.resize(cluster_count);
-        data.dag_sorted_cluster_errors.resize(cluster_count);
-        data.dag_node_headers.resize(cluster_count);
-        data.dag_sorted_cluster_id_ranges.resize(cluster_count);
-
-        //
-        eastl::atomic<F_cluster_id> next_dag_sorted_cluster_id = 0;
-        eastl::atomic<F_dag_node_id> next_dag_node_id = 0;
-
-        // build dag nodes
         for(u32 level_index = 0; level_index < level_count; ++level_index)
         {
             auto& cluster_level_header = data.cluster_level_headers[level_index];
-            auto& dag_level_header = data.dag_level_headers[level_index];
-
-            //
-            dag_level_header.begin = next_dag_node_id;
-
-            //
-            F_cluster_id local_level_cluster_count = cluster_level_header.end - cluster_level_header.begin;
             NTS_AWAIT_BLOCKABLE NTS_ASYNC(
                 [&](F_cluster_id local_level_cluster_id)
                 {
                     F_cluster_id cluster_id = cluster_level_header.begin + local_level_cluster_id;
 
                     //
+                    auto& cluster_header = data.cluster_headers[cluster_id];
+                    auto& cluster_node_header = data.cluster_node_headers[cluster_id];
+                    auto& cluster_bbox = data.cluster_bboxes[cluster_id];
+                    auto& cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[cluster_id];
+
+                    //
                     F_cluster_id min_cluster_id = cluster_id;
-                    u32 dag_node_size = 1;
+                    F_cluster_id equivalent_cluster_count = 0;
 
-                    // calculate dag node size
-                    if(cluster_id_to_cluster_node_header(cluster_id))
-                    {
-                        cluster_node_header_hash.for_all_match(
-                            cluster_id,
-                            cluster_id_to_cluster_node_header,
-                            [&](F_cluster_id, F_cluster_id other_cluster_id)
-                            {
-                                if(cluster_id != other_cluster_id)
-                                {
-                                    min_cluster_id = eastl::min(min_cluster_id, other_cluster_id);
-                                    ++dag_node_size;
-                                }
-                            }
-                        );
-                    }
-
-                    // write back dag nodes, dag sorted cluster ids,...
-                    if(min_cluster_id == cluster_id)
-                    {
-                        F_dag_node_id dag_sorted_cluster_id = next_dag_sorted_cluster_id.fetch_add(dag_node_size);
-                        F_dag_node_id dag_node_id = next_dag_node_id.fetch_add(1);
-
-                        auto& dag_node_header = data.dag_node_headers[dag_node_id];
-                        auto& dag_sorted_cluster_id_range = data.dag_sorted_cluster_id_ranges[dag_node_id];
-
-                        dag_sorted_cluster_id_range.begin = dag_sorted_cluster_id;
-
-                        data.dag_sorted_cluster_headers[dag_sorted_cluster_id] = data.cluster_headers[cluster_id];
-                        data.dag_sorted_cluster_errors[dag_sorted_cluster_id] = data.cluster_errors[cluster_id];
-                        dag_sorted_cluster_id_to_cluster_id[dag_sorted_cluster_id] = cluster_id;
-                        cluster_id_to_dag_sorted_cluster_id[cluster_id] = dag_sorted_cluster_id;
-                        ++dag_sorted_cluster_id;
-
-                        if(cluster_id_to_cluster_node_header(cluster_id))
+                    // calculate min_cluster_id and equivalent_cluster_count
+                    cluster_node_header_hash.for_all_match(
+                        cluster_id,
+                        cluster_id_to_cluster_node_header,
+                        [&](F_cluster_id, F_cluster_id other_cluster_id)
                         {
-                            cluster_node_header_hash.for_all_match(
-                                cluster_id,
-                                cluster_id_to_cluster_node_header,
-                                [&](F_cluster_id, F_cluster_id other_cluster_id)
-                                {
-                                    if(cluster_id != other_cluster_id)
-                                    {
-                                        data.dag_sorted_cluster_headers[dag_sorted_cluster_id] = data.cluster_headers[other_cluster_id];
-                                        data.dag_sorted_cluster_errors[dag_sorted_cluster_id] = data.cluster_errors[other_cluster_id];
-                                        dag_sorted_cluster_id_to_cluster_id[dag_sorted_cluster_id] = other_cluster_id;
-                                        cluster_id_to_dag_sorted_cluster_id[other_cluster_id] = dag_sorted_cluster_id;
-                                        ++dag_sorted_cluster_id;
-                                    }
-                                }
-                            );
+                            min_cluster_id = eastl::min(min_cluster_id, other_cluster_id);
+                            ++equivalent_cluster_count;
                         }
-
-                        dag_sorted_cluster_id_range.end = dag_sorted_cluster_id;
-                    }
-                },
-                {
-                    .parallel_count = local_level_cluster_count,
-                    .batch_size = eastl::max<u32>(ceil(f32(local_level_cluster_count) / 128.0f), 32)
-                }
-            );
-
-            //
-            dag_level_header.end = next_dag_node_id;
-        }
-
-        //
-        u32 dag_node_count = next_dag_node_id;
-
-        //
-        data.dag_node_headers.resize(dag_node_count);
-        data.dag_sorted_cluster_id_ranges.resize(dag_node_count);
-
-        //
-        auto dag_sorted_cluster_dag_node_ids = H_clustered_geometry::build_dag_sorted_cluster_dag_node_ids(
-            data.dag_sorted_cluster_id_ranges
-        );
-
-        // bind dag node childs
-        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-            [&](F_dag_node_id dag_node_id)
-            {
-                auto& dag_node_header = data.dag_node_headers[dag_node_id];
-                auto& dag_sorted_cluster_id_range = data.dag_sorted_cluster_id_ranges[dag_node_id];
-
-                //
-                TG_fixed_vector<F_dag_node_id, 4, false> child_node_ids;
-
-                // push back child node ids
-                {
-                    F_cluster_id first_dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-
-                    F_cluster_id first_cluster_id = dag_sorted_cluster_id_to_cluster_id[first_dag_sorted_cluster_id];
-                    F_cluster_node_header& first_cluster_node_header = data.cluster_node_headers[first_cluster_id];
-
-                    for(u32 local_child_cluster_index = 0; local_child_cluster_index < 4; ++local_child_cluster_index)
-                    {
-                        F_cluster_id child_cluster_id = first_cluster_node_header.child_node_ids[local_child_cluster_index];
-
-                        if(child_cluster_id == NCPP_U32_MAX)
-                            continue;
-
-                        F_cluster_id child_dag_sorted_cluster_id = cluster_id_to_dag_sorted_cluster_id[child_cluster_id];
-
-                        F_dag_node_id child_node_id = dag_sorted_cluster_dag_node_ids[child_dag_sorted_cluster_id];
-
-                        //
-                        b8 need_to_push_back = true;
-                        for(F_dag_node_id other_child_node_id : child_node_ids)
-                        {
-                            if(other_child_node_id == child_node_id)
-                            {
-                                need_to_push_back = false;
-                                break;
-                            }
-                        }
-
-                        //
-                        if(need_to_push_back)
-                            child_node_ids.push_back(child_node_id);
-                    }
-                }
-
-                // store child_node_ids
-                for(u32 local_child_cluster_index = 0; local_child_cluster_index < child_node_ids.size(); ++local_child_cluster_index)
-                {
-                    F_dag_node_id child_node_id = child_node_ids[local_child_cluster_index];
-
-                    auto& child_dag_node_header = data.dag_node_headers[child_node_id];
-
-                    child_dag_node_header.critical_parent_id = eastl::min(
-                        child_dag_node_header.critical_parent_id,
-                        dag_node_id
                     );
-
-                    dag_node_header.child_node_ids[local_child_cluster_index] = child_node_id;
-                    dag_node_header.is_leaf = child_node_ids.empty();
-                }
-            },
-            {
-                .parallel_count = dag_node_count,
-                .batch_size = eastl::max<u32>(ceil(f32(dag_node_count) / 128.0f), 32)
-            }
-        );
-    }
-    void H_unified_mesh_builder::build_dag_sorted_cluster_culling_datas(
-        F_raw_unified_mesh_data& data
-    )
-    {
-        F_cluster_id dag_sorted_cluster_count = data.dag_sorted_cluster_headers.size();
-
-        //
-        data.dag_sorted_cluster_culling_datas.resize(dag_sorted_cluster_count);
-
-        //
-        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-            [&](F_cluster_id dag_sorted_cluster_id)
-            {
-                auto& dag_sorted_cluster_header = data.dag_sorted_cluster_headers[dag_sorted_cluster_id];
-                auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
-
-                // calculate bbox
-                F_box_f32 bbox = {
-                    F_vector3_f32::infinity(),
-                    F_vector3_f32::negative_infinity()
-                };
-                {
-                    for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
-                    {
-                        F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
-
-                        auto& vertex_data = data.vertex_datas[vertex_id];
-
-                        bbox = bbox.expand(vertex_data.position);
-                    }
-                }
-
-                // calculate invisible_cone
-                // F_vector3_f32 invisible_cone_direction = F_vector3_f32::zero();
-                // f32 invisible_cone_angle_dot = 1.0f;
-                // {
-                //     for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
-                //     {
-                //         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
-                //
-                //         auto& vertex_data = data.vertex_datas[vertex_id];
-                //
-                //         invisible_cone_direction += normalize(vertex_data.normal);
-                //     }
-                //     invisible_cone_direction = normalize(invisible_cone_direction);
-                //
-                //     if(length(invisible_cone_direction) <= T_default_tolerance<f32>)
-                //     {
-                //         invisible_cone_direction = F_vector3_f32::forward();
-                //     }
-                // }
-                // {
-                //     for(F_global_vertex_id i = 0; i < dag_sorted_cluster_header.vertex_count; ++i)
-                //     {
-                //         F_global_vertex_id vertex_id = dag_sorted_cluster_header.vertex_offset + i;
-                //
-                //         auto& vertex_data = data.vertex_datas[vertex_id];
-                //
-                //         f32 angle_dot = dot(
-                //             invisible_cone_direction,
-                //             normalize(vertex_data.normal)
-                //         );
-                //
-                //         invisible_cone_angle_dot = eastl::min(invisible_cone_angle_dot, angle_dot);
-                //     }
-                // }
-
-                // store back culling data
-                {
-                    dag_sorted_cluster_culling_data.bbox = bbox;
-                }
-            },
-            {
-                .parallel_count = dag_sorted_cluster_count,
-                .batch_size = eastl::max<u32>(ceil(f32(dag_sorted_cluster_count) / 128.0f), 32)
-            }
-        );
-    }
-    void H_unified_mesh_builder::build_dag_culling_datas(
-        F_raw_unified_mesh_data& data
-    )
-    {
-        F_dag_node_id dag_node_count = data.dag_node_headers.size();
-        F_cluster_id cluster_count = data.dag_sorted_cluster_headers.size();
-        u32 level_count = data.dag_level_headers.size();
-
-        //
-        data.dag_node_culling_datas.resize(dag_node_count);
-
-        // build dag_node_culling_datas based on clusters
-        for(u32 level_index = 0; level_index < level_count; ++level_index)
-        {
-            auto& dag_level_header = data.dag_level_headers[level_index];
-
-            //
-            F_dag_node_id local_level_dag_node_count = dag_level_header.end - dag_level_header.begin;
-
-            //
-            NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-                [&](F_dag_node_id local_level_dag_node_id)
-                {
-                    F_dag_node_id dag_node_id = dag_level_header.begin + local_level_dag_node_id;
-
-                    //
-                    auto& dag_node_header = data.dag_node_headers[dag_node_id];
-                    auto& dag_node_culling_data = data.dag_node_culling_datas[dag_node_id];
-                    auto& dag_sorted_cluster_id_range = data.dag_sorted_cluster_id_ranges[dag_node_id];
-
-                    //
-                    F_cluster_id local_dag_sorted_cluster_count = dag_sorted_cluster_id_range.end - dag_sorted_cluster_id_range.begin;
 
                     // calculate bbox
                     F_box_f32 bbox = {
                         F_vector3_f32::infinity(),
                         F_vector3_f32::negative_infinity()
                     };
+                    for(u32 i = 0; i < cluster_header.vertex_count; ++i)
                     {
-                        for(
-                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                            ++dag_sorted_cluster_id
-                        )
-                        {
-                            auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
+                       F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
 
-                            bbox = bbox.expand(dag_sorted_cluster_culling_data.bbox);
-                        }
+                        auto& vertex_data = data.vertex_datas[vertex_id];
+
+                        bbox = bbox.expand(vertex_data.position);
                     }
 
-                    // calculate invisible_cone
-                    // F_vector3_f32 invisible_cone_direction = F_vector3_f32::zero();
-                    // f32 invisible_cone_angle_dot = 1.0f;
-                    // {
-                    //     for(
-                    //         u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                    //         dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                    //         ++dag_sorted_cluster_id
-                    //     )
-                    //     {
-                    //         auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
-                    //
-                    //         invisible_cone_direction += normalize(dag_sorted_cluster_culling_data.invisible_cone.direction());
-                    //     }
-                    //     invisible_cone_direction = normalize(invisible_cone_direction);
-                    //
-                    //     if(length(invisible_cone_direction) <= T_default_tolerance<f32>)
-                    //     {
-                    //         invisible_cone_direction = F_vector3_f32::forward();
-                    //     }
-                    // }
-                    // {
-                    //     for(
-                    //         u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                    //         dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                    //         ++dag_sorted_cluster_id
-                    //     )
-                    //     {
-                    //         auto& dag_sorted_cluster_culling_data = data.dag_sorted_cluster_culling_datas[dag_sorted_cluster_id];
-                    //
-                    //         f32 dir_dot1 = dot(
-                    //             invisible_cone_direction,
-                    //             normalize(dag_sorted_cluster_culling_data.invisible_cone.direction())
-                    //         );
-                    //         f32 dir_angle1 = abs(acos(dir_dot1));
-                    //         f32 dir_angle2 = abs(acos(dag_sorted_cluster_culling_data.invisible_cone.min_angle_dot()));
-                    //         dir_angle2 = eastl::min(dir_angle2, 1_pi - dir_angle1);
-                    //         f32 dir_angle = dir_angle1 + dir_angle2;
-                    //
-                    //         invisible_cone_angle_dot = eastl::min(invisible_cone_angle_dot, cos(dir_angle));
-                    //     }
-                    // }
+                    // calculate hierarchical_bbox
+                    F_box_f32 hierarchical_bbox = {
+                        F_vector3_f32::infinity(),
+                        F_vector3_f32::negative_infinity()
+                    };
+                    cluster_node_header_hash.for_all_match(
+                        cluster_id,
+                        cluster_id_to_cluster_node_header,
+                        [&](F_cluster_id, F_cluster_id other_cluster_id)
+                        {
+                            auto& other_cluster_header = data.cluster_headers[other_cluster_id];
+
+                            for(u32 i = 0; i < other_cluster_header.vertex_count; ++i)
+                            {
+                               F_global_vertex_id vertex_id = other_cluster_header.vertex_offset + i;
+
+                                auto& vertex_data = data.vertex_datas[vertex_id];
+
+                                hierarchical_bbox = hierarchical_bbox.expand(vertex_data.position);
+                            }
+                        }
+                    );
 
                     // calculate error
                     F_sphere_f32 outer_error_sphere = { F_vector3_f32::zero() };
@@ -933,254 +669,148 @@ namespace nre::newrg
                     f32 error_radius = 0.0f;
                     {
                         u32 vertex_count = 0;
-                        for(
-                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                            ++dag_sorted_cluster_id
-                        )
-                        {
-                            auto& cluster_header = data.dag_sorted_cluster_headers[dag_sorted_cluster_id];
-
-                            for(u32 i = 0; i < cluster_header.vertex_count; ++i)
+                        cluster_node_header_hash.for_all_match(
+                            cluster_id,
+                            cluster_id_to_cluster_node_header,
+                            [&](F_cluster_id, F_cluster_id other_cluster_id)
                             {
-                               F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
+                                auto& other_cluster_header = data.cluster_headers[other_cluster_id];
 
-                                auto& vertex_data = data.vertex_datas[vertex_id];
+                                for(u32 i = 0; i < other_cluster_header.vertex_count; ++i)
+                                {
+                                   F_global_vertex_id vertex_id = other_cluster_header.vertex_offset + i;
 
-                                outer_error_sphere = { outer_error_sphere.center() + vertex_data.position };
-                                ++vertex_count;
+                                    auto& vertex_data = data.vertex_datas[vertex_id];
+
+                                    outer_error_sphere = { outer_error_sphere.center() + vertex_data.position };
+                                    ++vertex_count;
+                                }
                             }
-                        }
+                        );
                         outer_error_sphere = { outer_error_sphere.center() / f32(vertex_count) };
-                        for(
-                            u32 dag_sorted_cluster_id = dag_sorted_cluster_id_range.begin;
-                            dag_sorted_cluster_id < dag_sorted_cluster_id_range.end;
-                            ++dag_sorted_cluster_id
-                        )
-                        {
-                            auto& cluster_header = data.dag_sorted_cluster_headers[dag_sorted_cluster_id];
-
-                            F_sphere_f32 local_error_sphere = { F_vector3_f32::zero() };
-                            for(u32 i = 0; i < cluster_header.vertex_count; ++i)
+                        cluster_node_header_hash.for_all_match(
+                            cluster_id,
+                            cluster_id_to_cluster_node_header,
+                            [&](F_cluster_id, F_cluster_id other_cluster_id)
                             {
-                               F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
+                                auto& other_cluster_header = data.cluster_headers[other_cluster_id];
 
-                                auto& vertex_data = data.vertex_datas[vertex_id];
+                                F_sphere_f32 local_error_sphere = { F_vector3_f32::zero() };
+                                for(u32 i = 0; i < other_cluster_header.vertex_count; ++i)
+                                {
+                                   F_global_vertex_id vertex_id = other_cluster_header.vertex_offset + i;
 
-                                local_error_sphere = { local_error_sphere.center() + vertex_data.position };
-                            }
-                            local_error_sphere = { local_error_sphere.center() / f32(cluster_header.vertex_count) };
+                                    auto& vertex_data = data.vertex_datas[vertex_id];
 
-                            for(u32 i = 0; i < cluster_header.vertex_count; ++i)
-                            {
-                               F_global_vertex_id vertex_id = cluster_header.vertex_offset + i;
+                                    local_error_sphere = { local_error_sphere.center() + vertex_data.position };
+                                }
+                                local_error_sphere = { local_error_sphere.center() / f32(other_cluster_header.vertex_count) };
 
-                                auto& vertex_data = data.vertex_datas[vertex_id];
+                                for(u32 i = 0; i < other_cluster_header.vertex_count; ++i)
+                                {
+                                   F_global_vertex_id vertex_id = other_cluster_header.vertex_offset + i;
 
-                                outer_error_sphere = outer_error_sphere.expand(vertex_data.position);
-                                // local_error_sphere = local_error_sphere.expand(vertex_data.position);
+                                    auto& vertex_data = data.vertex_datas[vertex_id];
+
+                                    outer_error_sphere = outer_error_sphere.expand(vertex_data.position);
+                                    local_error_sphere = {
+                                        local_error_sphere.center(),
+                                        local_error_sphere.radius()
+                                        + length(vertex_data.position - local_error_sphere.center())
+                                    };
+                                }
                                 local_error_sphere = {
                                     local_error_sphere.center(),
-                                    local_error_sphere.radius()
-                                    + length(vertex_data.position - local_error_sphere.center())
+                                    local_error_sphere.radius() / f32(other_cluster_header.vertex_count)
                                 };
-                            }
 
-                            error_factor += data.dag_sorted_cluster_errors[dag_sorted_cluster_id];
-                            error_radius += local_error_sphere.radius() / f32(cluster_header.vertex_count);
-                        }
+                                error_factor += data.cluster_errors[cluster_id];
+                                error_radius += local_error_sphere.radius();
+                            }
+                        );
                     }
-                    error_factor /= f32(local_dag_sorted_cluster_count);
+                    error_factor /= f32(equivalent_cluster_count);
                     error_factor = eastl::max<f32>(error_factor, 0.00001f);
-                    error_radius /= f32(local_dag_sorted_cluster_count);
+                    error_radius /= f32(equivalent_cluster_count);
 
-                    // store back culling data
+                    // update culling data based on childs
                     {
-                        dag_node_culling_data.bbox = bbox;
-                        dag_node_culling_data.outer_error_sphere = outer_error_sphere;
-                        dag_node_culling_data.error_factor = error_factor;
-                        dag_node_culling_data.error_radius = error_radius;
-                    }
-                },
-                {
-                    .parallel_count = local_level_dag_node_count,
-                    .batch_size = eastl::max<u32>(ceil(f32(local_level_dag_node_count) / 128.0f), 32)
-                }
-            );
-        }
-
-        // build dag_node_culling_datas based on childs
-        for(u32 level_index = 0; level_index < level_count; ++level_index)
-        {
-            auto& dag_level_header = data.dag_level_headers[level_index];
-
-            //
-            F_dag_node_id local_level_dag_node_count = dag_level_header.end - dag_level_header.begin;
-
-            //
-            NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-                [&](F_dag_node_id local_level_dag_node_id)
-                {
-                    F_dag_node_id dag_node_id = dag_level_header.begin + local_level_dag_node_id;
-
-                    //
-                    auto& dag_node_header = data.dag_node_headers[dag_node_id];
-                    auto& dag_node_culling_data = data.dag_node_culling_datas[dag_node_id];
-
-                    // calculate bbox
-                    F_box_f32 bbox = dag_node_culling_data.bbox;
-                    {
-                        for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
+                        // update hierarchical_bbox
                         {
-                            F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
-
-                            if(dag_child_id == NCPP_U32_MAX)
-                                continue;
-
-                            if(data.dag_node_headers[dag_child_id].critical_parent_id != dag_node_id)
+                            for(u32 i = 0; i < 4; ++i)
                             {
-                                continue;
+                                F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
+
+                                if(child_cluster_id == NCPP_U32_MAX)
+                                {
+                                    continue;
+                                }
+
+                                auto& child_cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[child_cluster_id];
+
+                                hierarchical_bbox = hierarchical_bbox.expand(child_cluster_hierarchical_culling_data.bbox);
                             }
-
-                            auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
-
-                            bbox = bbox.expand(child_dag_node_culling_data.bbox.center());
                         }
-                    }
 
-                    // calculate invisible_cone
-                    // F_vector3_f32 invisible_cone_direction = dag_node_culling_data.invisible_cone_direction();
-                    // f32 invisible_cone_angle_dot = dag_node_culling_data.invisible_cone_angle_dot();
-                    // {
-                    //     for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
-                    //     {
-                    //         F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
-                    //
-                    //         if(dag_child_id == NCPP_U32_MAX)
-                    //             continue;
-                    //
-                    //         auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
-                    //
-                    //         f32 dir_dot1 = dot(
-                    //             invisible_cone_direction,
-                    //             normalize(child_dag_node_culling_data.invisible_cone_direction())
-                    //         );
-                    //         f32 dir_angle1 = abs(acos(dir_dot1));
-                    //         f32 dir_angle2 = abs(acos(child_dag_node_culling_data.invisible_cone_angle_dot()));
-                    //         dir_angle2 = eastl::min(dir_angle2, 1_pi - dir_angle1);
-                    //         f32 dir_angle = dir_angle1 + dir_angle2;
-                    //
-                    //         invisible_cone_angle_dot = eastl::min(invisible_cone_angle_dot, cos(dir_angle));
-                    //     }
-                    // }
-
-                    // calculate error
-                    F_sphere_f32 outer_error_sphere = dag_node_culling_data.outer_error_sphere;
-                    f32 error_factor = dag_node_culling_data.error_factor;
-                    f32 error_radius = dag_node_culling_data.error_radius;
-                    {
-                        for(F_dag_node_id local_dag_child_id = 0; local_dag_child_id < 4; ++local_dag_child_id)
+                        // update bbox
                         {
-                            F_dag_node_id dag_child_id = dag_node_header.child_node_ids[local_dag_child_id];
+                            for(u32 i = 0; i < 4; ++i)
+                            {
+                                F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
 
-                            if(dag_child_id == NCPP_U32_MAX)
-                                continue;
+                                if(child_cluster_id == NCPP_U32_MAX)
+                                {
+                                    continue;
+                                }
 
-                            auto& child_dag_node_culling_data = data.dag_node_culling_datas[dag_child_id];
+                                auto& child_cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[child_cluster_id];
 
-                            outer_error_sphere = outer_error_sphere.expand_movable(
-                                child_dag_node_culling_data.outer_error_sphere
-                            );
-                            error_factor = eastl::max<f32>(
-                                error_factor,
-                                child_dag_node_culling_data.error_factor
-                            );
-                            error_radius = eastl::max<f32>(
-                                error_radius,
-                                child_dag_node_culling_data.error_radius
-                            );
+                                bbox = bbox.expand(child_cluster_hierarchical_culling_data.bbox);
+                            }
+                        }
+
+                        // update error
+                        {
+                            for(u32 i = 0; i < 4; ++i)
+                            {
+                                F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
+
+                                if(child_cluster_id == NCPP_U32_MAX)
+                                {
+                                    continue;
+                                }
+
+                                auto& child_cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[child_cluster_id];
+
+                                outer_error_sphere = outer_error_sphere.expand_movable(
+                                    child_cluster_hierarchical_culling_data.outer_error_sphere
+                                );
+                                error_factor = eastl::max<f32>(
+                                    error_factor,
+                                    child_cluster_hierarchical_culling_data.error_factor
+                                );
+                                error_radius = eastl::max<f32>(
+                                    error_radius,
+                                    child_cluster_hierarchical_culling_data.error_radius
+                                );
+                            }
                         }
                     }
 
-                    // store back culling data
-                    {
-                        dag_node_culling_data.bbox = bbox;
-                        dag_node_culling_data.outer_error_sphere = outer_error_sphere;
-                        dag_node_culling_data.error_factor = error_factor;
-                        dag_node_culling_data.error_radius = error_radius;
-                    }
+                    //
+                    cluster_bbox = bbox;
+                    cluster_hierarchical_culling_data.bbox = hierarchical_bbox;
+                    cluster_hierarchical_culling_data.outer_error_sphere = outer_error_sphere;
+                    cluster_hierarchical_culling_data.error_factor = error_factor;
+                    cluster_hierarchical_culling_data.error_radius = error_radius;
+                    cluster_hierarchical_culling_data.is_critical = (min_cluster_id == cluster_id);
                 },
                 {
-                    .parallel_count = local_level_dag_node_count,
-                    .batch_size = eastl::max<u32>(ceil(f32(local_level_dag_node_count) / 128.0f), 32)
+                    .parallel_count = cluster_level_header.end - cluster_level_header.begin,
+                    .batch_size = eastl::max<u32>(ceil(f32(cluster_level_header.end - cluster_level_header.begin) / 128.0f), 32)
                 }
             );
         }
-    }
-    void H_unified_mesh_builder::build_culling_data(
-        F_raw_unified_mesh_data& data
-    )
-    {
-        auto vertex_count = data.vertex_datas.size();
-
-        for(F_global_vertex_id i = 0; i < vertex_count; ++i)
-        {
-            auto& vertex_data = data.vertex_datas[i];
-
-            data.culling_data.bbox = data.culling_data.bbox.expand(
-                vertex_data.position
-            );
-            data.culling_data.bbox = data.culling_data.bbox.expand(
-                vertex_data.position
-            );
-        }
-
-        data.culling_data.error_sphere = {
-            data.culling_data.bbox.center(),
-            0.0f
-        };
-        for(F_global_vertex_id i = 0; i < vertex_count; ++i)
-        {
-            auto& vertex_data = data.vertex_datas[i];
-
-            data.culling_data.error_sphere = data.culling_data.error_sphere.expand(
-                vertex_data.position
-            );
-        }
-
-        build_dag_sorted_cluster_culling_datas(data);
-        build_dag_culling_datas(data);
-    }
-    void H_unified_mesh_builder::remove_non_critical_dag_child_ids(F_raw_unified_mesh_data& data)
-    {
-        F_dag_node_id dag_node_count = data.dag_node_headers.size();
-
-        // update dag child_node_ids
-        NTS_AWAIT_BLOCKABLE NTS_ASYNC(
-            [&](F_dag_node_id dag_node_id)
-            {
-                auto& dag_node_header = data.dag_node_headers[dag_node_id];
-
-                for(u32 i = 0; i < 4; ++i)
-                {
-                    F_dag_node_id child_node_id = dag_node_header.child_node_ids[i];
-
-                    if(child_node_id == NCPP_U32_MAX)
-                        continue;
-
-                    auto& child_dag_node_header = data.dag_node_headers[child_node_id];
-
-                    if(child_dag_node_header.critical_parent_id != dag_node_id)
-                    {
-                        dag_node_header.child_node_ids[i] = NCPP_U32_MAX;
-                    }
-                }
-            },
-            {
-                .parallel_count = dag_node_count,
-                .batch_size = eastl::max<u32>(ceil(f32(dag_node_count) / 128.0f), 32)
-            }
-        );
     }
 
 
@@ -1201,14 +831,13 @@ namespace nre::newrg
 
         result.culling_data = data.culling_data;
 
-        result.cluster_headers = data.dag_sorted_cluster_headers;
-        result.cluster_culling_datas = data.dag_sorted_cluster_culling_datas;
-        result.dag_node_headers = data.dag_node_headers;
-        result.dag_cluster_id_ranges = data.dag_sorted_cluster_id_ranges;
-        result.dag_node_culling_datas = data.dag_node_culling_datas;
-        result.dag_level_headers = data.dag_level_headers;
+        result.cluster_headers = data.cluster_headers;
+        result.cluster_node_headers = data.cluster_node_headers;
+        result.cluster_bboxes = data.cluster_bboxes;
+        result.cluster_hierarchical_culling_datas = data.cluster_hierarchical_culling_datas;
+        result.cluster_level_headers = data.cluster_level_headers;
 
-        auto vertex_cluster_ids = H_clustered_geometry::build_vertex_cluster_ids(data.dag_sorted_cluster_headers);
+        auto vertex_cluster_ids = H_clustered_geometry::build_vertex_cluster_ids(data.cluster_headers);
 
         result.vertex_datas.resize(vertex_count);
 
@@ -1220,8 +849,8 @@ namespace nre::newrg
 
                 F_cluster_id cluster_id = vertex_cluster_ids[vertex_id];
 
-                auto& cluster_culling_data = data.dag_sorted_cluster_culling_datas[cluster_id];
-                auto& bbox = cluster_culling_data.bbox;
+                auto& cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[cluster_id];
+                auto& bbox = cluster_hierarchical_culling_data.bbox;
 
                 auto bbox_delta = bbox.max - bbox.min;
 
@@ -1268,90 +897,9 @@ namespace nre::newrg
         );
 
         //
-        sort(result);
-
-        //
         build_subpages(result);
 
         return eastl::move(result);
-    }
-    void H_unified_mesh_builder::sort(
-        F_compressed_unified_mesh_data& data
-    )
-    {
-        u32 level_count = data.dag_level_headers.size();
-        F_dag_node_id dag_node_count = data.dag_node_headers.size();
-        F_cluster_id cluster_count = data.cluster_headers.size();
-        F_global_vertex_id vertex_count = data.vertex_datas.size();
-        F_global_vertex_id local_cluster_triangle_vertex_id_count = data.local_cluster_triangle_vertex_ids.size();
-
-        F_compressed_unified_mesh_data new_data = data;
-
-        F_global_vertex_id next_vertex_offset = 0;
-        F_global_vertex_id next_local_cluster_triangle_vertex_id_offset = 0;
-        F_cluster_id next_cluster_offset = 0;
-
-        for(u32 level_index = 0; level_index < level_count; ++level_index)
-        {
-            auto& dag_level_header = data.dag_level_headers[level_index];
-
-            F_dag_node_id local_level_dag_node_count = dag_level_header.end - dag_level_header.begin;
-            for(F_dag_node_id local_level_dag_node_id = 0; local_level_dag_node_id < local_level_dag_node_count; ++local_level_dag_node_id)
-            {
-                F_dag_node_id dag_node_id = dag_level_header.begin + local_level_dag_node_id;
-
-                auto& src_dag_cluster_id_range = data.dag_cluster_id_ranges[dag_node_id];
-                auto& dst_dag_cluster_id_range = new_data.dag_cluster_id_ranges[dag_node_id];
-
-                F_cluster_id local_dag_cluster_count = src_dag_cluster_id_range.end - src_dag_cluster_id_range.begin;
-
-                dst_dag_cluster_id_range.begin = next_cluster_offset;
-
-                next_cluster_offset += local_dag_cluster_count;
-                dst_dag_cluster_id_range.end = next_cluster_offset;
-
-                for(F_cluster_id local_level_cluster_id = 0; local_level_cluster_id < local_dag_cluster_count; ++local_level_cluster_id)
-                {
-                    F_cluster_id src_cluster_id = src_dag_cluster_id_range.begin + local_level_cluster_id;
-                    F_cluster_id dst_cluster_id = dst_dag_cluster_id_range.begin + local_level_cluster_id;
-
-                    auto& src_cluster_header = data.cluster_headers[src_cluster_id];
-                    auto& dst_cluster_header = new_data.cluster_headers[dst_cluster_id];
-                    dst_cluster_header = src_cluster_header;
-
-                    auto& src_cluster_culling_data = data.cluster_culling_datas[src_cluster_id];
-                    auto& dst_cluster_culling_data = new_data.cluster_culling_datas[dst_cluster_id];
-                    dst_cluster_culling_data = src_cluster_culling_data;
-
-                    //
-                    {
-                        dst_cluster_header.vertex_offset = next_vertex_offset;
-                        dst_cluster_header.vertex_count = src_cluster_header.vertex_count;
-                        next_vertex_offset += src_cluster_header.vertex_count;
-
-                        dst_cluster_header.local_triangle_vertex_id_offset = next_local_cluster_triangle_vertex_id_offset;
-                        dst_cluster_header.local_triangle_vertex_id_count = src_cluster_header.local_triangle_vertex_id_count;
-                        next_local_cluster_triangle_vertex_id_offset += src_cluster_header.local_triangle_vertex_id_count;
-                    }
-
-                    //
-                    {
-                        memcpy(
-                            new_data.vertex_datas.data() + dst_cluster_header.vertex_offset,
-                            data.vertex_datas.data() + src_cluster_header.vertex_offset,
-                            dst_cluster_header.vertex_count * sizeof(F_compressed_vertex_data)
-                        );
-                        memcpy(
-                            new_data.local_cluster_triangle_vertex_ids.data() + dst_cluster_header.local_triangle_vertex_id_offset,
-                            data.local_cluster_triangle_vertex_ids.data() + src_cluster_header.local_triangle_vertex_id_offset,
-                            dst_cluster_header.local_triangle_vertex_id_count * sizeof(F_compressed_local_cluster_vertex_id)
-                        );
-                    }
-                }
-            }
-        }
-
-        data = eastl::move(new_data);
     }
     void H_unified_mesh_builder::build_subpages(
         F_compressed_unified_mesh_data& data

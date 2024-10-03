@@ -62,31 +62,6 @@ namespace nre
 
         return eastl::move(result);
     }
-    TG_vector<F_dag_node_id> H_clustered_geometry::build_dag_sorted_cluster_dag_node_ids(
-        const TG_vector<F_cluster_id_range>& dag_sorted_cluster_id_ranges
-    )
-    {
-        u32 dag_node_count = dag_sorted_cluster_id_ranges.size();
-
-        u32 cluster_count = 0;
-        for(F_dag_node_id dag_node_id = 0; dag_node_id != dag_node_count; ++dag_node_id)
-        {
-            auto& range = dag_sorted_cluster_id_ranges[dag_node_id];
-            cluster_count += range.end - range.begin;
-        }
-
-        TG_vector<F_dag_node_id> result(cluster_count);
-        for(F_dag_node_id dag_node_id = 0; dag_node_id != dag_node_count; ++dag_node_id)
-        {
-            auto& range = dag_sorted_cluster_id_ranges[dag_node_id];
-            for(F_cluster_id cluster_id = range.begin; cluster_id != range.end;++cluster_id)
-            {
-                result[cluster_id] = dag_node_id;
-            }
-        }
-
-        return eastl::move(result);
-    }
     F_cluster_node_header_hash H_clustered_geometry::build_cluster_node_header_hash(
         const TG_vector<F_cluster_node_header>& cluster_node_headers
     )

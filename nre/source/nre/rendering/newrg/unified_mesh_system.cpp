@@ -44,39 +44,22 @@ namespace nre::newrg
         cluster_table_(
             {
                 ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
+                ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
                 ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED
             },
             {
                 ED_resource_heap_type::DEFAULT,
+                ED_resource_heap_type::DEFAULT,
                 ED_resource_heap_type::DEFAULT
             },
             {
+                ED_resource_state::COMMON,
                 ED_resource_state::COMMON,
                 ED_resource_state::COMMON
             },
             NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.cluster_table")
-        ),
-        dag_table_(
-            {
-                ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
-                ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
-                ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED
-            },
-            {
-                ED_resource_heap_type::DEFAULT,
-                ED_resource_heap_type::DEFAULT,
-                ED_resource_heap_type::DEFAULT
-            },
-            {
-                ED_resource_state::COMMON,
-                ED_resource_state::COMMON,
-                ED_resource_state::COMMON
-            },
-            NRE_NEWRG_UNIFIED_MESH_DAG_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
-            0
-            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.dag_table")
         ),
         vertex_data_table_(
             { ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED },
@@ -115,10 +98,6 @@ namespace nre::newrg
             G_to_string(NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS)
         });
         F_nsl_shader_system::instance_p()->define_global_macro({
-            "NRE_NEWRG_UNIFIED_MESH_DAG_TABLE_PAGE_CAPACITY_IN_ELEMENTS",
-            G_to_string(NRE_NEWRG_UNIFIED_MESH_DAG_TABLE_PAGE_CAPACITY_IN_ELEMENTS)
-        });
-        F_nsl_shader_system::instance_p()->define_global_macro({
             "NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER",
             G_to_string(NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER)
         });
@@ -154,9 +133,6 @@ namespace nre::newrg
 
         register_cluster_queue_.push(mesh_p);
         upload_cluster_queue_.push(mesh_p);
-
-        register_dag_queue_.push(mesh_p);
-        upload_dag_queue_.push(mesh_p);
     }
     void F_unified_mesh_system::make_subpages_resident_internal(TKPA<F_unified_mesh> mesh_p)
     {
@@ -173,7 +149,6 @@ namespace nre::newrg
 
         deregister_mesh_queue_.push(mesh_header_id);
         deregister_cluster_queue_.push(mesh_header.subpage_offset);
-        deregister_dag_queue_.push(mesh_header.subpage_offset);
     }
 
 
@@ -183,7 +158,6 @@ namespace nre::newrg
         mesh_table_render_bind_list_p_ = 0;
         subpage_header_table_render_bind_list_p_ = 0;
         cluster_table_render_bind_list_p_ = 0;
-        dag_table_render_bind_list_p_ = 0;
         vertex_data_table_render_bind_list_p_ = 0;
         triangle_vertex_id_table_render_bind_list_p_ = 0;
     }
@@ -418,9 +392,13 @@ namespace nre::newrg
 
                     mesh_p->last_frame_cluster_id_ = cluster_table_.register_id(cluster_count);
 
+                    auto& last_cluster_level_header = compressed_data.cluster_level_headers.back();
+
                     auto& mesh_header = mesh_table_.T_element(mesh_p->last_frame_id_);
                     mesh_header.cluster_offset = mesh_p->last_frame_cluster_id_;
                     mesh_header.cluster_count = cluster_count;
+                    mesh_header.root_cluster_offset = mesh_header.cluster_offset + last_cluster_level_header.begin;
+                    mesh_header.root_cluster_count = last_cluster_level_header.end - last_cluster_level_header.begin;
                 }
 
                 cluster_table_.RG_end_register();
@@ -435,63 +413,17 @@ namespace nre::newrg
 
                     auto& compressed_data = mesh_p->compressed_data();
 
-                    cluster_table_.T_upload<0>(
+                    cluster_table_.T_upload<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HEADER>(
                         mesh_p->last_frame_cluster_id_,
                         (TG_vector<F_cluster_header>&)compressed_data.cluster_headers
                     );
-                    cluster_table_.T_upload<1>(
+                    cluster_table_.T_upload<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_BBOX>(
                         mesh_p->last_frame_cluster_id_,
-                        (TG_vector<F_cluster_culling_data>&)compressed_data.cluster_headers
+                        (TG_vector<F_box_f32>&)compressed_data.cluster_bboxes
                     );
-                }
-            }
-
-            // process register_dag_queue_
-            {
-                dag_table_.RG_begin_register();
-
-                while(register_dag_queue_.size())
-                {
-                    TK<F_unified_mesh> mesh_p = register_dag_queue_.front();
-                    register_dag_queue_.pop();
-
-                    auto& compressed_data = mesh_p->compressed_data();
-                    u32 dag_node_count = compressed_data.dag_node_headers.size();
-
-                    mesh_p->last_frame_dag_node_id_ = dag_table_.register_id(dag_node_count);
-
-                    auto& last_dag_level_header = compressed_data.dag_level_headers.back();
-
-                    auto& mesh_header = mesh_table_.T_element(mesh_p->last_frame_id_);
-                    mesh_header.dag_node_offset = mesh_p->last_frame_dag_node_id_;
-                    mesh_header.dag_node_count = dag_node_count;
-                    mesh_header.root_dag_node_offset = mesh_header.dag_node_offset + last_dag_level_header.begin;
-                    mesh_header.root_dag_node_count = last_dag_level_header.end - last_dag_level_header.begin;
-                }
-
-                dag_table_.RG_end_register();
-            }
-
-            // process upload_dag_queue_
-            {
-                while(upload_dag_queue_.size())
-                {
-                    TK<F_unified_mesh> mesh_p = upload_dag_queue_.front();
-                    upload_dag_queue_.pop();
-
-                    auto& compressed_data = mesh_p->compressed_data();
-
-                    dag_table_.T_upload<0>(
-                        mesh_p->last_frame_dag_node_id_,
-                        (TG_vector<F_dag_node_header>&)compressed_data.dag_node_headers
-                    );
-                    dag_table_.T_upload<1>(
-                        mesh_p->last_frame_dag_node_id_,
-                        (TG_vector<F_dag_node_culling_data>&)compressed_data.dag_node_culling_datas
-                    );
-                    dag_table_.T_upload<2>(
-                        mesh_p->last_frame_dag_node_id_,
-                        (TG_vector<F_cluster_id_range>&)compressed_data.dag_cluster_id_ranges
+                    cluster_table_.T_upload<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HIERARCHICAL_CULLING_DATA>(
+                        mesh_p->last_frame_cluster_id_,
+                        (TG_vector<F_cluster_hierarchical_culling_data>&)compressed_data.cluster_hierarchical_culling_datas
                     );
                 }
             }
@@ -505,10 +437,10 @@ namespace nre::newrg
                     TK<F_unified_mesh> mesh_p = upload_mesh_queue_.front();
                     upload_mesh_queue_.pop();
 
-                    mesh_table_.T_enqueue_upload<0>(
+                    mesh_table_.T_enqueue_upload<NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_HEADER>(
                         mesh_p->last_frame_id_
                     );
-                    mesh_table_.T_enqueue_upload<1>(
+                    mesh_table_.T_enqueue_upload<NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_CULLING_DATA>(
                         mesh_p->last_frame_id_,
                         mesh_p->compressed_data().culling_data
                     );
@@ -537,7 +469,7 @@ namespace nre::newrg
 
                     mesh_p->last_frame_id_ = NCPP_U32_MAX;
                     mesh_p->last_frame_cluster_id_ = NCPP_U32_MAX;
-                    mesh_p->last_frame_dag_node_id_ = NCPP_U32_MAX;
+                    mesh_p->last_frame_cluster_id_ = NCPP_U32_MAX;
                 }
             }
         }
@@ -569,22 +501,6 @@ namespace nre::newrg
             );
             cluster_table_render_bind_list_p_ = render_graph_p->T_create<F_cluster_table_render_bind_list>(
                 &cluster_table_,
-                TG_array<ED_resource_view_type, 2>({
-                    ED_resource_view_type::SHADER_RESOURCE,
-                    ED_resource_view_type::SHADER_RESOURCE
-                }),
-                TG_array<ED_resource_flag, 2>({
-                    ED_resource_flag::NONE,
-                    ED_resource_flag::NONE
-                }),
-                TG_array<ED_format, 2>({
-                    ED_format::NONE,
-                    ED_format::NONE
-                })
-                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.cluster_table_render_bind_list")
-            );
-            dag_table_render_bind_list_p_ = render_graph_p->T_create<F_dag_table_render_bind_list>(
-                &dag_table_,
                 TG_array<ED_resource_view_type, 3>({
                     ED_resource_view_type::SHADER_RESOURCE,
                     ED_resource_view_type::SHADER_RESOURCE,
@@ -600,7 +516,7 @@ namespace nre::newrg
                     ED_format::NONE,
                     ED_format::NONE
                 })
-                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.dag_table_render_bind_list")
+                NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.cluster_table_render_bind_list")
             );
             vertex_data_table_render_bind_list_p_ = render_graph_p->T_create<F_vertex_data_table_render_bind_list>(
                 &vertex_data_table_,

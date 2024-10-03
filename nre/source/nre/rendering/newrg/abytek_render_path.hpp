@@ -38,17 +38,17 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> draw_instance_bbox_shader_asset_p_;
         K_graphics_pipeline_state_handle draw_instance_bbox_pso_p_;
 
-        TS<F_nsl_shader_asset> draw_instance_error_sphere_shader_asset_p_;
-        K_graphics_pipeline_state_handle draw_instance_error_sphere_pso_p_;
+        TS<F_nsl_shader_asset> draw_cluster_bbox_shader_asset_p_;
+        K_graphics_pipeline_state_handle draw_cluster_bbox_pso_p_;
 
-        TS<F_nsl_shader_asset> draw_dag_node_bbox_shader_asset_p_;
-        K_graphics_pipeline_state_handle draw_dag_node_bbox_pso_p_;
+        TS<F_nsl_shader_asset> draw_cluster_hierarchical_bbox_shader_asset_p_;
+        K_graphics_pipeline_state_handle draw_cluster_hierarchical_bbox_pso_p_;
 
-        TS<F_nsl_shader_asset> draw_dag_node_outer_error_sphere_shader_asset_p_;
-        K_graphics_pipeline_state_handle draw_dag_node_outer_error_sphere_pso_p_;
+        TS<F_nsl_shader_asset> draw_cluster_outer_error_sphere_shader_asset_p_;
+        K_graphics_pipeline_state_handle draw_cluster_outer_error_sphere_pso_p_;
 
-        TS<F_nsl_shader_asset> draw_dag_node_error_sphere_shader_asset_p_;
-        K_graphics_pipeline_state_handle draw_dag_node_error_sphere_pso_p_;
+        TS<F_nsl_shader_asset> draw_cluster_error_sphere_shader_asset_p_;
+        K_graphics_pipeline_state_handle draw_cluster_error_sphere_pso_p_;
 
         TS<F_static_mesh_asset> unit_cube_static_mesh_asset_p_;
         TS<F_static_mesh> unit_cube_static_mesh_p_;
@@ -76,76 +76,78 @@ namespace nre::newrg
         };
         F_draw_instance_bboxes_options draw_instance_bboxes_options;
 
-        struct F_draw_instance_error_spheres_options
-        {
-            b8 enable = true;
-            F_vector3_f32 color = F_vector3_f32 { 1.0f, 0.75f, 0.2f };
-        };
-        struct F_draw_instance_error_sphere_global_options_data
-        {
-            F_vector3_f32 color;
-        };
-        struct F_draw_instance_error_sphere_per_object_options_data
-        {
-            F_matrix4x4_f32 local_to_world_matrix;
-            F_unified_mesh_culling_data mesh_culling_data;
-        };
-        F_draw_instance_error_spheres_options draw_instance_error_spheres_options;
-
-        struct F_draw_dag_node_bboxes_options
+        struct F_draw_cluster_bboxes_options
         {
             b8 enable = true;
             u32 level = 0;
             F_vector3_f32 color = F_vector3_f32::right();
         };
-        struct F_draw_dag_node_bbox_global_options_data
+        struct F_draw_cluster_bbox_global_options_data
         {
             F_vector3_f32 color;
         };
-        struct F_draw_dag_node_bbox_per_object_options_data
+        struct F_draw_cluster_bbox_per_object_options_data
         {
             F_matrix4x4_f32 local_to_world_matrix;
-            u32 dag_node_offset;
-            u32 dag_node_count;
+            u32 cluster_offset;
+            u32 cluster_count;
         };
-        F_draw_dag_node_bboxes_options draw_dag_node_bboxes_options;
+        F_draw_cluster_bboxes_options draw_cluster_bboxes_options;
 
-        struct F_draw_dag_node_outer_error_spheres_options
+        struct F_draw_cluster_hierarchical_bboxes_options
+        {
+            b8 enable = true;
+            u32 level = 0;
+            F_vector3_f32 color = { 0.0f, 1.0f, 0.75f };
+        };
+        struct F_draw_cluster_hierarchical_bbox_global_options_data
+        {
+            F_vector3_f32 color;
+        };
+        struct F_draw_cluster_hierarchical_bbox_per_object_options_data
+        {
+            F_matrix4x4_f32 local_to_world_matrix;
+            u32 cluster_offset;
+            u32 cluster_count;
+        };
+        F_draw_cluster_hierarchical_bboxes_options draw_cluster_hierarchical_bboxes_options;
+
+        struct F_draw_cluster_outer_error_spheres_options
         {
             b8 enable = true;
             u32 level = 0;
             F_vector3_f32 color = F_vector3_f32::right();
         };
-        struct F_draw_dag_node_outer_error_sphere_global_options_data
+        struct F_draw_cluster_outer_error_sphere_global_options_data
         {
             F_vector3_f32 color;
         };
-        struct F_draw_dag_node_outer_error_sphere_per_object_options_data
+        struct F_draw_cluster_outer_error_sphere_per_object_options_data
         {
             F_matrix4x4_f32 local_to_world_matrix;
-            u32 dag_node_offset;
-            u32 dag_node_count;
+            u32 cluster_offset;
+            u32 cluster_count;
         };
-        F_draw_dag_node_outer_error_spheres_options draw_dag_node_outer_error_spheres_options;
+        F_draw_cluster_outer_error_spheres_options draw_cluster_outer_error_spheres_options;
 
-        struct F_draw_dag_node_error_spheres_options
+        struct F_draw_cluster_error_spheres_options
         {
             b8 enable = true;
             u32 level = 0;
             F_vector3_f32 color = { 1.0f, 0.5f, 0.0f };
         };
-        struct F_draw_dag_node_error_sphere_global_options_data
+        struct F_draw_cluster_error_sphere_global_options_data
         {
             F_vector3_f32 color;
         };
-        struct F_draw_dag_node_error_sphere_per_object_options_data
+        struct F_draw_cluster_error_sphere_per_object_options_data
         {
             F_matrix4x4_f32 local_to_world_matrix;
             F_matrix4x4_f32 world_to_local_matrix;
-            u32 dag_node_offset;
-            u32 dag_node_count;
+            u32 cluster_offset;
+            u32 cluster_count;
         };
-        F_draw_dag_node_error_spheres_options draw_dag_node_error_spheres_options;
+        F_draw_cluster_error_spheres_options draw_cluster_error_spheres_options;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(
@@ -161,17 +163,17 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto draw_instance_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_shader_asset_p_); }
         NCPP_FORCE_INLINE auto draw_instance_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_pso_p_); }
 
-        NCPP_FORCE_INLINE auto draw_instance_error_sphere_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_instance_error_sphere_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto draw_instance_error_sphere_pso_p() const noexcept { return NCPP_FOH_VALID(draw_instance_error_sphere_pso_p_); }
+        NCPP_FORCE_INLINE auto draw_cluster_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_bbox_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto draw_cluster_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_bbox_pso_p_); }
 
-        NCPP_FORCE_INLINE auto draw_dag_node_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_dag_node_bbox_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto draw_dag_node_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_dag_node_bbox_pso_p_); }
+        NCPP_FORCE_INLINE auto draw_cluster_hierarchical_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_hierarchical_bbox_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto draw_cluster_hierarchical_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_hierarchical_bbox_pso_p_); }
 
-        NCPP_FORCE_INLINE auto draw_dag_node_outer_error_sphere_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_dag_node_outer_error_sphere_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto draw_dag_node_outer_error_sphere_pso_p() const noexcept { return NCPP_FOH_VALID(draw_dag_node_outer_error_sphere_pso_p_); }
+        NCPP_FORCE_INLINE auto draw_cluster_outer_error_sphere_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_outer_error_sphere_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto draw_cluster_outer_error_sphere_pso_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_outer_error_sphere_pso_p_); }
 
-        NCPP_FORCE_INLINE auto draw_dag_node_error_sphere_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_dag_node_error_sphere_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto draw_dag_node_error_sphere_pso_p() const noexcept { return NCPP_FOH_VALID(draw_dag_node_error_sphere_pso_p_); }
+        NCPP_FORCE_INLINE auto draw_cluster_error_sphere_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_error_sphere_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto draw_cluster_error_sphere_pso_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_error_sphere_pso_p_); }
 
         NCPP_FORCE_INLINE auto unit_cube_static_mesh_asset_p() const noexcept { return NCPP_FOH_VALID(unit_cube_static_mesh_asset_p_); }
         NCPP_FORCE_INLINE auto unit_cube_static_mesh_p() const noexcept { return NCPP_FOH_VALID(unit_cube_static_mesh_p_); }
@@ -198,8 +200,8 @@ namespace nre::newrg
     public:
         void expand_instances(
             TKPA_valid<F_abytek_scene_render_view> view_p,
-            F_render_resource* rg_instanced_dag_node_header_buffer_p,
-            const F_indirect_data_batch& instanced_dag_node_range_data_batch
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
 
@@ -222,19 +224,19 @@ namespace nre::newrg
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
-        void draw_instance_error_spheres(
+        void draw_cluster_bboxes(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
-        void draw_dag_node_bboxes(
+        void draw_cluster_hierarchical_bboxes(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
-        void draw_dag_node_outer_error_spheres(
+        void draw_cluster_outer_error_spheres(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
-        void draw_dag_node_error_spheres(
+        void draw_cluster_error_spheres(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );

@@ -42,60 +42,41 @@ struct F_vertex_data(
     texcoord(f32x2)
 )
 
-define F_global_cluster_id(u32)
-define INVALID_GLOBAL_CLUSTER_ID(0xFFFFFFFF)
-define F_local_cluster_id(u16)
-define INVALID_LOCAL_CLUSTER_ID(0xFFFF)
+define F_cluster_id(u32)
+define INVALID_CLUSTER_ID(0xFFFFFFFF)
 struct F_cluster_header(
     vertex_offset(u32)
     vertex_count(u32)
     local_triangle_vertex_id_offset(u32)
     local_triangle_vertex_id_count(u32)
 )
-struct F_global_cluster_id_range(
-    begin(F_global_cluster_id)
-    end(F_global_cluster_id)
+struct F_cluster_id_range(
+    begin(F_cluster_id)
+    end(F_cluster_id)
 )
 
-struct F_cluster_culling_data(
-    bbox(F_bbox)
-    invisible_cone(F_cone)
-)
-
-define F_dag_node_id(u32)
-define INVALID_DAG_NODE_ID(0xFFFFFFFF)
-struct F_dag_node_header(
-    child_node_ids(F_dag_node_id 4)
-    critical_parent_id(F_dag_node_id)
-    is_leaf(b8)
-    ___padding_0___(u32x2)
-)
-
-struct F_dag_node_culling_data(
+struct F_cluster_hierarchical_culling_data(
     bbox(F_bbox)
     invisible_cone(F_cone)
     outer_error_sphere(F_sphere)
     error_factor(f32)
     error_radius(f32)
-    ___padding_0___(f32x2)
+    is_critical(b8)
+    ___padding_0___(f32)
 )
 
 struct F_mesh_header(
     cluster_count(u32)
     cluster_offset(u32)
 
-    dag_node_count(u32)
-    dag_node_offset(u32)
-
-    root_dag_node_count(u32)
-    root_dag_node_offset(u32)
+    root_cluster_count(u32)
+    root_cluster_offset(u32)
 
     subpage_count(u32)
     subpage_offset(u32)
 )
 struct F_mesh_culling_data(
     bbox(F_bbox)
-    error_sphere(F_sphere)
 )
 struct F_mesh_subpage_header(
     vertex_count(u32)
@@ -112,17 +93,6 @@ define INVALID_MESH_ID(0xFFFF)
 
 define F_instance_id(u32)
 
-define F_instanced_dag_node_id(u32)
-struct F_instanced_dag_node_range(
-    offset(u32)
-    count(u32)
-)
-struct F_instanced_dag_node_header(
-    instance_id(F_instance_id)
-    mesh_id(u16)
-    local_dag_node_id(u16)
-)
-
 define F_instanced_cluster_id(u32)
 struct F_instanced_cluster_range(
     offset(u32)
@@ -130,6 +100,5 @@ struct F_instanced_cluster_range(
 )
 struct F_instanced_cluster_header(
     instance_id(F_instance_id)
-    mesh_id(F_mesh_id)
-    local_cluster_id(u16)
+    local_cluster_id(F_cluster_id)
 )

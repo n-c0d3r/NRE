@@ -189,32 +189,14 @@ namespace nre
         u32 begin = 0;
         u32 end = 0;
     };
-    struct NCPP_ALIGN(16) F_cluster_culling_data
-    {
-        F_box_f32 bbox;
-        F_cone_f32 invisible_cone;
-    };
-
-    using F_dag_node_id = u32;
-    struct NCPP_ALIGN(16) F_dag_node_header
-    {
-        F_dag_node_id child_node_ids[4]{ NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX };
-        F_dag_node_id critical_parent_id = NCPP_U32_MAX;
-        b8 is_leaf = false;
-    };
-    struct NCPP_ALIGN(16) F_dag_node_culling_data
+    struct NCPP_ALIGN(16) F_cluster_hierarchical_culling_data
     {
         F_box_f32 bbox;
         F_cone_f32 invisible_cone;
         F_sphere_f32 outer_error_sphere;
         f32 error_factor = 0.0f;
         f32 error_radius = 0.0f;
-    };
-
-    struct F_dag_level_header
-    {
-        u32 begin = 0;
-        u32 end = 0;
+        b8 is_critical = false;
     };
 
     using F_cluster_ids = TG_vector<F_cluster_id>;
@@ -458,7 +440,10 @@ namespace nre
             u32 hash_key = TF_hash<F_cluster_node_header>()(node_header);
 
             if(node_header.is_null())
+            {
+                functor(node_header_index, node_header_index);
                 return;
+            }
 
             for(
                 u32 other_node_header_index = hash_table.first(hash_key);
@@ -656,9 +641,6 @@ namespace nre
         );
         static F_position_hash build_position_hash(
             const F_raw_clustered_geometry_shape& geometry_shape
-        );
-        static TG_vector<F_dag_node_id> build_dag_sorted_cluster_dag_node_ids(
-            const TG_vector<F_cluster_id_range>& dag_sorted_cluster_id_ranges
         );
         static F_cluster_node_header_hash build_cluster_node_header_hash(
             const TG_vector<F_cluster_node_header>& cluster_node_headers

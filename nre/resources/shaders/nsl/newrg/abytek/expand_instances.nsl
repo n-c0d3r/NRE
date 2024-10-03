@@ -39,18 +39,18 @@ define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
 import(newrg/abytek/view.nsh)
 
 @slot(0 4)
-resource instanced_dag_node_headers(
-    RWStructuredBuffer(F_instanced_dag_node_header)
+resource instanced_cluster_headers(
+    RWStructuredBuffer(F_instanced_cluster_header)
 )
 
 @slot(1 4)
-resource instanced_dag_node_ranges(
-    RWStructuredBuffer(F_instanced_dag_node_range)
+resource instanced_cluster_ranges(
+    RWStructuredBuffer(F_instanced_cluster_range)
 )
 
 
 
-groupshared u32 group_instanced_dag_node_offset;
+groupshared u32 group_instanced_cluster_offset;
 
 
 
@@ -74,9 +74,11 @@ compute_shader CS(
         instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
     ];
 
-    b8 is_culled = (mesh_id == INVALID_MESH_ID);
-    if(is_culled)
+    b8 is_instance_valid = (mesh_id != INVALID_MESH_ID);
+    if(!is_instance_valid)
         return;
+
+    b8 is_culled = false;
 
     float4x4 local_to_world_matrix = instance_transforms[
         instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
@@ -194,34 +196,33 @@ compute_shader CS(
         mesh_id % NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
     ];
 
-    u32 local_root_dag_node_offset = WavePrefixSum(mesh_header.root_dag_node_count);
-    u32 local_root_dag_node_count = WaveActiveSum(mesh_header.root_dag_node_count);
+    u32 local_root_cluster_offset = WavePrefixSum(mesh_header.root_cluster_count);
+    u32 local_root_cluster_count = WaveActiveSum(mesh_header.root_cluster_count);
 
     GroupMemoryBarrierWithGroupSync();
 
-    if(local_root_dag_node_offset == 0)
+    if(local_root_cluster_offset == 0)
     {
         InterlockedAdd(
-            instanced_dag_node_ranges[0].count,
-            local_root_dag_node_count,
-            group_instanced_dag_node_offset
+            instanced_cluster_ranges[0].count,
+            local_root_cluster_count,
+            group_instanced_cluster_offset
         );
     }
 
     GroupMemoryBarrierWithGroupSync();
 
-    u32 instanced_dag_node_offset = group_instanced_dag_node_offset + local_root_dag_node_offset;
+    u32 instanced_cluster_offset = group_instanced_cluster_offset + local_root_cluster_offset;
 
-    for(u32 i = 0; i < mesh_header.root_dag_node_count; ++i)
+    for(u32 i = 0; i < mesh_header.root_cluster_count; ++i)
     {
-        F_instanced_dag_node_header instanced_dag_node_header;
-        instanced_dag_node_header.instance_id = instance_id;
-        instanced_dag_node_header.mesh_id = mesh_id;
-        instanced_dag_node_header.local_dag_node_id = (u16)(
-            (mesh_header.root_dag_node_offset - mesh_header.dag_node_offset) + i
+        F_instanced_cluster_header instanced_cluster_header;
+        instanced_cluster_header.instance_id = instance_id;
+        instanced_cluster_header.local_cluster_id = (
+            (mesh_header.root_cluster_offset - mesh_header.cluster_offset) + i
         );
 
-        instanced_dag_node_headers[instanced_dag_node_offset + i] = instanced_dag_node_header;
+        instanced_cluster_headers[instanced_cluster_offset + i] = instanced_cluster_header;
     }
 }
 

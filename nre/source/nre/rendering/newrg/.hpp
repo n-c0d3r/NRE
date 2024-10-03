@@ -18,10 +18,10 @@
 #include <nre/rendering/newrg/simple_abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/abytek_simple_draw_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_instance_bbox_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_draw_instance_error_sphere_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_draw_dag_node_bbox_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_draw_dag_node_outer_error_sphere_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_draw_dag_node_error_sphere_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_draw_cluster_bbox_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_draw_cluster_hierarchical_bbox_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_draw_cluster_outer_error_sphere_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_draw_cluster_error_sphere_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_expand_instances_binder_signature.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/external_render_depth_pyramid.hpp>

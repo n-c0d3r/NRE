@@ -18,11 +18,8 @@ namespace nre::newrg
         u32 cluster_count = 0;
         u32 cluster_offset = 0;
 
-        u32 dag_node_count = 0;
-        u32 dag_node_offset = 0;
-
-        u32 root_dag_node_count = 0;
-        u32 root_dag_node_offset = 0;
+        u32 root_cluster_count = 0;
+        u32 root_cluster_offset = 0;
 
         u32 subpage_count = 0;
         u32 subpage_offset = 0;
@@ -32,10 +29,6 @@ namespace nre::newrg
         F_box_f32 bbox = F_box_f32(
             F_vector3_f32::infinity(),
             F_vector3_f32::negative_infinity()
-        );
-        F_sphere_f32 error_sphere = F_sphere_f32(
-            F_vector3_f32::zero(),
-            0.0f
         );
     };
     struct NCPP_ALIGN(16) F_unified_mesh_subpage_header
@@ -57,15 +50,9 @@ namespace nre::newrg
         TG_vector<F_cluster_header> cluster_headers;
         TG_vector<f32> cluster_errors;
         TG_vector<F_cluster_node_header> cluster_node_headers;
+        TG_vector<F_box_f32> cluster_bboxes;
+        TG_vector<F_cluster_hierarchical_culling_data> cluster_hierarchical_culling_datas;
         TG_vector<F_cluster_level_header> cluster_level_headers;
-
-        TG_vector<F_cluster_header> dag_sorted_cluster_headers;
-        TG_vector<f32> dag_sorted_cluster_errors;
-        TG_vector<F_cluster_culling_data> dag_sorted_cluster_culling_datas;
-        TG_vector<F_dag_node_header> dag_node_headers;
-        TG_vector<F_cluster_id_range> dag_sorted_cluster_id_ranges;
-        TG_vector<F_dag_node_culling_data> dag_node_culling_datas;
-        TG_vector<F_dag_level_header> dag_level_headers;
 
         F_unified_mesh_culling_data culling_data;
     };
@@ -76,11 +63,10 @@ namespace nre::newrg
 
         // each cluster, its vertex offset, local cluster triangle vertex id offset is belong to a subpage
         TG_vector<F_cluster_header> cluster_headers;
-        TG_vector<F_cluster_culling_data> cluster_culling_datas;
-        TG_vector<F_dag_node_header> dag_node_headers;
-        TG_vector<F_cluster_id_range> dag_cluster_id_ranges;
-        TG_vector<F_dag_node_culling_data> dag_node_culling_datas;
-        TG_vector<F_dag_level_header> dag_level_headers;
+        TG_vector<F_cluster_node_header> cluster_node_headers;
+        TG_vector<F_box_f32> cluster_bboxes;
+        TG_vector<F_cluster_hierarchical_culling_data> cluster_hierarchical_culling_datas;
+        TG_vector<F_cluster_level_header> cluster_level_headers;
 
         TG_vector<u32> subpage_vertex_counts;
         TG_vector<u32> subpage_local_cluster_triangle_vertex_id_counts;

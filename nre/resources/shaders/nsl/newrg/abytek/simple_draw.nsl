@@ -43,8 +43,8 @@ struct F_mesh_vertex_data(
 // import(newrg/abytek/view.nsh)
 
 // @slot(0 1)
-// resource dag_node_culling_datas(
-//     StructuredBuffer(F_dag_node_culling_data)
+// resource cluster_hierarchical_culling_datas(
+//     StructuredBuffer(F_cluster_hierarchical_culling_data)
 //     -1
 // )
 

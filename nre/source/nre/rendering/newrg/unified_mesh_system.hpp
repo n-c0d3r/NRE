@@ -58,21 +58,11 @@ namespace nre::newrg
         TG_queue<TK<F_unified_mesh>> upload_subpage_header_queue_;
         TG_queue<F_unified_mesh_evict_subpages_params> deregister_subpage_header_queue_;
 
-        using F_cluster_table = TF_general_gpu_data_table<F_cluster_header, F_cluster_culling_data>;
+        using F_cluster_table = TF_general_gpu_data_table<F_cluster_header, F_box_f32, F_cluster_hierarchical_culling_data>;
         F_cluster_table cluster_table_;
         TG_queue<TK<F_unified_mesh>> register_cluster_queue_;
         TG_queue<TK<F_unified_mesh>> upload_cluster_queue_;
         TG_queue<u32> deregister_cluster_queue_;
-
-        using F_dag_table = TF_general_gpu_data_table<
-            F_dag_node_header,
-            F_dag_node_culling_data,
-            F_cluster_id_range
-        >;
-        F_dag_table dag_table_;
-        TG_queue<TK<F_unified_mesh>> register_dag_queue_;
-        TG_queue<TK<F_unified_mesh>> upload_dag_queue_;
-        TG_queue<u32> deregister_dag_queue_;
 
         using F_vertex_data_table = TF_general_gpu_data_table<F_compressed_vertex_data>;
         TF_general_gpu_data_table<F_compressed_vertex_data> vertex_data_table_;
@@ -95,16 +85,9 @@ namespace nre::newrg
         F_subpage_header_table_render_bind_list* subpage_header_table_render_bind_list_p_ = 0;
 
         using F_cluster_table_render_bind_list = TF_general_gpu_data_table_render_bind_list<
-            F_cluster_header, F_cluster_culling_data
+            F_cluster_header, F_box_f32, F_cluster_hierarchical_culling_data
         >;
         F_cluster_table_render_bind_list* cluster_table_render_bind_list_p_ = 0;
-
-        using F_dag_table_render_bind_list = TF_general_gpu_data_table_render_bind_list<
-            F_dag_node_header,
-            F_dag_node_culling_data,
-            F_cluster_id_range
-        >;
-        F_dag_table_render_bind_list* dag_table_render_bind_list_p_ = 0;
 
         using F_vertex_data_table_render_bind_list = TF_general_gpu_data_table_render_bind_list<
             F_compressed_vertex_data
@@ -120,14 +103,12 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& mesh_table() const noexcept { return mesh_table_; }
         NCPP_FORCE_INLINE const auto& subpage_header_table() const noexcept { return subpage_header_table_; }
         NCPP_FORCE_INLINE const auto& cluster_table() const noexcept { return cluster_table_; }
-        NCPP_FORCE_INLINE const auto& dag_table() const noexcept { return dag_table_; }
         NCPP_FORCE_INLINE const auto& vertex_data_table() const noexcept { return vertex_data_table_; }
         NCPP_FORCE_INLINE const auto& triangle_vertex_id_table() const noexcept { return triangle_vertex_id_table_; }
 
         NCPP_FORCE_INLINE const auto& mesh_table_render_bind_list() const noexcept { return *mesh_table_render_bind_list_p_; }
         NCPP_FORCE_INLINE const auto& subpage_header_table_render_bind_list() const noexcept { return *subpage_header_table_render_bind_list_p_; }
         NCPP_FORCE_INLINE const auto& cluster_table_render_bind_list() const noexcept { return *cluster_table_render_bind_list_p_; }
-        NCPP_FORCE_INLINE const auto& dag_table_render_bind_list() const noexcept { return *dag_table_render_bind_list_p_; }
         NCPP_FORCE_INLINE const auto& vertex_data_table_render_bind_list() const noexcept { return *vertex_data_table_render_bind_list_p_; }
         NCPP_FORCE_INLINE const auto& triangle_vertex_id_table_render_bind_list() const noexcept { return *triangle_vertex_id_table_render_bind_list_p_; }
 
@@ -164,3 +145,16 @@ namespace nre::newrg
 
 
 #define NRE_NEWRG_UNIFIED_MESH_SYSTEM() nre::newrg::F_unified_mesh_system::instance_p()
+
+#define NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_HEADER 0
+#define NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_CULLING_DATA 1
+
+#define NRE_NEWRG_UNIFIED_MESH_SYSTEM_SUBPAGE_HEADER_TABLE_ROW_INDEX_HEADER 0
+
+#define NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HEADER 0
+#define NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_BBOX 1
+#define NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HIERARCHICAL_CULLING_DATA 2
+
+#define NRE_NEWRG_UNIFIED_MESH_SYSTEM_VERTEX_DATA_TABLE_ROW_INDEX_DATA 0
+
+#define NRE_NEWRG_UNIFIED_MESH_SYSTEM_TRIANGLE_VERTEX_ID_TABLE_ROW_INDEX_ID 0
