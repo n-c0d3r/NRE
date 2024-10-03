@@ -62,7 +62,7 @@ namespace nre::newrg
     public:
         struct F_draw_instance_bboxes_options
         {
-            b8 enable = true;
+            b8 enable = false;
             F_vector3_f32 color = F_vector3_f32::up();
         };
         struct F_draw_instance_bbox_global_options_data
@@ -78,7 +78,7 @@ namespace nre::newrg
 
         struct F_draw_cluster_bboxes_options
         {
-            b8 enable = true;
+            b8 enable = false;
             u32 level = 0;
             F_vector3_f32 color = F_vector3_f32::forward();
         };
@@ -96,7 +96,7 @@ namespace nre::newrg
 
         struct F_draw_cluster_hierarchical_bboxes_options
         {
-            b8 enable = true;
+            b8 enable = false;
             u32 level = 0;
             F_vector3_f32 color = { 0.0f, 1.0f, 0.75f };
         };
@@ -114,7 +114,7 @@ namespace nre::newrg
 
         struct F_draw_cluster_outer_error_spheres_options
         {
-            b8 enable = true;
+            b8 enable = false;
             u32 level = 0;
             F_vector3_f32 color = F_vector3_f32::right();
         };
@@ -132,7 +132,7 @@ namespace nre::newrg
 
         struct F_draw_cluster_error_spheres_options
         {
-            b8 enable = true;
+            b8 enable = false;
             u32 level = 0;
             F_vector3_f32 color = { 1.0f, 0.5f, 0.0f };
         };
