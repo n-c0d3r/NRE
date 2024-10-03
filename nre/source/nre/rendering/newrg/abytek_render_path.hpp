@@ -32,6 +32,9 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> expand_instances_shader_asset_p_;
         K_compute_pipeline_state_handle expand_instances_pso_p_;
 
+        TS<F_nsl_shader_asset> simple_draw_shader_asset_p_;
+        K_graphics_pipeline_state_handle simple_draw_pso_p_;
+
         TS<F_nsl_shader_asset> draw_instance_bbox_shader_asset_p_;
         K_graphics_pipeline_state_handle draw_instance_bbox_pso_p_;
 
@@ -138,6 +141,7 @@ namespace nre::newrg
         struct F_draw_dag_node_error_sphere_per_object_options_data
         {
             F_matrix4x4_f32 local_to_world_matrix;
+            F_matrix4x4_f32 world_to_local_matrix;
             u32 dag_node_offset;
             u32 dag_node_count;
         };
@@ -150,6 +154,9 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto expand_instances_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_instances_shader_asset_p_); }
         NCPP_FORCE_INLINE auto expand_instances_pso_p() const noexcept { return NCPP_FOH_VALID(expand_instances_pso_p_); }
+
+        NCPP_FORCE_INLINE auto simple_draw_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto simple_draw_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_pso_p_); }
 
         NCPP_FORCE_INLINE auto draw_instance_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_shader_asset_p_); }
         NCPP_FORCE_INLINE auto draw_instance_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_pso_p_); }

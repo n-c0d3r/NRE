@@ -12,6 +12,7 @@
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/render_primitive_data_pool.hpp>
 #include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
+#include <nre/rendering/newrg/abytek_simple_draw_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_instance_bbox_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_instance_error_sphere_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_dag_node_bbox_binder_signature.hpp>
@@ -54,6 +55,7 @@ namespace nre::newrg
 
         // register binder signatures
         F_binder_signature_manager::instance_p()->T_register<F_abytek_expand_instances_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_simple_draw_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_draw_instance_bbox_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_draw_instance_error_sphere_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_draw_dag_node_bbox_binder_signature>();
@@ -92,6 +94,11 @@ namespace nre::newrg
                 "shaders/nsl/newrg/abytek/expand_instances.nsl"
             ).T_cast<F_nsl_shader_asset>();
             expand_instances_pso_p_ = { expand_instances_shader_asset_p_->pipeline_state_p_vector()[0] };
+
+            simple_draw_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/simple_draw.nsl"
+            ).T_cast<F_nsl_shader_asset>();
+            simple_draw_pso_p_ = { simple_draw_shader_asset_p_->pipeline_state_p_vector()[0] };
 
             draw_instance_bbox_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
                 "shaders/nsl/newrg/abytek/draw_instance_bbox.nsl"
@@ -838,9 +845,9 @@ namespace nre::newrg
                 auto& transform_node_p = material_p->transform_node_p();
 
                 F_draw_dag_node_bbox_per_object_options_data per_object_options_data = {
-                    per_object_options_data.local_to_world_matrix = transform_node_p->local_to_world_matrix(),
-                    per_object_options_data.dag_node_offset = mesh_header.dag_node_offset + dag_level_header.begin,
-                    per_object_options_data.dag_node_count = dag_level_header.end - dag_level_header.begin
+                    .local_to_world_matrix = transform_node_p->local_to_world_matrix(),
+                    .dag_node_offset = mesh_header.dag_node_offset + dag_level_header.begin,
+                    .dag_node_count = dag_level_header.end - dag_level_header.begin
                 };
 
                 TF_render_uniform_batch<F_draw_dag_node_bbox_per_object_options_data> per_object_options_uniform_batch = {
@@ -1008,9 +1015,9 @@ namespace nre::newrg
                 auto& transform_node_p = material_p->transform_node_p();
 
                 F_draw_dag_node_outer_error_sphere_per_object_options_data per_object_options_data = {
-                    per_object_options_data.local_to_world_matrix = transform_node_p->local_to_world_matrix(),
-                    per_object_options_data.dag_node_offset = mesh_header.dag_node_offset + dag_level_header.begin,
-                    per_object_options_data.dag_node_count = dag_level_header.end - dag_level_header.begin
+                    .local_to_world_matrix = transform_node_p->local_to_world_matrix(),
+                    .dag_node_offset = mesh_header.dag_node_offset + dag_level_header.begin,
+                    .dag_node_count = dag_level_header.end - dag_level_header.begin
                 };
 
                 TF_render_uniform_batch<F_draw_dag_node_outer_error_sphere_per_object_options_data> per_object_options_uniform_batch = {
@@ -1177,10 +1184,14 @@ namespace nre::newrg
 
                 auto& transform_node_p = material_p->transform_node_p();
 
+                F_matrix4x4_f32 local_to_world_matrix = transform_node_p->local_to_world_matrix();
+                F_matrix4x4_f32 world_to_local_matrix = invert(local_to_world_matrix);
+
                 F_draw_dag_node_error_sphere_per_object_options_data per_object_options_data = {
-                    per_object_options_data.local_to_world_matrix = transform_node_p->local_to_world_matrix(),
-                    per_object_options_data.dag_node_offset = mesh_header.dag_node_offset + dag_level_header.begin,
-                    per_object_options_data.dag_node_count = dag_level_header.end - dag_level_header.begin
+                    .local_to_world_matrix = local_to_world_matrix,
+                    .world_to_local_matrix = world_to_local_matrix,
+                    .dag_node_offset = mesh_header.dag_node_offset + dag_level_header.begin,
+                    .dag_node_count = dag_level_header.end - dag_level_header.begin
                 };
 
                 TF_render_uniform_batch<F_draw_dag_node_error_sphere_per_object_options_data> per_object_options_uniform_batch = {

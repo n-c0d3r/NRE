@@ -978,12 +978,16 @@ namespace nre::newrg
                                 auto& vertex_data = data.vertex_datas[vertex_id];
 
                                 outer_error_sphere = outer_error_sphere.expand(vertex_data.position);
-                                local_error_sphere = local_error_sphere.expand(vertex_data.position);
+                                // local_error_sphere = local_error_sphere.expand(vertex_data.position);
+                                local_error_sphere = {
+                                    local_error_sphere.center(),
+                                    local_error_sphere.radius()
+                                    + length(vertex_data.position - local_error_sphere.center())
+                                };
                             }
 
                             error_factor += data.dag_sorted_cluster_errors[dag_sorted_cluster_id];
-
-                            error_radius += local_error_sphere.radius();
+                            error_radius += local_error_sphere.radius() / f32(cluster_header.vertex_count);
                         }
                     }
                     error_factor /= f32(local_dag_sorted_cluster_count);

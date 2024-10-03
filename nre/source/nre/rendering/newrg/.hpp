@@ -16,6 +16,7 @@
 #include <nre/rendering/newrg/abytek_drawable.hpp>
 #include <nre/rendering/newrg/abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/simple_abytek_drawable_material.hpp>
+#include <nre/rendering/newrg/abytek_simple_draw_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_instance_bbox_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_instance_error_sphere_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_dag_node_bbox_binder_signature.hpp>

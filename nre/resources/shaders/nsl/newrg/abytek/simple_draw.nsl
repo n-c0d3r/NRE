@@ -1,0 +1,86 @@
+
+import(newrg/abytek/prerequisites.nsh)
+import(newrg/abytek/geometry_utilities.nsh)
+
+
+
+@classification(PER_VERTEX_DATA)
+semantic VERTEX_POSITION(float3)
+
+
+
+struct F_mesh_vertex_data(
+    vertex_position(VERTEX_POSITION)
+    clip_position(SV_POSITION)
+)
+
+
+
+// @slot(0 0)
+// resource global_options(
+//     ConstantBuffer
+// )
+// uniform color(
+//     float3
+// )
+
+// @slot(1 0)
+// resource per_object_options(
+//     ConstantBuffer
+// )
+// uniform local_to_world_matrix(
+//     float4x4
+// )
+// uniform cluster_offset(
+//     u32
+// )
+// uniform cluster_count(
+//     u32
+// )
+
+// define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(2)
+// define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(0)
+// import(newrg/abytek/view.nsh)
+
+// @slot(0 1)
+// resource dag_node_culling_datas(
+//     StructuredBuffer(F_dag_node_culling_data)
+//     -1
+// )
+
+
+
+@thread_group_size(
+    NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER
+    1
+    1
+)
+mesh_shader MS(
+    group_thread_id(SV_GROUP_THREAD_ID)
+    group_id(SV_GROUP_ID)
+    @indices
+    out triangles(u32x3 124)
+    @vertices
+    out vertex_positions(F_mesh_vertex_data 124)
+)
+{
+    SetMeshOutputCounts(1, 1);
+
+    triangles[0] = uint3(0, 0, 0);
+
+    vertex_positions[0].vertex_position = float3(0, 0, 0);
+    vertex_positions[0].clip_position = float4(0, 0, 0, 1);
+}
+pixel_shader PS(
+    out out_color(SV_TARGET)
+)
+{
+    out_color = float4(1, 1, 1, 1);
+}
+
+@root_signature(NRE_NEWRG_ABYTEK_SIMPLE_DRAW_BINDER_SIGNATURE)
+@rasterizer(
+    cull_mode(NONE)
+    fill_mode(SOLID)
+)
+pipeline_state PSO(MS PS)

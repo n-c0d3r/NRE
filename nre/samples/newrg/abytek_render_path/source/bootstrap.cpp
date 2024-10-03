@@ -23,9 +23,9 @@ int main() {
 	render_path_p->draw_instance_error_spheres_options.enable = false;
 	render_path_p->draw_dag_node_bboxes_options.enable = false;
 	render_path_p->draw_dag_node_outer_error_spheres_options.enable = true;
-	render_path_p->draw_dag_node_outer_error_spheres_options.level = 6;
+	render_path_p->draw_dag_node_outer_error_spheres_options.level = 3;
 	render_path_p->draw_dag_node_error_spheres_options.enable = true;
-	render_path_p->draw_dag_node_error_spheres_options.level = 6;
+	render_path_p->draw_dag_node_error_spheres_options.level = 3;
 
 
 
