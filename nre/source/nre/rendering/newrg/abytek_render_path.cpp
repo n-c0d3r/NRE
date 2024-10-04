@@ -547,11 +547,11 @@ namespace nre::newrg
                 if(instance_id == NCPP_U32_MAX)
                     return;
 
-                u16 mesh_id = render_primitive_data_table.T_element<
+                u32 mesh_id = render_primitive_data_table.T_element<
                     NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID
                 >(instance_id);
 
-                if(mesh_id == NCPP_U16_MAX)
+                if(mesh_id == NCPP_U32_MAX)
                     return;
 
                 const F_unified_mesh_culling_data& mesh_culling_data = mesh_table.T_element<NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_CULLING_DATA>(mesh_id);

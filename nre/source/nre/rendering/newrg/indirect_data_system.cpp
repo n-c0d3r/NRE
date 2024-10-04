@@ -16,7 +16,8 @@ namespace nre::newrg
             | ED_resource_flag::SHADER_RESOURCE
             | ED_resource_flag::STRUCTURED,
             NRE_NEWRG_MAX_INDIRECT_COMMAND_COUNT,
-            NRE_NEWRG_MAX_INDIRECT_COMMAND_COUNT
+            NRE_NEWRG_MAX_INDIRECT_COMMAND_COUNT,
+            NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.indirect_data_system")
         )
     {

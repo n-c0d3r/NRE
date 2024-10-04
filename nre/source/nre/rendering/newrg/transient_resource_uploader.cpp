@@ -107,17 +107,6 @@ namespace nre::newrg
             return;
         }
 
-        // for constant buffer views
-        if(
-            flag_is_has(
-                resource_flags_,
-                ED_resource_flag::CONSTANT_BUFFER
-            )
-        )
-        {
-            total_upload_heap_size_.fetch_add(NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT);
-        }
-
         //
         upload_resource_p_ = render_graph_p->create_resource(
             H_resource_desc::create_buffer_desc(
@@ -173,7 +162,7 @@ namespace nre::newrg
 
         sz actual_alignment = align_size(alignment, min_alignment_);
 
-        sz actual_size = data.size() + actual_alignment;
+        sz actual_size = align_size(data.size(), actual_alignment) + actual_alignment;
 
         sz raw_offset = total_upload_heap_size_.fetch_add(actual_size, eastl::memory_order_acq_rel);
 

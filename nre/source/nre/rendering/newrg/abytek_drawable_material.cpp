@@ -36,7 +36,7 @@ namespace nre::newrg
             {
                 F_render_primitive_data_pool::instance_p()->table().T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(
                     id,
-                    NCPP_U16_MAX
+                    NCPP_U32_MAX
                 );
             }
         );
@@ -95,17 +95,13 @@ namespace nre::newrg
                     {
                         mesh_id = mesh_p->last_frame_id();
                     }
-                    NCPP_ASSERT(
-                        (mesh_id == NCPP_U32_MAX)
-                        || (mesh_id < NCPP_U16_MAX)
-                    );
 
                     auto& last_mesh_id = table.T_element<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(render_primitive_data_id_);
                     if(last_mesh_id != mesh_id)
                     {
                         table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(
                             render_primitive_data_id_,
-                            (u16)mesh_id
+                            mesh_id
                         );
                     }
                 }
@@ -124,11 +120,11 @@ namespace nre::newrg
                     auto& table = render_primitive_data_pool_p->table();
 
                     auto& last_mesh_id = table.T_element<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(render_primitive_data_id_);
-                    if(last_mesh_id != NCPP_U16_MAX)
+                    if(last_mesh_id != NCPP_U32_MAX)
                     {
                         table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(
                             render_primitive_data_id_,
-                            NCPP_U16_MAX
+                            NCPP_U32_MAX
                         );
                     }
                 }

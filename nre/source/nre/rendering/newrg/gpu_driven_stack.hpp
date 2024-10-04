@@ -18,6 +18,7 @@ namespace nre::newrg
     private:
         ED_resource_flag resource_flags_ = ED_resource_flag::NONE;
         F_render_resource* target_resource_p_ = 0;
+        sz min_alignment_;
 
         F_render_resource* upload_resource_p_ = 0;
         F_render_pass* upload_pass_p_ = 0;
@@ -48,6 +49,7 @@ namespace nre::newrg
     public:
         NCPP_FORCE_INLINE ED_resource_flag resource_flags() const noexcept { return resource_flags_; }
         NCPP_FORCE_INLINE F_render_resource* target_resource_p() const noexcept { return target_resource_p_; }
+        NCPP_FORCE_INLINE sz min_alignment() const noexcept { return min_alignment_; }
 
         NCPP_FORCE_INLINE sz resource_size() const noexcept { return resource_size_.load(eastl::memory_order_acquire); }
 
@@ -61,8 +63,9 @@ namespace nre::newrg
         F_gpu_driven_stack(
             ED_resource_flag resource_flags,
             u32 add_resource_state_stack_capacity,
-            u32 initial_value_stack_capacity
-            NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name)
+            u32 initial_value_stack_capacity,
+            sz min_alignment = 1
+            NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name = "")
         );
         virtual ~F_gpu_driven_stack();
 

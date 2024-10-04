@@ -86,8 +86,8 @@ struct F_mesh_subpage_header(
     index_offset(u32)
 )
 
-define F_mesh_id(u16)
-define INVALID_MESH_ID(0xFFFF)
+define F_mesh_id(u32)
+define INVALID_MESH_ID(0xFFFFFFFF)
 
 
 

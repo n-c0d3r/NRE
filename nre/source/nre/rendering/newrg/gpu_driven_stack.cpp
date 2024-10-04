@@ -7,12 +7,14 @@ namespace nre::newrg
     F_gpu_driven_stack::F_gpu_driven_stack(
         ED_resource_flag resource_flags,
         u32 add_resource_state_stack_capacity,
-        u32 initial_value_stack_capacity
+        u32 initial_value_stack_capacity,
+        sz min_alignment
         NRE_OPTIONAL_DEBUG_PARAM(const F_debug_name& name)
     ) :
         resource_flags_(resource_flags),
         add_resource_state_stack_(add_resource_state_stack_capacity),
-        initial_value_stack_(initial_value_stack_capacity)
+        initial_value_stack_(initial_value_stack_capacity),
+        min_alignment_(min_alignment)
         NRE_OPTIONAL_DEBUG_PARAM(name_(name))
     {
     }
@@ -104,17 +106,6 @@ namespace nre::newrg
             return;
         }
 
-        // for constant buffer views
-        if(
-            flag_is_has(
-                resource_flags_,
-                ED_resource_flag::CONSTANT_BUFFER
-            )
-        )
-        {
-            resource_size_.fetch_add(NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT);
-        }
-
         //
         render_graph_p->finalize_resource_creation(
             target_resource_p_,
@@ -171,10 +162,13 @@ namespace nre::newrg
 
     sz F_gpu_driven_stack::push(sz size, sz alignment, sz alignment_offset)
     {
-        sz actual_size = size + alignment;
-        sz raw_offset = resource_size_.fetch_add(actual_size, eastl::memory_order_relaxed);
+        sz actual_alignment = align_size(alignment, min_alignment_);
+        sz actual_size = align_size(size, actual_alignment) + actual_alignment;
+
+        sz raw_offset = resource_size_.fetch_add(actual_size, eastl::memory_order_acq_rel);
+
         return (
-            align_address(raw_offset + alignment_offset, alignment)
+            align_address(raw_offset + alignment_offset, actual_alignment)
             - alignment_offset
         );
     }

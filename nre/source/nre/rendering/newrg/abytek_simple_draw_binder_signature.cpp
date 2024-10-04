@@ -12,6 +12,53 @@ namespace nre::newrg
         A_binder_signature(
             {
                 .param_descs = {
+                    F_root_param_desc(
+                        F_root_descriptor_table_desc {
+                            .range_descs = {
+                                F_descriptor_range_desc {
+                                    .type = ED_descriptor_range_type::CONSTANT_BUFFER,
+                                    .descriptor_count = 3,
+                                    .register_space = 0
+                                }
+                            }
+                        }
+                    ),
+                    F_root_param_desc(
+                        F_root_descriptor_table_desc {
+                            .range_descs = {
+                                F_descriptor_range_desc {
+                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
+                                    .descriptor_count = u32(-1),
+                                    .register_space = 1
+                                }
+                            }
+                        },
+                        ED_shader_visibility::MESH
+                    ),
+                    F_root_param_desc(
+                        F_root_descriptor_table_desc {
+                            .range_descs = {
+                                F_descriptor_range_desc {
+                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
+                                    .descriptor_count = u32(-1),
+                                    .register_space = 2
+                                }
+                            }
+                        },
+                        ED_shader_visibility::MESH
+                    ),
+                    F_root_param_desc(
+                        F_root_descriptor_table_desc {
+                            .range_descs = {
+                                F_descriptor_range_desc {
+                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
+                                    .descriptor_count = u32(-1),
+                                    .register_space = 3
+                                }
+                            }
+                        },
+                        ED_shader_visibility::MESH
+                    )
                 }
             },
             "NRE_NEWRG_ABYTEK_SIMPLE_DRAW_BINDER_SIGNATURE"
