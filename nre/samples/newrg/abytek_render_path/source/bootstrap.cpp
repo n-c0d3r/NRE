@@ -21,7 +21,7 @@ int main() {
 
 	auto render_path_p = TU<F_abytek_render_path>()();
 	render_path_p->simple_draw_options.enable = true;
-	render_path_p->simple_draw_options.level = 0;
+	render_path_p->simple_draw_options.level = 1;
 
 
 

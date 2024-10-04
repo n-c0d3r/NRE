@@ -111,7 +111,8 @@ mesh_shader MS(
         mesh_id % NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
     ];
 
-    F_cluster_id cluster_id = mesh_header.cluster_offset + local_cluster_offset + group_id.x;
+    F_cluster_id local_cluster_id = local_cluster_offset + group_id.x;
+    F_cluster_id cluster_id = mesh_header.cluster_offset + local_cluster_id;
 
     F_cluster_header cluster_header = cluster_headers[
         cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
@@ -119,7 +120,7 @@ mesh_shader MS(
         cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
     ];
 
-    u32 subpage_id = mesh_header.subpage_offset + group_id.x / NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS;
+    u32 subpage_id = mesh_header.subpage_offset + local_cluster_id / NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS;
     F_mesh_subpage_header subpage_header = subpage_headers[
         subpage_id / NRE_NEWRG_UNIFIED_MESH_SUBPAGE_HEADER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
     ][
@@ -132,7 +133,7 @@ mesh_shader MS(
 
     if(group_thread_id.x < triangle_count)
     {
-        uint index_offset = subpage_header.index_offset + cluster_header.local_triangle_vertex_id_offset + group_thread_id.x * 3;
+        uint index_offset = subpage_header.index_offset + (uint)(cluster_header.local_triangle_vertex_id_offset) + group_thread_id.x * 3;
 
         Buffer<uint> index_buffer = triangle_vertex_ids[index_offset / NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS];
 
