@@ -136,11 +136,27 @@ namespace nre::newrg
 
             // create first depth pyramid
             {
-                F_vector2_u32 depth_pyramid_size = element_max(
-                    F_vector2_u32 {
-                        (u32)round_down_to_power_of_two(texture_size.x),
-                        (u32)round_down_to_power_of_two(texture_size.y)
-                    },
+                F_vector2_u32 depth_pyramid_size;
+
+                f32 aspect_ratio = f32(texture_size.x) / f32(texture_size.y);
+
+                if(texture_size.x > texture_size.y)
+                {
+                    depth_pyramid_size.x = round_down_to_power_of_two(texture_size.x);
+                    depth_pyramid_size.y = round_down_to_power_of_two(
+                        f32(depth_pyramid_size.x) / aspect_ratio
+                    );
+                }
+                else
+                {
+                    depth_pyramid_size.y = round_down_to_power_of_two(texture_size.y);
+                    depth_pyramid_size.x = round_down_to_power_of_two(
+                        f32(depth_pyramid_size.y) * aspect_ratio
+                    );
+                }
+
+                depth_pyramid_size = element_max(
+                    depth_pyramid_size,
                     F_vector2_u32::one()
                 );
 
