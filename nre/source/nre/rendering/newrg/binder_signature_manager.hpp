@@ -46,9 +46,6 @@ namespace nre::newrg
         NCPP_OBJECT(F_binder_signature_manager);
 
     public:
-        void install();
-
-    public:
         template<class F_signature__>
         TK_valid<F_signature__> T_register(auto&&... args)
         {

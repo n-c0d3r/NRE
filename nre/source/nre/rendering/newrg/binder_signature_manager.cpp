@@ -22,19 +22,7 @@ namespace nre::newrg
         T_register<F_binder_signature_all_1cbv>();
         T_register<F_binder_signature_vs_1cbv_ps_1cbv>();
         T_register<F_binder_signature_vs_16cbv_ps_16cbv>();
-    }
-    F_binder_signature_manager::~F_binder_signature_manager()
-    {
-        for(auto it = owned_signature_p_vector_.rbegin(); it != owned_signature_p_vector_.rend(); ++it)
-        {
-            it->reset();
-        }
-    }
 
-
-
-    void F_binder_signature_manager::install()
-    {
         F_nsl_shader_system::instance_p()->install_custom_create_pipeline_states(
             [this](F_nsl_compiled_result& compiled_result)
             ->TG_vector<TU<A_pipeline_state>>
@@ -46,5 +34,12 @@ namespace nre::newrg
                 );
             }
         );
+    }
+    F_binder_signature_manager::~F_binder_signature_manager()
+    {
+        for(auto it = owned_signature_p_vector_.rbegin(); it != owned_signature_p_vector_.rend(); ++it)
+        {
+            it->reset();
+        }
     }
 }

@@ -1,0 +1,39 @@
+
+import(nrhi)
+
+
+
+@slot(0)
+resource options(
+    ConstantBuffer
+)
+uniform mip_level_count(
+    u32
+)
+
+@slot(0)
+resource in_mip(
+    Texture2D(float)
+)
+
+@slot(0)
+resource out_mips(
+    RWTexture2D(float)
+    NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND
+)
+
+
+
+@thread_group_size(
+    16
+    16
+    1
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+}
+
+@root_signature(NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND)
+pipeline_state PSO(CS)

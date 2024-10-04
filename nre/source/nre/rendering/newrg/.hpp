@@ -25,6 +25,9 @@
 #include <nre/rendering/newrg/abytek_expand_instances_binder_signature.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/external_render_depth_pyramid.hpp>
+#include <nre/rendering/newrg/render_depth_pyramid_system.hpp>
+#include <nre/rendering/newrg/render_depth_pyramid_copy_from_src_binder_signature.hpp>
+#include <nre/rendering/newrg/render_depth_pyramid_generate_mips_binder_signature.hpp>
 #include <nre/rendering/newrg/render_pass.hpp>
 #include <nre/rendering/newrg/render_pass_id.hpp>
 #include <nre/rendering/newrg/render_resource.hpp>

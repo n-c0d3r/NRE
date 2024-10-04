@@ -13,6 +13,7 @@ namespace nre::newrg
     class F_unified_mesh_system;
     class F_indirect_command_system;
     class F_indirect_data_system;
+    class F_render_depth_pyramid_system;
 
 
 
@@ -41,6 +42,7 @@ namespace nre::newrg
         TU<F_unified_mesh_system> unified_mesh_system_p_;
         TU<F_indirect_command_system> indirect_command_system_p_;
         TU<F_indirect_data_system> indirect_data_system_p_;
+        TU<F_render_depth_pyramid_system> render_depth_pyramid_system_p_;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(

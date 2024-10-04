@@ -117,7 +117,7 @@ namespace nre::newrg
         );
 
         u32 command_count = ceil(
-            f32(mip_level_count)
+            f32(mip_level_count - 1)
             / f32(NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND)
         );
     }

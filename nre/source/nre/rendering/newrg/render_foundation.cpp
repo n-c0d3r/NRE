@@ -10,6 +10,7 @@
 #include <nre/rendering/newrg/unified_mesh_system.hpp>
 #include <nre/rendering/newrg/indirect_command_system.hpp>
 #include <nre/rendering/newrg/indirect_data_system.hpp>
+#include <nre/rendering/newrg/render_depth_pyramid_system.hpp>
 #include <nre/rendering/nsl_shader_system.hpp>
 
 
@@ -28,6 +29,7 @@ namespace nre::newrg
         unified_mesh_system_p_ = TU<F_unified_mesh_system>()();
         indirect_command_system_p_ = TU<F_indirect_command_system>()();
         indirect_data_system_p_ = TU<F_indirect_data_system>()();
+        render_depth_pyramid_system_p_ = TU<F_render_depth_pyramid_system>()();
 
         F_nsl_shader_system::instance_p()->define_global_macro({
             "NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND",
