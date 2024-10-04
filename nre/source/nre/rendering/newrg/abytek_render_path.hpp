@@ -60,6 +60,25 @@ namespace nre::newrg
         TS<F_static_mesh> unit_sphere_2_static_mesh_p_;
 
     public:
+        struct F_simple_draw_options
+        {
+            b8 enable = false;
+            F_vector3_f32 color = F_vector3_f32::up();
+            u32 level = 0;
+        };
+        struct F_simple_draw_global_options_data
+        {
+            F_vector3_f32 color;
+        };
+        struct F_simple_draw_per_object_options_data
+        {
+            F_matrix4x4_f32 local_to_world_matrix;
+            u32 mesh_id;
+            u32 local_cluster_offset;
+            u32 cluster_count;
+        };
+        F_simple_draw_options simple_draw_options;
+
         struct F_draw_instance_bboxes_options
         {
             b8 enable = false;
@@ -220,6 +239,10 @@ namespace nre::newrg
         );
 
     public:
+        void simple_draw(
+            TKPA_valid<F_abytek_scene_render_view> view_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
         void draw_instance_bboxes(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")

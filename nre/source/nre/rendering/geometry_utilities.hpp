@@ -102,11 +102,11 @@ namespace nre
             3 // payload
             + 1 // padding
         ];
-        F_f16_data local_normal_components[
+        F_f16_data normal_components[
             3 // payload
             + 1 // padding
         ];
-        F_f16_data local_tangent_components[
+        F_f16_data tangent_components[
             3 // payload
             + 1 // padding
         ];

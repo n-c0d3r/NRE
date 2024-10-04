@@ -191,6 +191,18 @@ namespace nre::newrg
                     rg_register_view_event_.view_p_ = casted_view_p.no_requirements();
                     rg_register_view_event_.invoke();
 
+                    if(simple_draw_options.enable)
+                    {
+                        simple_draw(
+                            NCPP_FOH_VALID(casted_view_p)
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.simple_draw(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ")"
+                            )
+                        );
+                    }
+
                     if(draw_instance_bboxes_options.enable)
                     {
                         draw_instance_bboxes(
@@ -506,6 +518,263 @@ namespace nre::newrg
         );
     }
 
+    void F_abytek_render_path::simple_draw(
+        TKPA_valid<F_abytek_scene_render_view> view_p
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
+    )
+    {
+        auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
+        auto instance_count = render_primitive_data_pool_p->primitive_count();
+
+        auto& render_primitive_data_table = render_primitive_data_pool_p->table();
+
+        auto unified_mesh_system_p = F_unified_mesh_system::instance_p();
+
+        auto& mesh_table = unified_mesh_system_p->mesh_table();
+        auto& mesh_header_bind_list = unified_mesh_system_p->mesh_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_HEADER
+        ];
+        auto mesh_header_descriptor_element = mesh_header_bind_list[0];
+
+        auto& subpage_header_table = unified_mesh_system_p->subpage_header_table();
+        auto& subpage_header_bind_list = unified_mesh_system_p->subpage_header_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_SUBPAGE_HEADER_TABLE_ROW_INDEX_HEADER
+        ];
+        auto subpage_header_descriptor_element = subpage_header_bind_list[0];
+
+        auto& cluster_table = unified_mesh_system_p->cluster_table();
+        auto& cluster_header_bind_list = unified_mesh_system_p->cluster_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HEADER
+        ];
+        auto cluster_header_descriptor_element = cluster_header_bind_list[0];
+        auto& cluster_bbox_bind_list = unified_mesh_system_p->cluster_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_BBOX
+        ];
+        auto cluster_bbox_descriptor_element = cluster_bbox_bind_list[0];
+
+        auto& vertex_data_table = unified_mesh_system_p->vertex_data_table();
+        auto& vertex_data_bind_list = unified_mesh_system_p->vertex_data_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_VERTEX_DATA_TABLE_ROW_INDEX_DATA
+        ];
+        auto vertex_data_descriptor_element = vertex_data_bind_list[0];
+
+        auto& triangle_vertex_id_table = unified_mesh_system_p->triangle_vertex_id_table();
+        auto& triangle_vertex_id_bind_list = unified_mesh_system_p->triangle_vertex_id_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_TRIANGLE_VERTEX_ID_TABLE_ROW_INDEX_ID
+        ];
+        auto triangle_vertex_id_descriptor_element = triangle_vertex_id_bind_list[0];
+
+        F_simple_draw_global_options_data global_options_data;
+        global_options_data.color = simple_draw_options.color;
+
+        TF_render_uniform_batch<F_simple_draw_global_options_data> global_options_uniform_batch = {
+            F_uniform_transient_resource_uploader::instance_p()->T_enqueue_upload(
+                global_options_data
+            )
+        };
+
+        H_abytek_drawable_material::T_for_each(
+            [
+                this,
+                view_p,
+                &render_primitive_data_table,
+                &mesh_table,
+                &mesh_header_descriptor_element,
+                &subpage_header_table,
+                &subpage_header_descriptor_element,
+                &cluster_table,
+                &cluster_header_descriptor_element,
+                &cluster_bbox_descriptor_element,
+                &vertex_data_table,
+                &vertex_data_descriptor_element,
+                &triangle_vertex_id_table,
+                &triangle_vertex_id_descriptor_element,
+                global_options_uniform_batch
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            ](TKPA_valid<A_abytek_drawable_material> material_p)
+            {
+                u32 instance_id = material_p->render_primitive_data_id();
+
+                if(instance_id == NCPP_U32_MAX)
+                    return;
+
+                const auto& drawable_p = material_p->drawable_p();
+
+                const auto& mesh_p = drawable_p->mesh_p;
+                if(!mesh_p)
+                    return;
+
+                const auto& compressed_data = mesh_p->compressed_data();
+                if(!compressed_data)
+                    return;
+
+                auto mesh_id = mesh_p->last_frame_id();
+                if(mesh_id == NCPP_U32_MAX)
+                    return;
+
+                const auto& cluster_level_headers = compressed_data.cluster_level_headers;
+                const auto& cluster_level_header = cluster_level_headers[simple_draw_options.level];
+
+                auto& transform_node_p = material_p->transform_node_p();
+
+                F_simple_draw_per_object_options_data per_object_options_data;
+                per_object_options_data.local_to_world_matrix = transform_node_p->local_to_world_matrix();
+                per_object_options_data.mesh_id = mesh_id;
+                per_object_options_data.local_cluster_offset = cluster_level_header.begin;
+                per_object_options_data.cluster_count = cluster_level_header.end - cluster_level_header.begin;
+
+                TF_render_uniform_batch<F_simple_draw_per_object_options_data> per_object_options_uniform_batch = {
+                    F_uniform_transient_resource_uploader::instance_p()->T_enqueue_upload(
+                        per_object_options_data
+                    )
+                };
+
+                F_render_bind_list main_render_bind_list(
+                    ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
+                    3
+                    NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
+                );
+                global_options_uniform_batch.enqueue_initialize_cbv(
+                    main_render_bind_list[0]
+                );
+                per_object_options_uniform_batch.enqueue_initialize_cbv(
+                    main_render_bind_list[1]
+                );
+                view_p->rg_data_batch().enqueue_initialize_cbv(
+                    main_render_bind_list[2]
+                );
+
+                auto main_descriptor_element = main_render_bind_list[0];
+
+                F_render_pass* pass_p = H_render_pass::dispatch_mesh(
+                    [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+                    {
+                        command_list_p->ZG_bind_root_signature(
+                            F_abytek_simple_draw_binder_signature::instance_p()->root_signature_p()
+                        );
+                        command_list_p->ZG_bind_root_descriptor_table(
+                            0,
+                            main_descriptor_element.handle().gpu_address
+                        );
+                        command_list_p->ZG_bind_root_descriptor_table(
+                            1,
+                            mesh_header_descriptor_element.handle().gpu_address
+                        );
+                        command_list_p->ZG_bind_root_descriptor_table(
+                            2,
+                            subpage_header_descriptor_element.handle().gpu_address
+                        );
+                        command_list_p->ZG_bind_root_descriptor_table(
+                            3,
+                            cluster_header_descriptor_element.handle().gpu_address
+                        );
+                        command_list_p->ZG_bind_root_descriptor_table(
+                            4,
+                            cluster_bbox_descriptor_element.handle().gpu_address
+                        );
+                        command_list_p->ZG_bind_root_descriptor_table(
+                            5,
+                            vertex_data_descriptor_element.handle().gpu_address
+                        );
+                        command_list_p->ZG_bind_root_descriptor_table(
+                            6,
+                            triangle_vertex_id_descriptor_element.handle().gpu_address
+                        );
+                        command_list_p->ZRS_bind_viewport({
+                            .max_xy = view_p->size()
+                        });
+                        command_list_p->ZOM_bind_frame_buffer(
+                            NCPP_FOH_VALID(
+                                view_p->rg_main_frame_buffer_p()->rhi_p()
+                            )
+                        );
+                        command_list_p->ZG_bind_pipeline_state(
+                            NCPP_FOH_VALID(simple_draw_pso_p_)
+                        );
+                    },
+                    {
+                        cluster_level_header.end - cluster_level_header.begin,
+                        1,
+                        1
+                    },
+                    0
+                    NRE_OPTIONAL_DEBUG_PARAM(
+                        name
+                        + ".draw_passes["
+                        + material_p->actor_p()->name().c_str()
+                        + "]"
+                    )
+                );
+
+                mesh_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_HEADER>(
+                    [&](F_render_resource* rg_page_p)
+                    {
+                        pass_p->add_resource_state({
+                            .resource_p = rg_page_p,
+                            .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                        });
+                    }
+                );
+                subpage_header_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_SUBPAGE_HEADER_TABLE_ROW_INDEX_HEADER>(
+                    [&](F_render_resource* rg_page_p)
+                    {
+                        pass_p->add_resource_state({
+                            .resource_p = rg_page_p,
+                            .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                        });
+                    }
+                );
+                cluster_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HEADER>(
+                    [&](F_render_resource* rg_page_p)
+                    {
+                        pass_p->add_resource_state({
+                            .resource_p = rg_page_p,
+                            .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                        });
+                    }
+                );
+                cluster_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_BBOX>(
+                    [&](F_render_resource* rg_page_p)
+                    {
+                        pass_p->add_resource_state({
+                            .resource_p = rg_page_p,
+                            .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                        });
+                    }
+                );
+                vertex_data_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_VERTEX_DATA_TABLE_ROW_INDEX_DATA>(
+                    [&](F_render_resource* rg_page_p)
+                    {
+                        pass_p->add_resource_state({
+                            .resource_p = rg_page_p,
+                            .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                        });
+                    }
+                );
+                triangle_vertex_id_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_TRIANGLE_VERTEX_ID_TABLE_ROW_INDEX_ID>(
+                    [&](F_render_resource* rg_page_p)
+                    {
+                        pass_p->add_resource_state({
+                            .resource_p = rg_page_p,
+                            .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                        });
+                    }
+                );
+                pass_p->add_resource_state({
+                    .resource_p = F_uniform_transient_resource_uploader::instance_p()->target_resource_p(),
+                    .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+                });
+                pass_p->add_resource_state({
+                    .resource_p = view_p->rg_main_texture_p(),
+                    .states = ED_resource_state::RENDER_TARGET
+                });
+                pass_p->add_resource_state({
+                    .resource_p = view_p->rg_depth_texture_p(),
+                    .states = ED_resource_state::DEPTH_WRITE
+                });
+            }
+        );
+    }
     void F_abytek_render_path::draw_instance_bboxes(
         TKPA_valid<F_abytek_scene_render_view> view_p
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)

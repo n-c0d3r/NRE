@@ -866,26 +866,18 @@ namespace nre::newrg
                     world_to_scaled_local_matrix
                     * F_vector4_f32 { raw_vertex_data.position, 1.0f }
                 ).xyz();
-                F_vector3_f32 local_normal = (
-                    world_to_scaled_local_matrix
-                    * F_vector4_f32 { raw_vertex_data.normal, 1.0f }
-                ).xyz();
-                F_vector3_f32 local_tangent = (
-                    world_to_scaled_local_matrix
-                    * F_vector4_f32 { raw_vertex_data.tangent, 1.0f }
-                ).xyz();
 
                 compressed_vertex_data.local_position_components[0] = format_encode_f32_to_f16_data(local_position.x);
                 compressed_vertex_data.local_position_components[1] = format_encode_f32_to_f16_data(local_position.y);
                 compressed_vertex_data.local_position_components[2] = format_encode_f32_to_f16_data(local_position.z);
 
-                compressed_vertex_data.local_normal_components[0] = format_encode_f32_to_f16_data(local_normal.x);
-                compressed_vertex_data.local_normal_components[1] = format_encode_f32_to_f16_data(local_normal.y);
-                compressed_vertex_data.local_normal_components[2] = format_encode_f32_to_f16_data(local_normal.z);
+                compressed_vertex_data.normal_components[0] = format_encode_f32_to_f16_data(raw_vertex_data.normal.x);
+                compressed_vertex_data.normal_components[1] = format_encode_f32_to_f16_data(raw_vertex_data.normal.y);
+                compressed_vertex_data.normal_components[2] = format_encode_f32_to_f16_data(raw_vertex_data.normal.z);
 
-                compressed_vertex_data.local_tangent_components[0] = format_encode_f32_to_f16_data(local_tangent.x);
-                compressed_vertex_data.local_tangent_components[1] = format_encode_f32_to_f16_data(local_tangent.y);
-                compressed_vertex_data.local_tangent_components[2] = format_encode_f32_to_f16_data(local_tangent.z);
+                compressed_vertex_data.tangent_components[0] = format_encode_f32_to_f16_data(raw_vertex_data.tangent.x);
+                compressed_vertex_data.tangent_components[1] = format_encode_f32_to_f16_data(raw_vertex_data.tangent.y);
+                compressed_vertex_data.tangent_components[2] = format_encode_f32_to_f16_data(raw_vertex_data.tangent.z);
 
                 compressed_vertex_data.texcoord_components[0] = raw_vertex_data.texcoord.x;
                 compressed_vertex_data.texcoord_components[1] = raw_vertex_data.texcoord.y;

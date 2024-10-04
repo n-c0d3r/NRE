@@ -537,5 +537,39 @@ namespace nre::newrg
                 NRE_OPTIONAL_DEBUG_PARAM(name)
             );
         }
+
+    public:
+        template<E_render_pass_flag additional_flags__ = E_render_pass_flag::MAIN_RENDER_WORKER>
+        static F_render_pass* T_dispatch_mesh(
+            auto&& functor,
+            PA_vector3_u32 thread_group_size,
+            F_render_binder_group* binder_group_p = 0
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            return T_raster<additional_flags__>(
+                [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
+                {
+                    functor(pass_p, command_list_p);
+                    command_list_p->async_dispatch_mesh(thread_group_size);
+                },
+                binder_group_p
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+        }
+        NCPP_FORCE_INLINE static F_render_pass* dispatch_mesh(
+            auto&& functor,
+            PA_vector3_u32 thread_group_size,
+            F_render_binder_group* binder_group_p = 0
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            return T_dispatch_mesh(
+                NCPP_FORWARD(functor),
+                thread_group_size,
+                binder_group_p
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+        }
     };
 }

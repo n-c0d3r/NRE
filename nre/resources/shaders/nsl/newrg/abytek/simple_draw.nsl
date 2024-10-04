@@ -4,13 +4,18 @@ import(newrg/abytek/geometry_utilities.nsh)
 
 
 
-@classification(PER_VERTEX_DATA)
-semantic VERTEX_POSITION(float3)
+semantic VERTEX_WORLD_POSITION(float3)
+semantic VERTEX_WORLD_NORMAL(float3)
+semantic VERTEX_WORLD_TANGENT(float3)
+semantic VERTEX_CLUSTER_ID(uint)
 
 
 
 struct F_mesh_vertex_data(
-    vertex_world_position(VERTEX_POSITION)
+    vertex_world_position(VERTEX_WORLD_POSITION)
+    vertex_world_normal(VERTEX_WORLD_NORMAL)
+    vertex_world_tangent(VERTEX_WORLD_TANGENT)
+    vertex_cluster_id(VERTEX_CLUSTER_ID)
     vertex_clip_position(SV_POSITION)
 )
 
@@ -31,7 +36,10 @@ resource per_object_options(
 uniform local_to_world_matrix(
     float4x4
 )
-uniform cluster_offset(
+uniform mesh_id(
+    F_mesh_id
+)
+uniform local_cluster_offset(
     u32
 )
 uniform cluster_count(
@@ -60,6 +68,24 @@ resource cluster_headers(
     -1
 )
 
+@slot(0 4)
+resource cluster_bboxes(
+    StructuredBuffer(F_bbox)
+    -1
+)
+
+@slot(0 5)
+resource vertex_datas(
+    StructuredBuffer(F_vertex_data)
+    -1
+)
+
+@slot(0 6)
+resource triangle_vertex_ids(
+    Buffer(uint)
+    -1
+)
+
 
 
 @thread_group_size(
@@ -76,12 +102,89 @@ mesh_shader MS(
     out out_mesh_vertex_datas(F_mesh_vertex_data 124)
 )
 {
-    SetMeshOutputCounts(1, 1);
+    F_mesh_header mesh_header = mesh_headers[
+        mesh_id / NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        mesh_id % NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ];
 
-    out_mesh_triangles[0] = uint3(0, 0, 0);
+    F_cluster_id cluster_id = mesh_header.cluster_offset + local_cluster_offset + group_id.x;
 
-    out_mesh_vertex_datas[0].vertex_world_position = float3(0, 0, 0);
-    out_mesh_vertex_datas[0].vertex_clip_position = float4(0, 0, 0, 1);
+    F_cluster_header cluster_header = cluster_headers[
+        cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    u32 subpage_id = mesh_header.subpage_offset + group_id.x / NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS;
+    F_mesh_subpage_header subpage_header = subpage_headers[
+        subpage_id / NRE_NEWRG_UNIFIED_MESH_SUBPAGE_HEADER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        subpage_id % NRE_NEWRG_UNIFIED_MESH_SUBPAGE_HEADER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    u32 triangle_count = cluster_header.local_triangle_vertex_id_count / 3;
+
+    SetMeshOutputCounts(cluster_header.vertex_count, triangle_count);
+
+    if(group_thread_id.x < triangle_count)
+    {
+        uint index_offset = subpage_header.index_offset + cluster_header.local_triangle_vertex_id_offset + group_thread_id.x * 3;
+
+        Buffer<uint> index_buffer = triangle_vertex_ids[index_offset / NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS];
+
+        uint index_location_0 = index_offset + 0;
+        uint index_location_1 = index_offset + 1;
+        uint index_location_2 = index_offset + 2;
+
+        out_mesh_triangles[group_thread_id.x] = uint3(
+            index_buffer[
+                index_location_0 % NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+            ],
+            index_buffer[
+                index_location_1 % NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+            ],
+            index_buffer[
+                index_location_2 % NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+            ]
+        );
+    }
+
+    if(group_thread_id.x < cluster_header.vertex_count)
+    {
+        uint vertex_offset = subpage_header.vertex_offset + cluster_header.vertex_offset + group_thread_id.x;
+
+        uint vertex_location = vertex_offset + group_thread_id.x;
+
+        F_vertex_data vertex_data = vertex_datas[
+            vertex_location / NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ][
+            vertex_location % NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ];
+
+        F_bbox cluster_bbox = cluster_bboxes[
+            cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ][
+            cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ];
+
+        float3 bbox_delta = cluster_bbox.max_position - cluster_bbox.min_position;
+
+        float3 vertex_position = cluster_bbox.min_position + bbox_delta * vertex_data.local_position;
+
+        float4 vertex_world_position = mul(local_to_world_matrix, float4(vertex_position, 1.0f));
+        float3 vertex_world_normal = normalize(mul((float3x3)local_to_world_matrix, vertex_data.normal));
+        float3 vertex_world_tangent = normalize(mul((float3x3)local_to_world_matrix, vertex_data.tangent));
+
+        float4 vertex_view_position = mul(world_to_view_matrix, vertex_world_position);
+        float4 vertex_clip_position = mul(view_to_clip_matrix, vertex_view_position);
+
+        out_mesh_vertex_datas[group_thread_id.x].vertex_world_position = vertex_world_position.xyz;
+        out_mesh_vertex_datas[group_thread_id.x].vertex_world_normal = vertex_world_normal;
+        out_mesh_vertex_datas[group_thread_id.x].vertex_world_tangent = vertex_world_tangent;
+        out_mesh_vertex_datas[group_thread_id.x].vertex_cluster_id = cluster_id;
+        out_mesh_vertex_datas[group_thread_id.x].vertex_clip_position = vertex_clip_position;
+    }
 }
 pixel_shader PS(
     out out_color(SV_TARGET)
