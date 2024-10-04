@@ -227,20 +227,6 @@ namespace nre::newrg
         );
 
     public:
-        void clear_view_main_texture(
-            TKPA_valid<F_abytek_scene_render_view> view_p
-            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
-        );
-        void clear_view_depth_texture(
-            TKPA_valid<F_abytek_scene_render_view> view_p
-            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
-        );
-        void clear_view(
-            TKPA_valid<F_abytek_scene_render_view> view_p
-            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
-        );
-
-    public:
         void simple_draw(
             TKPA_valid<F_abytek_scene_render_view> view_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")

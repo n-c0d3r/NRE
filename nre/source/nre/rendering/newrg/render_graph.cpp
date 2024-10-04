@@ -3873,7 +3873,7 @@ namespace nre::newrg
             || (resource_type == ED_resource_type::TEXTURE_1D_ARRAY)
             || (resource_type == ED_resource_type::TEXTURE_3D)
         )
-            return resource_allocators_[allocator_base_index + NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_LOCAL_INDEX_ONLY_TEXTURES_RT_DS];
+            return resource_allocators_[allocator_base_index + NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_LOCAL_INDEX_ONLY_TEXTURES_NON_RT_DS];
 
         if(
             flag_is_has(
@@ -3888,7 +3888,7 @@ namespace nre::newrg
             return resource_allocators_[allocator_base_index + NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_LOCAL_INDEX_ONLY_TEXTURES_RT_DS];
 
         //
-        return resource_allocators_[allocator_base_index + NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_LOCAL_INDEX_ONLY_TEXTURES_RT_DS];
+        return resource_allocators_[allocator_base_index + NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_LOCAL_INDEX_ONLY_TEXTURES_NON_RT_DS];
     }
     F_rhi_placed_resource_pool& F_render_graph::find_rhi_placed_resource_pool(ED_resource_type resource_type)
     {

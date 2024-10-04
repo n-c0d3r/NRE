@@ -2,6 +2,7 @@
 #include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
 #include <nre/rendering/newrg/render_graph.hpp>
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
+#include <nre/rendering/newrg/render_pass_utilities.hpp>
 #include <nre/rendering/newrg/render_resource_utilities.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/external_render_depth_pyramid.hpp>
@@ -67,9 +68,9 @@ namespace nre::newrg
                     output_rtv_descriptor_handle(),
                     ED_descriptor_heap_type::RENDER_TARGET
                     NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_view.main_views[")
+                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
                         + actor_p()->name().c_str()
-                        + "]"
+                        + "].main_view"
                     )
                 );
                 rg_main_view_element_ = {
@@ -79,29 +80,34 @@ namespace nre::newrg
                 rg_depth_texture_p_ = H_render_resource::create_texture_2d(
                     texture_size.width,
                     texture_size.height,
-                    ED_format::D32_FLOAT,
+                    ED_format::R32_TYPELESS,
                     1,
                     {},
-                    ED_resource_flag::DEPTH_STENCIL,
+                    ED_resource_flag::DEPTH_STENCIL
+                    | ED_resource_flag::SHADER_RESOURCE,
                     ED_resource_heap_type::DEFAULT,
                     {
                         .clear_value = F_resource_clear_value {
+                            .format = ED_format::D32_FLOAT,
                             .depth = 0.0f // reverse depth
                         }
                     }
                     NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_view.depth_textures[")
+                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
                         + actor_p()->name().c_str()
-                        + "]"
+                        + "].depth_texture"
                     )
                 );
                 F_render_descriptor* rg_depth_view_p = render_graph_p->create_resource_view(
                     rg_depth_texture_p_,
-                    ED_resource_view_type::DEPTH_STENCIL
+                    {
+                        .type = ED_resource_view_type::DEPTH_STENCIL,
+                        .overrided_format = ED_format::D32_FLOAT
+                    }
                     NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_view.depth_views[")
+                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
                         + actor_p()->name().c_str()
-                        + "]"
+                        + "].depth_view"
                     )
                 );
                 rg_depth_view_element_ = {
@@ -112,18 +118,38 @@ namespace nre::newrg
                     { rg_main_view_element() },
                     rg_depth_view_element_
                     NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_view.main_frame_buffers[")
+                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
                         + actor_p()->name().c_str()
-                        + "]"
+                        + "].main_frame_buffer"
                     )
                 );
                 rg_depth_only_frame_buffer_p_ = render_graph_p->create_frame_buffer(
                     {},
                     rg_depth_view_element_
                     NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_view.depth_only_frame_buffers[")
+                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
                         + actor_p()->name().c_str()
-                        + "]"
+                        + "].depth_only_frame_buffer"
+                    )
+                );
+            }
+
+            // create first depth pyramid
+            {
+                F_vector2_u32 depth_pyramid_size = element_max(
+                    F_vector2_u32 {
+                        (u32)round_down_to_power_of_two(texture_size.x),
+                        (u32)round_down_to_power_of_two(texture_size.y)
+                    },
+                    F_vector2_u32::one()
+                );
+
+                rg_first_depth_pyramid_p_ = render_graph_p->T_create<F_render_depth_pyramid>(
+                    depth_pyramid_size
+                    NRE_OPTIONAL_DEBUG_PARAM(
+                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                        + actor_p()->name().c_str()
+                        + "].first_depth_pyramid"
                     )
                 );
             }
@@ -235,5 +261,43 @@ namespace nre::newrg
     void F_abytek_scene_render_view::RG_end_register()
     {
         F_scene_render_view::RG_end_register();
+    }
+
+    void F_abytek_scene_render_view::clear()
+    {
+        clear_main_texture();
+        clear_depth_texture();
+    }
+    void F_abytek_scene_render_view::clear_main_texture()
+    {
+        H_render_pass::clear_render_target(
+            rg_main_view_element_,
+            rg_main_texture_p_,
+            clear_color
+            NRE_OPTIONAL_DEBUG_PARAM(
+                F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                + actor_p()->name().c_str()
+                + "].clear_main_texture_pass"
+            )
+        );
+    }
+    void F_abytek_scene_render_view::clear_depth_texture()
+    {
+        H_render_pass::clear_depth_stencil(
+            rg_depth_view_element_,
+            rg_depth_texture_p_,
+            ED_clear_flag::DEPTH,
+            0.0f,
+            0
+            NRE_OPTIONAL_DEBUG_PARAM(
+                F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                + actor_p()->name().c_str()
+                + "].clear_depth_texture_pass"
+            )
+        );
+    }
+    void F_abytek_scene_render_view::generate_first_depth_pyramid()
+    {
+        rg_first_depth_pyramid_p_->generate(rg_depth_texture_p_);
     }
 }

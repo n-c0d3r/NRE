@@ -17,18 +17,15 @@ namespace nre::newrg
         NCPP_ASSERT(
             is_power_of_two(size.x)
             && is_power_of_two(size.y)
-        ) << "invalid size, required to be power of 2";
-
-        u32 mip_level_count = 1 + eastl::max<u32>(
-            log2(size.x),
-            log2(size.y)
-        );
+            && size.x
+            && size.y
+        ) << "invalid size, required to be power of 2 and non-zero";
 
         texture_2d_p_ = H_render_resource::create_texture_2d(
             size.width,
             size.height,
-            ED_format::D32_FLOAT,
-            mip_level_count,
+            ED_format::R32_FLOAT,
+            mip_level_count(),
             {},
             ED_resource_flag::SHADER_RESOURCE
             | ED_resource_flag::UNORDERED_ACCESS,
@@ -107,17 +104,12 @@ namespace nre::newrg
         texture_2d_p_ = 0;
     }
 
-    void F_render_depth_pyramid::RG_generate(F_render_resource* depth_texture_p)
+    void F_render_depth_pyramid::generate(F_render_resource* depth_texture_p)
     {
         NCPP_ASSERT(is_valid());
 
-        u32 mip_level_count = 1 + eastl::max<u32>(
-            log2(size_.x),
-            log2(size_.y)
-        );
-
         u32 command_count = ceil(
-            f32(mip_level_count - 1)
+            f32(mip_level_count() - 1)
             / f32(NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND)
         );
     }

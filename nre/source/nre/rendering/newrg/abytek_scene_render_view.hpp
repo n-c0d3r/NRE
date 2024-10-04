@@ -13,6 +13,7 @@ namespace nre::newrg
 {
     class F_render_resource;
     class F_render_frame_buffer;
+    class F_render_depth_pyramid;
 
 
 
@@ -33,6 +34,8 @@ namespace nre::newrg
         TF_render_uniform_batch<F_abytek_scene_render_view_data> rg_data_batch_;
         TF_render_uniform_batch<F_abytek_scene_render_view_data> rg_last_data_batch_;
 
+        F_render_depth_pyramid* rg_first_depth_pyramid_p_ = 0;
+
         b8 is_first_register_ = true;
 
     public:
@@ -52,6 +55,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto rg_data_batch() const noexcept { return rg_data_batch_; }
         NCPP_FORCE_INLINE auto rg_last_data_batch() const noexcept { return rg_last_data_batch_; }
 
+        NCPP_FORCE_INLINE F_render_depth_pyramid* rg_first_depth_pyramid_p() const noexcept { return rg_first_depth_pyramid_p_; }
+
 
 
     public:
@@ -69,5 +74,11 @@ namespace nre::newrg
     public:
         virtual void RG_begin_register() override;
         virtual void RG_end_register() override;
+
+    public:
+        void clear();
+        void clear_main_texture();
+        void clear_depth_texture();
+        void generate_first_depth_pyramid();
     };
 }

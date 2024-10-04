@@ -4,6 +4,9 @@ import(nrhi)
 
 
 @slot(0)
+sampler_state default_sampler_state
+
+@slot(0)
 resource src(
     Texture2D(float)
 )
@@ -24,6 +27,18 @@ compute_shader CS(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
 {
+    uint2 out_size;
+    out_mip.GetDimensions(out_size.x, out_size.y);
+
+    if(
+        (global_thread_id.x >= out_size.x)
+        || (global_thread_id.y >= out_size.y)
+    )
+        return;
+
+    float2 src_uv = float2(global_thread_id.xy) / float2(out_size - uint2(1, 1));
+
+    out_mip[global_thread_id.xy] = src.Sample(default_sampler_state, src_uv);
 }
 
 @root_signature(NRE_NEWRG_RENDER_DEPTH_PYRAMID_COPY_FROM_SRC_BINDER_SIGNATURE)

@@ -26,6 +26,9 @@ namespace nre::newrg
                             }
                         }
                     )
+                },
+                .static_sampler_state_descs = {
+                    F_static_sampler_state_desc {}
                 }
             },
             "NRE_NEWRG_RENDER_DEPTH_PYRAMID_COPY_FROM_SRC_BINDER_SIGNATURE"

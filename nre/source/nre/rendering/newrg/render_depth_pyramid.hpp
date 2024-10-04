@@ -27,6 +27,14 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& size() const noexcept { return size_; }
         NCPP_FORCE_INLINE auto texture_2d_p() const noexcept { return texture_2d_p_; }
 
+        NCPP_FORCE_INLINE auto mip_level_count() const noexcept
+        {
+            return 1 + eastl::max<u32>(
+                log2(size_.x),
+                log2(size_.y)
+            );
+        }
+
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(const F_render_frame_name& name() const noexcept { return name_; });
 
 
@@ -49,7 +57,7 @@ namespace nre::newrg
         void reset();
 
     public:
-        void RG_generate(F_render_resource* depth_texture_p);
+        void generate(F_render_resource* depth_texture_p);
 
     public:
         NCPP_FORCE_INLINE b8 is_valid() const noexcept
