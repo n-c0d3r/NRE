@@ -63,7 +63,7 @@ namespace nre::newrg
         struct F_simple_draw_options
         {
             b8 enable = false;
-            F_vector3_f32 color = F_vector3_f32::up();
+            F_vector3_f32 color = F_vector3_f32::one();
             u32 level = 0;
         };
         struct F_simple_draw_global_options_data

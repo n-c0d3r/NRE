@@ -102,3 +102,15 @@ struct F_instanced_cluster_header(
     instance_id(F_instance_id)
     local_cluster_id(F_cluster_id)
 )
+
+
+
+float3 hue2rgb(float hue) {
+    hue = frac(hue);
+    float r = abs(hue * 6 - 3) - 1;
+    float g = 2 - abs(hue * 6 - 2);
+    float b = 2 - abs(hue * 6 - 4);
+    float3 rgb = float3(r,g,b);
+    rgb = saturate(rgb);
+    return rgb;
+}

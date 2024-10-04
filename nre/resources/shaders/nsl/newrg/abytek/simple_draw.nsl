@@ -170,7 +170,7 @@ mesh_shader MS(
 
         float3 bbox_delta = cluster_bbox.max_position - cluster_bbox.min_position;
 
-        float3 vertex_position = cluster_bbox.min_position + bbox_delta * vertex_data.local_position;
+        float3 vertex_position = cluster_bbox.min_position + bbox_delta * float3(vertex_data.local_position);
 
         float4 vertex_world_position = mul(local_to_world_matrix, float4(vertex_position, 1.0f));
         float3 vertex_world_normal = normalize(mul((float3x3)local_to_world_matrix, vertex_data.normal));
@@ -187,15 +187,31 @@ mesh_shader MS(
     }
 }
 pixel_shader PS(
+    in mesh_vertex_data(F_mesh_vertex_data)
     out out_color(SV_TARGET)
 )
 {
-    out_color = float4(1, 1, 1, 1);
+    out_color = (
+        float4(color * hue2rgb(((float)(mesh_vertex_data.vertex_cluster_id)) * 1.71f), 1) 
+        * lerp(
+            0.3f, 
+            1.0f,
+            saturate(
+                dot(mesh_vertex_data.vertex_world_normal, float3(0, 1, 0))
+            )
+        ) 
+        * float4(1, 1, 1, 1)
+    );
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_SIMPLE_DRAW_BINDER_SIGNATURE)
 @rasterizer(
     cull_mode(NONE)
     fill_mode(SOLID)
+)
+@depth_stencil
+(
+    enable_depth_test(true)
+    depth_comparison_func(GREATER)
 )
 pipeline_state PSO(MS PS)
