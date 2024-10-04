@@ -23,17 +23,17 @@ namespace nre::newrg
 
     private:
         TS<F_nsl_shader_asset> copy_from_src_shader_asset_p_;
-        TK<A_pipeline_state> copy_from_src_pso_p_;
+        K_compute_pipeline_state_handle copy_from_src_pso_p_;
 
         TS<F_nsl_shader_asset> generate_mips_shader_asset_p_;
-        TK<A_pipeline_state> generate_mips_pso_p_;
+        K_compute_pipeline_state_handle generate_mips_pso_p_;
 
     public:
         NCPP_FORCE_INLINE const auto& copy_from_src_shader_asset_p() const noexcept { return copy_from_src_shader_asset_p_; }
-        NCPP_FORCE_INLINE TKPA_valid<A_pipeline_state> copy_from_src_pso_p() const noexcept { return (TKPA_valid<A_pipeline_state>)copy_from_src_pso_p_; }
+        NCPP_FORCE_INLINE KPA_valid_compute_pipeline_state_handle copy_from_src_pso_p() const noexcept { return (KPA_valid_compute_pipeline_state_handle)copy_from_src_pso_p_; }
 
         NCPP_FORCE_INLINE const auto& generate_mips_shader_asset_p() const noexcept { return generate_mips_shader_asset_p_; }
-        NCPP_FORCE_INLINE TKPA_valid<A_pipeline_state> generate_mips_pso_p() const noexcept { return (TKPA_valid<A_pipeline_state>)generate_mips_pso_p_; }
+        NCPP_FORCE_INLINE KPA_valid_compute_pipeline_state_handle generate_mips_pso_p() const noexcept { return (KPA_valid_compute_pipeline_state_handle)generate_mips_pso_p_; }
 
 
 

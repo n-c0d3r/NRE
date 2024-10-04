@@ -66,7 +66,8 @@ namespace nre::newrg
     public:
         NCPP_OBJECT(F_abytek_scene_render_view);
 
-
+    private:
+        F_vector2_u32 depth_pyramid_size_internal();
 
     protected:
         virtual void render_tick() override;

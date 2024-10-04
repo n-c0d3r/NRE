@@ -13,19 +13,16 @@ namespace nre::newrg
             {
                 .param_descs = {
                     F_root_param_desc(
+                        ED_root_param_type::CONSTANT_BUFFER,
+                        F_root_descriptor_desc {
+                        }
+                    ),
+                    F_root_param_desc(
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::CONSTANT_BUFFER,
-                                    .descriptor_count = 1
-                                },
-                                F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
-                                    .descriptor_count = 1
-                                },
-                                F_descriptor_range_desc {
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
-                                    .descriptor_count = NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND
+                                    .descriptor_count = u32(-1)
                                 }
                             }
                         }

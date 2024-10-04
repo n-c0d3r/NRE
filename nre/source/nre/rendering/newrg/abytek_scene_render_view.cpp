@@ -26,7 +26,36 @@ namespace nre::newrg
     {
     }
 
+    F_vector2_u32 F_abytek_scene_render_view::depth_pyramid_size_internal()
+    {
+        auto texture_size = size();
 
+        F_vector2_u32 depth_pyramid_size;
+
+        f32 aspect_ratio = f32(texture_size.x) / f32(texture_size.y);
+
+        if(texture_size.x > texture_size.y)
+        {
+            depth_pyramid_size.x = round_down_to_power_of_two(texture_size.x);
+            depth_pyramid_size.y = round_down_to_power_of_two(
+                f32(depth_pyramid_size.x) / aspect_ratio
+            );
+        }
+        else
+        {
+            depth_pyramid_size.y = round_down_to_power_of_two(texture_size.y);
+            depth_pyramid_size.x = round_down_to_power_of_two(
+                f32(depth_pyramid_size.y) * aspect_ratio
+            );
+        }
+
+        depth_pyramid_size = element_max(
+            depth_pyramid_size,
+            F_vector2_u32::one()
+        );
+
+        return depth_pyramid_size;
+    }
 
     void F_abytek_scene_render_view::render_tick()
     {
@@ -56,6 +85,7 @@ namespace nre::newrg
         auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
         {
             auto texture_size = size();
+            F_vector2_u32 depth_pyramid_size = depth_pyramid_size_internal();
 
             // create textures
             {
@@ -136,30 +166,6 @@ namespace nre::newrg
 
             // create first depth pyramid
             {
-                F_vector2_u32 depth_pyramid_size;
-
-                f32 aspect_ratio = f32(texture_size.x) / f32(texture_size.y);
-
-                if(texture_size.x > texture_size.y)
-                {
-                    depth_pyramid_size.x = round_down_to_power_of_two(texture_size.x);
-                    depth_pyramid_size.y = round_down_to_power_of_two(
-                        f32(depth_pyramid_size.x) / aspect_ratio
-                    );
-                }
-                else
-                {
-                    depth_pyramid_size.y = round_down_to_power_of_two(texture_size.y);
-                    depth_pyramid_size.x = round_down_to_power_of_two(
-                        f32(depth_pyramid_size.y) * aspect_ratio
-                    );
-                }
-
-                depth_pyramid_size = element_max(
-                    depth_pyramid_size,
-                    F_vector2_u32::one()
-                );
-
                 rg_first_depth_pyramid_p_ = render_graph_p->T_create<F_render_depth_pyramid>(
                     depth_pyramid_size
                     NRE_OPTIONAL_DEBUG_PARAM(

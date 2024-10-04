@@ -27,10 +27,10 @@ namespace nre::newrg
         });
 
         copy_from_src_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset("shaders/nsl/newrg/hzb_copy_from_src.nsl").T_cast<F_nsl_shader_asset>();
-        copy_from_src_pso_p_ = copy_from_src_shader_asset_p_->pipeline_state_p_vector()[0];
+        copy_from_src_pso_p_ = { copy_from_src_shader_asset_p_->pipeline_state_p_vector()[0] };
 
         generate_mips_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset("shaders/nsl/newrg/hzb_generate_mips.nsl").T_cast<F_nsl_shader_asset>();
-        generate_mips_pso_p_ = generate_mips_shader_asset_p_->pipeline_state_p_vector()[0];
+        generate_mips_pso_p_ = { generate_mips_shader_asset_p_->pipeline_state_p_vector()[0] };
     }
     F_render_depth_pyramid_system::~F_render_depth_pyramid_system()
     {

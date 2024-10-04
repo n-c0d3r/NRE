@@ -10,16 +10,14 @@ resource options(
 uniform mip_level_count(
     u32
 )
-
-@slot(0)
-resource in_mip(
-    Texture2D(float)
+uniform mip_level_offset(
+    u32
 )
 
 @slot(0)
-resource out_mips(
+resource mips(
     RWTexture2D(float)
-    NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND
+    -1
 )
 
 
@@ -33,6 +31,51 @@ compute_shader CS(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
 {
+    uint2 base_texture_size;
+    mips[mip_level_offset].GetDimensions(base_texture_size.x, base_texture_size.y);
+
+    uint2 texture_size = base_texture_size;
+
+    [unroll]
+    for(uint i = 0; i < NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND; ++i)
+    {
+        if(i >= mip_level_count)
+        {
+            return;
+        }
+
+        uint mip_level_index = mip_level_offset + i;
+
+        if(
+            (global_thread_id.x >= texture_size.x)
+            || (global_thread_id.y >= texture_size.y)
+        )
+        {
+            return;
+        }
+        
+        float min_depth = 1.0f;
+
+        uint subtexel_size_x = (2U << i);
+        [unroll]
+        for(uint j = 0; j < subtexel_size_x; ++j)
+        {
+            [unroll]
+            for(uint t = 0; t < subtexel_size_x; ++t)
+            {
+                min_depth = min(
+                    min_depth,
+                    mips[mip_level_offset - 1][
+                        global_thread_id.xy * uint2(subtexel_size_x, subtexel_size_x) + uint2(j, t)
+                    ]
+                );
+            }
+        }
+
+        mips[mip_level_index][global_thread_id.xy] = min_depth;
+
+        texture_size = texture_size / 2;
+    }
 }
 
 @root_signature(NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND)
