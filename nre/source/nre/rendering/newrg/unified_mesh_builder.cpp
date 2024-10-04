@@ -854,18 +854,19 @@ namespace nre::newrg
 
                 auto bbox_delta = bbox.max - bbox.min;
 
-                F_matrix4x4_f32 scaled_local_to_world_matrix = {
-                    bbox_delta.x * F_vector4_f32::right(),
-                    bbox_delta.y * F_vector4_f32::up(),
-                    bbox_delta.z * F_vector4_f32::forward(),
-                    F_vector4_f32 { bbox.min, 1.0f }
-                };
-                F_matrix4x4_f32 world_to_scaled_local_matrix = invert(scaled_local_to_world_matrix);
-
-                F_vector3_f32 local_position = (
-                    world_to_scaled_local_matrix
-                    * F_vector4_f32 { raw_vertex_data.position, 1.0f }
-                ).xyz();
+                F_vector3_f32 local_position = raw_vertex_data.position - bbox.min;
+                if(abs(bbox_delta.x) > T_default_tolerance<f32>)
+                    local_position.x /= bbox_delta.x;
+                else
+                    local_position.x = 0.0f;
+                if(abs(bbox_delta.y) > T_default_tolerance<f32>)
+                    local_position.y /= bbox_delta.y;
+                else
+                    local_position.y = 0.0f;
+                if(abs(bbox_delta.z) > T_default_tolerance<f32>)
+                    local_position.z /= bbox_delta.z;
+                else
+                    local_position.z = 0.0f;
 
                 compressed_vertex_data.local_position_components[0] = format_encode_f32_to_f16_data(local_position.x);
                 compressed_vertex_data.local_position_components[1] = format_encode_f32_to_f16_data(local_position.y);

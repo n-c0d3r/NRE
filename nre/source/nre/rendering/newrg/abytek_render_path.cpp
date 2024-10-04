@@ -566,6 +566,7 @@ namespace nre::newrg
 
         F_simple_draw_global_options_data global_options_data;
         global_options_data.color = simple_draw_options.color;
+        global_options_data.light_dir = normalize(simple_draw_options.light_dir);
 
         TF_render_uniform_batch<F_simple_draw_global_options_data> global_options_uniform_batch = {
             F_uniform_transient_resource_uploader::instance_p()->T_enqueue_upload(

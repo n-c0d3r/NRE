@@ -64,11 +64,13 @@ namespace nre::newrg
         {
             b8 enable = false;
             F_vector3_f32 color = F_vector3_f32::one();
+            F_vector3_f32 light_dir = normalize({ -0.5f, -1.0f, 0.2f });
             u32 level = 0;
         };
         struct F_simple_draw_global_options_data
         {
             F_vector3_f32 color;
+            F_vector3_f32 light_dir;
         };
         struct F_simple_draw_per_object_options_data
         {

@@ -28,6 +28,9 @@ resource global_options(
 uniform color(
     float3
 )
+uniform light_dir(
+    float3
+)
 
 @slot(1 0)
 resource per_object_options(
@@ -154,12 +157,10 @@ mesh_shader MS(
     {
         uint vertex_offset = subpage_header.vertex_offset + cluster_header.vertex_offset + group_thread_id.x;
 
-        uint vertex_location = vertex_offset + group_thread_id.x;
-
         F_vertex_data vertex_data = vertex_datas[
-            vertex_location / NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+            vertex_offset / NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS
         ][
-            vertex_location % NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+            vertex_offset % NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS
         ];
 
         F_bbox cluster_bbox = cluster_bboxes[
@@ -179,11 +180,14 @@ mesh_shader MS(
         float4 vertex_view_position = mul(world_to_view_matrix, vertex_world_position);
         float4 vertex_clip_position = mul(view_to_clip_matrix, vertex_view_position);
 
-        out_mesh_vertex_datas[group_thread_id.x].vertex_world_position = vertex_world_position.xyz;
-        out_mesh_vertex_datas[group_thread_id.x].vertex_world_normal = vertex_world_normal;
-        out_mesh_vertex_datas[group_thread_id.x].vertex_world_tangent = vertex_world_tangent;
-        out_mesh_vertex_datas[group_thread_id.x].vertex_cluster_id = cluster_id;
-        out_mesh_vertex_datas[group_thread_id.x].vertex_clip_position = vertex_clip_position;
+        F_mesh_vertex_data mesh_vertex_data;
+        mesh_vertex_data.vertex_world_position = vertex_world_position.xyz;
+        mesh_vertex_data.vertex_world_normal = vertex_world_normal;
+        mesh_vertex_data.vertex_world_tangent = vertex_world_tangent;
+        mesh_vertex_data.vertex_cluster_id = cluster_id;
+        mesh_vertex_data.vertex_clip_position = vertex_clip_position;
+
+        out_mesh_vertex_datas[group_thread_id.x] = mesh_vertex_data;
     }
 }
 pixel_shader PS(
@@ -197,7 +201,7 @@ pixel_shader PS(
             0.3f, 
             1.0f,
             saturate(
-                dot(mesh_vertex_data.vertex_world_normal, float3(0, 1, 0))
+                dot(mesh_vertex_data.vertex_world_normal, -light_dir)
             )
         ) 
         * float4(1, 1, 1, 1)
