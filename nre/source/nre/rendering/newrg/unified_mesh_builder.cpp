@@ -40,9 +40,9 @@ namespace nre::newrg
             simplify_clusters_options.merge_near_vertices_options.merge_vertices_options.max_texcoord_error *= 2.0f;
             simplify_clusters_options.merge_vertices_options.max_texcoord_error *= 3.0f;
 
-            simplify_clusters_options.merge_near_vertices_options.max_distance *= 2.0f;
+            // simplify_clusters_options.merge_near_vertices_options.max_distance *= 2.0f;
 
-            build_next_level_options.build_cluster_adjacency_options.max_distance *= 2.0f;
+            // build_next_level_options.build_cluster_adjacency_options.max_distance *= 2.0f;
         }
 
         return eastl::move(result);
