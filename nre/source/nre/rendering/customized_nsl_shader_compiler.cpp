@@ -1,10 +1,8 @@
 #include <nre/rendering/customized_nsl_shader_compiler.hpp>
-#include <nre/asset/asset_system.hpp>
-#include <nre/asset/asset_system.hpp>
 #include <nre/io/path.hpp>
-#include <nre/asset/text_asset.hpp>
+#include <nre/io/file_system.hpp>
+#include <nre/rendering/nsl_shader_system.hpp>
 
-#include "nsl_shader_system.hpp"
 
 
 namespace nre
@@ -35,9 +33,6 @@ namespace nre
 
         if(base_result_opt)
             return base_result_opt;
-
-        //
-        auto asset_system_p = F_asset_system::instance_p();
 
         //
         G_string from_directory_path = H_path::base_name(from_unit_p->abs_path());
@@ -74,15 +69,18 @@ namespace nre
             return F_load_src_content_result { .abs_path = abs_path };
 
         // load asset
-        auto text_asset_p = asset_system_p->load_asset_from_abs_path(
-            abs_path,
-            "txt"
-        );
-
-        if(!text_asset_p)
+        auto text_buffer_opt = A_file_system::instance_p()->read_file(abs_path);
+        if(!text_buffer_opt)
             return eastl::nullopt;
 
-        out_src_content = G_to_string(text_asset_p.T_cast<F_text_asset>()->content);
+        const auto& text_buffer = text_buffer_opt.value();
+
+        out_src_content.resize(text_buffer.size());
+        memcpy(
+            out_src_content.data(),
+            text_buffer.data(),
+            text_buffer.size()
+        );
 
         return F_load_src_content_result { .abs_path = abs_path };
     }
