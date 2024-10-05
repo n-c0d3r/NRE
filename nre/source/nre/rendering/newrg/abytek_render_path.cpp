@@ -501,10 +501,6 @@ namespace nre::newrg
             NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HEADER
         ];
         auto cluster_header_descriptor_element = cluster_header_bind_list[0];
-        auto& cluster_bbox_bind_list = unified_mesh_system_p->cluster_table_render_bind_list().bases()[
-            NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_BBOX
-        ];
-        auto cluster_bbox_descriptor_element = cluster_bbox_bind_list[0];
 
         auto& vertex_data_table = unified_mesh_system_p->vertex_data_table();
         auto& vertex_data_bind_list = unified_mesh_system_p->vertex_data_table_render_bind_list().bases()[
@@ -539,7 +535,6 @@ namespace nre::newrg
                 &subpage_header_descriptor_element,
                 &cluster_table,
                 &cluster_header_descriptor_element,
-                &cluster_bbox_descriptor_element,
                 &vertex_data_table,
                 &vertex_data_descriptor_element,
                 &triangle_vertex_id_table,
@@ -625,14 +620,10 @@ namespace nre::newrg
                         );
                         command_list_p->ZG_bind_root_descriptor_table(
                             4,
-                            cluster_bbox_descriptor_element.handle().gpu_address
-                        );
-                        command_list_p->ZG_bind_root_descriptor_table(
-                            5,
                             vertex_data_descriptor_element.handle().gpu_address
                         );
                         command_list_p->ZG_bind_root_descriptor_table(
-                            6,
+                            5,
                             triangle_vertex_id_descriptor_element.handle().gpu_address
                         );
                         command_list_p->ZRS_bind_viewport({

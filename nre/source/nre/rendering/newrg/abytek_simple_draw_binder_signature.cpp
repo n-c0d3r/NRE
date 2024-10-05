@@ -82,18 +82,6 @@ namespace nre::newrg
                             }
                         },
                         ED_shader_visibility::MESH
-                    ),
-                    F_root_param_desc(
-                        F_root_descriptor_table_desc {
-                            .range_descs = {
-                                F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
-                                    .descriptor_count = u32(-1),
-                                    .register_space = 6
-                                }
-                            }
-                        },
-                        ED_shader_visibility::MESH
                     )
                 }
             },

@@ -33,13 +33,14 @@ define F_global_vertex_id(u32)
 // define F_local_cluster_vertex_id(u8)
 
 struct F_vertex_data(
-    local_position(f16x3)
-    ___padding_0___(f16)
+    position(f32x3)
+    ___padding_0___(f32)
     normal(f16x3)
     ___padding_1___(f16)
     tangent(f16x3)
     ___padding_2___(f16)
     texcoord(f32x2)
+    ___padding_3___(f32x2)
 )
 
 define F_cluster_id(u32)

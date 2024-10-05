@@ -837,8 +837,6 @@ namespace nre::newrg
         result.cluster_hierarchical_culling_datas = data.cluster_hierarchical_culling_datas;
         result.cluster_level_headers = data.cluster_level_headers;
 
-        auto vertex_cluster_ids = H_clustered_geometry::build_vertex_cluster_ids(data.cluster_headers);
-
         result.vertex_datas.resize(vertex_count);
 
         NTS_AWAIT_BLOCKABLE NTS_ASYNC(
@@ -847,30 +845,7 @@ namespace nre::newrg
                 auto& raw_vertex_data = data.vertex_datas[vertex_id];
                 auto& compressed_vertex_data = result.vertex_datas[vertex_id];
 
-                F_cluster_id cluster_id = vertex_cluster_ids[vertex_id];
-
-                auto& cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[cluster_id];
-                auto& bbox = cluster_hierarchical_culling_data.bbox;
-
-                auto bbox_delta = bbox.max - bbox.min;
-
-                F_vector3_f32 local_position = raw_vertex_data.position - bbox.min;
-                if(abs(bbox_delta.x) > T_default_tolerance<f32>)
-                    local_position.x /= bbox_delta.x;
-                else
-                    local_position.x = 0.0f;
-                if(abs(bbox_delta.y) > T_default_tolerance<f32>)
-                    local_position.y /= bbox_delta.y;
-                else
-                    local_position.y = 0.0f;
-                if(abs(bbox_delta.z) > T_default_tolerance<f32>)
-                    local_position.z /= bbox_delta.z;
-                else
-                    local_position.z = 0.0f;
-
-                compressed_vertex_data.local_position_components[0] = format_encode_f32_to_f16_data(local_position.x);
-                compressed_vertex_data.local_position_components[1] = format_encode_f32_to_f16_data(local_position.y);
-                compressed_vertex_data.local_position_components[2] = format_encode_f32_to_f16_data(local_position.z);
+                compressed_vertex_data.position = raw_vertex_data.position;
 
                 compressed_vertex_data.normal_components[0] = format_encode_f32_to_f16_data(raw_vertex_data.normal.x);
                 compressed_vertex_data.normal_components[1] = format_encode_f32_to_f16_data(raw_vertex_data.normal.y);
@@ -880,8 +855,7 @@ namespace nre::newrg
                 compressed_vertex_data.tangent_components[1] = format_encode_f32_to_f16_data(raw_vertex_data.tangent.y);
                 compressed_vertex_data.tangent_components[2] = format_encode_f32_to_f16_data(raw_vertex_data.tangent.z);
 
-                compressed_vertex_data.texcoord_components[0] = raw_vertex_data.texcoord.x;
-                compressed_vertex_data.texcoord_components[1] = raw_vertex_data.texcoord.y;
+                compressed_vertex_data.texcoord = raw_vertex_data.texcoord;
             },
             {
                 .parallel_count = vertex_count,

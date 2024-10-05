@@ -72,18 +72,12 @@ resource cluster_headers(
 )
 
 @slot(0 4)
-resource cluster_bboxes(
-    StructuredBuffer(F_bbox)
-    -1
-)
-
-@slot(0 5)
 resource vertex_datas(
     StructuredBuffer(F_vertex_data)
     -1
 )
 
-@slot(0 6)
+@slot(0 5)
 resource triangle_vertex_ids(
     Buffer(uint)
     -1
@@ -164,17 +158,7 @@ mesh_shader MS(
             vertex_offset % NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS
         ];
 
-        F_bbox cluster_bbox = cluster_bboxes[
-            cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
-        ][
-            cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
-        ];
-
-        float3 bbox_delta = cluster_bbox.max_position - cluster_bbox.min_position;
-
-        float3 vertex_position = cluster_bbox.min_position + bbox_delta * float3(vertex_data.local_position);
-
-        float4 vertex_world_position = mul(local_to_world_matrix, float4(vertex_position, 1.0f));
+        float4 vertex_world_position = mul(local_to_world_matrix, float4(vertex_data.position, 1.0f));
         float3 vertex_world_normal = normalize(mul((float3x3)local_to_world_matrix, vertex_data.normal));
         float3 vertex_world_tangent = normalize(mul((float3x3)local_to_world_matrix, vertex_data.tangent));
 
