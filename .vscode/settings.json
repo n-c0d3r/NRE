@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "**/*.nsl": "cpp",
-        "**/*.nsh": "cpp"
+        "**/*.nsh": "cpp",
+        "**/*.nssm": "cpp"
     }
 }
