@@ -35,6 +35,9 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> expand_clusters_shader_asset_p_;
         K_compute_pipeline_state_handle expand_clusters_pso_p_;
 
+        TS<F_nsl_shader_asset> init_args_expand_clusters_shader_asset_p_;
+        K_compute_pipeline_state_handle init_args_expand_clusters_pso_p_;
+
         TS<F_nsl_shader_asset> simple_draw_shader_asset_p_;
         K_graphics_pipeline_state_handle simple_draw_pso_p_;
 
@@ -183,6 +186,9 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto expand_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_shader_asset_p_); }
         NCPP_FORCE_INLINE auto expand_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_pso_p_); }
+
+        NCPP_FORCE_INLINE auto init_args_expand_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(init_args_expand_clusters_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto init_args_expand_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(init_args_expand_clusters_pso_p_); }
 
         NCPP_FORCE_INLINE auto simple_draw_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_shader_asset_p_); }
         NCPP_FORCE_INLINE auto simple_draw_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_pso_p_); }

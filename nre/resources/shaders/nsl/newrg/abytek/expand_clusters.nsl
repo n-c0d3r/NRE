@@ -26,12 +26,9 @@ resource cluster_bboxes(StructuredBuffer(F_bbox) -1)
 resource cluster_hierarchical_culling_datas(StructuredBuffer(F_cluster_hierarchical_culling_data) -1)
 
 @slot(0 7)
-resource options(
-    ConstantBuffer
-)
+resource options(ConstantBuffer)
 uniform error_threshold(f32)
-uniform in_instanced_cluster_offset(u32)
-uniform in_instanced_cluster_count(u32)
+uniform instanced_cluster_range(F_instanced_cluster_range)
 
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(7)
@@ -96,14 +93,14 @@ compute_shader CS(
     if(group_thread_id.x == 0)
     {
         group_active_candidate_count = min(
-            in_instanced_cluster_count - group_id.x * NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
+            instanced_cluster_range.count - group_id.x * NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
             NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE
         );
         group_cached_candidate_count = 0;
     }
-    if(global_thread_id.x < in_instanced_cluster_count)
+    if(global_thread_id.x < instanced_cluster_range.count)
     {
-        group_active_candidates[group_thread_id.x] = instanced_cluster_headers[in_instanced_cluster_offset + global_thread_id.x];
+        group_active_candidates[group_thread_id.x] = instanced_cluster_headers[instanced_cluster_range.offset + global_thread_id.x];
     }
     GroupMemoryBarrierWithGroupSync();
 

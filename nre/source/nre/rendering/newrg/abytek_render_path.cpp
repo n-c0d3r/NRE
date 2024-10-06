@@ -10,6 +10,7 @@
 #include <nre/rendering/newrg/indirect_utilities.hpp>
 #include <nre/rendering/newrg/abytek_expand_instances_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_expand_clusters_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_init_args_expand_clusters_binder_signature.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/render_primitive_data_pool.hpp>
 #include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
@@ -57,6 +58,7 @@ namespace nre::newrg
         // register binder signatures
         F_binder_signature_manager::instance_p()->T_register<F_abytek_expand_instances_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_expand_clusters_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_init_args_expand_clusters_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_simple_draw_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_draw_instance_bbox_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_draw_cluster_bbox_binder_signature>();
@@ -101,6 +103,11 @@ namespace nre::newrg
                 "shaders/nsl/newrg/abytek/expand_clusters.nsl"
             ).T_cast<F_nsl_shader_asset>();
             expand_clusters_pso_p_ = { expand_clusters_shader_asset_p_->pipeline_state_p_vector()[0] };
+
+            init_args_expand_clusters_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/init_args_expand_clusters.nsl"
+            ).T_cast<F_nsl_shader_asset>();
+            init_args_expand_clusters_pso_p_ = { init_args_expand_clusters_shader_asset_p_->pipeline_state_p_vector()[0] };
 
             simple_draw_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
                 "shaders/nsl/newrg/abytek/simple_draw.nsl"
