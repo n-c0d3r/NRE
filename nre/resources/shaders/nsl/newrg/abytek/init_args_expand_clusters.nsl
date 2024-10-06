@@ -3,7 +3,7 @@ import(newrg/abytek/prerequisites.nsh)
 
 
 
-@slot(0 7)
+@slot(0)
 resource options(ConstantBuffer)
 uniform instanced_cluster_range(F_instanced_cluster_range)
 
@@ -13,7 +13,7 @@ struct F_out_options(
     error_threshold(f32)
     instanced_cluster_range(F_instanced_cluster_range)
 )
-@slot(0 7)
+@slot(0)
 resource out_options(RWStructuredBuffer(F_out_options))
 
 
@@ -27,7 +27,7 @@ struct F_global_shared_data(
     cached_candidate_offset(u32)
     cached_candidate_batch_head_id(u32)
 )
-@slot(1 7)
+@slot(1)
 resource global_shared_datas(RWStructuredBuffer(F_global_shared_data))
 
 
