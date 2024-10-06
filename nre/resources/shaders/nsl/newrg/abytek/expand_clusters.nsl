@@ -45,7 +45,7 @@ resource instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header
 define INVALID_CACHED_CANDIDATE_BATCH_ID(0xFFFFFFFF)
 
 struct F_global_shared_data(
-    instanced_cluster_range(F_instanced_cluster_range)
+    expanded_instanced_cluster_range(F_instanced_cluster_range)
     counter(u32)
     cached_candidate_batch_offset(u32)
     cached_candidate_offset(u32)
