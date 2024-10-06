@@ -26,7 +26,7 @@ namespace nre::newrg
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
                                     .descriptor_count = 2,
                                     .offset_in_descriptors_from_table_start = 1,
-                                    .base_register = 1,
+                                    .base_register = 0,
                                     .register_space = 0
                                 }
                             }
