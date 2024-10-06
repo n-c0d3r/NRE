@@ -795,6 +795,20 @@ namespace nre::newrg
                                 );
                             }
                         }
+
+                        // child node count
+                        cluster_hierarchical_culling_data.child_node_count = 0;
+                        for(u32 i = 0; i < 4; ++i)
+                        {
+                            F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
+
+                            if(child_cluster_id == NCPP_U32_MAX)
+                            {
+                                continue;
+                            }
+
+                            cluster_hierarchical_culling_data.child_node_count++;
+                        }
                     }
 
                     //

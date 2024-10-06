@@ -44,12 +44,14 @@ struct F_vertex_data(
 )
 
 define F_cluster_id(u32)
-define INVALID_CLUSTER_ID(0xFFFFFFFF)
 struct F_cluster_header(
     vertex_offset(u32)
     vertex_count(u32)
     local_triangle_vertex_id_offset(u32)
     local_triangle_vertex_id_count(u32)
+)
+struct F_cluster_node_header(
+    child_node_ids(u32x4)
 )
 struct F_cluster_id_range(
     begin(F_cluster_id)
@@ -63,7 +65,7 @@ struct F_cluster_hierarchical_culling_data(
     error_factor(f32)
     error_radius(f32)
     is_critical(b8)
-    ___padding_0___(f32)
+    child_node_count(u32)
 )
 
 struct F_mesh_header(
@@ -93,6 +95,7 @@ define INVALID_MESH_ID(0xFFFFFFFF)
 
 
 define F_instance_id(u32)
+define INVALID_INSTANCE_ID(0xFFFFFFFF)
 
 define F_instanced_cluster_id(u32)
 struct F_instanced_cluster_range(

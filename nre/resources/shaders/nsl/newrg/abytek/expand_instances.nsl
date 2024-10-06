@@ -190,6 +190,11 @@ compute_shader CS(
     if(is_culled)
         return;
 
+    require(additional_check)
+    {
+        import(additional_check)
+    }
+
     F_mesh_header mesh_header = mesh_headers[
         mesh_id / NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
     ][
@@ -210,7 +215,7 @@ compute_shader CS(
         );
     }
 
-    GroupMemoryBarrierWithGroupSync();
+    DeviceMemoryBarrierWithGroupSync();
 
     u32 instanced_cluster_offset = group_instanced_cluster_offset + local_root_cluster_offset;
 

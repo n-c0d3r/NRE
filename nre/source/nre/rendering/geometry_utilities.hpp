@@ -192,6 +192,7 @@ namespace nre
         f32 error_factor = 0.0f;
         f32 error_radius = 0.0f;
         b8 is_critical = false;
+        u32 child_node_count = 0;
     };
 
     using F_cluster_ids = TG_vector<F_cluster_id>;
