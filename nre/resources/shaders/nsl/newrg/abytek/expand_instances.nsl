@@ -36,7 +36,7 @@ uniform instance_count(F_instance_id)
 
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
-import(newrg/abytek/view.nsh)
+import(newrg/abytek/view.nssm)
 
 @slot(0 4)
 resource instanced_cluster_headers(

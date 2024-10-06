@@ -30,7 +30,7 @@ uniform mesh_culling_data(
 
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(2)
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(0)
-import(newrg/abytek/view.nsh)
+import(newrg/abytek/view.nssm)
 
 
 
