@@ -96,9 +96,9 @@ compute_shader CS(
     if(group_thread_id.x == 0)
     {
         group_active_candidate_count = min(
-            in_instanced_cluster_count - group_id * NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
+            in_instanced_cluster_count - group_id.x * NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
             NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE
-        );/
+        );
         group_cached_candidate_count = 0;
     }
     if(global_thread_id.x < in_instanced_cluster_count)
@@ -141,14 +141,14 @@ compute_shader CS(
                 // store cached candidates and cached candidate batches
                 uint group_cached_candidate_batch_count = ceil(
                     f32(group_cached_candidate_count)
-                    / f323(NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE)
+                    / f32(NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE)
                 );
 
                 // for cached candidates and cached candidate batches that need to be processed in the next main loop step as active candidates
                 if(group_cached_candidate_batch_count)
                 {
                     uint main_group_cached_candidate_count = min(
-                        group_cached_candidate_count
+                        group_cached_candidate_count,
                         NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE
                     );
                     if(group_thread_id.x < main_group_cached_candidate_count)
@@ -161,6 +161,12 @@ compute_shader CS(
                 // for cached candidates and cached candidate batches that need to be pushed into global queue
                 for(u32 i = 1; i < group_cached_candidate_batch_count; ++i)
                 {
+                    uint group_cached_candidate_local_offset_for_global_store = NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE * i;
+                    uint group_cached_candidate_local_count_for_global_store = min(
+                        group_cached_candidate_local_offset_for_global_store + NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
+                        group_cached_candidate_count
+                    ) - group_cached_candidate_local_offset_for_global_store;
+
                     // allocate global memory
                     {
                         // allocate global candidates
@@ -168,7 +174,7 @@ compute_shader CS(
                         {
                             InterlockedAdd(
                                 global_shared_datas[0].cached_candidate_offset,
-                                global_store_count,
+                                group_cached_candidate_local_count_for_global_store,
                                 global_cached_candidate_offset
                             );
                         }
@@ -186,12 +192,6 @@ compute_shader CS(
 
                     // store global memory
                     {
-                        uint group_cached_candidate_local_offset_for_global_store = NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE * i;
-                        uint group_cached_candidate_local_count_for_global_store = min(
-                            group_cached_candidate_local_offset_for_global_store + NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
-                            group_cached_candidate_count
-                        ) - group_cached_candidate_local_offset_for_global_store;
-
                         // store global cached candidates
                         if(group_thread_id.x < group_cached_candidate_local_count_for_global_store)
                         {
@@ -210,6 +210,7 @@ compute_shader CS(
                             F_cached_candidate_batch global_candidate_batch;
                             global_candidate_batch.offset = global_cached_candidate_offset;
                             global_candidate_batch.count = group_cached_candidate_local_count_for_global_store;
+                            global_candidate_batch.next_id = INVALID_CACHED_CANDIDATE_BATCH_ID;
 
                             global_cached_candidate_batches[global_cached_candidate_batch_offset] = global_candidate_batch;
                         }
