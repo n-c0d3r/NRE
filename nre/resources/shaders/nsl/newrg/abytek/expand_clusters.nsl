@@ -170,7 +170,7 @@ compute_shader CS(
 
                 // if expand childs
                 b8 expand_childs = false;
-                expand_childs = cluster_hierarchical_culling_data.child_node_count > 0;
+                expand_childs = (cluster_hierarchical_culling_data.child_node_count > 0);
             
                 // process instanced cluster
                 b8 is_culled = false;
@@ -235,8 +235,6 @@ compute_shader CS(
                         group_cached_candidates[local_cached_candidate_offset].local_cluster_id = cluster_node_header.child_node_ids.w;
                         ++local_cached_candidate_offset;
                     }
-
-                    GroupMemoryBarrierWithGroupSync();
                 }
             }      
             AllMemoryBarrierWithGroupSync();
@@ -274,6 +272,7 @@ compute_shader CS(
             GroupMemoryBarrierWithGroupSync();
 
             // enqueue cached candidate batches into global queue
+            if(false)
             {
                 // store cached candidates and cached candidate batches
                 uint group_cached_candidate_batch_count = ceil(
