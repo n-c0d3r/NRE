@@ -34,31 +34,19 @@ int main() {
 	auto level_p = TU<F_level>()();
 
 	// create model actor
-	auto model_actor_p = level_p->T_create_actor();
-	auto model_transform_node_p = model_actor_p->template T_add_component<F_transform_node>();
-	auto model_drawable_p = model_actor_p->template T_add_component<F_abytek_drawable>();
-	auto model_material_p = model_actor_p->template T_add_component<F_simple_abytek_drawable_material>();
+	for(u32 i = 0; i < 10; ++i)
+	{
+		auto model_actor_p = level_p->T_create_actor();
+		auto model_transform_node_p = model_actor_p->template T_add_component<F_transform_node>();
+		auto model_drawable_p = model_actor_p->template T_add_component<F_abytek_drawable>();
+		auto model_material_p = model_actor_p->template T_add_component<F_simple_abytek_drawable_material>();
 
-	model_transform_node_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(
-		make_scale(F_vector3::one() * 5.0f)
-	);
+		model_transform_node_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(
+			make_scale(F_vector3::one() * 5.0f)
+		);
 
-	model_drawable_p->mesh_p = unified_mesh_asset_p->mesh_p();
-
-	// // create model actor 2
-	// auto model_actor_2_p = level_p->T_create_actor();
-	// auto model_transform_node_2_p = model_actor_2_p->template T_add_component<F_transform_node>();
-	// auto model_drawable_2_p = model_actor_2_p->template T_add_component<F_abytek_drawable>();
-	// auto model_material_2_p = model_actor_2_p->template T_add_component<F_simple_abytek_drawable_material>();
-	//
-	// model_transform_node_2_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(
-	// 	make_scale(F_vector3::one() * 5.0f)
-	// );
-	// model_transform_node_2_p->transform *= make_translation(
-	// 	F_vector3::right() * 1.5f
-	// );
-
-	// model_drawable_2_p->mesh_p = unified_mesh_asset_p->mesh_p();
+		model_drawable_p->mesh_p = unified_mesh_asset_p->mesh_p();
+	}
 
 	// create spectator
 	auto spectator_actor_p = level_p->T_create_actor();

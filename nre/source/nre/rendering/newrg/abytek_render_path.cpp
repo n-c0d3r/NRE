@@ -55,6 +55,10 @@ namespace nre::newrg
             }
         );
 
+        //
+        min_wave_size_ = NRE_MAIN_DEVICE()->min_wave_size();
+        max_wave_size_ = NRE_MAIN_DEVICE()->max_wave_size();
+
         // register binder signatures
         F_binder_signature_manager::instance_p()->T_register<F_abytek_expand_instances_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_expand_clusters_binder_signature>();
@@ -543,7 +547,7 @@ namespace nre::newrg
             )
         );
         F_render_resource* rg_global_cached_candidate_batch_buffer_p = H_render_resource::create_buffer(
-            NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
+            NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / max_wave_size_,
             16,
             ED_resource_flag::SHADER_RESOURCE
             | ED_resource_flag::UNORDERED_ACCESS

@@ -183,6 +183,9 @@ namespace nre::newrg
         };
         F_lod_options lod_options;
 
+        u32 min_wave_size_ = 0;
+        u32 max_wave_size_ = 0;
+
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_register_view_event_

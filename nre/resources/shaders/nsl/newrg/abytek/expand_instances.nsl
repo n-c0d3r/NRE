@@ -55,9 +55,9 @@ groupshared u32 group_instanced_cluster_offset;
 
 
 @thread_group_size(
-    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
-    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
-    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+    NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BATCH_SIZE
+    1
+    1
 )
 compute_shader CS(
     global_thread_id(SV_DISPATCH_THREAD_ID)

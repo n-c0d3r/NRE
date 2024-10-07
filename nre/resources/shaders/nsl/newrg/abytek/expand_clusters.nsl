@@ -106,6 +106,7 @@ compute_shader CS(
     {
         group_active_candidate_count = 0;
         group_cached_candidate_count = 0;
+        group_expanded_instanced_cluster_local_offset = 0;
     }
     if(global_thread_id.x < instanced_cluster_range.count)
     {
@@ -174,12 +175,12 @@ compute_shader CS(
             
                 // process instanced cluster
                 b8 is_culled = false;
-                is_culled = expand_childs;
+                is_culled = is_culled || expand_childs;
                 if(!is_culled)
                 {
-                    u32 local_expanded_instanced_cluster_offset = WavePrefixSum(1);
-                    u32 local_expanded_instanced_cluster_count = WaveActiveSum(1);
-
+                    u32 local_expanded_instanced_cluster_offset = WavePrefixCountBits(true);
+                    u32 local_expanded_instanced_cluster_count = WaveActiveCountBits(true);
+                    
                     if(local_expanded_instanced_cluster_offset == 0)
                     {
                         InterlockedAdd(
@@ -189,10 +190,10 @@ compute_shader CS(
                         );
                     }
                     AllMemoryBarrierWithGroupSync();
-
+                    
                     instanced_cluster_headers[
                         expanded_instanced_cluster_offset
-                        + group_expanded_instanced_cluster_local_offset 
+                        + group_expanded_instanced_cluster_local_offset
                         + local_expanded_instanced_cluster_offset
                     ] = instanced_cluster_header;
                 }
@@ -252,6 +253,7 @@ compute_shader CS(
             if(group_thread_id.x == 0)
             {
                 group_cached_candidate_count = 0;
+                group_expanded_instanced_cluster_local_offset = 0;
             }
 
             // setup new active candidates

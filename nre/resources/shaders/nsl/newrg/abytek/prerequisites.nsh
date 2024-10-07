@@ -120,3 +120,8 @@ float3 hue2rgb(float hue) {
     rgb = saturate(rgb);
     return rgb;
 }
+
+
+
+define NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BATCH_SIZE(NRE_NEWRG_MAX_WAVE_SIZE)
+define NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE(NRE_NEWRG_MAX_WAVE_SIZE)

@@ -8,6 +8,7 @@
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/scene_render_view.hpp>
 #include <nre/rendering/render_system.hpp>
+#include <nre/rendering/nsl_shader_system.hpp>
 #include <nre/application/application.hpp>
 #include <nre/ui/imgui.hpp>
 #include <nre/actor/actor.hpp>
@@ -34,6 +35,15 @@ namespace nre::newrg {
 			NCPP_ASSERT(is_compatible_driver_detected);
 		}
 #endif
+
+		F_nsl_shader_system::instance_p()->define_global_macro({
+			"NRE_NEWRG_MIN_WAVE_SIZE",
+			G_to_string(NRE_MAIN_DEVICE()->min_wave_size())
+		});
+		F_nsl_shader_system::instance_p()->define_global_macro({
+			"NRE_NEWRG_MAX_WAVE_SIZE",
+			G_to_string(NRE_MAIN_DEVICE()->max_wave_size())
+		});
 
 		// render workers
 		auto main_render_worker_p = F_main_render_worker::instance_p();
