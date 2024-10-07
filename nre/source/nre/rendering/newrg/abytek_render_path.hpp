@@ -176,6 +176,12 @@ namespace nre::newrg
         };
         F_draw_cluster_error_spheres_options draw_cluster_error_spheres_options;
 
+        struct F_lod_options
+        {
+            f32 error_threshold = 0.01f * 0.005f;
+        };
+        F_lod_options lod_options;
+
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_register_view_event_
@@ -231,6 +237,12 @@ namespace nre::newrg
         virtual void RG_end_register() override;
 
     public:
+        void init_args_expand_clusters(
+            f32 error_threshold,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_indirect_data_batch& out_global_shared_data_data_batch
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
         void expand_instances(
             TKPA_valid<F_abytek_scene_render_view> view_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,

@@ -10,6 +10,8 @@ namespace nre::newrg
         stride_(stride),
         count_(count)
     {
+        NCPP_ASSERT(stride % 16 == 0);
+
         allocate_data_internal();
     }
     F_indirect_data_list::~F_indirect_data_list()
@@ -64,8 +66,8 @@ namespace nre::newrg
         data_ = {
             (u8*)(
                 F_reference_render_frame_allocator().allocate(
-                    size(),
-                    size(),
+                    align_size(size(), 16),
+                    32,
                     0,
                     0
                 )
@@ -86,9 +88,10 @@ namespace nre::newrg
         auto indirect_data_system_p = F_indirect_data_system::instance_p();
 
         sz offset = indirect_data_system_p->push(
-            size(),
-            stride()
+            size() + stride(),
+            16
         );
+        offset += stride() - (offset % stride());
 
         indirect_data_system_p->enqueue_initial_value(
             data_,

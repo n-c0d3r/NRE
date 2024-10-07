@@ -17,9 +17,10 @@ namespace nre::newrg
             auto stride = signature_p->desc().stride;
 
             address_offset_ = F_indirect_command_system::instance_p()->push(
-                stride * count,
+                stride * count + stride,
                 stride
             );
+            address_offset_ += stride - (address_offset_ % stride);
         }
     }
     F_indirect_command_batch::F_indirect_command_batch(

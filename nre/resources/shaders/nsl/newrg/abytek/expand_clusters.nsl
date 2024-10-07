@@ -25,12 +25,7 @@ resource cluster_bboxes(StructuredBuffer(F_bbox) -1)
 @slot(0 6)
 resource cluster_hierarchical_culling_datas(StructuredBuffer(F_cluster_hierarchical_culling_data) -1)
 
-@slot(0 7)
-resource options(ConstantBuffer)
-uniform error_threshold(f32)
-uniform instanced_cluster_range(F_instanced_cluster_range)
-
-define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(0)
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(7)
 import(newrg/abytek/view.nssm)
 
@@ -42,11 +37,16 @@ resource instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header
 define INVALID_CACHED_CANDIDATE_BATCH_ID(0xFFFFFFFF)
 
 struct F_global_shared_data(
-    expanded_instanced_cluster_range(F_instanced_cluster_range)
     counter(u32)
     cached_candidate_batch_offset(u32)
     cached_candidate_offset(u32)
     cached_candidate_batch_head_id(u32)
+    instanced_cluster_range(F_instanced_cluster_range)
+    error_threshold(f32)
+    ___padding_0___(u32)
+    expanded_instanced_cluster_range(F_instanced_cluster_range)
+    ___padding_1___(u32)
+    ___padding_2___(u32)
 )
 @slot(1 7)
 resource global_shared_datas(RWStructuredBuffer(F_global_shared_data))
@@ -89,6 +89,9 @@ compute_shader CS(
     group_thread_id(SV_GROUP_THREAD_ID)
 )
 {
+    // 
+    F_instanced_cluster_range instanced_cluster_range = global_shared_datas[0].instanced_cluster_range;
+
     // initialize group shared memory
     if(group_thread_id.x == 0)
     {

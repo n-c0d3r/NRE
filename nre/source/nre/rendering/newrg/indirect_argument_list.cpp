@@ -116,9 +116,10 @@ namespace nre::newrg
         auto indirect_command_system_p = F_indirect_command_system::instance_p();
 
         sz offset = indirect_command_system_p->push(
-            table.stride,
+            size_ + table.stride,
             table.alignment
         );
+        offset += table.stride - (offset % table.stride);
 
         indirect_command_system_p->enqueue_initial_value(
             data_,

@@ -10,12 +10,15 @@ namespace nre::newrg
         stride_(stride),
         count_(count)
     {
+        NCPP_ASSERT(stride % 16 == 0);
+
         if(count && stride)
         {
             address_offset_ = F_indirect_data_system::instance_p()->push(
-                stride * count,
+                stride * count + stride,
                 stride
             );
+            address_offset_ += stride - (address_offset_ % stride);
         }
     }
     F_indirect_data_batch::F_indirect_data_batch(sz address_offset, u32 stride, u32 count) :

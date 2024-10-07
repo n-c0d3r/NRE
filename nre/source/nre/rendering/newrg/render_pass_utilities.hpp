@@ -324,7 +324,7 @@ namespace nre::newrg
         template<E_render_pass_flag additional_flags__ = E_render_pass_flag::MAIN_RENDER_WORKER>
         static F_render_pass* T_dispatch(
             auto&& functor,
-            PA_vector3_u32 thread_group_size,
+            PA_vector3_u32 thread_group_count,
             F_render_binder_group* binder_group_p = 0
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         )
@@ -333,7 +333,7 @@ namespace nre::newrg
                 [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
                 {
                     functor(pass_p, command_list_p);
-                    command_list_p->async_dispatch(thread_group_size);
+                    command_list_p->async_dispatch(thread_group_count);
                 },
                 binder_group_p
                 NRE_OPTIONAL_DEBUG_PARAM(name)
@@ -341,14 +341,14 @@ namespace nre::newrg
         }
         NCPP_FORCE_INLINE static F_render_pass* dispatch(
             auto&& functor,
-            PA_vector3_u32 thread_group_size,
+            PA_vector3_u32 thread_group_count,
             F_render_binder_group* binder_group_p = 0
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         )
         {
             return T_dispatch(
                 NCPP_FORWARD(functor),
-                thread_group_size,
+                thread_group_count,
                 binder_group_p
                 NRE_OPTIONAL_DEBUG_PARAM(name)
             );
@@ -542,7 +542,7 @@ namespace nre::newrg
         template<E_render_pass_flag additional_flags__ = E_render_pass_flag::MAIN_RENDER_WORKER>
         static F_render_pass* T_dispatch_mesh(
             auto&& functor,
-            PA_vector3_u32 thread_group_size,
+            PA_vector3_u32 thread_group_count,
             F_render_binder_group* binder_group_p = 0
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         )
@@ -551,7 +551,7 @@ namespace nre::newrg
                 [=](F_render_pass* pass_p, TKPA<A_command_list> command_list_p)
                 {
                     functor(pass_p, command_list_p);
-                    command_list_p->async_dispatch_mesh(thread_group_size);
+                    command_list_p->async_dispatch_mesh(thread_group_count);
                 },
                 binder_group_p
                 NRE_OPTIONAL_DEBUG_PARAM(name)
@@ -559,14 +559,14 @@ namespace nre::newrg
         }
         NCPP_FORCE_INLINE static F_render_pass* dispatch_mesh(
             auto&& functor,
-            PA_vector3_u32 thread_group_size,
+            PA_vector3_u32 thread_group_count,
             F_render_binder_group* binder_group_p = 0
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         )
         {
             return T_dispatch_mesh(
                 NCPP_FORWARD(functor),
-                thread_group_size,
+                thread_group_count,
                 binder_group_p
                 NRE_OPTIONAL_DEBUG_PARAM(name)
             );

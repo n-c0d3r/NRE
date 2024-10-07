@@ -92,9 +92,9 @@ namespace nre::newrg
                     F_root_param_desc(
                         F_root_descriptor_table_desc{
                             .range_descs = {
-                                F_descriptor_range_desc { // 2CBV (options, scene render view)
+                                F_descriptor_range_desc { // 1CBV (scene render view)
                                     .type = ED_descriptor_range_type::CONSTANT_BUFFER,
-                                    .descriptor_count = 2,
+                                    .descriptor_count = 1,
                                     .offset_in_descriptors_from_table_start = 0,
                                     .base_register = 0,
                                     .register_space = 7
@@ -102,7 +102,7 @@ namespace nre::newrg
                                 F_descriptor_range_desc { // 4UAVs (instanced cluster headers, global shared datas, global cached candidates, global cached candidate batches)
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
                                     .descriptor_count = 4,
-                                    .offset_in_descriptors_from_table_start = 2,
+                                    .offset_in_descriptors_from_table_start = 1,
                                     .base_register = 0,
                                     .register_space = 7
                                 }
