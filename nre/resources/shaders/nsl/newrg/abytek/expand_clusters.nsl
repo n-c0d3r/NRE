@@ -142,18 +142,19 @@ compute_shader CS(
                 );
 
                 // for cached candidates and cached candidate batches that need to be processed in the next main loop step as active candidates
-                if(group_cached_candidate_batch_count)
+                uint main_group_cached_candidate_count = min(
+                    group_cached_candidate_count,
+                    NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE
+                );
+                if(group_thread_id.x == 0)
                 {
-                    uint main_group_cached_candidate_count = min(
-                        group_cached_candidate_count,
-                        NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE
-                    );
-                    if(group_thread_id.x < main_group_cached_candidate_count)
-                    {
-                        group_active_candidates[group_thread_id.x] = group_cached_candidates[group_thread_id.x];
-                    }
-                    GroupMemoryBarrierWithGroupSync();
+                    group_active_candidate_count = main_group_cached_candidate_count;
                 }
+                if(group_thread_id.x < main_group_cached_candidate_count)
+                {
+                    group_active_candidates[group_thread_id.x] = group_cached_candidates[group_thread_id.x];
+                }
+                GroupMemoryBarrierWithGroupSync();
 
                 // for cached candidates and cached candidate batches that need to be pushed into global queue
                 for(u32 i = 1; i < group_cached_candidate_batch_count; ++i)
