@@ -714,6 +714,10 @@ namespace nre::newrg
             .states = ED_resource_state::UNORDERED_ACCESS
         });
         pass_p->add_resource_state({
+            .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+            .states = ED_resource_state::INDIRECT_ARGUMENT
+        });
+        pass_p->add_resource_state({
             .resource_p = rg_global_cached_candidate_buffer_p,
             .states = ED_resource_state::UNORDERED_ACCESS
         });

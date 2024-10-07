@@ -43,9 +43,9 @@ struct F_global_shared_data(
     cached_candidate_batch_head_id(u32)
     instanced_cluster_range(F_instanced_cluster_range)
     error_threshold(f32)
-    ___padding_0___(u32)
+    task_capacity_factor(f32)
     expanded_instanced_cluster_range(F_instanced_cluster_range)
-    ___padding_1___(u32)
+    max_task_capacity(u32)
     ___padding_2___(u32)
 )
 @slot(1 7)
@@ -77,6 +77,8 @@ groupshared uint global_cached_candidate_offset;
 groupshared uint global_active_candidate_offset;
 groupshared uint global_active_candidate_batch_id;
 
+groupshared u32 group_expanded_instanced_cluster_local_offset;
+
 
 
 @thread_group_size(
@@ -90,6 +92,9 @@ compute_shader CS(
     group_thread_id(SV_GROUP_THREAD_ID)
 )
 {
+    //
+    u32 expanded_instanced_cluster_offset = global_shared_datas[0].expanded_instanced_cluster_range.offset;
+
     // 
     F_instanced_cluster_range instanced_cluster_range = global_shared_datas[0].instanced_cluster_range;
 
@@ -122,11 +127,65 @@ compute_shader CS(
             if(group_thread_id.x < group_active_candidate_count)
             {
                 F_instanced_cluster_header instanced_cluster_header = group_active_candidates[group_thread_id.x];
+
+                F_mesh_id mesh_id = instance_mesh_ids[
+                    instanced_cluster_header.instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+                ][
+                    instanced_cluster_header.instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+                ];
+
+                F_mesh_header mesh_header = mesh_headers[
+                    mesh_id / NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+                ][
+                    mesh_id % NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+                ];
+
+                F_cluster_id cluster_id = mesh_header.cluster_offset + instanced_cluster_header.local_cluster_id;
+
+                F_cluster_node_header cluster_node_header = cluster_node_headers[
+                    cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+                ][
+                    cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+                ];
+
+                F_cluster_hierarchical_culling_data cluster_hierarchical_culling_data = cluster_hierarchical_culling_datas[
+                    cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+                ][
+                    cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+                ];
             
                 // process instanced cluster
+                b8 is_culled = false;
+
+                if(!is_culled)
+                {
+                    u32 local_expanded_instanced_cluster_offset = WavePrefixSum(1);
+                    u32 local_expanded_instanced_cluster_count = WaveActiveSum(1);
+
+                    GroupMemoryBarrierWithGroupSync();
+
+                    if(local_expanded_instanced_cluster_offset == 0)
+                    {
+                        InterlockedAdd(
+                            global_shared_datas[0].expanded_instanced_cluster_range.count,
+                            local_expanded_instanced_cluster_count,
+                            group_expanded_instanced_cluster_local_offset
+                        );
+                    }
+
+                    AllMemoryBarrierWithGroupSync();
+
+                    instanced_cluster_headers[
+                        expanded_instanced_cluster_offset
+                        + group_expanded_instanced_cluster_local_offset 
+                        + local_expanded_instanced_cluster_offset
+                    ] = instanced_cluster_header;
+                }
+
+                // store group cached candidates
                 group_cached_candidate_count = WaveActiveSum(0);
-                GroupMemoryBarrierWithGroupSync();
             }      
+            GroupMemoryBarrierWithGroupSync();
 
             // process cached candidates
             {

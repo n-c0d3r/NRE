@@ -215,7 +215,7 @@ compute_shader CS(
         );
     }
 
-    DeviceMemoryBarrierWithGroupSync();
+    AllMemoryBarrierWithGroupSync();
 
     u32 instanced_cluster_offset = group_instanced_cluster_offset + local_root_cluster_offset;
 
