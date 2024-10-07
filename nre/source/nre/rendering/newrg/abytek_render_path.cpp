@@ -320,10 +320,15 @@ namespace nre::newrg
                     // expand clusters
                     {
                         F_indirect_data_batch global_shared_data_data_batch;
+                        F_indirect_command_batch dispatch_command_batch;
+
                         init_args_expand_clusters(
                             lod_options.error_threshold,
+                            lod_options.task_capacity_factor,
+                            NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / 2,
                             instanced_cluster_range_data_batch,
-                            global_shared_data_data_batch
+                            global_shared_data_data_batch,
+                            dispatch_command_batch
                             NRE_OPTIONAL_DEBUG_PARAM(
                                 F_render_frame_name("nre.newrg.abytek_render_path.init_args_expand_clusters(")
                                 + casted_view_p->actor_p()->name().c_str()
@@ -342,8 +347,11 @@ namespace nre::newrg
 
     void F_abytek_render_path::init_args_expand_clusters(
         f32 error_threshold,
+        f32 task_capacity_factor,
+        u32 max_task_capacity,
         const F_indirect_data_batch& instanced_cluster_range_data_batch,
-        F_indirect_data_batch& out_global_shared_data_data_batch
+        F_indirect_data_batch& out_global_shared_data_data_batch,
+        F_indirect_command_batch& out_dispatch_command_batch
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
@@ -356,9 +364,9 @@ namespace nre::newrg
             + sizeof(u32) // cached candidate batch head id
             + 2 * sizeof(u32) // instanced cluster range
             + sizeof(f32) // error threshold
-            + 4 // padding 0
+            + 4 // task capacity factor
             + 2 * sizeof(u32) // expanded instanced cluster range
-            + 4 // padding 1
+            + 4 // max task capacity
             + 4, // padding 2
             1
         );
@@ -371,11 +379,35 @@ namespace nre::newrg
             + 2 * sizeof(u32), // instanced cluster range
             error_threshold
         );
+        global_shared_data_data_list.T_set(
+            0,
+            sizeof(u32) // counter
+            + sizeof(u32) // cached candidate batch offset
+            + sizeof(u32) // cached candidate offset
+            + sizeof(u32) // cached candidate batch head id
+            + 2 * sizeof(u32) // instanced cluster range
+            + sizeof(f32), // error threshold
+            task_capacity_factor
+        );
+        global_shared_data_data_list.T_set(
+            0,
+            sizeof(u32) // counter
+            + sizeof(u32) // cached candidate batch offset
+            + sizeof(u32) // cached candidate offset
+            + sizeof(u32) // cached candidate batch head id
+            + 2 * sizeof(u32) // instanced cluster range
+            + sizeof(f32) // error threshold
+            + 4 // task capacity factor
+            + 2 * sizeof(u32), // expanded instanced cluster range
+            std::ranges::max
+        );
         out_global_shared_data_data_batch = global_shared_data_data_list.build();
+
+        out_dispatch_command_batch = F_dispatch_indirect_command_batch(1);
 
         F_render_bind_list main_render_bind_list(
             ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
-            2
+            3
             NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
         );
         instanced_cluster_range_data_batch.enqueue_initialize_resource_view(
@@ -388,6 +420,12 @@ namespace nre::newrg
             0,
             1,
             main_render_bind_list[1],
+            ED_resource_view_type::UNORDERED_ACCESS
+        );
+        out_dispatch_command_batch.enqueue_initialize_resource_view(
+            0,
+            1,
+            main_render_bind_list[2],
             ED_resource_view_type::UNORDERED_ACCESS
         );
 
@@ -419,7 +457,8 @@ namespace nre::newrg
     void F_abytek_render_path::expand_clusters(
         TKPA_valid<F_abytek_scene_render_view> view_p,
         F_render_resource* rg_instanced_cluster_header_buffer_p,
-        const F_indirect_data_batch& global_shared_data_data_batch
+        const F_indirect_data_batch& global_shared_data_data_batch,
+            const F_indirect_command_batch& dispatch_command_batch
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {

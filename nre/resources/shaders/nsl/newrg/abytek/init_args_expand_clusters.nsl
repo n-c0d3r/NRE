@@ -20,13 +20,16 @@ struct F_global_shared_data(
     cached_candidate_batch_head_id(u32)
     instanced_cluster_range(F_instanced_cluster_range)
     error_threshold(f32)
-    ___padding_0___(u32)
+    task_capacity_factor(f32)
     expanded_instanced_cluster_range(F_instanced_cluster_range)
-    ___padding_1___(u32)
+    max_task_capacity(u32)
     ___padding_2___(u32)
 )
 @slot(1)
 resource global_shared_datas(RWStructuredBuffer(F_global_shared_data))
+
+@slot(2)
+resource dispatch_indirect_arguments(RWStructuredBuffer(F_dispatch_indirect_argument))
 
 
 
@@ -46,6 +49,19 @@ compute_shader CS()
     global_shared_datas[0].instanced_cluster_range = instanced_cluster_range;
     global_shared_datas[0].expanded_instanced_cluster_range.offset = instanced_cluster_range.offset + instanced_cluster_range.count;
     global_shared_datas[0].expanded_instanced_cluster_range.count = 0;
+
+    dispatch_indirect_arguments[0] = F_dispatch_indirect_argument(
+        ceil(
+            min(
+                global_shared_datas[0].max_task_capacity,
+                ((f32)instanced_cluster_range.count) 
+                * global_shared_datas[0].task_capacity_factor 
+            )
+            / ((f32)NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE)
+        ),
+        1,
+        1
+    );
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_INIT_ARGS_EXPAND_CLUSTERS_BINDER_SIGNATURE)

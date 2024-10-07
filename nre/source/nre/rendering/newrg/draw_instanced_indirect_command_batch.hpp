@@ -10,6 +10,7 @@ namespace nre::newrg
     {
     public:
         F_draw_instanced_indirect_command_batch() = default;
+        F_draw_instanced_indirect_command_batch(u32 count);
         F_draw_instanced_indirect_command_batch(
             sz address_offset,
             u32 count
