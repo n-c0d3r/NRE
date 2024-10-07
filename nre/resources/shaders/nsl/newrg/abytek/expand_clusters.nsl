@@ -104,14 +104,19 @@ compute_shader CS(
     // initialize group shared memory
     if(group_thread_id.x == 0)
     {
-        group_active_candidate_count = min(
-            instanced_cluster_range.count - group_id.x * NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
-            NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE
-        );
+        group_active_candidate_count = 0;
         group_cached_candidate_count = 0;
     }
     if(global_thread_id.x < instanced_cluster_range.count)
     {
+        if(group_thread_id.x == 0)
+        {
+            group_active_candidate_count = min(
+                instanced_cluster_range.count - group_id.x * NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
+                NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE
+            );
+        }
+
         group_active_candidates[group_thread_id.x] = instanced_cluster_headers[instanced_cluster_range.offset + global_thread_id.x];
     }
     GroupMemoryBarrierWithGroupSync();
@@ -121,7 +126,7 @@ compute_shader CS(
     {
         uint processed_group_active_candidate_count = 0;
 
-        while(group_active_candidate_count)
+        while(group_active_candidate_count > 0)
         {
             //
             processed_group_active_candidate_count += group_active_candidate_count;
@@ -162,20 +167,18 @@ compute_shader CS(
                 ][
                     cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
                 ];
+
+                // if expand childs
+                b8 expand_childs = false;
+                expand_childs = cluster_hierarchical_culling_data.child_node_count > 0;
             
                 // process instanced cluster
                 b8 is_culled = false;
-
-                b8 expand_childs = false;
-
                 is_culled = expand_childs;
-
                 if(!is_culled)
                 {
                     u32 local_expanded_instanced_cluster_offset = WavePrefixSum(1);
                     u32 local_expanded_instanced_cluster_count = WaveActiveSum(1);
-
-                    GroupMemoryBarrierWithGroupSync();
 
                     if(local_expanded_instanced_cluster_offset == 0)
                     {
@@ -185,7 +188,6 @@ compute_shader CS(
                             group_expanded_instanced_cluster_local_offset
                         );
                     }
-
                     AllMemoryBarrierWithGroupSync();
 
                     instanced_cluster_headers[
@@ -196,49 +198,95 @@ compute_shader CS(
                 }
 
                 // store group cached candidates
-                group_cached_candidate_count = WaveActiveSum(0);
+                if(
+                    expand_childs 
+                    && (cluster_hierarchical_culling_data.flags & CRITICAL_HIERARCHICAL_CULLING_DATA_FLAG)
+                )
+                {
+                    uint local_cached_candidate_offset = WavePrefixSum(cluster_hierarchical_culling_data.child_node_count);
+                    uint new_group_cached_candidate_count = WaveActiveSum(cluster_hierarchical_culling_data.child_node_count);
+
+                    if(local_cached_candidate_offset == 0)
+                    {
+                        group_cached_candidate_count = new_group_cached_candidate_count;
+                    }
+
+                    if(cluster_hierarchical_culling_data.child_node_count > 0)
+                    {
+                        group_cached_candidates[local_cached_candidate_offset].instance_id = instanced_cluster_header.instance_id;
+                        group_cached_candidates[local_cached_candidate_offset].local_cluster_id = cluster_node_header.child_node_ids.x;
+                        ++local_cached_candidate_offset;
+                    }
+                    if(cluster_hierarchical_culling_data.child_node_count > 1)
+                    {
+                        group_cached_candidates[local_cached_candidate_offset].instance_id = instanced_cluster_header.instance_id;
+                        group_cached_candidates[local_cached_candidate_offset].local_cluster_id = cluster_node_header.child_node_ids.y;
+                        ++local_cached_candidate_offset;
+                    }
+                    if(cluster_hierarchical_culling_data.child_node_count > 2)
+                    {
+                        group_cached_candidates[local_cached_candidate_offset].instance_id = instanced_cluster_header.instance_id;
+                        group_cached_candidates[local_cached_candidate_offset].local_cluster_id = cluster_node_header.child_node_ids.z;
+                        ++local_cached_candidate_offset;
+                    }
+                    if(cluster_hierarchical_culling_data.child_node_count > 3)
+                    {
+                        group_cached_candidates[local_cached_candidate_offset].instance_id = instanced_cluster_header.instance_id;
+                        group_cached_candidates[local_cached_candidate_offset].local_cluster_id = cluster_node_header.child_node_ids.w;
+                        ++local_cached_candidate_offset;
+                    }
+
+                    GroupMemoryBarrierWithGroupSync();
+                }
             }      
             AllMemoryBarrierWithGroupSync();
 
-            // process cached candidates
+            // read group_cached_candidate_count and reset it
+            uint new_group_cached_candidate_count = group_cached_candidate_count;
+            if(new_group_cached_candidate_count && (group_thread_id.x == 0))
             {
-                // increase counter
-                if(group_cached_candidate_count && (group_thread_id.x == 0))
-                {
-                    InterlockedAdd(
-                        global_shared_datas[0].counter,
-                        group_cached_candidate_count
-                    );
-                }
-
-                // store cached candidates and cached candidate batches
-                uint group_cached_candidate_batch_count = ceil(
-                    f32(group_cached_candidate_count)
-                    / f32(NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE)
+                InterlockedAdd(
+                    global_shared_datas[0].counter,
+                    new_group_cached_candidate_count
                 );
+            }
+            AllMemoryBarrierWithGroupSync();
+            if(group_thread_id.x == 0)
+            {
+                group_cached_candidate_count = 0;
+            }
 
-                // for cached candidates and cached candidate batches that need to be processed in the next main loop step as active candidates
+            // setup new active candidates
+            {
                 uint main_group_cached_candidate_count = min(
-                    group_cached_candidate_count,
+                    new_group_cached_candidate_count,
                     NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE
                 );
                 if(group_thread_id.x == 0)
                 {
-                    group_active_candidate_count = main_group_cached_candidate_count;
+                    group_active_candidate_count = new_group_cached_candidate_count;
                 }
                 if(group_thread_id.x < main_group_cached_candidate_count)
                 {
                     group_active_candidates[group_thread_id.x] = group_cached_candidates[group_thread_id.x];
                 }
-                GroupMemoryBarrierWithGroupSync();
+            }
+            GroupMemoryBarrierWithGroupSync();
 
-                // for cached candidates and cached candidate batches that need to be pushed into global queue
+            // enqueue cached candidate batches into global queue
+            {
+                // store cached candidates and cached candidate batches
+                uint group_cached_candidate_batch_count = ceil(
+                    f32(new_group_cached_candidate_count)
+                    / f32(NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE)
+                );
+
                 for(u32 i = 1; i < group_cached_candidate_batch_count; ++i)
                 {
                     uint group_cached_candidate_local_offset_for_global_store = NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE * i;
                     uint group_cached_candidate_local_count_for_global_store = min(
                         group_cached_candidate_local_offset_for_global_store + NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
-                        group_cached_candidate_count
+                        new_group_cached_candidate_count
                     ) - group_cached_candidate_local_offset_for_global_store;
 
                     // allocate global memory
@@ -315,13 +363,9 @@ compute_shader CS(
                     }
                     DeviceMemoryBarrierWithGroupSync();
                 }
-
-                // reset group cached candidates
-                group_cached_candidate_count = 0;
-                GroupMemoryBarrierWithGroupSync();
             }
         }     
-    
+        
         // decrease global counter
         if(processed_group_active_candidate_count && (group_thread_id.x == 0))
         {
@@ -330,6 +374,7 @@ compute_shader CS(
                 -processed_group_active_candidate_count
             ); 
         }
+        DeviceMemoryBarrierWithGroupSync();
 
         // try pop global candidate queue
         {

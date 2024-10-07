@@ -817,7 +817,13 @@ namespace nre::newrg
                     cluster_hierarchical_culling_data.outer_error_sphere = outer_error_sphere;
                     cluster_hierarchical_culling_data.error_factor = error_factor;
                     cluster_hierarchical_culling_data.error_radius = error_radius;
-                    cluster_hierarchical_culling_data.is_critical = (min_cluster_id == cluster_id);
+                    cluster_hierarchical_culling_data.flags = E_cluster_hierarchical_culling_data_flag::NONE;
+
+                    if(min_cluster_id == cluster_id)
+                    cluster_hierarchical_culling_data.flags = flag_combine(
+                        cluster_hierarchical_culling_data.flags,
+                        E_cluster_hierarchical_culling_data_flag::CRITICAL
+                    );
                 },
                 {
                     .parallel_count = cluster_level_header.end - cluster_level_header.begin,

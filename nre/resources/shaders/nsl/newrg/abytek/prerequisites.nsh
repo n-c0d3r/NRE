@@ -58,13 +58,15 @@ struct F_cluster_id_range(
     end(F_cluster_id)
 )
 
+define CRITICAL_HIERARCHICAL_CULLING_DATA_FLAG(0x1)
+
 struct F_cluster_hierarchical_culling_data(
     bbox(F_bbox)
     invisible_cone(F_cone)
     outer_error_sphere(F_sphere)
     error_factor(f32)
     error_radius(f32)
-    is_critical(b8)
+    flags(u32)
     child_node_count(u32)
 )
 

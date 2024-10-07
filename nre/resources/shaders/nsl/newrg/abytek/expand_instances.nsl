@@ -204,8 +204,6 @@ compute_shader CS(
     u32 local_root_cluster_offset = WavePrefixSum(mesh_header.root_cluster_count);
     u32 local_root_cluster_count = WaveActiveSum(mesh_header.root_cluster_count);
 
-    GroupMemoryBarrierWithGroupSync();
-
     if(local_root_cluster_offset == 0)
     {
         InterlockedAdd(
@@ -214,7 +212,6 @@ compute_shader CS(
             group_instanced_cluster_offset
         );
     }
-
     AllMemoryBarrierWithGroupSync();
 
     u32 instanced_cluster_offset = group_instanced_cluster_offset + local_root_cluster_offset;

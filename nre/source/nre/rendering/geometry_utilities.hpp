@@ -184,6 +184,11 @@ namespace nre
         u32 begin = 0;
         u32 end = 0;
     };
+    enum class E_cluster_hierarchical_culling_data_flag
+    {
+        NONE = 0x0,
+        CRITICAL = 0x1
+    };
     struct NCPP_ALIGN(16) F_cluster_hierarchical_culling_data
     {
         F_box_f32 bbox;
@@ -191,7 +196,7 @@ namespace nre
         F_sphere_f32 outer_error_sphere;
         f32 error_factor = 0.0f;
         f32 error_radius = 0.0f;
-        b8 is_critical = false;
+        E_cluster_hierarchical_culling_data_flag flags = E_cluster_hierarchical_culling_data_flag::NONE;
         u32 child_node_count = 0;
     };
 
