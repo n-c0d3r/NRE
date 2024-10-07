@@ -572,7 +572,7 @@ namespace nre::newrg
 
         auto main_descriptor_element = main_render_bind_list[0];
 
-        auto pass_p = H_render_pass::dispatch(
+        auto pass_p = H_indirect_command_batch::execute(
             [=](F_render_pass*, TKPA<A_command_list> command_list_p)
             {
                 command_list_p->ZC_bind_root_signature(
@@ -614,13 +614,10 @@ namespace nre::newrg
                     NCPP_FOH_VALID(expand_clusters_pso_p_)
                 );
             },
-            element_ceil(
-                F_vector3_f32(
-                    instance_count,
-                    1,
-                    1
-                )
-                / f32(NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+            dispatch_command_batch,
+            flag_combine(
+                E_render_pass_flag::MAIN_RENDER_WORKER,
+                E_render_pass_flag::GPU_ACCESS_COMPUTE
             ),
             0
             NRE_OPTIONAL_DEBUG_PARAM(name)
