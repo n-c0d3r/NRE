@@ -227,6 +227,9 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto unit_sphere_2_static_mesh_asset_p() const noexcept { return NCPP_FOH_VALID(unit_sphere_2_static_mesh_asset_p_); }
         NCPP_FORCE_INLINE auto unit_sphere_2_static_mesh_p() const noexcept { return NCPP_FOH_VALID(unit_sphere_2_static_mesh_p_); }
 
+        NCPP_FORCE_INLINE u32 expand_instances_batch_size() const noexcept { return max_wave_size_; }
+        NCPP_FORCE_INLINE u32 expand_clusters_batch_size() const noexcept { return max_wave_size_; }
+
 
 
     public:

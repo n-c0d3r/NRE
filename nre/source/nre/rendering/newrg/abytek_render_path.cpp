@@ -547,7 +547,7 @@ namespace nre::newrg
             )
         );
         F_render_resource* rg_global_cached_candidate_batch_buffer_p = H_render_resource::create_buffer(
-            NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / max_wave_size_,
+            NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / expand_clusters_batch_size(),
             16,
             ED_resource_flag::SHADER_RESOURCE
             | ED_resource_flag::UNORDERED_ACCESS
@@ -851,7 +851,7 @@ namespace nre::newrg
                     1,
                     1
                 )
-                / f32(NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+                / f32(expand_instances_batch_size())
             ),
             0
             NRE_OPTIONAL_DEBUG_PARAM(name)
