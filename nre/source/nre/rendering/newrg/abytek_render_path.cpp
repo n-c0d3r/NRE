@@ -335,6 +335,18 @@ namespace nre::newrg
                                 + ")"
                             )
                         );
+
+                        expand_clusters(
+                            NCPP_FOH_VALID(casted_view_p),
+                            rg_instanced_cluster_header_buffer_p,
+                            global_shared_data_data_batch,
+                            dispatch_command_batch
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.expand_clusters(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ")"
+                            )
+                        );
                     }
 
                     casted_view_p->generate_first_depth_pyramid();
@@ -576,7 +588,7 @@ namespace nre::newrg
             [=](F_render_pass*, TKPA<A_command_list> command_list_p)
             {
                 command_list_p->ZC_bind_root_signature(
-                    F_abytek_expand_instances_binder_signature::instance_p()->root_signature_p()
+                    F_abytek_expand_clusters_binder_signature::instance_p()->root_signature_p()
                 );
                 command_list_p->ZC_bind_root_descriptor_table(
                     0,
