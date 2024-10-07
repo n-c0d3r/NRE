@@ -185,7 +185,7 @@ compute_shader CS(
                 // store group cached candidates
                 group_cached_candidate_count = WaveActiveSum(0);
             }      
-            GroupMemoryBarrierWithGroupSync();
+            AllMemoryBarrierWithGroupSync();
 
             // process cached candidates
             {
