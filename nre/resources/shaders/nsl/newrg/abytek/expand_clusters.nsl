@@ -311,7 +311,7 @@ compute_shader CS(
                                 last_head_id
                             );
                         }
-                        while(last_head_id == expected_last_head_id);
+                        while(last_head_id != expected_last_head_id);
                     }
                     DeviceMemoryBarrierWithGroupSync();
                 }
@@ -369,7 +369,7 @@ compute_shader CS(
                                 last_head_id
                             );
                         }
-                        while(last_head_id == expected_last_head_id);
+                        while(last_head_id != expected_last_head_id);
                     }
                 }
             }
