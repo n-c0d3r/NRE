@@ -45,14 +45,17 @@ namespace nre::newrg
             {
                 ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
                 ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
+                ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
                 ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED
             },
             {
                 ED_resource_heap_type::DEFAULT,
                 ED_resource_heap_type::DEFAULT,
+                ED_resource_heap_type::DEFAULT,
                 ED_resource_heap_type::DEFAULT
             },
             {
+                ED_resource_state::COMMON,
                 ED_resource_state::COMMON,
                 ED_resource_state::COMMON,
                 ED_resource_state::COMMON
@@ -433,6 +436,10 @@ namespace nre::newrg
                         mesh_p->last_frame_cluster_id_,
                         (TG_vector<F_cluster_hierarchical_culling_data>&)compressed_data.cluster_hierarchical_culling_datas
                     );
+                    cluster_table_.T_upload<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_NODE_HEADER>(
+                        mesh_p->last_frame_cluster_id_,
+                        (TG_vector<F_cluster_node_header>&)compressed_data.cluster_node_headers
+                    );
                 }
             }
 
@@ -509,17 +516,20 @@ namespace nre::newrg
             );
             cluster_table_render_bind_list_p_ = render_graph_p->T_create<F_cluster_table_render_bind_list>(
                 &cluster_table_,
-                TG_array<ED_resource_view_type, 3>({
+                TG_array<ED_resource_view_type, 4>({
+                    ED_resource_view_type::SHADER_RESOURCE,
                     ED_resource_view_type::SHADER_RESOURCE,
                     ED_resource_view_type::SHADER_RESOURCE,
                     ED_resource_view_type::SHADER_RESOURCE
                 }),
-                TG_array<ED_resource_flag, 3>({
+                TG_array<ED_resource_flag, 4>({
+                    ED_resource_flag::NONE,
                     ED_resource_flag::NONE,
                     ED_resource_flag::NONE,
                     ED_resource_flag::NONE
                 }),
-                TG_array<ED_format, 3>({
+                TG_array<ED_format, 4>({
+                    ED_format::NONE,
                     ED_format::NONE,
                     ED_format::NONE,
                     ED_format::NONE

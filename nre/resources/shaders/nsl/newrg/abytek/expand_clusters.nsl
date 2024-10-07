@@ -58,6 +58,7 @@ struct F_cached_candidate_batch(
     offset(uint)
     count(uint)
     next_id(uint)
+    ___padding_0___(uint)
 );
 @slot(3 7)
 resource global_cached_candidate_batches(RWStructuredBuffer(F_cached_candidate_batch))
@@ -212,6 +213,7 @@ compute_shader CS(
                             global_candidate_batch.offset = global_cached_candidate_offset;
                             global_candidate_batch.count = group_cached_candidate_local_count_for_global_store;
                             global_candidate_batch.next_id = INVALID_CACHED_CANDIDATE_BATCH_ID;
+                            global_candidate_batch.___padding_0___ = 0;
 
                             global_cached_candidate_batches[global_cached_candidate_batch_offset] = global_candidate_batch;
                         }
