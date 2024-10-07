@@ -190,6 +190,14 @@ namespace nre::newrg
                 render_primitive_data_id_,
                 last_local_to_world_matrix_
             );
+            table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_INVERSE_TRANSFORM>(
+                render_primitive_data_id_,
+                invert(local_to_world_matrix)
+            );
+            table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_INVERSE_TRANSFORM>(
+                render_primitive_data_id_,
+                invert(last_local_to_world_matrix_)
+            );
             last_local_to_world_matrix_ = local_to_world_matrix;
         }
     }

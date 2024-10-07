@@ -8,28 +8,31 @@ import(newrg/abytek/geometry_utilities.nsh)
 resource instance_transforms(StructuredBuffer(f32x4x4) -1)
 
 @slot(0 1)
-resource instance_mesh_ids(Buffer(F_mesh_id) -1)
+resource instance_inverse_transforms(StructuredBuffer(f32x4x4) -1)
 
 @slot(0 2)
-resource mesh_headers(StructuredBuffer(F_mesh_header) -1)
+resource instance_mesh_ids(Buffer(F_mesh_id) -1)
 
 @slot(0 3)
-resource mesh_culling_datas(StructuredBuffer(F_mesh_culling_data) -1)
+resource mesh_headers(StructuredBuffer(F_mesh_header) -1)
 
 @slot(0 4)
-resource cluster_node_headers(StructuredBuffer(F_cluster_node_header) -1)
+resource mesh_culling_datas(StructuredBuffer(F_mesh_culling_data) -1)
 
 @slot(0 5)
-resource cluster_bboxes(StructuredBuffer(F_bbox) -1)
+resource cluster_node_headers(StructuredBuffer(F_cluster_node_header) -1)
 
 @slot(0 6)
+resource cluster_bboxes(StructuredBuffer(F_bbox) -1)
+
+@slot(0 7)
 resource cluster_hierarchical_culling_datas(StructuredBuffer(F_cluster_hierarchical_culling_data) -1)
 
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(0)
-define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(7)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(8)
 import(newrg/abytek/view.nssm)
 
-@slot(0 7)
+@slot(0 8)
 resource instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header))
 
 
@@ -48,10 +51,10 @@ struct F_global_shared_data(
     max_task_capacity(u32)
     ___padding_2___(u32)
 )
-@slot(1 7)
+@slot(1 8)
 resource global_shared_datas(RWStructuredBuffer(F_global_shared_data))
 
-@slot(2 7)
+@slot(2 8)
 resource global_cached_candidates(RWStructuredBuffer(F_instanced_cluster_header))
 
 struct F_cached_candidate_batch(
@@ -60,7 +63,7 @@ struct F_cached_candidate_batch(
     next_id(uint)
     ___padding_0___(uint)
 );
-@slot(3 7)
+@slot(3 8)
 resource global_cached_candidate_batches(RWStructuredBuffer(F_cached_candidate_batch))
 
 
@@ -128,6 +131,12 @@ compute_shader CS(
             {
                 F_instanced_cluster_header instanced_cluster_header = group_active_candidates[group_thread_id.x];
 
+                float4x4 instance_transform = instance_transforms[
+                    instanced_cluster_header.instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+                ][
+                    instanced_cluster_header.instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+                ];
+
                 F_mesh_id mesh_id = instance_mesh_ids[
                     instanced_cluster_header.instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
                 ][
@@ -156,6 +165,10 @@ compute_shader CS(
             
                 // process instanced cluster
                 b8 is_culled = false;
+
+                b8 expand_childs = false;
+
+                is_culled = expand_childs;
 
                 if(!is_culled)
                 {

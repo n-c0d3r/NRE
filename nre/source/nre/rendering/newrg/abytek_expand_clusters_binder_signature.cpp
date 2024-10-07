@@ -23,7 +23,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // instance mesh id
+                    F_root_param_desc( // instance inverse transform
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -34,7 +34,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // mesh headers
+                    F_root_param_desc( // instance mesh id
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -45,7 +45,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // mesh culling datas
+                    F_root_param_desc( // mesh headers
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -56,7 +56,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // cluster node headers
+                    F_root_param_desc( // mesh culling datas
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -67,7 +67,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // cluster bboxes
+                    F_root_param_desc( // cluster node headers
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -78,13 +78,24 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // cluster hierarchical culling datas
+                    F_root_param_desc( // cluster bboxes
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
                                     .type = ED_descriptor_range_type::SHADER_RESOURCE,
                                     .descriptor_count = u32(-1),
                                     .register_space = 6
+                                }
+                            }
+                        }
+                    ),
+                    F_root_param_desc( // cluster hierarchical culling datas
+                        F_root_descriptor_table_desc{
+                            .range_descs = {
+                                F_descriptor_range_desc {
+                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
+                                    .descriptor_count = u32(-1),
+                                    .register_space = 7
                                 }
                             }
                         }
@@ -97,14 +108,14 @@ namespace nre::newrg
                                     .descriptor_count = 1,
                                     .offset_in_descriptors_from_table_start = 0,
                                     .base_register = 0,
-                                    .register_space = 7
+                                    .register_space = 8
                                 },
                                 F_descriptor_range_desc { // 4UAVs (instanced cluster headers, global shared datas, global cached candidates, global cached candidate batches)
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
                                     .descriptor_count = 4,
                                     .offset_in_descriptors_from_table_start = 1,
                                     .base_register = 0,
-                                    .register_space = 7
+                                    .register_space = 8
                                 }
                             }
                         }
