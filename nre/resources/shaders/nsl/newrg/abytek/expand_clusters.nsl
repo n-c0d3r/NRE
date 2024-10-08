@@ -78,7 +78,6 @@ groupshared uint global_cached_candidate_batch_offset;
 groupshared uint global_cached_candidate_offset;
 
 groupshared uint global_active_candidate_offset;
-groupshared uint global_active_candidate_batch_id;
 
 groupshared u32 group_expanded_instanced_cluster_local_offset;
 
@@ -372,11 +371,13 @@ compute_shader CS(
                 -processed_group_active_candidate_count
             ); 
         }
-        
+        break;
         // try pop global candidate queue
         {
             if(group_thread_id.x == 0)
             {
+                uint global_active_candidate_batch_id;
+
                 // swap the head batch with an invalid batch to optain a new batch 
                 InterlockedExchange(
                     global_shared_datas[0].cached_candidate_batch_head_id,
@@ -431,6 +432,7 @@ compute_shader CS(
             {
                 group_active_candidates[group_thread_id.x] = global_cached_candidates[global_active_candidate_offset + group_thread_id.x];
             }
+            AllMemoryBarrierWithGroupSync();
         }
     }
 }
