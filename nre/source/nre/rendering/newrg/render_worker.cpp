@@ -59,6 +59,7 @@ namespace nre::newrg
             , internal::parse_render_worker_name(index, name) + ".command_list_pool"
 #endif
         ),
+        cached_command_list_p_ring_buffer_(NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY),
         command_allocator_pool_(
             command_list_type,
             NRE_COMMAND_ALLOCATOR_RING_BUFFER_CAPACITY,
@@ -67,7 +68,7 @@ namespace nre::newrg
             , internal::parse_render_worker_name(index, name) + ".command_allocator_pool"
 #endif
         ),
-        current_frame_command_allocator_p_ring_buffer_(NRE_COMMAND_ALLOCATOR_RING_BUFFER_CAPACITY * 2)
+        current_frame_command_allocator_p_ring_buffer_(NRE_COMMAND_ALLOCATOR_RING_BUFFER_CAPACITY)
     {
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         command_queue_p_->set_debug_name(
@@ -81,11 +82,6 @@ namespace nre::newrg
     }
 
 
-
-    void A_render_worker::push_managed_command_list_into_pool(TU<A_command_list>&& command_list_p)
-    {
-        command_list_pool_.push(std::move(command_list_p));
-    }
 
     b8 A_render_worker::try_to_pop_mananaged_command_list_internal()
     {
@@ -137,7 +133,7 @@ namespace nre::newrg
                         auto& command_list_p = managed_command_list_batch[i];
                         managed_command_list_p_vector_[i] = command_list_p;
 
-                        push_managed_command_list_into_pool(
+                        cached_command_list_p_ring_buffer_.push(
                             std::move(command_list_p)
                         );
                     }
@@ -179,6 +175,14 @@ namespace nre::newrg
         return false;
     }
 
+    void A_render_worker::push_command_lists_back_to_pool_internal()
+    {
+        TU<A_command_list> command_list_p;
+        while(cached_command_list_p_ring_buffer_.try_pop(command_list_p))
+        {
+            command_list_pool_.push(eastl::move(command_list_p));
+        }
+    }
     void A_render_worker::flush_command_allocators_internal()
     {
         TU<A_command_allocator> command_allocator_p;
@@ -247,6 +251,7 @@ namespace nre::newrg
         cpu_gpu_sync_point_.wait();
 
         //
+        push_command_lists_back_to_pool_internal();
         flush_command_allocators_internal();
 
         //
