@@ -415,7 +415,7 @@ namespace nre::newrg
             + sizeof(f32) // error threshold
             + 4 // task capacity factor
             + 2 * sizeof(u32), // expanded instanced cluster range
-            std::ranges::max
+            max_task_capacity
         );
         out_global_shared_data_data_batch = global_shared_data_data_list.build();
 

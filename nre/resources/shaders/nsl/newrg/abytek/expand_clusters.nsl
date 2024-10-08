@@ -291,18 +291,15 @@ compute_shader CS(
 
                     // allocate global memory
                     {
-                        // allocate global candidates
                         if(group_thread_id.x == 0)
                         {
+                            // allocate global candidates
                             InterlockedAdd(
                                 global_shared_datas[0].cached_candidate_offset,
                                 group_cached_candidate_local_count_for_global_store,
                                 global_cached_candidate_offset
                             );
-                        }
-                        // allocate global candidate batches
-                        if(group_thread_id.x == 0)
-                        {
+                            // allocate global candidate batches
                             InterlockedAdd(
                                 global_shared_datas[0].cached_candidate_batch_offset,
                                 1,
@@ -338,7 +335,7 @@ compute_shader CS(
                             global_cached_candidate_batches[global_cached_candidate_batch_offset] = global_candidate_batch;
                         }
                     }
-                    DeviceMemoryBarrierWithGroupSync();
+                    AllMemoryBarrierWithGroupSync();
 
                     // enqueue global queue
                     if(group_thread_id.x == 0)
@@ -364,7 +361,8 @@ compute_shader CS(
                     DeviceMemoryBarrierWithGroupSync();
                 }
             }
-        }     
+        }
+        AllMemoryBarrierWithGroupSync();
         
         // decrease global counter
         if(processed_group_active_candidate_count && (group_thread_id.x == 0))
@@ -374,8 +372,7 @@ compute_shader CS(
                 -processed_group_active_candidate_count
             ); 
         }
-        DeviceMemoryBarrierWithGroupSync();
-
+        
         // try pop global candidate queue
         {
             if(group_thread_id.x == 0)
@@ -434,7 +431,6 @@ compute_shader CS(
             {
                 group_active_candidates[group_thread_id.x] = global_cached_candidates[global_active_candidate_offset + group_thread_id.x];
             }
-            GroupMemoryBarrierWithGroupSync();
         }
     }
 }
