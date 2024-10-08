@@ -264,7 +264,7 @@ compute_shader CS(
                 );
                 if(group_thread_id.x == 0)
                 {
-                    group_active_candidate_count = new_group_cached_candidate_count;
+                    group_active_candidate_count = main_group_cached_candidate_count;
                 }
                 if(group_thread_id.x < main_group_cached_candidate_count)
                 {
@@ -274,7 +274,6 @@ compute_shader CS(
             GroupMemoryBarrierWithGroupSync();
 
             // enqueue cached candidate batches into global queue
-            if(false)
             {
                 // store cached candidates and cached candidate batches
                 uint group_cached_candidate_batch_count = ceil(
@@ -398,15 +397,24 @@ compute_shader CS(
                     
                     // try to push the next batch into the global queue if it's valid
                     uint batch_id = new_cached_candidate_batch.next_id;
+                    uint batch_tail_id = batch_id;
+                    uint batch_end_id = batch_tail_id;
                     if(batch_id != INVALID_CACHED_CANDIDATE_BATCH_ID)
                     {
+                        do
+                        {
+                            batch_tail_id = batch_end_id;
+                            batch_end_id = global_cached_candidate_batches[batch_tail_id].next_id;
+                        }
+                        while(batch_end_id != INVALID_CACHED_CANDIDATE_BATCH_ID);
+
                         uint last_head_id = INVALID_CACHED_CANDIDATE_BATCH_ID;
                         uint expected_last_head_id;
 
                         do
                         {
                             expected_last_head_id = last_head_id;
-                            global_cached_candidate_batches[batch_id].next_id = expected_last_head_id;
+                            global_cached_candidate_batches[batch_tail_id].next_id = expected_last_head_id;
 
                             InterlockedCompareExchange(
                                 global_shared_datas[0].cached_candidate_batch_head_id,
