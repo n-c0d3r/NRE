@@ -20,7 +20,7 @@ int main() {
 
 
 	auto render_path_p = TU<F_abytek_render_path>()();
-	render_path_p->simple_draw_options.enable = false;
+	render_path_p->simple_draw_options.enable = true;
 	render_path_p->simple_draw_options.level = 0;
 
 
@@ -34,7 +34,7 @@ int main() {
 	auto level_p = TU<F_level>()();
 
 	// create model actor
-	for(u32 i = 0; i < 100; ++i)
+	for(u32 i = 0; i < 24; ++i)
 	{
 		auto model_actor_p = level_p->T_create_actor();
 		auto model_transform_node_p = model_actor_p->template T_add_component<F_transform_node>();

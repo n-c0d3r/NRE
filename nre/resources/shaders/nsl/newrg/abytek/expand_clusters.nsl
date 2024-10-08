@@ -375,6 +375,9 @@ compute_shader CS(
                 -processed_group_active_candidate_count
             ); 
         }
+        AllMemoryBarrierWithGroupSync();
+
+        break;
         
         // try pop global candidate queue
         {
@@ -382,14 +385,14 @@ compute_shader CS(
             {
                 uint global_active_candidate_batch_id;
 
-                AllMemoryBarrier();
-
                 // swap the head batch with an invalid batch to optain a new batch 
                 InterlockedExchange(
                     global_shared_datas[0].cached_candidate_batch_head_id,
                     INVALID_CACHED_CANDIDATE_BATCH_ID,
                     global_active_candidate_batch_id
                 );
+                
+                AllMemoryBarrier();
 
                 //
                 if(global_active_candidate_batch_id != INVALID_CACHED_CANDIDATE_BATCH_ID)
@@ -406,11 +409,12 @@ compute_shader CS(
 
                     if(batch_id != INVALID_CACHED_CANDIDATE_BATCH_ID)
                     {
-                        AllMemoryBarrier();
                         do
                         {
                             batch_tail_id = batch_end_id;
+                            AllMemoryBarrier();
                             batch_end_id = global_cached_candidate_batches[batch_tail_id].next_id;
+                            AllMemoryBarrier();
                         }
                         while(batch_end_id != INVALID_CACHED_CANDIDATE_BATCH_ID);
 
@@ -435,6 +439,8 @@ compute_shader CS(
                         }
                         while(last_head_id != expected_last_head_id);
                     }
+
+                    global_cached_candidate_batches[global_active_candidate_batch_id].___padding_0___ = INVALID_CACHED_CANDIDATE_BATCH_ID;
                 }
             }
             AllMemoryBarrierWithGroupSync();
@@ -444,9 +450,12 @@ compute_shader CS(
             {
                 group_active_candidates[group_thread_id.x] = global_cached_candidates[global_active_candidate_offset + group_thread_id.x];
             }
+            AllMemoryBarrier();
         }
 
-        break;
+        // InterlockedAdd(global_cached_candidate_batches[1024].___padding_0___, 1);
+        // if(global_cached_candidate_batches[1024].___padding_0___ >= 30000)
+        //     break;
     }
 }
 
