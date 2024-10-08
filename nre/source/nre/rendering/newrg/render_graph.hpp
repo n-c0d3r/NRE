@@ -26,17 +26,6 @@
 
 namespace nre::newrg
 {
-    namespace internal
-    {
-        extern thread_local A_command_allocator* direct_command_allocator_raw_p;
-        extern thread_local F_object_key direct_command_allocator_p_key;
-
-        extern thread_local A_command_allocator* compute_command_allocator_raw_p;
-        extern thread_local F_object_key compute_command_allocator_p_key;
-    }
-
-
-
     class F_render_pass;
     class F_render_binder_group;
     class F_render_resource;
@@ -142,9 +131,6 @@ namespace nre::newrg
         TG_concurrent_owf_stack<F_descriptor_copy> descriptor_copy_owf_stack_;
         TG_concurrent_owf_stack<F_render_graph_late_setup_functor_cache> late_setup_functor_cache_owf_stack_;
 
-        TG_vector<TU<A_command_allocator>> direct_command_allocator_p_vector_;
-        TG_vector<TU<A_command_allocator>> compute_command_allocator_p_vector_;
-
         TG_vector<F_render_fence_state> fence_states_;
         TG_vector<TU<A_fence>> fence_p_vector_;
 
@@ -231,9 +217,6 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& descriptor_copy_owf_stack() noexcept { return descriptor_copy_owf_stack_; }
         NCPP_FORCE_INLINE const auto& late_setup_functor_cache_owf_stack() noexcept { return late_setup_functor_cache_owf_stack_; }
 
-        NCPP_FORCE_INLINE const auto& direct_command_allocator_p_vector() noexcept { return direct_command_allocator_p_vector_; }
-        NCPP_FORCE_INLINE const auto& compute_command_allocator_p_vector() noexcept { return compute_command_allocator_p_vector_; }
-
         NCPP_FORCE_INLINE const auto& fence_states() noexcept { return fence_states_; }
         NCPP_FORCE_INLINE const auto& fence_p_vector() noexcept { return fence_p_vector_; }
 
@@ -268,7 +251,6 @@ namespace nre::newrg
 
     private:
         TK_valid<A_render_worker> find_render_worker(u8 render_worker_index);
-        TK_valid<A_command_allocator> find_command_allocator(u8 render_worker_index);
 
     private:
         void create_prologue_pass_internal();
@@ -885,26 +867,6 @@ namespace nre::newrg
 
     class NRE_API H_render_graph
     {
-    public:
-        static NCPP_FORCE_INLINE TK_valid<A_command_allocator> direct_command_allocator_p()
-        {
-            NCPP_ASSERT(F_render_graph::instance_p()->is_in_execution());
-
-            return TK_valid<A_command_allocator>::unsafe(
-                internal::direct_command_allocator_raw_p,
-                internal::direct_command_allocator_p_key
-            );
-        }
-        static NCPP_FORCE_INLINE TK_valid<A_command_allocator> compute_command_allocator_p()
-        {
-            NCPP_ASSERT(F_render_graph::instance_p()->is_in_execution());
-
-            return TK_valid<A_command_allocator>::unsafe(
-                internal::compute_command_allocator_raw_p,
-                internal::compute_command_allocator_p_key
-            );
-        }
-
     public:
         static NCPP_FORCE_INLINE b8 is_available(TSPA<F_external_render_resource> external_p)
         {

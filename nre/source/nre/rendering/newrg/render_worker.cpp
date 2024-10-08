@@ -58,10 +58,16 @@ namespace nre::newrg
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
             , internal::parse_render_worker_name(index, name) + ".command_list_pool"
 #endif
-        )
+        ),
+        command_allocator_pool_(
+            command_list_type,
+            NRE_COMMAND_ALLOCATOR_RING_BUFFER_CAPACITY,
+            0
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
-        , name_(internal::parse_render_worker_name(index, name))
+            , internal::parse_render_worker_name(index, name) + ".command_allocator_pool"
 #endif
+        ),
+        current_frame_command_allocator_p_ring_buffer_(NRE_COMMAND_ALLOCATOR_RING_BUFFER_CAPACITY * 2)
     {
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         command_queue_p_->set_debug_name(
@@ -173,6 +179,16 @@ namespace nre::newrg
         return false;
     }
 
+    void A_render_worker::flush_command_allocators_internal()
+    {
+        TU<A_command_allocator> command_allocator_p;
+        while(current_frame_command_allocator_p_ring_buffer_.try_pop(command_allocator_p))
+        {
+            command_allocator_p->flush();
+            command_allocator_pool_.push(eastl::move(command_allocator_p));
+        }
+    }
+
 
 
     void A_render_worker::tick()
@@ -229,6 +245,9 @@ namespace nre::newrg
             NCPP_FOH_VALID(command_queue_p_)
         );
         cpu_gpu_sync_point_.wait();
+
+        //
+        flush_command_allocators_internal();
 
         //
         after_cpu_gpu_synchronization();
@@ -295,6 +314,22 @@ namespace nre::newrg
         command_list_batch_ring_buffer_.push(
             std::move(command_list_batch)
         );
+    }
+
+    TU<A_command_allocator> A_render_worker::pop_command_allocator()
+    {
+        TU<A_command_allocator> command_allocator_p;
+
+        if(current_frame_command_allocator_p_ring_buffer_.try_pop(command_allocator_p))
+            return eastl::move(command_allocator_p);
+
+        return command_allocator_pool_.pop({
+            .type = command_list_type_
+        });
+    }
+    void A_render_worker::push_command_allocator(TU<A_command_allocator>&& command_allocator_p)
+    {
+        current_frame_command_allocator_p_ring_buffer_.push(eastl::move(command_allocator_p));
     }
 
     TU<A_command_list> A_render_worker::pop_managed_command_list(TKPA_valid<A_command_allocator> command_allocator_p)

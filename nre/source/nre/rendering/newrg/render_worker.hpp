@@ -8,6 +8,7 @@
 #include <nre/rendering/newrg/render_frame_allocator.hpp>
 #include <nre/rendering/newrg/command_list_pool.hpp>
 #include <nre/rendering/newrg/command_list_batch.hpp>
+#include <nre/rendering/newrg/command_allocator_pool.hpp>
 #include <nre/rendering/newrg/managed_command_list_batch.hpp>
 #include <nre/rendering/newrg/managed_render_work.hpp>
 
@@ -32,6 +33,8 @@ namespace nre::newrg
         TG_concurrent_ring_buffer<F_command_list_batch> command_list_batch_ring_buffer_;
         TG_concurrent_ring_buffer<F_managed_render_work> managed_render_work_ring_buffer_;
         F_command_list_pool command_list_pool_;
+        F_command_allocator_pool command_allocator_pool_;
+        TG_concurrent_ring_buffer<TU<A_command_allocator>> current_frame_command_allocator_p_ring_buffer_;
 
         NCPP_ENABLE_IF_ASSERTION_ENABLED(
             ab8 is_in_frame_ = false;
@@ -58,6 +61,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& command_list_batch_ring_buffer() const noexcept { return command_list_batch_ring_buffer_; }
         NCPP_FORCE_INLINE const auto& managed_render_work_ring_buffer() const noexcept { return managed_render_work_ring_buffer_; }
         NCPP_FORCE_INLINE const auto& command_list_pool() const noexcept { return command_list_pool_; }
+        NCPP_FORCE_INLINE const auto& command_allocator_pool() const noexcept { return command_allocator_pool_; }
+        NCPP_FORCE_INLINE const auto& current_frame_command_allocator_p_ring_buffer() const noexcept { return current_frame_command_allocator_p_ring_buffer_; }
 
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         NCPP_FORCE_INLINE const auto& name() const noexcept { return name_; }
@@ -92,6 +97,9 @@ namespace nre::newrg
     private:
         b8 try_to_pop_command_list_internal();
         b8 try_to_pop_mananaged_command_list_internal();
+        
+    private:
+        void flush_command_allocators_internal();
 
 
 
@@ -113,6 +121,10 @@ namespace nre::newrg
         void enqueue_command_list(TKPA_valid<A_command_list> command_list_p);
         void enqueue_command_list_batch(const F_command_list_batch& command_list_batch);
         void enqueue_command_list_batch(F_command_list_batch&& command_list_batch);
+
+    public:
+        TU<A_command_allocator> pop_command_allocator();
+        void push_command_allocator(TU<A_command_allocator>&& command_allocator_p);
 
     public:
         TU<A_command_list> pop_managed_command_list(TKPA_valid<A_command_allocator> command_allocator_p);

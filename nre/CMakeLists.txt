@@ -21,6 +21,7 @@ option(NRE_ENABLE_FRAME_DEBUG "If enabled, some frame debugging functionalities 
 # NRE other options
 option(NRE_ENABLE_ASYNC_COMPUTE "If enabled, async compute will be turned on and some render passes can run on async compute queue" ON)
 set(NRE_COMMAND_LIST_BATCH_RING_BUFFER_CAPACITY 512 CACHE STRING "")
+set(NRE_COMMAND_ALLOCATOR_RING_BUFFER_CAPACITY 96 CACHE STRING "")
 set(NRE_RENDER_WORK_RING_BUFFER_CAPACITY 512 CACHE STRING "")
 set(NRE_INTERMEDIATE_DESCRIPTOR_PAGE_CAPACITY 512 CACHE STRING "")
 

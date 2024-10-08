@@ -51,6 +51,7 @@
 #include <nre/rendering/newrg/render_fence_state.hpp>
 #include <nre/rendering/newrg/render_fence_batch.hpp>
 #include <nre/rendering/newrg/command_list_pool.hpp>
+#include <nre/rendering/newrg/command_allocator_pool.hpp>
 #include <nre/rendering/newrg/command_list_batch.hpp>
 #include <nre/rendering/newrg/managed_command_list_batch.hpp>
 #include <nre/rendering/newrg/managed_fence_batch.hpp>

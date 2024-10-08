@@ -18,14 +18,6 @@ namespace nre::newrg
 {
     namespace internal
     {
-        thread_local A_command_allocator* direct_command_allocator_raw_p;
-        thread_local F_object_key direct_command_allocator_p_key;
-
-        thread_local A_command_allocator* compute_command_allocator_raw_p;
-        thread_local F_object_key compute_command_allocator_p_key;
-
-
-
         u64 appropriate_alignment(const F_resource_desc& desc)
         {
             return u64(ED_resource_placement_alignment::DEFAULT);
@@ -266,18 +258,6 @@ namespace nre::newrg
     TK_valid<A_render_worker> F_render_graph::find_render_worker(u8 render_worker_index)
     {
         return F_render_pipeline::instance_p().T_cast<F_render_pipeline>()->render_worker_list()[render_worker_index];
-    }
-    TK_valid<A_command_allocator> F_render_graph::find_command_allocator(u8 render_worker_index)
-    {
-        auto render_worker_p = F_render_pipeline::instance_p().T_cast<F_render_pipeline>()->render_worker_list()[render_worker_index];
-
-        if(render_worker_p->command_list_type() == ED_command_list_type::COMPUTE)
-            return H_render_graph::compute_command_allocator_p();
-
-        if(render_worker_p->command_list_type() == ED_command_list_type::DIRECT)
-            return H_render_graph::direct_command_allocator_p();
-
-        NCPP_ASSERT(false) << "not supported commadn list type";
     }
 
     void F_render_graph::create_prologue_pass_internal()
@@ -2523,8 +2503,10 @@ namespace nre::newrg
                 auto& pass_id_list = pass_id_lists[batch_index];
 
                 //
-                auto command_allocator_p = find_command_allocator(execute_range.render_worker_index);
-                auto command_list_p = render_worker_p->pop_managed_command_list(command_allocator_p);
+                auto command_allocator_p = render_worker_p->pop_command_allocator();
+                auto command_list_p = render_worker_p->pop_managed_command_list(
+                    NCPP_FOH_VALID(command_allocator_p)
+                );
 
                 //
                 {
@@ -2663,6 +2645,7 @@ namespace nre::newrg
                 )
 
                 command_list_p->async_end();
+                render_worker_p->push_command_allocator(eastl::move(command_allocator_p));
 
                 command_list_batch[batch_index] = std::move(command_list_p);
             };
@@ -3145,50 +3128,6 @@ namespace nre::newrg
         for(u32 i = 0; i < worker_thread_count; ++i)
         {
             const auto& worker_thread_p = worker_thread_p_vector[i];
-
-            // setup direct command allocator
-            auto direct_command_allocator_p = H_command_allocator::create(
-                NRE_MAIN_DEVICE(),
-                {
-                    .type = ED_command_list_type::DIRECT
-                }
-            );
-            NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
-                direct_command_allocator_p->set_debug_name(("nre.newrg.render_graph.direct_command_allocators[" + G_to_string(i) + "]").c_str());
-            )
-            auto keyed_direct_command_allocator_p = direct_command_allocator_p.keyed();
-            direct_command_allocator_p_vector_.push_back(
-                std::move(direct_command_allocator_p)
-            );
-            worker_thread_p->install_setup(
-                [keyed_direct_command_allocator_p](TKPA_valid<F_worker_thread>)
-                {
-                    internal::direct_command_allocator_raw_p = keyed_direct_command_allocator_p.object_p();
-                    internal::direct_command_allocator_p_key = keyed_direct_command_allocator_p.object_key();
-                }
-            );
-
-            // setup compute command allocator
-            auto compute_command_allocator_p = H_command_allocator::create(
-                NRE_MAIN_DEVICE(),
-                {
-                    .type = ED_command_list_type::COMPUTE
-                }
-            );
-            NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(
-                compute_command_allocator_p->set_debug_name(("nre.newrg.render_graph.compute_command_allocators[" + G_to_string(i) + "]").c_str());
-            )
-            auto keyed_compute_command_allocator_p = compute_command_allocator_p.keyed();
-            compute_command_allocator_p_vector_.push_back(
-                std::move(compute_command_allocator_p)
-            );
-            worker_thread_p->install_setup(
-                [keyed_compute_command_allocator_p](TKPA_valid<F_worker_thread>)
-                {
-                    internal::compute_command_allocator_raw_p = keyed_compute_command_allocator_p.object_p();
-                    internal::compute_command_allocator_p_key = keyed_compute_command_allocator_p.object_key();
-                }
-            );
         }
     }
 
@@ -3205,17 +3144,6 @@ namespace nre::newrg
     void F_render_graph::execute()
     {
         create_epilogue_pass_internal();
-
-        // flush direct command allocators
-        for(const auto& direct_command_allocator_p : direct_command_allocator_p_vector_)
-        {
-            direct_command_allocator_p->flush();
-        }
-        // flush compute command allocators
-        for(const auto& compute_command_allocator_p : compute_command_allocator_p_vector_)
-        {
-            compute_command_allocator_p->flush();
-        }
 
         is_in_execution_.store(true, eastl::memory_order_release);
 
