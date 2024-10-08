@@ -317,7 +317,7 @@ compute_shader CS(
                             
                             global_cached_candidates[
                                 global_cached_candidate_offset
-                                + group_cached_candidate_local_index_for_global_store
+                                + group_thread_id.x
                             ] = group_cached_candidates[
                                 group_cached_candidate_local_index_for_global_store
                             ];
@@ -371,7 +371,7 @@ compute_shader CS(
                 -processed_group_active_candidate_count
             ); 
         }
-        break;
+        
         // try pop global candidate queue
         {
             if(group_thread_id.x == 0)
