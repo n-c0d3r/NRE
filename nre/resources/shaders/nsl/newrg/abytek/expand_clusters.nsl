@@ -345,8 +345,12 @@ compute_shader CS(
 
                         do
                         {
+                            AllMemoryBarrier();
+
                             expected_last_head_id = last_head_id;
                             global_cached_candidate_batches[batch_id].next_id = expected_last_head_id;
+
+                            AllMemoryBarrier();
 
                             InterlockedCompareExchange(
                                 global_shared_datas[0].cached_candidate_batch_head_id,
@@ -378,6 +382,8 @@ compute_shader CS(
             {
                 uint global_active_candidate_batch_id;
 
+                AllMemoryBarrier();
+
                 // swap the head batch with an invalid batch to optain a new batch 
                 InterlockedExchange(
                     global_shared_datas[0].cached_candidate_batch_head_id,
@@ -397,8 +403,10 @@ compute_shader CS(
                     uint batch_id = new_cached_candidate_batch.next_id;
                     uint batch_tail_id = batch_id;
                     uint batch_end_id = batch_tail_id;
+
                     if(batch_id != INVALID_CACHED_CANDIDATE_BATCH_ID)
                     {
+                        AllMemoryBarrier();
                         do
                         {
                             batch_tail_id = batch_end_id;
@@ -411,8 +419,12 @@ compute_shader CS(
 
                         do
                         {
+                            AllMemoryBarrier();
+
                             expected_last_head_id = last_head_id;
                             global_cached_candidate_batches[batch_tail_id].next_id = expected_last_head_id;
+
+                            AllMemoryBarrier();
 
                             InterlockedCompareExchange(
                                 global_shared_datas[0].cached_candidate_batch_head_id,
@@ -432,8 +444,9 @@ compute_shader CS(
             {
                 group_active_candidates[group_thread_id.x] = global_cached_candidates[global_active_candidate_offset + group_thread_id.x];
             }
-            AllMemoryBarrierWithGroupSync();
         }
+
+        break;
     }
 }
 
