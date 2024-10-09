@@ -29,8 +29,10 @@ namespace nre
 
         auto shader_module_manager_p = shader_compiler_p->shader_module_manager_p();
 
-        for(auto& error_group_p : error_group_p_container)
+        for(auto error_group_it = error_group_p_container.rbegin(); error_group_it != error_group_p_container.rend(); ++error_group_it)
         {
+            auto& error_group_p = *error_group_it;
+
             auto& error_stack = error_group_p->stack();
             auto& error_container = error_stack.get_container();
 

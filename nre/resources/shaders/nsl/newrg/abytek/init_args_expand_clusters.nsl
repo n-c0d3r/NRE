@@ -11,57 +11,56 @@ resource options(RWStructuredBuffer(F_options))
 
 
 
-define INVALID_CACHED_CANDIDATE_BATCH_ID(0xFFFFFFFF)
-
-struct F_global_shared_data(
-    counter(u32)
-    cached_candidate_batch_offset(u32)
-    cached_candidate_offset(u32)
-    cached_candidate_batch_head_id(u32)
-    instanced_cluster_range(F_instanced_cluster_range)
-    error_threshold(f32)
-    task_capacity_factor(f32)
-    expanded_instanced_cluster_range(F_instanced_cluster_range)
-    max_task_capacity(u32)
-    ___padding_2___(u32)
-)
 @slot(1)
-resource global_shared_datas(RWStructuredBuffer(F_global_shared_data))
+resource global_shared_datas(RWStructuredBuffer(F_expand_clusters_global_shared_data))
 
 @slot(2)
 resource dispatch_indirect_arguments(RWStructuredBuffer(F_dispatch_indirect_argument))
 
+@slot(3)
+resource global_cached_candidate_batches(RWStructuredBuffer(F_cached_candidate_batch))
+
 
 
 @thread_group_size(
-    1
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
     1
     1
 )
-compute_shader CS()
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
 {
-    F_instanced_cluster_range instanced_cluster_range = options[0].instanced_cluster_range;
+    if(global_thread_id.x == 0)
+    {
+        F_instanced_cluster_range instanced_cluster_range = options[0].instanced_cluster_range;
 
-    global_shared_datas[0].counter = instanced_cluster_range.count;
-    global_shared_datas[0].cached_candidate_batch_offset = 0;
-    global_shared_datas[0].cached_candidate_offset = 0;
-    global_shared_datas[0].cached_candidate_batch_head_id = INVALID_CACHED_CANDIDATE_BATCH_ID;
-    global_shared_datas[0].instanced_cluster_range = instanced_cluster_range;
-    global_shared_datas[0].expanded_instanced_cluster_range.offset = instanced_cluster_range.offset + instanced_cluster_range.count;
-    global_shared_datas[0].expanded_instanced_cluster_range.count = 0;
+        global_shared_datas[0].counter = instanced_cluster_range.count;
+        global_shared_datas[0].cached_candidate_batch_offset = 0;
+        global_shared_datas[0].cached_candidate_offset = 0;
+        global_shared_datas[0].instanced_cluster_range = instanced_cluster_range;
+        global_shared_datas[0].expanded_instanced_cluster_range.offset = instanced_cluster_range.offset + instanced_cluster_range.count;
+        global_shared_datas[0].expanded_instanced_cluster_range.count = 0;
+        global_shared_datas[0].cached_candidate_batch_read_offset = 0;
 
-    dispatch_indirect_arguments[0] = F_dispatch_indirect_argument(
-        ceil(
-            min(
-                global_shared_datas[0].max_task_capacity,
-                ((f32)instanced_cluster_range.count) 
-                * global_shared_datas[0].task_capacity_factor 
-            )
-            / ((f32)NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE)
-        ),
-        1,
-        1
-    );
+        dispatch_indirect_arguments[0] = F_dispatch_indirect_argument(
+            ceil(
+                min(
+                    global_shared_datas[0].max_task_capacity,
+                    ((f32)instanced_cluster_range.count) 
+                    * global_shared_datas[0].task_capacity_factor 
+                )
+                / ((f32)NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE)
+            ),
+            1,
+            1
+        );
+    }
+
+    if(global_thread_id.x < global_shared_datas[0].max_cached_candidate_batch_count)
+    {
+        global_cached_candidate_batches[global_thread_id.x].count = 0;
+    }
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_INIT_ARGS_EXPAND_CLUSTERS_BINDER_SIGNATURE)

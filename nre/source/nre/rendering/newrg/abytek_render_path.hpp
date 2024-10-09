@@ -244,20 +244,10 @@ namespace nre::newrg
         virtual void RG_end_register() override;
 
     public:
-        void init_args_expand_clusters(
-            f32 error_threshold,
-            f32 task_capacity_factor,
-            u32 max_task_capacity,
-            const F_indirect_data_batch& instanced_cluster_range_data_batch,
-            F_indirect_data_batch& out_global_shared_data_data_batch,
-            F_indirect_command_batch& out_dispatch_command_batch
-            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
-        );
         void expand_clusters(
             TKPA_valid<F_abytek_scene_render_view> view_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,
-            const F_indirect_data_batch& global_shared_data_data_batch,
-            const F_indirect_command_batch& dispatch_command_batch
+            const F_indirect_data_batch& instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
         void expand_instances(

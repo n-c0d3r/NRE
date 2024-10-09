@@ -15,9 +15,9 @@ namespace nre::newrg
                     F_root_param_desc(
                         F_root_descriptor_table_desc{
                             .range_descs = {
-                                F_descriptor_range_desc { // 3UAVs (out options, global shared datas, dispatch indirect args)
+                                F_descriptor_range_desc { // 4UAVs (out options, global shared datas, dispatch indirect args, cached candidate batches)
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
-                                    .descriptor_count = 3,
+                                    .descriptor_count = 4,
                                     .offset_in_descriptors_from_table_start = 0,
                                     .base_register = 0,
                                     .register_space = 0

@@ -321,37 +321,16 @@ namespace nre::newrg
                         )
                     );
 
-                    // expand clusters
-                    {
-                        F_indirect_data_batch global_shared_data_data_batch;
-                        F_indirect_command_batch dispatch_command_batch;
-
-                        init_args_expand_clusters(
-                            lod_options.error_threshold,
-                            lod_options.task_capacity_factor,
-                            NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / 2,
-                            instanced_cluster_range_data_batch,
-                            global_shared_data_data_batch,
-                            dispatch_command_batch
-                            NRE_OPTIONAL_DEBUG_PARAM(
-                                F_render_frame_name("nre.newrg.abytek_render_path.init_args_expand_clusters(")
-                                + casted_view_p->actor_p()->name().c_str()
-                                + ")"
-                            )
-                        );
-
-                        expand_clusters(
-                            NCPP_FOH_VALID(casted_view_p),
-                            rg_instanced_cluster_header_buffer_p,
-                            global_shared_data_data_batch,
-                            dispatch_command_batch
-                            NRE_OPTIONAL_DEBUG_PARAM(
-                                F_render_frame_name("nre.newrg.abytek_render_path.expand_clusters(")
-                                + casted_view_p->actor_p()->name().c_str()
-                                + ")"
-                            )
-                        );
-                    }
+                    expand_clusters(
+                        NCPP_FOH_VALID(casted_view_p),
+                        rg_instanced_cluster_header_buffer_p,
+                        instanced_cluster_range_data_batch
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_render_path.expand_clusters(")
+                            + casted_view_p->actor_p()->name().c_str()
+                            + ")"
+                        )
+                    );
 
                     casted_view_p->generate_first_depth_pyramid();
                 }
@@ -361,124 +340,71 @@ namespace nre::newrg
         H_scene_render_view::RG_end_register_all();
     }
 
-    void F_abytek_render_path::init_args_expand_clusters(
-        f32 error_threshold,
-        f32 task_capacity_factor,
-        u32 max_task_capacity,
-        const F_indirect_data_batch& instanced_cluster_range_data_batch,
-        F_indirect_data_batch& out_global_shared_data_data_batch,
-        F_indirect_command_batch& out_dispatch_command_batch
+    void F_abytek_render_path::expand_clusters(
+        TKPA_valid<F_abytek_scene_render_view> view_p,
+        F_render_resource* rg_instanced_cluster_header_buffer_p,
+        const F_indirect_data_batch& instanced_cluster_range_data_batch
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
         auto render_graph_p = F_render_graph::instance_p();
 
+        u32 max_cached_candidate_batch_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / expand_clusters_batch_size();
+
         F_indirect_data_list global_shared_data_data_list(
             sizeof(u32) // counter
             + sizeof(u32) // cached candidate batch offset
             + sizeof(u32) // cached candidate offset
-            + sizeof(u32) // cached candidate batch head id
-            + 2 * sizeof(u32) // instanced cluster range
             + sizeof(f32) // error threshold
-            + 4 // task capacity factor
+            + 2 * sizeof(u32) // instanced cluster range
+            + sizeof(f32) // task capacity factor
+            + sizeof(u32) // max task capacity
             + 2 * sizeof(u32) // expanded instanced cluster range
-            + 4 // max task capacity
-            + 4, // padding 2
+            + 4 // padding 0
+            + 4, // padding 1
             1
         );
         global_shared_data_data_list.T_set(
             0,
             sizeof(u32) // counter
             + sizeof(u32) // cached candidate batch offset
+            + sizeof(u32), // cached candidate offset
+            lod_options.error_threshold
+        );
+        global_shared_data_data_list.T_set(
+            0,
+            sizeof(u32) // counter
+            + sizeof(u32) // cached candidate batch offset
             + sizeof(u32) // cached candidate offset
-            + sizeof(u32) // cached candidate batch head id
+            + sizeof(u32) // error threshold
             + 2 * sizeof(u32), // instanced cluster range
-            error_threshold
+            lod_options.task_capacity_factor
         );
         global_shared_data_data_list.T_set(
             0,
             sizeof(u32) // counter
             + sizeof(u32) // cached candidate batch offset
             + sizeof(u32) // cached candidate offset
-            + sizeof(u32) // cached candidate batch head id
+            + sizeof(u32) // error threshold
             + 2 * sizeof(u32) // instanced cluster range
-            + sizeof(f32), // error threshold
-            task_capacity_factor
+            + sizeof(f32), // task capacity factor
+            NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / 2
         );
         global_shared_data_data_list.T_set(
             0,
             sizeof(u32) // counter
             + sizeof(u32) // cached candidate batch offset
             + sizeof(u32) // cached candidate offset
-            + sizeof(u32) // cached candidate batch head id
+            + sizeof(u32) // error threshold
             + 2 * sizeof(u32) // instanced cluster range
-            + sizeof(f32) // error threshold
-            + 4 // task capacity factor
+            + sizeof(f32) // task capacity factor
+            + sizeof(u32) // max task capacity
             + 2 * sizeof(u32), // expanded instanced cluster range
-            max_task_capacity
+            max_cached_candidate_batch_count
         );
-        out_global_shared_data_data_batch = global_shared_data_data_list.build();
+        F_indirect_data_batch global_shared_data_batch = global_shared_data_data_list.build();
 
-        out_dispatch_command_batch = F_dispatch_indirect_command_batch(1);
-
-        F_render_bind_list main_render_bind_list(
-            ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
-            3
-            NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
-        );
-        instanced_cluster_range_data_batch.enqueue_initialize_resource_view(
-            0,
-            1,
-            main_render_bind_list[0],
-            ED_resource_view_type::UNORDERED_ACCESS
-        );
-        out_global_shared_data_data_batch.enqueue_initialize_resource_view(
-            0,
-            1,
-            main_render_bind_list[1],
-            ED_resource_view_type::UNORDERED_ACCESS
-        );
-        out_dispatch_command_batch.enqueue_initialize_resource_view(
-            0,
-            1,
-            main_render_bind_list[2],
-            ED_resource_view_type::UNORDERED_ACCESS
-        );
-
-        auto main_descriptor_element = main_render_bind_list[0];
-
-        auto pass_p = H_render_pass::dispatch(
-            [=](F_render_pass*, TKPA<A_command_list> command_list_p)
-            {
-                command_list_p->ZC_bind_root_signature(
-                    F_abytek_init_args_expand_clusters_binder_signature::instance_p()->root_signature_p()
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    0,
-                    main_descriptor_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_pipeline_state(
-                    NCPP_FOH_VALID(init_args_expand_clusters_pso_p_)
-                );
-            },
-            { 1, 1, 1 },
-            0
-            NRE_OPTIONAL_DEBUG_PARAM(name)
-        );
-        pass_p->add_resource_state({
-            .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
-            .states = ED_resource_state::UNORDERED_ACCESS
-        });
-    }
-    void F_abytek_render_path::expand_clusters(
-        TKPA_valid<F_abytek_scene_render_view> view_p,
-        F_render_resource* rg_instanced_cluster_header_buffer_p,
-        const F_indirect_data_batch& global_shared_data_data_batch,
-            const F_indirect_command_batch& dispatch_command_batch
-        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
-    )
-    {
-        auto render_graph_p = F_render_graph::instance_p();
+        F_dispatch_indirect_command_batch dispatch_command_batch(1);
 
         auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
         auto instance_count = render_primitive_data_pool_p->primitive_count();
@@ -546,9 +472,10 @@ namespace nre::newrg
                 + ".global_cached_candidates"
             )
         );
+
         F_render_resource* rg_global_cached_candidate_batch_buffer_p = H_render_resource::create_buffer(
-            NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / expand_clusters_batch_size(),
-            16,
+            max_cached_candidate_batch_count,
+            8,
             ED_resource_flag::SHADER_RESOURCE
             | ED_resource_flag::UNORDERED_ACCESS
             | ED_resource_flag::STRUCTURED,
@@ -560,194 +487,269 @@ namespace nre::newrg
             )
         );
 
-        F_render_bind_list main_render_bind_list(
-            ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
-            5
-            NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
-        );
-        view_p->rg_data_batch().enqueue_initialize_cbv(
-            main_render_bind_list[0]
-        );
-        main_render_bind_list.enqueue_initialize_resource_view(
-            rg_instanced_cluster_header_buffer_p,
-            ED_resource_view_type::UNORDERED_ACCESS,
-            1
-        );
-        global_shared_data_data_batch.enqueue_initialize_resource_view(
-            0,
-            1,
-            main_render_bind_list[2],
-            ED_resource_view_type::UNORDERED_ACCESS
-        );
-        main_render_bind_list.enqueue_initialize_resource_view(
-            rg_global_cached_candidate_buffer_p,
-            ED_resource_view_type::UNORDERED_ACCESS,
-            3
-        );
-        main_render_bind_list.enqueue_initialize_resource_view(
-            rg_global_cached_candidate_batch_buffer_p,
-            ED_resource_view_type::UNORDERED_ACCESS,
-            4
-        );
+        // init args pass
+        {
+            F_render_bind_list main_render_bind_list(
+                ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
+                4
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
+            );
+            instanced_cluster_range_data_batch.enqueue_initialize_resource_view(
+                0,
+                1,
+                main_render_bind_list[0],
+                ED_resource_view_type::UNORDERED_ACCESS
+            );
+            global_shared_data_batch.enqueue_initialize_resource_view(
+                0,
+                1,
+                main_render_bind_list[1],
+                ED_resource_view_type::UNORDERED_ACCESS
+            );
+            dispatch_command_batch.enqueue_initialize_resource_view(
+                0,
+                1,
+                main_render_bind_list[2],
+                ED_resource_view_type::UNORDERED_ACCESS
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                rg_global_cached_candidate_batch_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                3
+            );
 
-        auto main_descriptor_element = main_render_bind_list[0];
+            auto main_descriptor_element = main_render_bind_list[0];
 
-        auto pass_p = H_indirect_command_batch::execute(
-            [=](F_render_pass*, TKPA<A_command_list> command_list_p)
-            {
-                command_list_p->ZC_bind_root_signature(
-                    F_abytek_expand_clusters_binder_signature::instance_p()->root_signature_p()
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    0,
-                    instance_transform_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    1,
-                    instance_inverse_transform_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    2,
-                    instance_mesh_id_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    3,
-                    mesh_header_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    4,
-                    mesh_culling_data_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    5,
-                    cluster_node_header_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    6,
-                    cluster_bbox_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    7,
-                    cluster_hierarchical_culling_data_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    8,
-                    main_descriptor_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_pipeline_state(
-                    NCPP_FOH_VALID(expand_clusters_pso_p_)
-                );
-            },
-            dispatch_command_batch,
-            flag_combine(
-                E_render_pass_flag::MAIN_RENDER_WORKER,
-                E_render_pass_flag::GPU_ACCESS_COMPUTE
-            ),
-            0
-            NRE_OPTIONAL_DEBUG_PARAM(name)
-        );
-        render_primitive_data_table.T_for_each_rg_page<
-            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM
-        >(
-            [&](F_render_resource* rg_page_p)
-            {
-                pass_p->add_resource_state({
-                    .resource_p = rg_page_p,
-                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
-                });
-            }
-        );
-        render_primitive_data_table.T_for_each_rg_page<
-            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_INVERSE_TRANSFORM
-        >(
-            [&](F_render_resource* rg_page_p)
-            {
-                pass_p->add_resource_state({
-                    .resource_p = rg_page_p,
-                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
-                });
-            }
-        );
-        render_primitive_data_table.T_for_each_rg_page<
-            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID
-        >(
-            [&](F_render_resource* rg_page_p)
-            {
-                pass_p->add_resource_state({
-                    .resource_p = rg_page_p,
-                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
-                });
-            }
-        );
-        mesh_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_HEADER>(
-            [&](F_render_resource* rg_page_p)
-            {
-                pass_p->add_resource_state({
-                    .resource_p = rg_page_p,
-                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
-                });
-            }
-        );
-        mesh_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_CULLING_DATA>(
-            [&](F_render_resource* rg_page_p)
-            {
-                pass_p->add_resource_state({
-                    .resource_p = rg_page_p,
-                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
-                });
-            }
-        );
-        cluster_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_NODE_HEADER>(
-            [&](F_render_resource* rg_page_p)
-            {
-                pass_p->add_resource_state({
-                    .resource_p = rg_page_p,
-                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
-                });
-            }
-        );
-        cluster_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_BBOX>(
-            [&](F_render_resource* rg_page_p)
-            {
-                pass_p->add_resource_state({
-                    .resource_p = rg_page_p,
-                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
-                });
-            }
-        );
-        cluster_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HIERARCHICAL_CULLING_DATA>(
-            [&](F_render_resource* rg_page_p)
-            {
-                pass_p->add_resource_state({
-                    .resource_p = rg_page_p,
-                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
-                });
-            }
-        );
-        pass_p->add_resource_state({
-            .resource_p = F_uniform_transient_resource_uploader::instance_p()->target_resource_p(),
-            .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
-        });
-        pass_p->add_resource_state({
-            .resource_p = rg_instanced_cluster_header_buffer_p,
-            .states = ED_resource_state::UNORDERED_ACCESS
-        });
-        pass_p->add_resource_state({
-            .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
-            .states = ED_resource_state::UNORDERED_ACCESS
-        });
-        pass_p->add_resource_state({
-            .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
-            .states = ED_resource_state::INDIRECT_ARGUMENT
-        });
-        pass_p->add_resource_state({
-            .resource_p = rg_global_cached_candidate_buffer_p,
-            .states = ED_resource_state::UNORDERED_ACCESS
-        });
-        pass_p->add_resource_state({
-            .resource_p = rg_global_cached_candidate_batch_buffer_p,
-            .states = ED_resource_state::UNORDERED_ACCESS
-        });
+            auto pass_p = H_render_pass::dispatch(
+                [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+                {
+                    command_list_p->ZC_bind_root_signature(
+                        F_abytek_init_args_expand_clusters_binder_signature::instance_p()->root_signature_p()
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        0,
+                        main_descriptor_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_pipeline_state(
+                        NCPP_FOH_VALID(init_args_expand_clusters_pso_p_)
+                    );
+                },
+                element_ceil(
+                    F_vector3_f32(
+                        max_cached_candidate_batch_count,
+                        1.0f,
+                        1.0f
+                    )
+                    / f32(NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+                ),
+                0
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".init_args")
+            );
+            pass_p->add_resource_state({
+                .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = rg_global_cached_candidate_batch_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+        }
+
+        // expand clusters pass
+        {
+            F_render_bind_list main_render_bind_list(
+                ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
+                5
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
+            );
+            view_p->rg_data_batch().enqueue_initialize_cbv(
+                main_render_bind_list[0]
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                rg_instanced_cluster_header_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                1
+            );
+            global_shared_data_batch.enqueue_initialize_resource_view(
+                0,
+                1,
+                main_render_bind_list[2],
+                ED_resource_view_type::UNORDERED_ACCESS
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                rg_global_cached_candidate_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                3
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                rg_global_cached_candidate_batch_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                4
+            );
+
+            auto main_descriptor_element = main_render_bind_list[0];
+
+            auto pass_p = H_indirect_command_batch::execute(
+                [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+                {
+                    command_list_p->ZC_bind_root_signature(
+                        F_abytek_expand_clusters_binder_signature::instance_p()->root_signature_p()
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        0,
+                        instance_transform_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        1,
+                        instance_inverse_transform_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        2,
+                        instance_mesh_id_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        3,
+                        mesh_header_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        4,
+                        mesh_culling_data_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        5,
+                        cluster_node_header_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        6,
+                        cluster_bbox_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        7,
+                        cluster_hierarchical_culling_data_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        8,
+                        main_descriptor_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_pipeline_state(
+                        NCPP_FOH_VALID(expand_clusters_pso_p_)
+                    );
+                },
+                dispatch_command_batch,
+                flag_combine(
+                    E_render_pass_flag::MAIN_RENDER_WORKER,
+                    E_render_pass_flag::GPU_ACCESS_COMPUTE
+                ),
+                0
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".main")
+            );
+            render_primitive_data_table.T_for_each_rg_page<
+                NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM
+            >(
+                [&](F_render_resource* rg_page_p)
+                {
+                    pass_p->add_resource_state({
+                        .resource_p = rg_page_p,
+                        .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                    });
+                }
+            );
+            render_primitive_data_table.T_for_each_rg_page<
+                NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_INVERSE_TRANSFORM
+            >(
+                [&](F_render_resource* rg_page_p)
+                {
+                    pass_p->add_resource_state({
+                        .resource_p = rg_page_p,
+                        .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                    });
+                }
+            );
+            render_primitive_data_table.T_for_each_rg_page<
+                NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID
+            >(
+                [&](F_render_resource* rg_page_p)
+                {
+                    pass_p->add_resource_state({
+                        .resource_p = rg_page_p,
+                        .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                    });
+                }
+            );
+            mesh_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_HEADER>(
+                [&](F_render_resource* rg_page_p)
+                {
+                    pass_p->add_resource_state({
+                        .resource_p = rg_page_p,
+                        .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                    });
+                }
+            );
+            mesh_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_CULLING_DATA>(
+                [&](F_render_resource* rg_page_p)
+                {
+                    pass_p->add_resource_state({
+                        .resource_p = rg_page_p,
+                        .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                    });
+                }
+            );
+            cluster_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_NODE_HEADER>(
+                [&](F_render_resource* rg_page_p)
+                {
+                    pass_p->add_resource_state({
+                        .resource_p = rg_page_p,
+                        .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                    });
+                }
+            );
+            cluster_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_BBOX>(
+                [&](F_render_resource* rg_page_p)
+                {
+                    pass_p->add_resource_state({
+                        .resource_p = rg_page_p,
+                        .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                    });
+                }
+            );
+            cluster_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HIERARCHICAL_CULLING_DATA>(
+                [&](F_render_resource* rg_page_p)
+                {
+                    pass_p->add_resource_state({
+                        .resource_p = rg_page_p,
+                        .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                    });
+                }
+            );
+            pass_p->add_resource_state({
+                .resource_p = F_uniform_transient_resource_uploader::instance_p()->target_resource_p(),
+                .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+            });
+            pass_p->add_resource_state({
+                .resource_p = rg_instanced_cluster_header_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+                .states = ED_resource_state::INDIRECT_ARGUMENT
+            });
+            pass_p->add_resource_state({
+                .resource_p = rg_global_cached_candidate_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = rg_global_cached_candidate_batch_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+        }
     }
     void F_abytek_render_path::expand_instances(
         TKPA_valid<F_abytek_scene_render_view> view_p,

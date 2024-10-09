@@ -33,7 +33,7 @@ namespace nre::newrg
         TG_concurrent_ring_buffer<F_command_list_batch> command_list_batch_ring_buffer_;
         TG_concurrent_ring_buffer<F_managed_render_work> managed_render_work_ring_buffer_;
         F_command_list_pool command_list_pool_;
-        TG_concurrent_ring_buffer<TU<A_command_list>> cached_command_list_p_ring_buffer_;
+        TG_vector<TU<A_command_list>> cached_command_list_p_vector_;
         F_command_allocator_pool command_allocator_pool_;
         TG_concurrent_ring_buffer<TU<A_command_allocator>> current_frame_command_allocator_p_ring_buffer_;
 
@@ -62,7 +62,7 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& command_list_batch_ring_buffer() const noexcept { return command_list_batch_ring_buffer_; }
         NCPP_FORCE_INLINE const auto& managed_render_work_ring_buffer() const noexcept { return managed_render_work_ring_buffer_; }
         NCPP_FORCE_INLINE const auto& command_list_pool() const noexcept { return command_list_pool_; }
-        NCPP_FORCE_INLINE const auto& cached_command_list_p_ring_buffer() const noexcept { return cached_command_list_p_ring_buffer_; }
+        NCPP_FORCE_INLINE const auto& cached_command_list_p_vector() const noexcept { return cached_command_list_p_vector_; }
         NCPP_FORCE_INLINE const auto& command_allocator_pool() const noexcept { return command_allocator_pool_; }
         NCPP_FORCE_INLINE const auto& current_frame_command_allocator_p_ring_buffer() const noexcept { return current_frame_command_allocator_p_ring_buffer_; }
 

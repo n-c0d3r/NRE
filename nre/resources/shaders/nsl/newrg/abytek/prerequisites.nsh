@@ -125,3 +125,24 @@ float3 hue2rgb(float hue) {
 
 define NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BATCH_SIZE(NRE_NEWRG_MAX_WAVE_SIZE)
 define NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE(NRE_NEWRG_MAX_WAVE_SIZE)
+
+define INVALID_CACHED_CANDIDATE_ID(0xFFFFFFFF)
+define INVALID_CACHED_CANDIDATE_BATCH_ID(0xFFFFFFFF)
+
+struct F_cached_candidate_batch(
+    offset(uint)
+    count(uint)
+);
+
+struct F_expand_clusters_global_shared_data(
+    counter(u32)
+    cached_candidate_batch_offset(u32)
+    cached_candidate_offset(u32)
+    error_threshold(f32)
+    instanced_cluster_range(F_instanced_cluster_range)
+    task_capacity_factor(f32)
+    max_task_capacity(u32)
+    expanded_instanced_cluster_range(F_instanced_cluster_range)
+    max_cached_candidate_batch_count(u32)
+    cached_candidate_batch_read_offset(u32)
+)

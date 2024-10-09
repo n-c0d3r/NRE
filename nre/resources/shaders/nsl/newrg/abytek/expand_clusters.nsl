@@ -37,33 +37,16 @@ resource instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header
 
 
 
-define INVALID_CACHED_CANDIDATE_BATCH_ID(0xFFFFFFFF)
-
-struct F_global_shared_data(
-    counter(u32)
-    cached_candidate_batch_offset(u32)
-    cached_candidate_offset(u32)
-    cached_candidate_batch_head_id(u32)
-    instanced_cluster_range(F_instanced_cluster_range)
-    error_threshold(f32)
-    task_capacity_factor(f32)
-    expanded_instanced_cluster_range(F_instanced_cluster_range)
-    max_task_capacity(u32)
-    ___padding_2___(u32)
-)
 @slot(1 8)
-resource global_shared_datas(RWStructuredBuffer(F_global_shared_data))
+@globally_coherent
+resource global_shared_datas(RWStructuredBuffer(F_expand_clusters_global_shared_data))
 
 @slot(2 8)
+@globally_coherent
 resource global_cached_candidates(RWStructuredBuffer(F_instanced_cluster_header))
 
-struct F_cached_candidate_batch(
-    offset(uint)
-    count(uint)
-    next_id(uint)
-    ___padding_0___(uint)
-);
 @slot(3 8)
+@globally_coherent
 resource global_cached_candidate_batches(RWStructuredBuffer(F_cached_candidate_batch))
 
 
@@ -106,13 +89,18 @@ compute_shader CS(
         group_active_candidate_count = 0;
         group_cached_candidate_count = 0;
         group_expanded_instanced_cluster_local_offset = 0;
+        global_active_candidate_offset = INVALID_CACHED_CANDIDATE_ID;
     }
     if(global_thread_id.x < instanced_cluster_range.count)
     {
         if(group_thread_id.x == 0)
         {
             group_active_candidate_count = min(
-                instanced_cluster_range.count - group_id.x * NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
+                max(
+                    (int)instanced_cluster_range.count - 
+                    (int)group_id.x * NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
+                    0
+                ),
                 NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE
             );
         }
@@ -121,17 +109,26 @@ compute_shader CS(
     }
     GroupMemoryBarrierWithGroupSync();
 
+    //
+    b8 process_active_candidates;
+
+    // 
+    u32 global_cached_candidate_batch_read_offset = INVALID_CACHED_CANDIDATE_BATCH_ID;
+    int level = 0;
+
     // main loop
     while(global_shared_datas[0].counter)
     {
-        uint processed_group_active_candidate_count = 0;
+        if(level >= 10000)
+            break;
 
-        while(group_active_candidate_count > 0)
+        ++level;
+
+        process_active_candidates = (group_active_candidate_count > 0);
+
+        if(process_active_candidates)
         {
-            //
-            processed_group_active_candidate_count += group_active_candidate_count;
-
-            // process active candidates
+             // process active candidates
             if(group_thread_id.x < group_active_candidate_count)
             {
                 F_instanced_cluster_header instanced_cluster_header = group_active_candidates[group_thread_id.x];
@@ -248,6 +245,13 @@ compute_shader CS(
                     new_group_cached_candidate_count
                 );
             }
+            if(group_thread_id.x == 0)
+            {
+                InterlockedAdd(
+                    global_shared_datas[0].counter,
+                    -group_active_candidate_count
+                );
+            }
             AllMemoryBarrierWithGroupSync();
             if(group_thread_id.x == 0)
             {
@@ -328,134 +332,65 @@ compute_shader CS(
                             F_cached_candidate_batch global_candidate_batch;
                             global_candidate_batch.offset = global_cached_candidate_offset;
                             global_candidate_batch.count = group_cached_candidate_local_count_for_global_store;
-                            global_candidate_batch.next_id = INVALID_CACHED_CANDIDATE_BATCH_ID;
-                            global_candidate_batch.___padding_0___ = 0;
 
                             global_cached_candidate_batches[global_cached_candidate_batch_offset] = global_candidate_batch;
                         }
                     }
                     AllMemoryBarrierWithGroupSync();
-
-                    // enqueue global queue
-                    if(group_thread_id.x == 0)
-                    {
-                        uint batch_id = global_cached_candidate_batch_offset;
-                        uint last_head_id = INVALID_CACHED_CANDIDATE_BATCH_ID;
-                        uint expected_last_head_id;
-
-                        do
-                        {
-                            AllMemoryBarrier();
-
-                            expected_last_head_id = last_head_id;
-                            global_cached_candidate_batches[batch_id].next_id = expected_last_head_id;
-
-                            AllMemoryBarrier();
-
-                            InterlockedCompareExchange(
-                                global_shared_datas[0].cached_candidate_batch_head_id,
-                                expected_last_head_id,
-                                batch_id,
-                                last_head_id
-                            );
-                        }
-                        while(last_head_id != expected_last_head_id);
-                    }
-                    DeviceMemoryBarrierWithGroupSync();
                 }
             }
         }
-        AllMemoryBarrierWithGroupSync();
-        
-        // decrease global counter
-        if(processed_group_active_candidate_count && (group_thread_id.x == 0))
+
+        if(
+            !process_active_candidates 
+            && (global_cached_candidate_batch_read_offset == INVALID_CACHED_CANDIDATE_BATCH_ID)
+            && (group_thread_id.x == 0)
+        )
         {
             InterlockedAdd(
-                global_shared_datas[0].counter,
-                -processed_group_active_candidate_count
-            ); 
+                global_shared_datas[0].cached_candidate_batch_read_offset,
+                1,
+                global_cached_candidate_batch_read_offset
+            );
         }
-        AllMemoryBarrierWithGroupSync();
 
-        break;
-        
-        // try pop global candidate queue
+        if(
+            !process_active_candidates 
+            && (global_cached_candidate_batch_read_offset != INVALID_CACHED_CANDIDATE_BATCH_ID)
+            && (group_thread_id.x == 0)
+        )
         {
-            if(group_thread_id.x == 0)
-            {
-                uint global_active_candidate_batch_id;
+            F_cached_candidate_batch new_cached_candidate_batch = global_cached_candidate_batches[global_cached_candidate_batch_read_offset];
 
-                // swap the head batch with an invalid batch to optain a new batch 
-                InterlockedExchange(
-                    global_shared_datas[0].cached_candidate_batch_head_id,
-                    INVALID_CACHED_CANDIDATE_BATCH_ID,
-                    global_active_candidate_batch_id
-                );
-                
-                AllMemoryBarrier();
+            group_active_candidate_count = new_cached_candidate_batch.count;
 
-                //
-                if(global_active_candidate_batch_id != INVALID_CACHED_CANDIDATE_BATCH_ID)
-                {
-                    F_cached_candidate_batch new_cached_candidate_batch = global_cached_candidate_batches[global_active_candidate_batch_id];
+            global_active_candidate_offset = (
+                (new_cached_candidate_batch.count)
+                ? new_cached_candidate_batch.offset
+                : global_active_candidate_offset
+            );
+        }
 
-                    global_active_candidate_offset = new_cached_candidate_batch.offset;
-                    group_active_candidate_count = new_cached_candidate_batch.count;
-                    
-                    // try to push the next batch into the global queue if it's valid
-                    uint batch_id = new_cached_candidate_batch.next_id;
-                    uint batch_tail_id = batch_id;
-                    uint batch_end_id = batch_tail_id;
+        if(
+            !process_active_candidates
+            && (global_active_candidate_offset != INVALID_CACHED_CANDIDATE_ID)
+        )
+        {   
+            GroupMemoryBarrierWithGroupSync();
 
-                    if(batch_id != INVALID_CACHED_CANDIDATE_BATCH_ID)
-                    {
-                        do
-                        {
-                            batch_tail_id = batch_end_id;
-                            AllMemoryBarrier();
-                            batch_end_id = global_cached_candidate_batches[batch_tail_id].next_id;
-                            AllMemoryBarrier();
-                        }
-                        while(batch_end_id != INVALID_CACHED_CANDIDATE_BATCH_ID);
-
-                        uint last_head_id = INVALID_CACHED_CANDIDATE_BATCH_ID;
-                        uint expected_last_head_id;
-
-                        do
-                        {
-                            AllMemoryBarrier();
-
-                            expected_last_head_id = last_head_id;
-                            global_cached_candidate_batches[batch_tail_id].next_id = expected_last_head_id;
-
-                            AllMemoryBarrier();
-
-                            InterlockedCompareExchange(
-                                global_shared_datas[0].cached_candidate_batch_head_id,
-                                expected_last_head_id,
-                                batch_id,
-                                last_head_id
-                            );
-                        }
-                        while(last_head_id != expected_last_head_id);
-                    }
-
-                    global_cached_candidate_batches[global_active_candidate_batch_id].___padding_0___ = INVALID_CACHED_CANDIDATE_BATCH_ID;
-                }
-            }
-            AllMemoryBarrierWithGroupSync();
-
-            // load the new cached candidate batch
             if(group_thread_id.x < group_active_candidate_count)
             {
                 group_active_candidates[group_thread_id.x] = global_cached_candidates[global_active_candidate_offset + group_thread_id.x];
             }
-            AllMemoryBarrier();
-        }
 
-        // InterlockedAdd(global_cached_candidate_batches[1024].___padding_0___, 1);
-        // if(global_cached_candidate_batches[1024].___padding_0___ >= 30000)
-        //     break;
+            GroupMemoryBarrierWithGroupSync();
+
+            if(group_thread_id.x == 0)
+            {
+                global_active_candidate_offset = INVALID_CACHED_CANDIDATE_ID;
+                global_cached_candidate_batch_read_offset = INVALID_CACHED_CANDIDATE_BATCH_ID;
+            }
+        }
     }
 }
 
