@@ -1,0 +1,28 @@
+#include <nre/rendering/newrg/dispatch_mesh_indirect_command_batch.hpp>
+#include <nre/rendering/newrg/dispatch_mesh_indirect_argument_list_layout.hpp>
+
+
+
+namespace nre::newrg
+{
+    F_dispatch_mesh_indirect_command_batch::F_dispatch_mesh_indirect_command_batch(
+        u32 count
+    ) :
+        F_indirect_command_batch(
+            F_dispatch_mesh_indirect_argument_list_layout::instance_p()->command_signature_p(),
+            count
+        )
+    {
+    }
+    F_dispatch_mesh_indirect_command_batch::F_dispatch_mesh_indirect_command_batch(
+        sz address_offset,
+        u32 count
+    ) :
+        F_indirect_command_batch(
+            F_dispatch_mesh_indirect_argument_list_layout::instance_p()->command_signature_p(),
+            address_offset,
+            count
+        )
+    {
+    }
+}

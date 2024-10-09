@@ -106,6 +106,11 @@ namespace nre::newrg
             return;
         }
 
+        if(flag_is_has(resource_flags_, ED_resource_flag::CONSTANT_BUFFER))
+        {
+            resource_size_.fetch_add(NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT);
+        }
+
         //
         render_graph_p->finalize_resource_creation(
             target_resource_p_,

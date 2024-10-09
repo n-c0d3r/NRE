@@ -82,6 +82,18 @@ namespace nre::newrg
         }
 
     public:
+        F_indirect_data_batch subrange(i32 begin_index, u32 count = 1)
+        {
+            NCPP_ASSERT(is_valid());
+            return { sz(ptrd(address_offset_) + begin_index * stride_), stride_, count };
+        }
+        F_indirect_data_batch submemory(ptrd offset, u32 stride, u32 count = 1)
+        {
+            NCPP_ASSERT(is_valid());
+            return { sz(ptrd(address_offset_) + offset), stride, count };
+        }
+
+    public:
         NCPP_FORCE_INLINE b8 is_valid() const noexcept
         {
             return (stride_ && count_);

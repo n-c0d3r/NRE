@@ -1,0 +1,46 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource options(ConstantBuffer)
+uniform thread_group_size_x(u32)
+
+@slot(0)
+resource instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+@slot(1)
+resource dispatch_mesh_indirect_arguments(RWStructuredBuffer(F_dispatch_mesh_indirect_argument))
+
+
+
+@thread_group_size(
+    1
+    1
+    1
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    if(global_thread_id.x == 0)
+    {
+        F_instanced_cluster_range instanced_cluster_range = instanced_cluster_ranges[0];
+
+        dispatch_mesh_indirect_arguments[0] = F_dispatch_mesh_indirect_argument(
+            ceil(
+                ((f32)instanced_cluster_range.count)
+                / ((f32)thread_group_size_x)
+            ),
+            1,
+            1
+            // 0,
+            // 0,
+            // 0
+        );
+    }
+}
+
+@root_signature(NRE_NEWRG_ABYTEK_INIT_ARGS_DISPATCH_MESH_INSTANCED_CLUSTERS_INDIRECT_BINDER_SIGNATURE)
+pipeline_state PSO(CS)

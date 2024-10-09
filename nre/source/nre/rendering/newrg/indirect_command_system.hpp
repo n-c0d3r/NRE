@@ -12,6 +12,7 @@ namespace nre::newrg
     class F_draw_indexed_instanced_indirect_argument_list_layout;
     class F_draw_instanced_indirect_argument_list_layout;
     class F_dispatch_indirect_argument_list_layout;
+    class F_dispatch_mesh_indirect_argument_list_layout;
 
 
 
@@ -29,6 +30,7 @@ namespace nre::newrg
         TU<F_draw_indexed_instanced_indirect_argument_list_layout> draw_indexed_instanced_indirect_argument_list_layout_p_;
         TU<F_draw_instanced_indirect_argument_list_layout> draw_instanced_indirect_argument_list_layout_p_;
         TU<F_dispatch_indirect_argument_list_layout> dispatch_indirect_argument_list_layout_p_;
+        TU<F_dispatch_mesh_indirect_argument_list_layout> dispatch_mesh_indirect_argument_list_layout_p_;
 
 
 

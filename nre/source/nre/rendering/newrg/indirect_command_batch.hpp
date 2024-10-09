@@ -84,6 +84,18 @@ namespace nre::newrg
         }
 
     public:
+        F_indirect_command_batch subrange(i32 begin_index, u32 count = 1)
+        {
+            NCPP_ASSERT(is_valid());
+            return { NCPP_FOH_VALID(signature_p_), sz(ptrd(address_offset_) + begin_index * signature_p_->desc().stride), count };
+        }
+        F_indirect_command_batch submemory(ptrd offset, u32 count = 1)
+        {
+            NCPP_ASSERT(is_valid());
+            return { NCPP_FOH_VALID(signature_p_), sz(ptrd(address_offset_) + offset), count };
+        }
+
+    public:
         NCPP_FORCE_INLINE b8 is_valid() const noexcept
         {
             return signature_p_.is_valid() && count_;

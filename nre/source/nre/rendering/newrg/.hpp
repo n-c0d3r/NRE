@@ -25,6 +25,7 @@
 #include <nre/rendering/newrg/abytek_expand_clusters_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_init_args_expand_clusters_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_expand_instances_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_init_args_dispatch_mesh_instanced_clusters_indirect_binder_signature.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/external_render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid_system.hpp>

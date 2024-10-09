@@ -38,8 +38,14 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> init_args_expand_clusters_shader_asset_p_;
         K_compute_pipeline_state_handle init_args_expand_clusters_pso_p_;
 
+        TS<F_nsl_shader_asset> init_args_dispatch_mesh_instanced_clusters_indirect_shader_asset_p_;
+        K_compute_pipeline_state_handle init_args_dispatch_mesh_instanced_clusters_indirect_pso_p_;
+
         TS<F_nsl_shader_asset> simple_draw_shader_asset_p_;
         K_graphics_pipeline_state_handle simple_draw_pso_p_;
+
+        TS<F_nsl_shader_asset> simple_draw_instanced_clusters_shader_asset_p_;
+        K_graphics_pipeline_state_handle simple_draw_instanced_clusters_pso_p_;
 
         TS<F_nsl_shader_asset> draw_instance_bbox_shader_asset_p_;
         K_graphics_pipeline_state_handle draw_instance_bbox_pso_p_;
@@ -176,6 +182,20 @@ namespace nre::newrg
         };
         F_draw_cluster_error_spheres_options draw_cluster_error_spheres_options;
 
+        struct F_simple_draw_instanced_clusters_options
+        {
+            b8 enable = false;
+            F_vector3_f32 color = F_vector3_f32::one();
+            F_vector3_f32 light_dir = normalize({ -0.5f, -1.0f, 0.2f });
+        };
+        struct F_simple_draw_instanced_clusters_global_options_data
+        {
+            F_vector3_f32 color;
+            F_vector3_f32 light_dir;
+            u32 instanced_cluster_range_index;
+        };
+        F_simple_draw_instanced_clusters_options simple_draw_instanced_clusters_options;
+
         struct F_lod_options
         {
             f32 error_threshold = 0.01f * 0.005f;
@@ -200,8 +220,14 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto init_args_expand_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(init_args_expand_clusters_shader_asset_p_); }
         NCPP_FORCE_INLINE auto init_args_expand_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(init_args_expand_clusters_pso_p_); }
 
+        NCPP_FORCE_INLINE auto init_args_dispatch_mesh_instanced_clusters_indirect_shader_asset_p() const noexcept { return NCPP_FOH_VALID(init_args_dispatch_mesh_instanced_clusters_indirect_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto init_args_dispatch_mesh_instanced_clusters_indirect_pso_p() const noexcept { return NCPP_FOH_VALID(init_args_dispatch_mesh_instanced_clusters_indirect_pso_p_); }
+
         NCPP_FORCE_INLINE auto simple_draw_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_shader_asset_p_); }
         NCPP_FORCE_INLINE auto simple_draw_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_pso_p_); }
+
+        NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_pso_p_); }
 
         NCPP_FORCE_INLINE auto draw_instance_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_shader_asset_p_); }
         NCPP_FORCE_INLINE auto draw_instance_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_pso_p_); }
@@ -247,13 +273,20 @@ namespace nre::newrg
         void expand_clusters(
             TKPA_valid<F_abytek_scene_render_view> view_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,
-            const F_indirect_data_batch& instanced_cluster_range_data_batch
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_indirect_data_batch& expanded_instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
         void expand_instances(
             TKPA_valid<F_abytek_scene_render_view> view_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,
             const F_indirect_data_batch& instanced_cluster_range_data_batch
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void init_args_dispatch_mesh_instanced_clusters_indirect(
+            u32 thread_group_size_x,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_dispatch_mesh_indirect_command_batch& out_dispatch_mesh_command_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
 
@@ -280,6 +313,12 @@ namespace nre::newrg
         );
         void draw_cluster_error_spheres(
             TKPA_valid<F_abytek_scene_render_view> view_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void simple_draw_instanced_clusters(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
     };
