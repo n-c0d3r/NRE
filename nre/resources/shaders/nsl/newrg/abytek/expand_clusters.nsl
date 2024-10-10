@@ -212,12 +212,7 @@ compute_shader CS(
                 );
 
                 //
-                float error = (
-                    cluster_hierarchical_culling_data.error_factor 
-                    * cluster_hierarchical_culling_data.error_factor 
-                    * projected_error_radius_square
-                );
-                error = pow(error, 0.5f);
+                float error = cluster_hierarchical_culling_data.error_factor * pow(projected_error_radius_square, 0.5f);
 
                 // if expand childs
                 b8 expand_childs = false;
