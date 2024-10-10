@@ -69,9 +69,9 @@ vertex_shader VS(
     float3 outer_error_sphere_center_to_view_position_length = length(outer_error_sphere_center_to_view_position);
     float3 error_sphere_center = (
         culling_data.outer_error_sphere.center 
-        + (outer_error_sphere_center_to_view_position / outer_error_sphere_center_to_view_position_length)
+        + normalize(outer_error_sphere_center_to_view_position)
         * min(
-            outer_error_sphere_center_to_view_position_length,
+            outer_error_sphere_center_to_view_position_length - culling_data.error_radius,
             culling_data.outer_error_sphere.radius - culling_data.error_radius
         )
     );
