@@ -216,16 +216,21 @@ compute_shader CS(
                     (cluster_hierarchical_culling_data.error_factor + 1.0f)
                     * projected_error_radius_square
                 );
+            
+                // process instanced cluster
+                b8 is_culled = false;
 
                 // if expand childs
                 b8 expand_childs = false;
                 expand_childs = expand_childs || (error >= global_shared_datas[0].error_threshold);
                 expand_childs = expand_childs && cluster_hierarchical_culling_data.child_node_count;
-            
-                // process instanced cluster
-                b8 is_culled = false;
-                is_culled = is_culled || expand_childs;
-                if(!is_culled)
+                expand_childs = expand_childs && !is_culled;
+
+                //
+                if(
+                    !is_culled
+                    && !expand_childs
+                )
                 {
                     u32 local_expanded_instanced_cluster_offset = WavePrefixCountBits(true);
                     u32 local_expanded_instanced_cluster_count = WaveActiveCountBits(true);
