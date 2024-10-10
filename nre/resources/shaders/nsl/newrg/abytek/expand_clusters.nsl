@@ -180,9 +180,9 @@ compute_shader CS(
                 float3 outer_error_sphere_center_to_view_position_length = length(outer_error_sphere_center_to_view_position);
                 float3 error_sphere_center = (
                     cluster_hierarchical_culling_data.outer_error_sphere.center 
-                    + (outer_error_sphere_center_to_view_position / outer_error_sphere_center_to_view_position_length)
+                    + normalize(outer_error_sphere_center_to_view_position)
                     * min(
-                        outer_error_sphere_center_to_view_position_length,
+                        outer_error_sphere_center_to_view_position_length - cluster_hierarchical_culling_data.error_radius,
                         cluster_hierarchical_culling_data.outer_error_sphere.radius - cluster_hierarchical_culling_data.error_radius
                     )
                 );
