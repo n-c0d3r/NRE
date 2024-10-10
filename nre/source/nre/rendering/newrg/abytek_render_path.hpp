@@ -74,6 +74,14 @@ namespace nre::newrg
         TS<F_static_mesh_asset> unit_sphere_2_static_mesh_asset_p_;
         TS<F_static_mesh> unit_sphere_2_static_mesh_p_;
 
+        struct F_statistics
+        {
+            f32 fps = 0.0f;
+            f32 frame_time = 0.0f;
+        };
+        F_statistics statistics_;
+        f32 statistics_time_ = 0.0f;
+
     public:
         struct F_simple_draw_options
         {
@@ -219,13 +227,7 @@ namespace nre::newrg
         u32 min_wave_size_ = 0;
         u32 max_wave_size_ = 0;
 
-        struct F_statistics
-        {
-            f32 fps = 0.0f;
-            f32 frame_time = 0.0f;
-        };
-        F_statistics statistics_;
-        f32 statistics_time_ = 0.0f;
+        b8 enable = true;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(

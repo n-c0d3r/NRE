@@ -213,11 +213,17 @@ namespace nre::newrg
             statistics_time_ = 0.0f;
         }
 
+        if(!enable)
+            return;
+
         H_scene_render_view::RG_begin_register_all();
     }
     void F_abytek_render_path::RG_end_register()
     {
         F_render_path::RG_end_register();
+
+        if(!enable)
+            return;
 
         H_scene_render_view::for_each(
             [this](TKPA_valid<F_scene_render_view> view_p)
@@ -2717,6 +2723,9 @@ namespace nre::newrg
         // Options
         {
             ImGui::Begin("Abytek Render Path Options");
+
+            ImGui::Checkbox("Enable", &enable);
+            ImGui::Dummy(ImVec2(0, 10));
 
             begin_section("Simple Draw");
             ImGui::Checkbox("Enable", &simple_draw_options.enable);
