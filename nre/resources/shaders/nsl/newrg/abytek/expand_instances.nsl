@@ -173,9 +173,12 @@ compute_shader CS(
     [unroll]
     for(u32 i = 0; i < 8; ++i)
     {
+        float4 view_bbox_corner = view_bbox_corners[i];
+        view_bbox_corner.z = clamp(view_bbox_corner.z, view_near_plane, view_far_plane);
+
         ndc_bbox_corners[i] = view_to_ndc(
             view_to_clip_matrix,
-            view_bbox_corners[i]  
+            view_bbox_corner
         );
     }
 
