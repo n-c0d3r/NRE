@@ -73,3 +73,32 @@ b8 is_cuboid_overlap_frustum(
         )
     );
 }
+
+
+
+float sphere_to_screen_space_radius_square(
+    float4x4 to_clip_matrix,
+    float3 sphere_center,
+    float sphere_radius,
+    float3 view_right,
+    float3 view_up,
+    float2 screen_size
+)
+{
+    float4 c = mul(to_clip_matrix, float4(sphere_center, 1.0f));
+    c.xy /= c.w;
+    c.xy = c.xy * 0.5f + 0.5f * float2(1.0f, 1.0f);
+    
+    float4 p0 = mul(to_clip_matrix, float4(sphere_center + view_up * sphere_radius, 1.0f));
+    p0.xy /= p0.w;
+    p0.xy = p0.xy * 0.5f + 0.5f * float2(1.0f, 1.0f);
+    
+    float4 p1 = mul(to_clip_matrix, float4(sphere_center + view_right * sphere_radius, 1.0f));
+    p1.xy /= p1.w;
+    p1.xy = p1.xy * 0.5f + 0.5f * float2(1.0f, 1.0f);
+    
+    float2 v0 = (p0.xy - c.xy) * screen_size;
+    float2 v1 = (p1.xy - c.xy) * screen_size;
+
+    return max(dot(v0,v0),dot(v1,v1));
+}

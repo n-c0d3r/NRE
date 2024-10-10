@@ -17,5 +17,9 @@ namespace nre::newrg
         f32 near_plane;
         f32 far_plane;
         F_vector3_f32 view_position;
+        F_vector3_f32 view_right;
+        F_vector3_f32 view_up;
+        F_vector3_f32 view_forward;
+        F_vector2_f32 view_size;
     };
 }

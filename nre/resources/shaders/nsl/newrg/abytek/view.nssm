@@ -16,27 +16,16 @@ require(!NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE)
     NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT
     NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE
 )
-resource view_buffer(
-    ConstantBuffer
-)
-uniform world_to_view_matrix(
-    float4x4
-)
-uniform view_to_world_matrix(
-    float4x4
-)
-uniform view_to_clip_matrix(
-    float4x4
-)
-uniform clip_to_view_matrix(
-    float4x4
-)
-uniform view_frustum_planes(
-    float4
-    6
-)
+resource view_buffer(ConstantBuffer)
+uniform world_to_view_matrix(float4x4)
+uniform view_to_world_matrix(float4x4)
+uniform view_to_clip_matrix(float4x4)
+uniform clip_to_view_matrix(float4x4)
+uniform view_frustum_planes(float4 6)
 uniform view_near_plane(f32)
 uniform view_far_plane(f32)
-uniform view_position(
-    float3
-)
+uniform view_position(float3)
+uniform view_right(float3)
+uniform view_up(float3)
+uniform view_forward(float3)
+uniform view_size(float2)

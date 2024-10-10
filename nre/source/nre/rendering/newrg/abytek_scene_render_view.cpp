@@ -259,6 +259,21 @@ namespace nre::newrg
 
                 data_.view_position = (data_.view_to_world_matrix * F_vector4_f32::future()).xyz();
 
+                data_.view_right = normalize(
+                    data_.view_to_world_matrix
+                    * F_vector4_f32 { 1, 0, 0, 1 }
+                ).xyz();
+                data_.view_up = normalize(
+                    data_.view_to_world_matrix
+                    * F_vector4_f32 { 0, 1, 0, 1 }
+                ).xyz();
+                data_.view_forward = normalize(
+                    data_.view_to_world_matrix
+                    * F_vector4_f32 { 0, 0, 1, 1 }
+                ).xyz();
+
+                data_.view_size = texture_size;
+
                 if(is_first_register_)
                 {
                     is_first_register_ = false;
