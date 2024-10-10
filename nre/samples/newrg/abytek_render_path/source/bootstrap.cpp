@@ -35,9 +35,9 @@ int main() {
 	auto level_p = TU<F_level>()();
 
 	// create model actor
-	for(i32 i = -1; i < 2; ++i)
+	for(i32 i = -5; i < 6; ++i)
 	{
-		for(i32 j = -1; j < 2; ++j)
+		for(i32 j = -5; j < 6; ++j)
 		{
 			auto model_actor_p = level_p->T_create_actor();
 			auto model_transform_node_p = model_actor_p->template T_add_component<F_transform_node>();
@@ -48,8 +48,8 @@ int main() {
 				make_scale(F_vector3::one() * 5.0f)
 			);
 
-			model_transform_node_p->transform = make_translation(F_vector3_f32::right() * f32(i) * 20.0f) * model_transform_node_p->transform;
-			model_transform_node_p->transform = make_translation(F_vector3_f32::forward() * f32(j) * 20.0f) * model_transform_node_p->transform;
+			model_transform_node_p->transform = make_translation(F_vector3_f32::right() * f32(i) * 4.0f) * model_transform_node_p->transform;
+			model_transform_node_p->transform = make_translation(F_vector3_f32::forward() * f32(j) * 4.0f) * model_transform_node_p->transform;
 
 			model_drawable_p->mesh_p = unified_mesh_asset_p->mesh_p();
 		}
