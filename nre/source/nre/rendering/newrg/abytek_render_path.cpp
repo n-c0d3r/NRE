@@ -17,6 +17,7 @@
 #include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
 #include <nre/rendering/newrg/abytek_simple_draw_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_simple_draw_instanced_clusters_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_depth_prepass_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_instance_bbox_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_cluster_bbox_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_cluster_hierarchical_bbox_binder_signature.hpp>
@@ -68,6 +69,7 @@ namespace nre::newrg
         F_binder_signature_manager::instance_p()->T_register<F_abytek_init_args_dispatch_mesh_instanced_clusters_indirect_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_simple_draw_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_simple_draw_instanced_clusters_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_depth_prepass_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_draw_instance_bbox_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_draw_cluster_bbox_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_draw_cluster_hierarchical_bbox_binder_signature>();
@@ -131,6 +133,11 @@ namespace nre::newrg
                 "shaders/nsl/newrg/abytek/simple_draw_instanced_clusters.nsl"
             ).T_cast<F_nsl_shader_asset>();
             simple_draw_instanced_clusters_pso_p_ = { simple_draw_instanced_clusters_shader_asset_p_->pipeline_state_p_vector()[0] };
+
+            depth_prepass_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/depth_prepass.nsl"
+            ).T_cast<F_nsl_shader_asset>();
+            depth_prepass_pso_p_ = { depth_prepass_shader_asset_p_->pipeline_state_p_vector()[0] };
 
             draw_instance_bbox_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
                 "shaders/nsl/newrg/abytek/draw_instance_bbox.nsl"
@@ -368,6 +375,20 @@ namespace nre::newrg
                             expanded_instanced_cluster_range_data_batch
                             NRE_OPTIONAL_DEBUG_PARAM(
                                 F_render_frame_name("nre.newrg.abytek_render_path.simple_draw_instanced_clusters(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ")"
+                            )
+                        );
+                    }
+
+                    if(depth_prepass_options.enable)
+                    {
+                        depth_prepass(
+                            NCPP_FOH_VALID(casted_view_p),
+                            rg_instanced_cluster_header_buffer_p,
+                            expanded_instanced_cluster_range_data_batch
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.depth_prepass(")
                                 + casted_view_p->actor_p()->name().c_str()
                                 + ")"
                             )
@@ -643,7 +664,7 @@ namespace nre::newrg
                 5
                 NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
             );
-            view_p->rg_data_batch().enqueue_initialize_cbv(
+            view_p->rg_cull_data_batch().enqueue_initialize_cbv(
                 main_render_bind_list[0]
             );
             main_render_bind_list.enqueue_initialize_resource_view(
@@ -872,7 +893,7 @@ namespace nre::newrg
             3
             NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
         );
-        view_p->rg_data_batch().enqueue_initialize_cbv(
+        view_p->rg_cull_data_batch().enqueue_initialize_cbv(
             main_render_bind_list[0]
         );
         main_render_bind_list.enqueue_initialize_resource_view(
@@ -1053,6 +1074,279 @@ namespace nre::newrg
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
         }
+    }
+    void F_abytek_render_path::depth_prepass(
+        TKPA_valid<F_abytek_scene_render_view> view_p,
+        F_render_resource* rg_instanced_cluster_header_buffer_p,
+        const F_indirect_data_batch& instanced_cluster_range_data_batch
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
+    )
+    {
+        F_dispatch_mesh_indirect_command_batch dispatch_mesh_indirect_command_batch;
+        init_args_dispatch_mesh_instanced_clusters_indirect(
+            1,
+            instanced_cluster_range_data_batch,
+            dispatch_mesh_indirect_command_batch
+            NRE_OPTIONAL_DEBUG_PARAM(name + ".init_args")
+        );
+
+        auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
+
+        auto& render_primitive_data_table = render_primitive_data_pool_p->table();
+
+        auto& instance_bind_lists = render_primitive_data_pool_p->table_render_bind_list();
+        auto& instance_transform_bind_list = instance_bind_lists.bases()[
+            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM
+        ];
+        auto& instance_mesh_id_bind_list = instance_bind_lists.bases()[
+            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID
+        ];
+
+        auto instance_transform_srv_element = instance_transform_bind_list[0];
+        auto instance_mesh_id_srv_element = instance_mesh_id_bind_list[0];
+
+        auto unified_mesh_system_p = F_unified_mesh_system::instance_p();
+
+        auto& mesh_table = unified_mesh_system_p->mesh_table();
+        auto& mesh_header_bind_list = unified_mesh_system_p->mesh_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_HEADER
+        ];
+        auto mesh_header_descriptor_element = mesh_header_bind_list[0];
+
+        auto& subpage_header_table = unified_mesh_system_p->subpage_header_table();
+        auto& subpage_header_bind_list = unified_mesh_system_p->subpage_header_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_SUBPAGE_HEADER_TABLE_ROW_INDEX_HEADER
+        ];
+        auto subpage_header_descriptor_element = subpage_header_bind_list[0];
+
+        auto& cluster_table = unified_mesh_system_p->cluster_table();
+        auto& cluster_header_bind_list = unified_mesh_system_p->cluster_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HEADER
+        ];
+        auto cluster_header_descriptor_element = cluster_header_bind_list[0];
+
+        auto& vertex_data_table = unified_mesh_system_p->vertex_data_table();
+        auto& vertex_data_bind_list = unified_mesh_system_p->vertex_data_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_VERTEX_DATA_TABLE_ROW_INDEX_DATA
+        ];
+        auto vertex_data_descriptor_element = vertex_data_bind_list[0];
+
+        auto& triangle_vertex_id_table = unified_mesh_system_p->triangle_vertex_id_table();
+        auto& triangle_vertex_id_bind_list = unified_mesh_system_p->triangle_vertex_id_table_render_bind_list().bases()[
+            NRE_NEWRG_UNIFIED_MESH_SYSTEM_TRIANGLE_VERTEX_ID_TABLE_ROW_INDEX_ID
+        ];
+        auto triangle_vertex_id_descriptor_element = triangle_vertex_id_bind_list[0];
+
+        sz instanced_cluster_range_data_index = (
+            (
+                instanced_cluster_range_data_batch.address_offset()
+                % NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT
+            )
+            / 16
+        );
+        sz instanced_cluster_ranges_data_adress_offset = (
+            instanced_cluster_range_data_batch.address_offset()
+            - instanced_cluster_range_data_index * 16
+        );
+        F_indirect_data_batch instanced_cluster_ranges_data_batch(
+            instanced_cluster_ranges_data_adress_offset,
+            16,
+            NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT / 16
+        );
+
+        F_simple_draw_instanced_clusters_global_options_data global_options_data;
+        global_options_data.color = simple_draw_instanced_clusters_options.color;
+        global_options_data.light_dir = normalize(simple_draw_instanced_clusters_options.light_dir);
+        global_options_data.instanced_cluster_range_index = instanced_cluster_range_data_index;
+
+        TF_render_uniform_batch<F_simple_draw_instanced_clusters_global_options_data> global_options_uniform_batch = {
+            F_uniform_transient_resource_uploader::instance_p()->T_enqueue_upload(
+                global_options_data
+            )
+        };
+
+        F_render_bind_list main_render_bind_list(
+            ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
+            3
+            NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
+        );
+        global_options_uniform_batch.enqueue_initialize_cbv(
+            main_render_bind_list[0]
+        );
+        view_p->rg_data_batch().enqueue_initialize_cbv(
+            main_render_bind_list[1]
+        );
+        instanced_cluster_ranges_data_batch.enqueue_initialize_resource_view(
+            0,
+            instanced_cluster_ranges_data_batch.count(),
+            main_render_bind_list[2],
+            ED_resource_view_type::CONSTANT_BUFFER
+        );
+
+        auto main_descriptor_element = main_render_bind_list[0];
+
+        F_render_pass* pass_p = H_indirect_command_batch::execute(
+            [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+            {
+                command_list_p->ZG_bind_root_signature(
+                    F_abytek_simple_draw_instanced_clusters_binder_signature::instance_p()->root_signature_p()
+                );
+                command_list_p->ZG_bind_root_descriptor_table(
+                    0,
+                    main_descriptor_element.handle().gpu_address
+                );
+                command_list_p->ZG_bind_root_srv_with_resource(
+                    1,
+                    NCPP_FOH_VALID(rg_instanced_cluster_header_buffer_p->rhi_p())
+                );
+                command_list_p->ZG_bind_root_descriptor_table(
+                    2,
+                    mesh_header_descriptor_element.handle().gpu_address
+                );
+                command_list_p->ZG_bind_root_descriptor_table(
+                    3,
+                    subpage_header_descriptor_element.handle().gpu_address
+                );
+                command_list_p->ZG_bind_root_descriptor_table(
+                    4,
+                    cluster_header_descriptor_element.handle().gpu_address
+                );
+                command_list_p->ZG_bind_root_descriptor_table(
+                    5,
+                    vertex_data_descriptor_element.handle().gpu_address
+                );
+                command_list_p->ZG_bind_root_descriptor_table(
+                    6,
+                    triangle_vertex_id_descriptor_element.handle().gpu_address
+                );
+                command_list_p->ZG_bind_root_descriptor_table(
+                    7,
+                    instance_transform_srv_element.handle().gpu_address
+                );
+                command_list_p->ZG_bind_root_descriptor_table(
+                    8,
+                    instance_mesh_id_srv_element.handle().gpu_address
+                );
+                command_list_p->ZRS_bind_viewport({
+                    .max_xy = view_p->size()
+                });
+                command_list_p->ZOM_bind_frame_buffer(
+                    NCPP_FOH_VALID(
+                        view_p->rg_depth_only_frame_buffer_p()->rhi_p()
+                    )
+                );
+                command_list_p->ZG_bind_pipeline_state(
+                    NCPP_FOH_VALID(depth_prepass_pso_p_)
+                );
+            },
+            dispatch_mesh_indirect_command_batch,
+            flag_combine(
+                E_render_pass_flag::MAIN_RENDER_WORKER,
+                E_render_pass_flag::GPU_ACCESS_RASTER
+            ),
+            0
+            NRE_OPTIONAL_DEBUG_PARAM(
+                name
+                + ".draw_pass"
+            )
+        );
+
+        mesh_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_MESH_TABLE_ROW_INDEX_HEADER>(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        subpage_header_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_SUBPAGE_HEADER_TABLE_ROW_INDEX_HEADER>(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        cluster_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_HEADER>(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        cluster_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_CLUSTER_TABLE_ROW_INDEX_BBOX>(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        vertex_data_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_VERTEX_DATA_TABLE_ROW_INDEX_DATA>(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        triangle_vertex_id_table.T_for_each_rg_page<NRE_NEWRG_UNIFIED_MESH_SYSTEM_TRIANGLE_VERTEX_ID_TABLE_ROW_INDEX_ID>(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        render_primitive_data_table.T_for_each_rg_page<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM>(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        render_primitive_data_table.T_for_each_rg_page<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID>(
+            [&](F_render_resource* rg_page_p)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = rg_page_p,
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
+        );
+        pass_p->add_resource_state({
+            .resource_p = F_uniform_transient_resource_uploader::instance_p()->target_resource_p(),
+            .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+        });
+        pass_p->add_resource_state({
+            .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+            .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+        });
+        pass_p->add_resource_state({
+            .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+            .states = ED_resource_state::INDIRECT_ARGUMENT
+        });
+        pass_p->add_resource_state({
+            .resource_p = rg_instanced_cluster_header_buffer_p,
+            .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+        });
+        pass_p->add_resource_state({
+            .resource_p = view_p->rg_main_texture_p(),
+            .states = ED_resource_state::RENDER_TARGET
+        });
+        pass_p->add_resource_state({
+            .resource_p = view_p->rg_depth_texture_p(),
+            .states = ED_resource_state::DEPTH_WRITE
+        });
     }
 
     void F_abytek_render_path::simple_draw(
@@ -2461,6 +2755,10 @@ namespace nre::newrg
             begin_section("Simple Draw Instanced Clusters");
             ImGui::Checkbox("Enable", &simple_draw_instanced_clusters_options.enable);
             ImGui::ColorEdit3("Color", (f32*)&simple_draw_instanced_clusters_options.color);
+            end_section();
+
+            begin_section("Depth Prepass");
+            ImGui::Checkbox("Enable", &depth_prepass_options.enable);
             end_section();
 
             ImGui::End();

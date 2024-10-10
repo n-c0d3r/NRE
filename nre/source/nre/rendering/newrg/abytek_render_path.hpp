@@ -47,6 +47,9 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> simple_draw_instanced_clusters_shader_asset_p_;
         K_graphics_pipeline_state_handle simple_draw_instanced_clusters_pso_p_;
 
+        TS<F_nsl_shader_asset> depth_prepass_shader_asset_p_;
+        K_graphics_pipeline_state_handle depth_prepass_pso_p_;
+
         TS<F_nsl_shader_asset> draw_instance_bbox_shader_asset_p_;
         K_graphics_pipeline_state_handle draw_instance_bbox_pso_p_;
 
@@ -196,6 +199,16 @@ namespace nre::newrg
         };
         F_simple_draw_instanced_clusters_options simple_draw_instanced_clusters_options;
 
+        struct F_depth_prepass_options
+        {
+            b8 enable = false;
+        };
+        struct F_depth_prepass_global_options_data
+        {
+            u32 instanced_cluster_range_index;
+        };
+        F_depth_prepass_options depth_prepass_options;
+
         struct F_lod_options
         {
             f32 error_threshold = 6.0f * 6.0f; // approximately 12x12 pixels
@@ -236,6 +249,9 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_shader_asset_p_); }
         NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_pso_p_); }
+
+        NCPP_FORCE_INLINE auto depth_prepass_shader_asset_p() const noexcept { return NCPP_FOH_VALID(depth_prepass_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto depth_prepass_pso_p() const noexcept { return NCPP_FOH_VALID(depth_prepass_pso_p_); }
 
         NCPP_FORCE_INLINE auto draw_instance_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_shader_asset_p_); }
         NCPP_FORCE_INLINE auto draw_instance_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_pso_p_); }
@@ -297,6 +313,12 @@ namespace nre::newrg
             u32 thread_group_size_x,
             const F_indirect_data_batch& instanced_cluster_range_data_batch,
             F_dispatch_mesh_indirect_command_batch& out_dispatch_mesh_command_batch
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void depth_prepass(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
 

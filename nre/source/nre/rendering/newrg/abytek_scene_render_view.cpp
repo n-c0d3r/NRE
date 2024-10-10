@@ -21,6 +21,8 @@ namespace nre::newrg
         NRE_ACTOR_COMPONENT_REGISTER(F_abytek_scene_render_view);
 
         depth_mode = E_render_view_depth_mode::REVERSE;
+
+        actor_p->set_gameplay_tick(true);
     }
     F_abytek_scene_render_view::~F_abytek_scene_render_view()
     {
@@ -57,6 +59,27 @@ namespace nre::newrg
         return depth_pyramid_size;
     }
 
+    void F_abytek_scene_render_view::update_ui_internal()
+    {
+        ImGui::Begin(
+            (
+                "Abytek Scene Render View ("
+                + actor_p()->name()
+                + ")"
+            ).c_str()
+        );
+
+        ImGui::Checkbox("Update Cull Data", &update_cull_data_);
+
+        ImGui::End();
+    }
+
+    void F_abytek_scene_render_view::gameplay_tick()
+    {
+        F_scene_render_view::gameplay_tick();
+
+        update_ui_internal();
+    }
     void F_abytek_scene_render_view::render_tick()
     {
         F_scene_render_view::render_tick();
@@ -74,6 +97,7 @@ namespace nre::newrg
         rg_depth_only_frame_buffer_p_ = 0;
 
         rg_last_data_batch_.reset();
+        rg_cull_data_batch_.reset();
         rg_data_batch_.reset();
 
         F_scene_render_view::RG_begin_register();
@@ -280,9 +304,19 @@ namespace nre::newrg
                     last_data_ = data_;
                 }
 
+                if(update_cull_data_)
+                {
+                    cull_data_ = data_;
+                }
+
                 rg_data_batch_ = {
                     uniform_transient_resource_uploader_p->T_enqueue_upload(
                         data_
+                    )
+                };
+                rg_cull_data_batch_ = {
+                    uniform_transient_resource_uploader_p->T_enqueue_upload(
+                        cull_data_
                     )
                 };
                 rg_last_data_batch_ = {

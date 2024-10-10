@@ -17,6 +17,8 @@
 #include <nre/rendering/newrg/abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/simple_abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/abytek_simple_draw_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_simple_draw_instanced_clusters_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_depth_prepass_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_instance_bbox_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_cluster_bbox_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_cluster_hierarchical_bbox_binder_signature.hpp>
