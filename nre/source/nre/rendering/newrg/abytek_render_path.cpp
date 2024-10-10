@@ -32,7 +32,7 @@
 #include <nre/asset/nsl_shader_asset.hpp>
 #include <nre/actor/actor.hpp>
 #include <nre/hierarchy/transform_node.hpp>
-
+#include <nre/application/application.hpp>
 
 
 namespace nre::newrg
@@ -193,6 +193,18 @@ namespace nre::newrg
     void F_abytek_render_path::RG_begin_register()
     {
         F_render_path::RG_begin_register();
+
+        auto application_p = F_application::instance_p();
+
+        statistics_time_ += application_p->delta_seconds();
+        if(statistics_time_ >= 1.0f)
+        {
+            statistics_ = {
+                .fps = application_p->fps(),
+                .frame_time = application_p->delta_seconds() * 1000.0f
+            };
+            statistics_time_ = 0.0f;
+        }
 
         H_scene_render_view::RG_begin_register_all();
     }
@@ -2393,5 +2405,75 @@ namespace nre::newrg
             .resource_p = view_p->rg_depth_texture_p(),
             .states = ED_resource_state::DEPTH_WRITE
         });
+    }
+
+    void F_abytek_render_path::update_ui()
+    {
+        auto begin_section = [](auto&& name)
+        {
+            ImGui::BeginChild(name, ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
+            ImGui::Text(name);
+        };
+        auto end_section = []()
+        {
+            ImGui::EndChild();
+            ImGui::Dummy(ImVec2(0, 10));
+        };
+
+        // Options
+        {
+            ImGui::Begin("Abytek Render Path Options");
+
+            begin_section("Simple Draw");
+            ImGui::Checkbox("Enable", &simple_draw_options.enable);
+            ImGui::ColorEdit3("Color", (f32*)&simple_draw_options.color);
+            end_section();
+
+            begin_section("Draw Instance BBoxes");
+            ImGui::Checkbox("Enable", &draw_instance_bboxes_options.enable);
+            ImGui::ColorEdit3("Color", (f32*)&draw_instance_bboxes_options.color);
+            end_section();
+
+            begin_section("Draw Cluster BBoxes");
+            ImGui::Checkbox("Enable", &draw_cluster_bboxes_options.enable);
+            ImGui::InputInt("Level", (i32*)&draw_cluster_bboxes_options.level);
+            ImGui::ColorEdit3("Color", (f32*)&draw_cluster_bboxes_options.color);
+            end_section();
+
+            begin_section("Draw Cluster Hierarchical BBoxes");
+            ImGui::Checkbox("Enable", &draw_cluster_hierarchical_bboxes_options.enable);
+            ImGui::InputInt("Level", (i32*)&draw_cluster_hierarchical_bboxes_options.level);
+            ImGui::ColorEdit3("Color", (f32*)&draw_cluster_hierarchical_bboxes_options.color);
+            end_section();
+
+            begin_section("Draw Cluster Outer Error Spheres");
+            ImGui::Checkbox("Enable", &draw_cluster_outer_error_spheres_options.enable);
+            ImGui::InputInt("Level", (i32*)&draw_cluster_outer_error_spheres_options.level);
+            ImGui::ColorEdit3("Color", (f32*)&draw_cluster_outer_error_spheres_options.color);
+            end_section();
+
+            begin_section("Draw Cluster Error Spheres");
+            ImGui::Checkbox("Enable", &draw_cluster_error_spheres_options.enable);
+            ImGui::InputInt("Level", (i32*)&draw_cluster_error_spheres_options.level);
+            ImGui::ColorEdit3("Color", (f32*)&draw_cluster_error_spheres_options.color);
+            end_section();
+
+            begin_section("Simple Draw Instanced Clusters");
+            ImGui::Checkbox("Enable", &simple_draw_instanced_clusters_options.enable);
+            ImGui::ColorEdit3("Color", (f32*)&simple_draw_instanced_clusters_options.color);
+            end_section();
+
+            ImGui::End();
+        }
+
+        // Statistics
+        {
+            ImGui::Begin("Abytek Render Path Statistics");
+
+            ImGui::Text("FPS: %.2f", statistics_.fps);
+            ImGui::Text("Frame Time (ms): %.4f", statistics_.frame_time);
+
+            ImGui::End();
+        }
     }
 }

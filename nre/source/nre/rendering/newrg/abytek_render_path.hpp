@@ -206,6 +206,14 @@ namespace nre::newrg
         u32 min_wave_size_ = 0;
         u32 max_wave_size_ = 0;
 
+        struct F_statistics
+        {
+            f32 fps = 0.0f;
+            f32 frame_time = 0.0f;
+        };
+        F_statistics statistics_;
+        f32 statistics_time_ = 0.0f;
+
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_register_view_event_
@@ -255,6 +263,8 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE u32 expand_instances_batch_size() const noexcept { return max_wave_size_; }
         NCPP_FORCE_INLINE u32 expand_clusters_batch_size() const noexcept { return max_wave_size_; }
+
+        NCPP_FORCE_INLINE const auto& statistics() const noexcept { return statistics_; }
 
 
 
@@ -321,6 +331,9 @@ namespace nre::newrg
             const F_indirect_data_batch& instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
+
+    public:
+        void update_ui();
     };
 }
 

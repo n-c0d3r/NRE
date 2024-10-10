@@ -20,9 +20,6 @@ int main() {
 
 
 	auto render_path_p = TU<F_abytek_render_path>()();
-	// render_path_p->draw_cluster_error_spheres_options.enable = true;
-	// render_path_p->draw_cluster_error_spheres_options.level = 0;
-	render_path_p->simple_draw_instanced_clusters_options.enable = true;
 
 
 
@@ -87,6 +84,8 @@ int main() {
 			{
 				NCPP_INFO() << "application actor tick, fps: " << T_cout_value(application_p->fps());
 			};
+
+			render_path_p->update_ui();
 		};
 		NRE_APPLICATION_RENDER_TICK(application_p)
 		{
