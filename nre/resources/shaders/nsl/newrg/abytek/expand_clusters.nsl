@@ -165,6 +165,12 @@ compute_shader CS(
                     cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
                 ];
 
+                F_bbox cluster_bbox = cluster_bboxes[
+                    cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+                ][
+                    cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+                ];
+
                 F_cluster_hierarchical_culling_data cluster_hierarchical_culling_data = cluster_hierarchical_culling_datas[
                     cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
                 ][
@@ -196,9 +202,10 @@ compute_shader CS(
                 );
 
                 //
+                float4x4 local_to_view_matrix = mul(world_to_view_matrix, instance_transform);
                 float4x4 local_to_clip_matrix = mul(
                     view_to_clip_matrix,
-                    mul(world_to_view_matrix, instance_transform)
+                    local_to_view_matrix
                 );
 
                 //
@@ -216,13 +223,118 @@ compute_shader CS(
                     (cluster_hierarchical_culling_data.error_factor + 1.0f)
                     * projected_error_radius_square
                 );
+
+                // if expand childs
+                b8 late_expand_childs = (error >= global_shared_datas[0].error_threshold);
             
                 // process instanced cluster
                 b8 is_culled = false;
 
+                F_bbox cluster_cull_bbox;
+                cluster_cull_bbox.min_position = (late_expand_childs) ? cluster_hierarchical_culling_data.bbox.min_position : cluster_bbox.min_position;
+                cluster_cull_bbox.max_position = (late_expand_childs) ? cluster_hierarchical_culling_data.bbox.max_position : cluster_bbox.max_position;
+
+                // calculate cull
+                {
+                    float4 view_bbox_corners[8];
+                    view_bbox_corners[0] = mul(
+                        local_to_view_matrix,
+                        float4(
+                            cluster_cull_bbox.min_position.x,
+                            cluster_cull_bbox.min_position.y,
+                            cluster_cull_bbox.min_position.z,
+                            1.0f
+                        )
+                    );
+                    view_bbox_corners[1] = mul(
+                        local_to_view_matrix,
+                        float4(
+                            cluster_cull_bbox.max_position.x,
+                            cluster_cull_bbox.min_position.y,
+                            cluster_cull_bbox.min_position.z,
+                            1.0f
+                        )
+                    );
+                    view_bbox_corners[2] = mul(
+                        local_to_view_matrix,
+                        float4(
+                            cluster_cull_bbox.min_position.x,
+                            cluster_cull_bbox.max_position.y,
+                            cluster_cull_bbox.min_position.z,
+                            1.0f
+                        )
+                    );
+                    view_bbox_corners[3] = mul(
+                        local_to_view_matrix,
+                        float4(
+                            cluster_cull_bbox.min_position.x,
+                            cluster_cull_bbox.min_position.y,
+                            cluster_cull_bbox.max_position.z,
+                            1.0f
+                        )
+                    );
+                    view_bbox_corners[4] = mul(
+                        local_to_view_matrix,
+                        float4(
+                            cluster_cull_bbox.max_position.x,
+                            cluster_cull_bbox.max_position.y,
+                            cluster_cull_bbox.min_position.z,
+                            1.0f
+                        )
+                    );
+                    view_bbox_corners[5] = mul(
+                        local_to_view_matrix,
+                        float4(
+                            cluster_cull_bbox.min_position.x,
+                            cluster_cull_bbox.max_position.y,
+                            cluster_cull_bbox.max_position.z,
+                            1.0f
+                        )
+                    );
+                    view_bbox_corners[6] = mul(
+                        local_to_view_matrix,
+                        float4(
+                            cluster_cull_bbox.max_position.x,
+                            cluster_cull_bbox.min_position.y,
+                            cluster_cull_bbox.max_position.z,
+                            1.0f
+                        )
+                    );
+                    view_bbox_corners[7] = mul(
+                        local_to_view_matrix,
+                        float4(
+                            cluster_cull_bbox.max_position.x,
+                            cluster_cull_bbox.max_position.y,
+                            cluster_cull_bbox.max_position.z,
+                            1.0f
+                        )
+                    );
+                    
+                    float4 ndc_bbox_corners[8];
+                    [unroll]
+                    for(u32 i = 0; i < 8; ++i)
+                    {
+                        float4 view_bbox_corner = view_bbox_corners[i];
+                        view_bbox_corner.z = clamp(view_bbox_corner.z, view_near_plane, view_far_plane);
+
+                        ndc_bbox_corners[i] = view_to_ndc(
+                            view_to_clip_matrix,
+                            view_bbox_corner
+                        );
+                    }
+
+                    is_culled = is_culled || !is_cuboid_overlap_frustum(
+                        view_to_clip_matrix,
+                        view_near_plane,
+                        view_far_plane,
+                        view_bbox_corners,
+                        ndc_bbox_corners
+                    );
+                }
+
                 // if expand childs
                 b8 expand_childs = false;
-                expand_childs = expand_childs || (error >= global_shared_datas[0].error_threshold);
+                expand_childs = expand_childs || late_expand_childs;
                 expand_childs = expand_childs && cluster_hierarchical_culling_data.child_node_count;
                 expand_childs = expand_childs && !is_culled;
 
