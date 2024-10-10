@@ -21,7 +21,6 @@ int main() {
 
 	auto render_path_p = TU<F_abytek_render_path>()();
 	render_path_p->simple_draw_instanced_clusters_options.enable = true;
-	render_path_p->lod_options.error_threshold = 0.1f;
 
 
 
