@@ -250,7 +250,7 @@ namespace nre::newrg
 
         struct F_lod_options
         {
-            f32 error_threshold = 3.0f;
+            f32 error_threshold = 9.0f;
             f32 task_capacity_factor = 64.0f;
         };
         F_lod_options lod_options;
