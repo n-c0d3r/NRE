@@ -30,7 +30,11 @@ namespace nre::newrg
             result.levels[i].build_next_level_options = build_next_level_options;
 
             simplify_clusters_options.target_ratio *= 0.9f;
-            simplify_clusters_options.max_error *= 1.4142f;
+            simplify_clusters_options.max_error = lerp(
+                0.01f,
+                1.0f,
+                pow(f32(i + 1) / f32(result.max_level_count), 2.0f)
+            );
 
             simplify_clusters_options.remove_duplicated_vertices_options.merge_vertices_options.min_normal_dot -= lerp(
                 0.0f,
