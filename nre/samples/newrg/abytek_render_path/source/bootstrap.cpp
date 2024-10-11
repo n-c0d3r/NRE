@@ -32,13 +32,17 @@ int main() {
 	auto level_p = TU<F_level>()();
 
 	// create model actor
-	TG_queue<F_vector2_i32> creation_queue;
-	u32 create_step = 8;
-	for(i32 i = -20; i < 21; ++i)
+	F_vector2_i32 begin_spawn_coord = F_vector2_i32::zero();
+	F_vector2_i32 end_spawn_coord = F_vector2_i32::zero();
+	F_vector2_f32 spawn_gap = F_vector2_f32::one() * 4.0f;
+
+	TG_queue<F_vector2_i32> spawn_queue;
+	u32 spawn_steps_per_frame = 8;
+	for(i32 i = begin_spawn_coord.x; i < end_spawn_coord.x; ++i)
 	{
-		for(i32 j = -20; j < 21; ++j)
+		for(i32 j = begin_spawn_coord.y; j < end_spawn_coord.y; ++j)
 		{
-			creation_queue.push({ i, j });
+			spawn_queue.push({ i, j });
 		}
 	}
 
@@ -77,12 +81,30 @@ int main() {
 
 			render_path_p->update_ui();
 
-			for(u32 i = 0; i < create_step; ++i)
+			ImGui::Begin("Instance Spawn Tool");
+			ImGui::InputInt2("Begin Spawn Coord", (i32*)&begin_spawn_coord);
+			ImGui::InputInt2("End Spawn Coord", (i32*)&end_spawn_coord);
+			ImGui::InputFloat2("Spawn Gap", (f32*)&spawn_gap);
+			ImGui::InputInt("Spawn Steps Per Frame", (i32*)&spawn_steps_per_frame);
+			if(ImGui::Button("Spawn"))
 			{
-				if(creation_queue.size())
+				spawn_queue = TG_queue<F_vector2_i32>();
+				for(i32 i = begin_spawn_coord.x; i < end_spawn_coord.x; ++i)
 				{
-					auto coord = creation_queue.front();
-					creation_queue.pop();
+					for(i32 j = begin_spawn_coord.y; j < end_spawn_coord.y; ++j)
+					{
+						spawn_queue.push({ i, j });
+					}
+				}
+			}
+			ImGui::End();
+
+			for(u32 i = 0; i < spawn_steps_per_frame; ++i)
+			{
+				if(spawn_queue.size())
+				{
+					auto coord = spawn_queue.front();
+					spawn_queue.pop();
 
 					auto model_actor_p = level_p->T_create_actor();
 					auto model_transform_node_p = model_actor_p->template T_add_component<F_transform_node>();
@@ -93,8 +115,8 @@ int main() {
 						make_scale(F_vector3::one() * 5.0f)
 					);
 
-					model_transform_node_p->transform = make_translation(F_vector3_f32::right() * f32(coord.x) * 4.0f) * model_transform_node_p->transform;
-					model_transform_node_p->transform = make_translation(F_vector3_f32::forward() * f32(coord.y) * 4.0f) * model_transform_node_p->transform;
+					model_transform_node_p->transform = make_translation(F_vector3_f32::right() * f32(coord.x) * spawn_gap.x) * model_transform_node_p->transform;
+					model_transform_node_p->transform = make_translation(F_vector3_f32::forward() * f32(coord.y) * spawn_gap.y) * model_transform_node_p->transform;
 
 					model_drawable_p->mesh_p = unified_mesh_asset_p->mesh_p();
 

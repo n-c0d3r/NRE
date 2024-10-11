@@ -203,21 +203,35 @@ namespace nre::newrg
         );
     }
 
+    void F_abytek_render_path::update_statistics_internal()
+    {
+        auto application_p = F_application::instance_p();
+        auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
+        auto unified_mesh_system_p = F_unified_mesh_system::instance_p();
+
+        statistics_times_.fps += application_p->delta_seconds();
+        if(statistics_times_.fps >= statistics_durations_.fps)
+        {
+            statistics_.fps = application_p->fps();
+            statistics_times_.fps = 0.0f;
+        }
+
+        statistics_times_.frame_time += application_p->delta_seconds();
+        if(statistics_times_.frame_time >= statistics_durations_.frame_time)
+        {
+            statistics_.frame_time = application_p->delta_seconds() * 1000.0f;
+            statistics_times_.frame_time = 0.0f;
+        }
+
+        statistics_.instance_count = render_primitive_data_pool_p->primitive_count();
+        statistics_.mesh_count = unified_mesh_system_p->mesh_count();
+    }
+
     void F_abytek_render_path::RG_begin_register()
     {
         F_render_path::RG_begin_register();
 
-        auto application_p = F_application::instance_p();
-
-        statistics_time_ += application_p->delta_seconds();
-        if(statistics_time_ >= 1.0f)
-        {
-            statistics_ = {
-                .fps = application_p->fps(),
-                .frame_time = application_p->delta_seconds() * 1000.0f
-            };
-            statistics_time_ = 0.0f;
-        }
+        update_statistics_internal();
 
         if(!enable)
             return;
@@ -518,6 +532,9 @@ namespace nre::newrg
 
         auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
         auto instance_count = render_primitive_data_pool_p->primitive_count();
+
+        if(!instance_count)
+            return;
 
         auto& render_primitive_data_table = render_primitive_data_pool_p->table();
 
@@ -872,6 +889,9 @@ namespace nre::newrg
 
         auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
         auto instance_count = render_primitive_data_pool_p->primitive_count();
+
+        if(!instance_count)
+            return;
 
         auto& render_primitive_data_table = render_primitive_data_pool_p->table();
 
@@ -2455,6 +2475,10 @@ namespace nre::newrg
         );
         
         auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
+        u32 instance_count = render_primitive_data_pool_p->primitive_count();
+
+        if(!instance_count)
+            return;
 
         auto& render_primitive_data_table = render_primitive_data_pool_p->table();
 
@@ -2784,7 +2808,17 @@ namespace nre::newrg
             ImGui::Begin("Abytek Render Path Statistics");
 
             ImGui::Text("FPS: %.2f", statistics_.fps);
+            ImGui::InputFloat("FPS Update Duration", &statistics_durations_.fps);
+
+            ImGui::Dummy(ImVec2(0, 10));
+
             ImGui::Text("Frame Time (ms): %.4f", statistics_.frame_time);
+            ImGui::InputFloat("Frame Time Update Duration", &statistics_durations_.frame_time);
+
+            ImGui::Dummy(ImVec2(0, 10));
+
+            ImGui::Text("Instance Count: %d", statistics_.instance_count);
+            ImGui::Text("Mesh Count: %d", statistics_.mesh_count);
 
             ImGui::End();
         }

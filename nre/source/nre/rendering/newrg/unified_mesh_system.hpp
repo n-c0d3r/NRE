@@ -112,6 +112,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& vertex_data_table_render_bind_list() const noexcept { return *vertex_data_table_render_bind_list_p_; }
         NCPP_FORCE_INLINE const auto& triangle_vertex_id_table_render_bind_list() const noexcept { return *triangle_vertex_id_table_render_bind_list_p_; }
 
+        NCPP_FORCE_INLINE u32 mesh_count() const noexcept { return mesh_table_.pool_data_distributor().id_count(); }
+
 
 
     public:

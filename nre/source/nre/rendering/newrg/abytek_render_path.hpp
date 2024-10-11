@@ -85,9 +85,25 @@ namespace nre::newrg
         {
             f32 fps = 0.0f;
             f32 frame_time = 0.0f;
+
+            u32 instance_count = 0;
+            u32 mesh_count = 0;
         };
         F_statistics statistics_;
-        f32 statistics_time_ = 0.0f;
+
+        struct F_statistics_times
+        {
+            f32 fps = 0.0f;
+            f32 frame_time = 0.0f;
+        };
+        F_statistics_times statistics_times_;
+
+        struct F_statistics_durations
+        {
+            f32 fps = 1.0f;
+            f32 frame_time = 1.0f;
+        };
+        F_statistics_durations statistics_durations_;
 
     public:
         struct F_simple_draw_options
@@ -226,7 +242,7 @@ namespace nre::newrg
 
         struct F_lod_options
         {
-            f32 error_threshold = 6.0f * 6.0f; // approximately 12x12 pixels
+            f32 error_threshold = 12.0f * 12.0f; // approximately 24x24 pixels
             f32 task_capacity_factor = 64.0f;
         };
         F_lod_options lod_options;
@@ -290,6 +306,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE u32 expand_clusters_batch_size() const noexcept { return max_wave_size_; }
 
         NCPP_FORCE_INLINE const auto& statistics() const noexcept { return statistics_; }
+        NCPP_FORCE_INLINE const auto& statistics_times() const noexcept { return statistics_times_; }
+        NCPP_FORCE_INLINE const auto& statistics_durations() const noexcept { return statistics_durations_; }
 
 
 
@@ -299,6 +317,9 @@ namespace nre::newrg
 
     public:
         NCPP_OBJECT(F_abytek_render_path);
+
+    private:
+        void update_statistics_internal();
 
     public:
         virtual void RG_begin_register() override;
