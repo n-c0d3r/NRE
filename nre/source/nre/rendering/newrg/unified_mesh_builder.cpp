@@ -630,6 +630,8 @@ namespace nre::newrg
                         }
                     );
 
+                    NCPP_ASSERT(equivalent_cluster_count);
+
                     // calculate bbox
                     F_box_f32 bbox = {
                         F_vector3_f32::infinity(),
@@ -719,7 +721,7 @@ namespace nre::newrg
                                     outer_error_sphere = outer_error_sphere.expand(vertex_data.position);
                                 }
 
-                                f32 total_area = 0.0f;
+                                f32 total_edge_length = 0.0f;
                                 for(u32 i = 0; i < other_cluster_header.local_triangle_vertex_id_count; i += 3)
                                 {
                                     F_global_vertex_id vertex_id0 = other_cluster_header.vertex_offset + F_global_vertex_id(
@@ -746,24 +748,12 @@ namespace nre::newrg
                                     f32 edge_length1 = length(vertex_data1.position - vertex_data2.position);
                                     f32 edge_length2 = length(vertex_data2.position - vertex_data0.position);
 
-                                    f32 s = (edge_length0 + edge_length1 + edge_length2) / 2.0f;
-                                    f32 area = sqrt(s * (s - edge_length0) * (s - edge_length1) * (s - edge_length2));
-
-                                    local_error_sphere = {
-                                        local_error_sphere.center(),
-                                        local_error_sphere.radius()
-                                        + pow((edge_length0 + edge_length1 + edge_length2) / 3.0f, 2.0f) // avg edge length square
-                                        * area
-                                    };
-
-                                    total_area += area;
+                                    total_edge_length += (edge_length0 + edge_length1 + edge_length2);
                                 }
                                 local_error_sphere = {
                                     local_error_sphere.center(),
-                                    sqrt(
-                                        local_error_sphere.radius()
-                                        / total_area
-                                    )
+                                    total_edge_length
+                                    / f32(other_cluster_header.local_triangle_vertex_id_count)
                                     / 2.0f // an edge approximately a diameter
                                 };
 
