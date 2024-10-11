@@ -2800,6 +2800,11 @@ namespace nre::newrg
             ImGui::Checkbox("Enable", &depth_prepass_options.enable);
             end_section();
 
+            begin_section("LOD");
+            ImGui::InputFloat("Error Threshold", &lod_options.error_threshold);
+            ImGui::InputFloat("Task Capacity Factor", &lod_options.task_capacity_factor);
+            end_section();
+
             ImGui::End();
         }
 
