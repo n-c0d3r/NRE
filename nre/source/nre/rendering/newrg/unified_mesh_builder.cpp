@@ -701,17 +701,6 @@ namespace nre::newrg
                             {
                                 auto& other_cluster_header = data.cluster_headers[other_cluster_id];
 
-                                F_sphere_f32 local_error_sphere = { F_vector3_f32::zero() };
-                                for(u32 i = 0; i < other_cluster_header.vertex_count; ++i)
-                                {
-                                   F_global_vertex_id vertex_id = other_cluster_header.vertex_offset + i;
-
-                                    auto& vertex_data = data.vertex_datas[vertex_id];
-
-                                    local_error_sphere = { local_error_sphere.center() + vertex_data.position };
-                                }
-                                local_error_sphere = { local_error_sphere.center() / f32(other_cluster_header.vertex_count) };
-
                                 for(u32 i = 0; i < other_cluster_header.vertex_count; ++i)
                                 {
                                    F_global_vertex_id vertex_id = other_cluster_header.vertex_offset + i;
@@ -721,7 +710,6 @@ namespace nre::newrg
                                     outer_error_sphere = outer_error_sphere.expand(vertex_data.position);
                                 }
 
-                                f32 total_edge_length = 0.0f;
                                 for(u32 i = 0; i < other_cluster_header.local_triangle_vertex_id_count; i += 3)
                                 {
                                     F_global_vertex_id vertex_id0 = other_cluster_header.vertex_offset + F_global_vertex_id(
@@ -748,23 +736,17 @@ namespace nre::newrg
                                     f32 edge_length1 = length(vertex_data1.position - vertex_data2.position);
                                     f32 edge_length2 = length(vertex_data2.position - vertex_data0.position);
 
-                                    total_edge_length += (edge_length0 + edge_length1 + edge_length2);
+                                    error_radius = eastl::max<f32>(error_radius, edge_length0);
+                                    error_radius = eastl::max<f32>(error_radius, edge_length1);
+                                    error_radius = eastl::max<f32>(error_radius, edge_length2);
                                 }
-                                local_error_sphere = {
-                                    local_error_sphere.center(),
-                                    total_edge_length
-                                    / f32(other_cluster_header.local_triangle_vertex_id_count)
-                                    / 2.0f // an edge approximately a diameter
-                                };
 
                                 error_factor += data.cluster_errors[cluster_id];
-                                error_radius += local_error_sphere.radius();
                             }
                         );
                     }
                     error_factor /= f32(equivalent_cluster_count);
                     error_factor = eastl::max<f32>(error_factor, 0.00001f);
-                    error_radius /= f32(equivalent_cluster_count);
                     outer_error_sphere = {
                         outer_error_sphere.center(),
                         eastl::max<f32>(
