@@ -54,7 +54,7 @@ resource global_cached_candidate_batches(RWStructuredBuffer(F_cached_candidate_b
 groupshared F_instanced_cluster_header group_active_candidates[NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE];
 groupshared uint group_active_candidate_count;
 
-groupshared F_instanced_cluster_header group_cached_candidates[NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE * 4];
+groupshared F_instanced_cluster_header group_cached_candidates[NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE * NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT];
 groupshared uint group_cached_candidate_count;
 
 groupshared uint global_cached_candidate_batch_offset;
@@ -338,6 +338,8 @@ compute_shader CS(
                 expand_childs = expand_childs && cluster_hierarchical_culling_data.child_node_count;
                 expand_childs = expand_childs && !is_culled;
                 expand_childs = (cluster_hierarchical_culling_data.child_node_count > 0);
+
+                // is_culled = is_culled || (instanced_cluster_header.local_cluster_id != 156);
 
                 //
                 if(
