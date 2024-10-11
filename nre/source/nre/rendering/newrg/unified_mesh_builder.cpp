@@ -647,27 +647,7 @@ namespace nre::newrg
                     }
 
                     // calculate hierarchical_bbox
-                    F_box_f32 hierarchical_bbox = {
-                        F_vector3_f32::infinity(),
-                        F_vector3_f32::negative_infinity()
-                    };
-                    cluster_node_header_hash.for_all_match(
-                        cluster_id,
-                        cluster_id_to_cluster_node_header,
-                        [&](F_cluster_id, F_cluster_id other_cluster_id)
-                        {
-                            auto& other_cluster_header = data.cluster_headers[other_cluster_id];
-
-                            for(u32 i = 0; i < other_cluster_header.vertex_count; ++i)
-                            {
-                               F_global_vertex_id vertex_id = other_cluster_header.vertex_offset + i;
-
-                                auto& vertex_data = data.vertex_datas[vertex_id];
-
-                                hierarchical_bbox = hierarchical_bbox.expand(vertex_data.position);
-                            }
-                        }
-                    );
+                    F_box_f32 hierarchical_bbox = bbox;
 
                     // calculate error
                     F_sphere_f32 outer_error_sphere = { F_vector3_f32::zero() };
