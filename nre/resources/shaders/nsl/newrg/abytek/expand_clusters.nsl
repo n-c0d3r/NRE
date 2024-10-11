@@ -337,6 +337,7 @@ compute_shader CS(
                 expand_childs = expand_childs || late_expand_childs;
                 expand_childs = expand_childs && cluster_hierarchical_culling_data.child_node_count;
                 expand_childs = expand_childs && !is_culled;
+                expand_childs = (cluster_hierarchical_culling_data.child_node_count > 0);
 
                 //
                 if(

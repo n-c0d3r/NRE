@@ -26,7 +26,7 @@ namespace nre::newrg
 
         for(u32 i = 0; i < result.max_level_count; ++i)
         {
-            simplify_clusters_options.target_ratio *= 0.9f;
+            // simplify_clusters_options.target_ratio *= 0.9f;
 
             result.levels[i].simplify_clusters_options = simplify_clusters_options;
             result.levels[i].build_next_level_options = build_next_level_options;
