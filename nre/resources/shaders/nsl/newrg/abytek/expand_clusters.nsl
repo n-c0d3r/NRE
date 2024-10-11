@@ -114,17 +114,11 @@ compute_shader CS(
 
     // 
     u32 global_cached_candidate_batch_read_offset = INVALID_CACHED_CANDIDATE_BATCH_ID;
-    int level = 0;
 
     // main loop
     while(global_shared_datas[0].counter)
     {
         AllMemoryBarrierWithGroupSync();
-
-        if(level >= 10000)
-            break;
-
-        ++level;
 
         process_active_candidates = (group_active_candidate_count > 0);
 
@@ -222,7 +216,10 @@ compute_shader CS(
 
                 //
                 float error = (
-                    (cluster_hierarchical_culling_data.error_factor + 1.0f)
+                    (
+                        pow(cluster_hierarchical_culling_data.error_factor, 0.5f)
+                        + 1.0f
+                    )
                     * projected_error_radius_square
                 );
 

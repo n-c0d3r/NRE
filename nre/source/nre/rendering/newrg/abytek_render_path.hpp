@@ -52,6 +52,9 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> simple_draw_instanced_clusters_shader_asset_p_;
         K_graphics_pipeline_state_handle simple_draw_instanced_clusters_pso_p_;
 
+        TS<F_nsl_shader_asset> simple_draw_instanced_clusters_wireframe_shader_asset_p_;
+        K_graphics_pipeline_state_handle simple_draw_instanced_clusters_wireframe_pso_p_;
+
         TS<F_nsl_shader_asset> depth_prepass_shader_asset_p_;
         K_graphics_pipeline_state_handle depth_prepass_pso_p_;
 
@@ -221,6 +224,7 @@ namespace nre::newrg
             b8 enable = true;
             F_vector3_f32 color = F_vector3_f32::one();
             F_vector3_f32 light_dir = normalize({ -0.5f, -1.0f, 0.2f });
+            ED_fill_mode fill_mode = ED_fill_mode::SOLID;
         };
         struct F_simple_draw_instanced_clusters_global_options_data
         {
@@ -274,6 +278,9 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_shader_asset_p_); }
         NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_pso_p_); }
+
+        NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_wireframe_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_wireframe_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_wireframe_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_wireframe_pso_p_); }
 
         NCPP_FORCE_INLINE auto depth_prepass_shader_asset_p() const noexcept { return NCPP_FOH_VALID(depth_prepass_shader_asset_p_); }
         NCPP_FORCE_INLINE auto depth_prepass_pso_p() const noexcept { return NCPP_FOH_VALID(depth_prepass_pso_p_); }

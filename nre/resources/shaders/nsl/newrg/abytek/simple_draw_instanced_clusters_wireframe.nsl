@@ -1,0 +1,4 @@
+
+define FILL_MODE(WIREFRAME)
+
+import(simple_draw_instanced_clusters.nsl)

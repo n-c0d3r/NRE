@@ -135,6 +135,11 @@ namespace nre::newrg
             ).T_cast<F_nsl_shader_asset>();
             simple_draw_instanced_clusters_pso_p_ = { simple_draw_instanced_clusters_shader_asset_p_->pipeline_state_p_vector()[0] };
 
+            simple_draw_instanced_clusters_wireframe_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/simple_draw_instanced_clusters_wireframe.nsl"
+            ).T_cast<F_nsl_shader_asset>();
+            simple_draw_instanced_clusters_wireframe_pso_p_ = { simple_draw_instanced_clusters_wireframe_shader_asset_p_->pipeline_state_p_vector()[0] };
+
             depth_prepass_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
                 "shaders/nsl/newrg/abytek/depth_prepass.nsl"
             ).T_cast<F_nsl_shader_asset>();
@@ -2623,9 +2628,19 @@ namespace nre::newrg
                         view_p->rg_main_frame_buffer_p()->rhi_p()
                     )
                 );
-                command_list_p->ZG_bind_pipeline_state(
-                    NCPP_FOH_VALID(simple_draw_instanced_clusters_pso_p_)
-                );
+
+                if(simple_draw_instanced_clusters_options.fill_mode == ED_fill_mode::SOLID)
+                {
+                    command_list_p->ZG_bind_pipeline_state(
+                        NCPP_FOH_VALID(simple_draw_instanced_clusters_pso_p_)
+                    );
+                }
+                else if(simple_draw_instanced_clusters_options.fill_mode == ED_fill_mode::WIREFRAME)
+                {
+                    command_list_p->ZG_bind_pipeline_state(
+                        NCPP_FOH_VALID(simple_draw_instanced_clusters_wireframe_pso_p_)
+                    );
+                }
             },
             dispatch_mesh_indirect_command_batch,
             flag_combine(
@@ -2794,6 +2809,28 @@ namespace nre::newrg
             begin_section("Simple Draw Instanced Clusters");
             ImGui::Checkbox("Enable", &simple_draw_instanced_clusters_options.enable);
             ImGui::ColorEdit3("Color", (f32*)&simple_draw_instanced_clusters_options.color);
+            {
+                u32& color_mode = ((u32*)&simple_draw_instanced_clusters_options.color)[3];
+
+                if(ImGui::Button("Enable Cluster Color"))
+                {
+                    color_mode = 0;
+                }
+                if(ImGui::Button("Enable Solid Color"))
+                {
+                    color_mode = 1;
+                }
+            }
+            {
+                if(ImGui::Button("Enable Fill Mode Solid"))
+                {
+                    simple_draw_instanced_clusters_options.fill_mode = ED_fill_mode::SOLID;
+                }
+                if(ImGui::Button("Enable Fill Mode Wireframe"))
+                {
+                    simple_draw_instanced_clusters_options.fill_mode = ED_fill_mode::WIREFRAME;
+                }
+            }
             end_section();
 
             begin_section("Depth Prepass");
