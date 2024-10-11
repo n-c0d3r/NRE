@@ -198,18 +198,17 @@ namespace nre::newrg
             {
                 // group clusters in the current geometry
                 F_raw_clustered_geometry groupped_geometry;
-                TG_vector<F_cluster_group_header> first_cluster_group_headers;
-                TG_vector<F_cluster_group_header> second_cluster_group_headers;
+                TG_array<TG_vector<F_cluster_group_header>, 2> cluster_group_header_arrays;
                 {
                     F_raw_clustered_geometry second_level_geometry = H_clustered_geometry::build_next_level(
                         geometry,
-                        first_cluster_group_headers,
+                        cluster_group_header_arrays[0],
                         build_next_level_options
                     );
 
                     groupped_geometry = H_clustered_geometry::build_next_level(
                         second_level_geometry,
-                        second_cluster_group_headers,
+                        cluster_group_header_arrays[1],
                         build_next_level_options
                     );
                 }
@@ -354,10 +353,10 @@ namespace nre::newrg
                             {
                                 F_cluster_id split_cluster_group_child_id = split_cluster_group_child_ids[i];
 
-                                auto& first_cluster_group_header = second_cluster_group_headers[split_cluster_group_child_id];
+                                auto& first_cluster_group_header = cluster_group_header_arrays[1][split_cluster_group_child_id];
                                 if(first_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
                                 {
-                                    auto& second_cluster_group_header = first_cluster_group_headers[
+                                    auto& second_cluster_group_header = cluster_group_header_arrays[0][
                                         first_cluster_group_header.child_ids[0]
                                     ];
                                     if(second_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
@@ -377,7 +376,7 @@ namespace nre::newrg
                                 }
                                 if(first_cluster_group_header.child_ids[1] != NCPP_U32_MAX)
                                 {
-                                    auto& second_cluster_group_header = first_cluster_group_headers[
+                                    auto& second_cluster_group_header = cluster_group_header_arrays[0][
                                         first_cluster_group_header.child_ids[1]
                                     ];
                                     if(second_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
@@ -796,6 +795,8 @@ namespace nre::newrg
                     {
                         // update hierarchical_bbox
                         {
+                            F_vector3_f32 avg_child_bbox_center = F_vector3_f32::zero();
+                            u32 child_count = 0;
                             for(u32 i = 0; i < 4; ++i)
                             {
                                 F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
@@ -805,27 +806,15 @@ namespace nre::newrg
                                     continue;
                                 }
 
-                                auto& child_cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[child_cluster_id];
-
-                                hierarchical_bbox = hierarchical_bbox.expand(child_cluster_hierarchical_culling_data.bbox);
-                            }
-                        }
-
-                        // update bbox
-                        {
-                            for(u32 i = 0; i < 4; ++i)
-                            {
-                                F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
-
-                                if(child_cluster_id == NCPP_U32_MAX)
-                                {
-                                    continue;
-                                }
+                                ++child_count;
 
                                 auto& child_cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[child_cluster_id];
 
-                                bbox = bbox.expand(child_cluster_hierarchical_culling_data.bbox);
+                                avg_child_bbox_center += child_cluster_hierarchical_culling_data.bbox.center();
                             }
+                            avg_child_bbox_center /= f32(child_count);
+                            if(child_count)
+                                hierarchical_bbox = hierarchical_bbox.expand(avg_child_bbox_center);
                         }
 
                         // update error
