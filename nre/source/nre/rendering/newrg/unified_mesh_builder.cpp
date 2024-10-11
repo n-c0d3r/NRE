@@ -761,7 +761,7 @@ namespace nre::newrg
                                     local_error_sphere = {
                                         local_error_sphere.center(),
                                         local_error_sphere.radius()
-                                        + (edge_length0 + edge_length1 + edge_length2) / 3.0f // avg edge length
+                                        + pow((edge_length0 + edge_length1 + edge_length2) / 3.0f, 2.0f) // avg edge length square
                                         * area
                                     };
 
@@ -769,8 +769,10 @@ namespace nre::newrg
                                 }
                                 local_error_sphere = {
                                     local_error_sphere.center(),
-                                    local_error_sphere.radius()
-                                    / total_area
+                                    sqrt(
+                                        local_error_sphere.radius()
+                                        / total_area
+                                    )
                                     / 2.0f // an edge approximately a diameter
                                 };
 

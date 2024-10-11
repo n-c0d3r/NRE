@@ -215,7 +215,7 @@ compute_shader CS(
                 );
 
                 //
-                float error = (
+                float error_square = (
                     (
                         cluster_hierarchical_culling_data.error_factor
                         + 1.0f
@@ -225,7 +225,7 @@ compute_shader CS(
 
                 // if expand childs
                 f32 error_threshold = global_shared_datas[0].error_threshold;
-                b8 late_expand_childs = (error >= (error_threshold * error_threshold));
+                b8 late_expand_childs = (error_square >= (error_threshold * error_threshold));
             
                 // process instanced cluster
                 b8 is_culled = false;
