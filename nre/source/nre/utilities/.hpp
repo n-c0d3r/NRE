@@ -9,3 +9,5 @@
 #include <nre/utilities/pool_data_distributor.hpp>
 
 #include <nre/utilities/large_data_list.hpp>
+
+#include <nre/utilities/generic_system.hpp>

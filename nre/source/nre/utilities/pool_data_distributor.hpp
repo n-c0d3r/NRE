@@ -110,10 +110,12 @@ namespace nre
             NCPP_ASSERT(is_in_register_phase_);
             NCPP_ENABLE_IF_ASSERTION_ENABLED(is_in_register_phase_ = false);
 
+            auto next_id = next_id_.load();
+
             sz last_page_count = pages_.size();
             sz new_page_count = (
-                (next_id_ / page_capacity_)
-                + (next_id_ % page_capacity_) ? 1 : 0
+                (next_id / page_capacity_)
+                + ((next_id % page_capacity_) ? 1 : 0)
             );
 
             for(sz i = last_page_count; i < new_page_count; ++i)

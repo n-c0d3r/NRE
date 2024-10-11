@@ -24,6 +24,7 @@
 #include <nre/rendering/newrg/abytek_draw_cluster_outer_error_sphere_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_draw_cluster_error_sphere_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_drawable.hpp>
+#include <nre/rendering/newrg/abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/unified_mesh.hpp>
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
 #include <nre/rendering/newrg/unified_mesh_system.hpp>
@@ -181,6 +182,11 @@ namespace nre::newrg
                 "models/lq_sphere_2.obj"
             ).T_cast<F_static_mesh_asset>();
             unit_sphere_2_static_mesh_p_ = unit_sphere_2_static_mesh_asset_p_->mesh_p;
+        }
+
+        //
+        {
+            drawable_material_system_p_ = TU<F_abytek_drawable_material_system>()();
         }
     }
     F_abytek_render_path::~F_abytek_render_path()

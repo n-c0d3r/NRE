@@ -3,6 +3,8 @@
 #include <nre/rendering/material.hpp>
 #include <nre/rendering/material_system.hpp>
 
+#include <nre/utilities/generic_system.hpp>
+
 
 
 namespace nre
@@ -40,6 +42,9 @@ namespace nre::newrg
         F_matrix4x4_f32 last_local_to_world_matrix_;
         b8 is_first_upload_ = true;
 
+        TF_generic_handle<TK<A_abytek_drawable_material>, A_abytek_drawable_material> generic_handle_;
+        TF_generic_handle<TK<A_abytek_drawable_material>, I_abytek_drawable_material_can_be_dynamic> generic_handle_dynamic_;
+
     public:
         NCPP_FORCE_INLINE b8 is_static() const noexcept { return is_static_; }
 
@@ -49,6 +54,9 @@ namespace nre::newrg
         NCPP_FORCE_INLINE u32 render_primitive_data_id() const noexcept { return render_primitive_data_id_; }
 
         NCPP_FORCE_INLINE PA_matrix4x4_f32 last_local_to_world_matrix() const noexcept { return last_local_to_world_matrix_; }
+
+        NCPP_FORCE_INLINE const auto& generic_handle() const noexcept { return generic_handle_; }
+        NCPP_FORCE_INLINE const auto& generic_handle_dynamic() const noexcept { return generic_handle_dynamic_; }
 
 
 
@@ -78,26 +86,63 @@ namespace nre::newrg
 
 
 
+    class NRE_API F_abytek_drawable_material_system_dynamic final :
+        public TF_generic_system<TK<A_abytek_drawable_material>, I_abytek_drawable_material_can_be_dynamic>
+    {
+    private:
+        static TK<F_abytek_drawable_material_system_dynamic> instance_p_;
+
+    public:
+        static NCPP_FORCE_INLINE TKPA_valid<F_abytek_drawable_material_system_dynamic> instance_p() noexcept { return (TKPA_valid<F_abytek_drawable_material_system_dynamic>)instance_p_; }
+
+
+
+    public:
+        F_abytek_drawable_material_system_dynamic();
+        ~F_abytek_drawable_material_system_dynamic();
+    };
+
+    class NRE_API F_abytek_drawable_material_system final :
+        public TF_generic_system<TK<A_abytek_drawable_material>, A_abytek_drawable_material>
+    {
+    private:
+        static TK<F_abytek_drawable_material_system> instance_p_;
+
+    public:
+        static NCPP_FORCE_INLINE TKPA_valid<F_abytek_drawable_material_system> instance_p() noexcept { return (TKPA_valid<F_abytek_drawable_material_system>)instance_p_; }
+
+
+
+    private:
+        TU<F_abytek_drawable_material_system_dynamic> dynamic_p_;
+
+
+
+    public:
+        F_abytek_drawable_material_system();
+        ~F_abytek_drawable_material_system();
+    };
+
+
+
     class NRE_API H_abytek_drawable_material
     {
     public:
         static void T_for_each(auto&& callback)
         {
-            NRE_MATERIAL_SYSTEM()->T_for_each<A_abytek_drawable_material>(
-                [&](TKPA_valid<A_material> material_p)
+            F_abytek_drawable_material_system::instance_p()->for_each(
+                [&](TKPA<A_abytek_drawable_material> material_p)
                 {
-                    TK_valid<A_abytek_drawable_material> casted_material_p = material_p.T_cast<A_abytek_drawable_material>();
-                    callback(casted_material_p);
+                    callback(NCPP_FOH_VALID(material_p));
                 }
             );
         }
         static void T_for_each_dynamic(auto&& callback)
         {
-            NRE_MATERIAL_SYSTEM()->T_for_each<I_abytek_drawable_material_can_be_dynamic>(
-                [&](TKPA_valid<A_material> material_p)
+            F_abytek_drawable_material_system_dynamic::instance_p()->for_each(
+                [&](TKPA<A_abytek_drawable_material> material_p)
                 {
-                    TK_valid<A_abytek_drawable_material> casted_material_p = material_p.T_cast<A_abytek_drawable_material>();
-                    callback(casted_material_p);
+                    callback(NCPP_FOH_VALID(material_p));
                 }
             );
         }

@@ -21,6 +21,11 @@ namespace nre
 
 namespace nre::newrg
 {
+    class F_abytek_drawable_material_system;
+    class F_abytek_drawable_material_system_dynamic;
+
+
+
     class NRE_API F_abytek_render_path : public F_render_path
     {
     private:
@@ -73,6 +78,8 @@ namespace nre::newrg
 
         TS<F_static_mesh_asset> unit_sphere_2_static_mesh_asset_p_;
         TS<F_static_mesh> unit_sphere_2_static_mesh_p_;
+
+        TU<F_abytek_drawable_material_system> drawable_material_system_p_;
 
         struct F_statistics
         {

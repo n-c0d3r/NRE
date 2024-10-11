@@ -43,7 +43,7 @@ namespace nre::newrg
         {
             return (
                 (element_count_ / page_capacity_in_elements_)
-                + (element_count_ % page_capacity_in_elements_) ? 1 : 0
+                + ((element_count_ % page_capacity_in_elements_) ? 1 : 0)
             );
         }
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(NCPP_FORCE_INLINE const F_debug_name& name() const noexcept { return name_; });

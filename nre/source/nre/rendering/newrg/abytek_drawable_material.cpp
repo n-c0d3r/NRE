@@ -22,6 +22,17 @@ namespace nre::newrg
     {
         NRE_ACTOR_COMPONENT_REGISTER(A_abytek_drawable_material);
         NRE_ACTOR_COMPONENT_REGISTER(I_abytek_drawable_material_can_be_dynamic);
+
+        F_abytek_drawable_material_system::instance_p()->_register(
+            generic_handle_,
+            NCPP_KTHIS_UNSAFE()
+        );
+
+        if(!is_static_)
+            F_abytek_drawable_material_system_dynamic::instance_p()->_register(
+                generic_handle_dynamic_,
+                NCPP_KTHIS_UNSAFE()
+            );
     }
     A_abytek_drawable_material::~A_abytek_drawable_material()
     {
@@ -39,6 +50,15 @@ namespace nre::newrg
                     NCPP_U32_MAX
                 );
             }
+        );
+
+        if(!is_static_)
+            F_abytek_drawable_material_system_dynamic::instance_p()->deregister(
+                generic_handle_dynamic_
+            );
+
+        F_abytek_drawable_material_system::instance_p()->deregister(
+            generic_handle_
         );
     }
 
@@ -143,12 +163,21 @@ namespace nre::newrg
                 mask()
                 & ~(NRE_DRAWABLE_SYSTEM()->T_mask<I_abytek_drawable_material_can_be_dynamic>())
             );
+
+            F_abytek_drawable_material_system_dynamic::instance_p()->deregister(
+                generic_handle_dynamic_
+            );
         }
         else
         {
             update_mask(
                 mask()
                 | NRE_DRAWABLE_SYSTEM()->T_mask<I_abytek_drawable_material_can_be_dynamic>()
+            );
+
+            F_abytek_drawable_material_system_dynamic::instance_p()->_register(
+                generic_handle_dynamic_,
+                NCPP_KTHIS_UNSAFE()
             );
         }
 
@@ -200,6 +229,32 @@ namespace nre::newrg
             );
             last_local_to_world_matrix_ = local_to_world_matrix;
         }
+    }
+
+
+
+    TK<F_abytek_drawable_material_system_dynamic> F_abytek_drawable_material_system_dynamic::instance_p_;
+
+    F_abytek_drawable_material_system_dynamic::F_abytek_drawable_material_system_dynamic()
+    {
+        instance_p_ = NCPP_KTHIS_UNSAFE();
+    }
+    F_abytek_drawable_material_system_dynamic::~F_abytek_drawable_material_system_dynamic()
+    {
+    }
+
+
+
+    TK<F_abytek_drawable_material_system> F_abytek_drawable_material_system::instance_p_;
+
+    F_abytek_drawable_material_system::F_abytek_drawable_material_system()
+    {
+        instance_p_ = NCPP_KTHIS_UNSAFE();
+
+        dynamic_p_ = TU<F_abytek_drawable_material_system_dynamic>()();
+    }
+    F_abytek_drawable_material_system::~F_abytek_drawable_material_system()
+    {
     }
 
 
