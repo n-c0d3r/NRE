@@ -217,11 +217,12 @@ compute_shader CS(
                 //
                 float error = (
                     (
-                        pow(cluster_hierarchical_culling_data.error_factor, 0.5f)
+                        cluster_hierarchical_culling_data.error_factor
                         + 1.0f
                     )
                     * projected_error_radius_square
                 );
+                error = pow(error, 0.5f);
 
                 // if expand childs
                 b8 late_expand_childs = (error >= global_shared_datas[0].error_threshold);

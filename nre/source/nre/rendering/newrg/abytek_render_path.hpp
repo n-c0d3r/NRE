@@ -49,6 +49,9 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> simple_draw_shader_asset_p_;
         K_graphics_pipeline_state_handle simple_draw_pso_p_;
 
+        TS<F_nsl_shader_asset> simple_draw_wireframe_shader_asset_p_;
+        K_graphics_pipeline_state_handle simple_draw_wireframe_pso_p_;
+
         TS<F_nsl_shader_asset> simple_draw_instanced_clusters_shader_asset_p_;
         K_graphics_pipeline_state_handle simple_draw_instanced_clusters_pso_p_;
 
@@ -115,6 +118,7 @@ namespace nre::newrg
             F_vector3_f32 color = F_vector3_f32::one();
             F_vector3_f32 light_dir = normalize({ -0.5f, -1.0f, 0.2f });
             u32 level = 0;
+            ED_fill_mode fill_mode = ED_fill_mode::SOLID;
         };
         struct F_simple_draw_global_options_data
         {
@@ -246,7 +250,7 @@ namespace nre::newrg
 
         struct F_lod_options
         {
-            f32 error_threshold = 12.0f * 12.0f; // approximately 24x24 pixels
+            f32 error_threshold = 3.0f;
             f32 task_capacity_factor = 64.0f;
         };
         F_lod_options lod_options;
@@ -275,6 +279,9 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE auto simple_draw_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_shader_asset_p_); }
         NCPP_FORCE_INLINE auto simple_draw_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_pso_p_); }
+
+        NCPP_FORCE_INLINE auto simple_draw_wireframe_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_wireframe_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto simple_draw_wireframe_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_wireframe_pso_p_); }
 
         NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_shader_asset_p_); }
         NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_pso_p_); }

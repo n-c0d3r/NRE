@@ -726,15 +726,52 @@ namespace nre::newrg
                                     auto& vertex_data = data.vertex_datas[vertex_id];
 
                                     outer_error_sphere = outer_error_sphere.expand(vertex_data.position);
+                                }
+
+                                f32 total_area = 0.0f;
+                                for(u32 i = 0; i < other_cluster_header.local_triangle_vertex_id_count; i += 3)
+                                {
+                                    F_global_vertex_id vertex_id0 = other_cluster_header.vertex_offset + F_global_vertex_id(
+                                        data.local_cluster_triangle_vertex_ids[
+                                            other_cluster_header.local_triangle_vertex_id_offset + i
+                                        ]
+                                    );
+                                    F_global_vertex_id vertex_id1 = other_cluster_header.vertex_offset + F_global_vertex_id(
+                                        data.local_cluster_triangle_vertex_ids[
+                                            other_cluster_header.local_triangle_vertex_id_offset + i + 1
+                                        ]
+                                    );
+                                    F_global_vertex_id vertex_id2 = other_cluster_header.vertex_offset + F_global_vertex_id(
+                                        data.local_cluster_triangle_vertex_ids[
+                                            other_cluster_header.local_triangle_vertex_id_offset + i + 2
+                                        ]
+                                    );
+
+                                    auto& vertex_data0 = data.vertex_datas[vertex_id0];
+                                    auto& vertex_data1 = data.vertex_datas[vertex_id1];
+                                    auto& vertex_data2 = data.vertex_datas[vertex_id2];
+
+                                    f32 edge_length0 = length(vertex_data0.position - vertex_data1.position);
+                                    f32 edge_length1 = length(vertex_data1.position - vertex_data2.position);
+                                    f32 edge_length2 = length(vertex_data2.position - vertex_data0.position);
+
+                                    f32 s = (edge_length0 + edge_length1 + edge_length2) / 2.0f;
+                                    f32 area = sqrt(s * (s - edge_length0) * (s - edge_length1) * (s - edge_length2));
+
                                     local_error_sphere = {
                                         local_error_sphere.center(),
                                         local_error_sphere.radius()
-                                        + length(vertex_data.position - local_error_sphere.center())
+                                        + (edge_length0 + edge_length1 + edge_length2) / 3.0f // avg edge length
+                                        * area
                                     };
+
+                                    total_area += area;
                                 }
                                 local_error_sphere = {
                                     local_error_sphere.center(),
-                                    local_error_sphere.radius() / f32(other_cluster_header.vertex_count)
+                                    local_error_sphere.radius()
+                                    / total_area
+                                    / 2.0f // an edge approximately a diameter
                                 };
 
                                 error_factor += data.cluster_errors[cluster_id];
@@ -745,6 +782,13 @@ namespace nre::newrg
                     error_factor /= f32(equivalent_cluster_count);
                     error_factor = eastl::max<f32>(error_factor, 0.00001f);
                     error_radius /= f32(equivalent_cluster_count);
+                    outer_error_sphere = {
+                        outer_error_sphere.center(),
+                        eastl::max<f32>(
+                            outer_error_sphere.radius(),
+                            error_radius
+                        )
+                    };
 
                     // update culling data based on childs
                     {

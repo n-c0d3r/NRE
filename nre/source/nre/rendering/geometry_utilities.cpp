@@ -1345,7 +1345,7 @@ namespace nre
                 }
 
                 const float threshold = options.target_ratio;
-                target_index_count = f32(cluster_header.local_triangle_vertex_id_count) * threshold;
+                target_index_count = ceil(f32(cluster_header.local_triangle_vertex_id_count) * threshold);
 
                 float lod_error = 0.f;
 

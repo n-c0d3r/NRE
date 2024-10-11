@@ -193,10 +193,15 @@ pixel_shader PS(
     );
 }
 
+require(!FILL_MODE)
+{
+    define FILL_MODE(SOLID)
+}
+
 @root_signature(NRE_NEWRG_ABYTEK_SIMPLE_DRAW_BINDER_SIGNATURE)
 @rasterizer(
     cull_mode(NONE)
-    fill_mode(SOLID)
+    fill_mode(FILL_MODE)
 )
 @depth_stencil
 (
