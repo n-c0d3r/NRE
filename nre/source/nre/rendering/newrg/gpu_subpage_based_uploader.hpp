@@ -137,6 +137,40 @@ namespace nre::newrg
             auto page_capacity = sizeof(F_element__) * gpu_large_data_list_p_->page_capacity_in_elements();
             auto subpage_capacity = page_capacity / subpage_count_per_page_;
 
+            u32 last_page_index = NCPP_U32_MAX;
+            sz last_local_page_offset = 0;
+            u8* last_data_begin_p = 0;
+            u8* last_data_end_p = 0;
+
+            auto try_register_upload_data = [&]()
+            {
+                if(last_page_index != NCPP_U32_MAX)
+                {
+                    H_render_pass::upload_buffer(
+                        rg_page_p_vector[last_page_index],
+                        last_local_page_offset,
+                        { last_data_begin_p, sz(last_data_end_p - last_data_begin_p) }
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            (
+                                name_
+                                + ".upload_page_passes["
+                                + G_to_string(last_page_index).c_str()
+                                + "] (system memory: "
+                                + decimal_to_hex(sz(last_data_begin_p)).c_str()
+                                + " -> "
+                                + decimal_to_hex(sz(last_data_end_p)).c_str()
+                                + ")"
+                            ).c_str()
+                        )
+                    );
+                }
+
+                last_page_index = NCPP_U32_MAX;
+                last_local_page_offset = 0;
+                last_data_begin_p = 0;
+                last_data_end_p = 0;
+            };
+
             sz subpage_count = subpage_id_to_need_to_upload_.size();
             for(sz subpage_index = 0; subpage_index < subpage_count; ++subpage_index)
             {
@@ -149,19 +183,35 @@ namespace nre::newrg
 
                     auto local_page_offset = subpage_capacity * (subpage_index % subpage_count_per_page_);
 
-                    TG_span<u8> data_span = {
-                        (u8*)(src_data_page.data()) + local_page_offset,
-                        subpage_capacity
-                    };
+                    u8* data_begin_p = (u8*)(src_data_page.data()) + local_page_offset;
+                    u8* data_end_p = data_begin_p + subpage_capacity;
 
-                    H_render_pass::upload_buffer(
-                        rg_page_p,
-                        local_page_offset,
-                        data_span
-                        NRE_OPTIONAL_DEBUG_PARAM((name_ + ".upload_subpage_passes[" + G_to_string(subpage_index).c_str() + "]").c_str())
-                    );
+                    if(
+                        (data_begin_p == last_data_end_p)
+                        || (last_data_begin_p == 0)
+                    )
+                    {
+                        if(last_data_begin_p == 0)
+                        {
+                            last_page_index = page_index;
+                            last_local_page_offset = local_page_offset;
+                            last_data_begin_p = data_begin_p;
+                        }
+                        last_data_end_p = data_end_p;
+                    }
+                    else
+                    {
+                        try_register_upload_data();
+
+                        last_page_index = page_index;
+                        last_local_page_offset = local_page_offset;
+                        last_data_begin_p = data_begin_p;
+                        last_data_end_p = data_end_p;
+                    }
                 }
             }
+
+            try_register_upload_data();
         }
 
     public:
