@@ -107,7 +107,7 @@ compute_shader CS(
 
         group_active_candidates[group_thread_id.x] = instanced_cluster_headers[instanced_cluster_range.offset + global_thread_id.x];
     }
-    GroupMemoryBarrierWithGroupSync();
+    AllMemoryBarrierWithGroupSync();
 
     //
     b8 process_active_candidates;
@@ -119,6 +119,8 @@ compute_shader CS(
     // main loop
     while(global_shared_datas[0].counter)
     {
+        AllMemoryBarrierWithGroupSync();
+
         if(level >= 10000)
             break;
 
@@ -362,6 +364,7 @@ compute_shader CS(
                         + group_expanded_instanced_cluster_local_offset
                         + local_expanded_instanced_cluster_offset
                     ] = instanced_cluster_header;
+                    AllMemoryBarrierWithGroupSync();
                 }
 
                 // store group cached candidates
@@ -444,7 +447,7 @@ compute_shader CS(
                     group_active_candidates[group_thread_id.x] = group_cached_candidates[group_thread_id.x];
                 }
             }
-            GroupMemoryBarrierWithGroupSync();
+            AllMemoryBarrierWithGroupSync();
 
             // enqueue cached candidate batches into global queue
             {
@@ -546,20 +549,22 @@ compute_shader CS(
             && (global_active_candidate_offset != INVALID_CACHED_CANDIDATE_ID)
         )
         {   
-            GroupMemoryBarrierWithGroupSync();
+            AllMemoryBarrierWithGroupSync();
 
             if(group_thread_id.x < group_active_candidate_count)
             {
                 group_active_candidates[group_thread_id.x] = global_cached_candidates[global_active_candidate_offset + group_thread_id.x];
             }
 
-            GroupMemoryBarrierWithGroupSync();
+            AllMemoryBarrierWithGroupSync();
 
             if(group_thread_id.x == 0)
             {
                 global_active_candidate_offset = INVALID_CACHED_CANDIDATE_ID;
                 global_cached_candidate_batch_read_offset = INVALID_CACHED_CANDIDATE_BATCH_ID;
             }
+
+            GroupMemoryBarrierWithGroupSync();
         }
     }
 }

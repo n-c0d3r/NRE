@@ -34,9 +34,9 @@ int main() {
 	// create model actor
 	TG_queue<F_vector2_i32> creation_queue;
 	u32 create_step = 8;
-	for(i32 i = -10; i < 11; ++i)
+	for(i32 i = -15; i < 16; ++i)
 	{
-		for(i32 j = -10; j < 11; ++j)
+		for(i32 j = -15; j < 16; ++j)
 		{
 			creation_queue.push({ i, j });
 		}
