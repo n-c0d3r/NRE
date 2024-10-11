@@ -369,25 +369,25 @@ namespace nre
                                     other_cluster_id
                                 );
 
-                                // f32 d = 1.0f;
-                                // if(other_cluster_header.vertex_count < cluster_header.vertex_count)
-                                // {
-                                //     d = f32(cluster_header.vertex_count) / f32(other_cluster_header.vertex_count);
-                                // }
-                                // else
-                                // {
-                                //     d = f32(other_cluster_header.vertex_count) / f32(cluster_header.vertex_count);
-                                // }
-                                //
-                                // score_p[neighbor_index] = (
-                                //     d
-                                //     * eastl::max(
-                                //         f32(shared_vertex_count) / f32(cluster_header.vertex_count),
-                                //         f32(shared_vertex_count) / f32(other_cluster_header.vertex_count)
-                                //     )
-                                // );
+                                f32 d = 1.0f;
+                                if(other_cluster_header.vertex_count < cluster_header.vertex_count)
+                                {
+                                    d = f32(cluster_header.vertex_count) / f32(other_cluster_header.vertex_count);
+                                }
+                                else
+                                {
+                                    d = f32(other_cluster_header.vertex_count) / f32(cluster_header.vertex_count);
+                                }
 
-                                score_p[neighbor_index] = f32(shared_vertex_count);
+                                score_p[neighbor_index] = (
+                                    d
+                                    * eastl::max(
+                                        f32(shared_vertex_count) / f32(cluster_header.vertex_count),
+                                        f32(shared_vertex_count) / f32(other_cluster_header.vertex_count)
+                                    )
+                                );
+
+                                // score_p[neighbor_index] = f32(shared_vertex_count);
 
                                 ++neighbor_index;
                             }
