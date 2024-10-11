@@ -13,3 +13,5 @@ _deps
 build
 
 gitignores
+
+**/*.nre_newrg_umesh
