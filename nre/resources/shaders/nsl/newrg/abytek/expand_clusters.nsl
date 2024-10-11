@@ -222,10 +222,10 @@ compute_shader CS(
                     )
                     * projected_error_radius_square
                 );
-                error = pow(error, 0.5f);
 
                 // if expand childs
-                b8 late_expand_childs = (error >= global_shared_datas[0].error_threshold);
+                f32 error_threshold = global_shared_datas[0].error_threshold;
+                b8 late_expand_childs = (error >= (error_threshold * error_threshold));
             
                 // process instanced cluster
                 b8 is_culled = false;
