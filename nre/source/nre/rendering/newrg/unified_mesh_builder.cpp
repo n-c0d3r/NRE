@@ -758,7 +758,10 @@ namespace nre::newrg
                             }
                             avg_child_bbox_center /= f32(child_count);
                             if(child_count)
-                                hierarchical_bbox = hierarchical_bbox.expand(avg_child_bbox_center);
+                                hierarchical_bbox = hierarchical_bbox.expand({
+                                    avg_child_bbox_center - F_vector3_f32::one() * T_default_tolerance<f32>,
+                                    avg_child_bbox_center + F_vector3_f32::one() * T_default_tolerance<f32>
+                                });
                         }
 
                         // update error
