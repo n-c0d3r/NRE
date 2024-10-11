@@ -197,18 +197,13 @@ namespace nre::newrg
             for(u32 cluster_level_index = 1; cluster_level_index < options.max_level_count; ++cluster_level_index)
             {
                 // group clusters in the current geometry
-                F_raw_clustered_geometry groupped_geometry;
-                TG_array<TG_vector<F_cluster_group_header>, 2> cluster_group_header_arrays;
+                F_raw_clustered_geometry groupped_geometry = geometry;
+                TG_array<TG_vector<F_cluster_group_header>, NRE_NEWRG_UNIFIED_MESH_CLUSTER_GROUP_LEVEL_COUNT> cluster_group_header_arrays;
+                for(u32 group_level = 0; group_level < NRE_NEWRG_UNIFIED_MESH_CLUSTER_GROUP_LEVEL_COUNT; ++group_level)
                 {
-                    F_raw_clustered_geometry second_level_geometry = H_clustered_geometry::build_next_level(
-                        geometry,
-                        cluster_group_header_arrays[0],
-                        build_next_level_options
-                    );
-
                     groupped_geometry = H_clustered_geometry::build_next_level(
-                        second_level_geometry,
-                        cluster_group_header_arrays[1],
+                        groupped_geometry,
+                        cluster_group_header_arrays[group_level],
                         build_next_level_options
                     );
                 }
@@ -865,10 +860,10 @@ namespace nre::newrg
                     cluster_hierarchical_culling_data.flags = E_cluster_hierarchical_culling_data_flag::NONE;
 
                     if(min_cluster_id == cluster_id)
-                    cluster_hierarchical_culling_data.flags = flag_combine(
-                        cluster_hierarchical_culling_data.flags,
-                        E_cluster_hierarchical_culling_data_flag::CRITICAL
-                    );
+                        cluster_hierarchical_culling_data.flags = flag_combine(
+                            cluster_hierarchical_culling_data.flags,
+                            E_cluster_hierarchical_culling_data_flag::CRITICAL
+                        );
                 },
                 {
                     .parallel_count = cluster_level_header.end - cluster_level_header.begin,

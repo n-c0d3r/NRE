@@ -94,7 +94,7 @@ namespace nre
 
 
     using F_global_vertex_id = u32;
-    using F_raw_local_cluster_vertex_id = u16;
+    using F_raw_local_cluster_vertex_id = u32;
     using F_compressed_local_cluster_vertex_id = u8;
     struct NCPP_ALIGN(16) F_compressed_vertex_data
     {
@@ -189,11 +189,22 @@ namespace nre
             return is_valid();
         }
     };
-    constexpr b8 operator == (const F_cluster_node_header& a, const F_cluster_node_header& b) noexcept
+    inline b8 operator == (const F_cluster_node_header& a, const F_cluster_node_header& b) noexcept
     {
+        F_cluster_node_header clone_a = a;
+        F_cluster_node_header clone_b = b;
+
+        auto compare = [](nre::F_cluster_id a, nre::F_cluster_id b)
+        {
+            return a < b;
+        };
+        eastl::sort(clone_a.child_node_ids, clone_a.child_node_ids + NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT, compare);
+        eastl::sort(clone_b.child_node_ids, clone_b.child_node_ids + NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT, compare);
+
+
         for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
         {
-            if(a.child_node_ids[i] != b.child_node_ids[i])
+            if(clone_a.child_node_ids[i] != clone_b.child_node_ids[i])
                 return false;
         }
 
@@ -251,7 +262,7 @@ namespace nre
 
     struct F_clustered_geometry_merge_vertices_options
     {
-        f32 min_normal_dot = 1.0f;
+        f32 min_normal_dot = 0.999f;
         f32 max_texcoord_error = 0.002f;
     };
     struct F_clustered_geometry_remove_duplicated_vertices_options
@@ -276,7 +287,7 @@ namespace nre
     };
     struct F_clustered_geometry_build_cluster_adjacency_options
     {
-        F_cluster_id max_cluster_count_using_kdtree_search = 1024;
+        F_cluster_id max_cluster_count_using_kdtree_search = 384;
         f32 global_threshold_ratio = 0.0033f;
         f32 local_threshold_ratio = 0.0033f;
         f32 max_distance = NMATH_F32_INFINITY;
@@ -331,6 +342,14 @@ namespace ncpp::containers
     {
         NCPP_FORCE_INLINE size_t operator()(const nre::F_cluster_node_header& data) const
         {
+            nre::F_cluster_node_header clone_data = data;
+
+            auto compare = [](nre::F_cluster_id a, nre::F_cluster_id b)
+            {
+                return a < b;
+            };
+            eastl::sort(clone_data.child_node_ids, clone_data.child_node_ids + NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT, compare);
+
             u32 hash = 0;
             for( auto element : data.child_node_ids )
             {
