@@ -145,25 +145,44 @@ namespace nre
     };
     struct F_cluster_node_header
     {
-        F_cluster_id child_node_ids[4]{ NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX, NCPP_U32_MAX };
+        F_cluster_id child_node_ids[NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT];
+
+        F_cluster_node_header()
+        {
+            for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
+            {
+                child_node_ids[i] = NCPP_U32_MAX;
+            }
+        }
+        F_cluster_node_header(const F_cluster_node_header& x)
+        {
+            memcpy(child_node_ids, x.child_node_ids, sizeof(F_cluster_id) * NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT);
+        }
+        F_cluster_node_header& operator = (const F_cluster_node_header& x)
+        {
+            memcpy(child_node_ids, x.child_node_ids, sizeof(F_cluster_id) * NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT);
+            return *this;
+        }
 
         NCPP_FORCE_INLINE b8 is_valid() const noexcept
         {
-            return (
-                (child_node_ids[0] != NCPP_U32_MAX)
-                || (child_node_ids[1] != NCPP_U32_MAX)
-                || (child_node_ids[2] != NCPP_U32_MAX)
-                || (child_node_ids[3] != NCPP_U32_MAX)
-            );
+            for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
+            {
+                if(child_node_ids[i] != NCPP_U32_MAX)
+                    return true;
+            }
+
+            return false;
         }
         NCPP_FORCE_INLINE b8 is_null() const noexcept
         {
-            return (
-                (child_node_ids[0] == NCPP_U32_MAX)
-                && (child_node_ids[1] == NCPP_U32_MAX)
-                && (child_node_ids[2] == NCPP_U32_MAX)
-                && (child_node_ids[3] == NCPP_U32_MAX)
-            );
+            for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
+            {
+                if(child_node_ids[i] != NCPP_U32_MAX)
+                    return false;
+            }
+
+            return true;
         }
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {
@@ -172,12 +191,13 @@ namespace nre
     };
     constexpr b8 operator == (const F_cluster_node_header& a, const F_cluster_node_header& b) noexcept
     {
-        return (
-            (a.child_node_ids[0] == b.child_node_ids[0])
-            && (a.child_node_ids[1] == b.child_node_ids[1])
-            && (a.child_node_ids[2] == b.child_node_ids[2])
-            && (a.child_node_ids[3] == b.child_node_ids[3])
-        );
+        for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
+        {
+            if(a.child_node_ids[i] != b.child_node_ids[i])
+                return false;
+        }
+
+        return true;
     }
     struct F_cluster_level_header
     {
@@ -311,7 +331,19 @@ namespace ncpp::containers
     {
         NCPP_FORCE_INLINE size_t operator()(const nre::F_cluster_node_header& data) const
         {
-            return murmur_32({ data.child_node_ids[0], data.child_node_ids[1], data.child_node_ids[2], data.child_node_ids[3] });
+            u32 hash = 0;
+            for( auto element : data.child_node_ids )
+            {
+                element *= 0xcc9e2d51;
+                element = ( element << 15 ) | ( element >> (32 - 15) );
+                element *= 0x1b873593;
+
+                hash ^= element;
+                hash = ( hash << 13 ) | ( hash >> (32 - 13) );
+                hash = hash * 5 + 0xe6546b64;
+            }
+
+            return murmur_finalize_32(hash);
         }
     };
 }

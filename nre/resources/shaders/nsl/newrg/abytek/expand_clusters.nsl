@@ -379,12 +379,16 @@ compute_shader CS(
                         group_cached_candidate_count = new_group_cached_candidate_count;
                     }
 
-                    F_cluster_id local_child_node_ids[4] = {
-                        cluster_node_header.child_node_ids.x,
-                        cluster_node_header.child_node_ids.y,
-                        cluster_node_header.child_node_ids.z,
-                        cluster_node_header.child_node_ids.w
-                    };
+                    F_cluster_id local_child_node_ids[NRE_NEWRG_UNIFIED_MESH_CLUSTER_CHILD_ID_PACK_COUNT * 4];
+
+                    [unroll]
+                    for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_CLUSTER_CHILD_ID_PACK_COUNT; ++i)
+                    {                        
+                        local_child_node_ids[i * 4 + 0] = cluster_node_header.child_node_id_packs[i].x;
+                        local_child_node_ids[i * 4 + 1] = cluster_node_header.child_node_id_packs[i].y;
+                        local_child_node_ids[i * 4 + 2] = cluster_node_header.child_node_id_packs[i].z;
+                        local_child_node_ids[i * 4 + 3] = cluster_node_header.child_node_id_packs[i].w;
+                    }
 
                     for(u32 i = 0; i < cluster_hierarchical_culling_data.child_node_count; ++i)
                     {

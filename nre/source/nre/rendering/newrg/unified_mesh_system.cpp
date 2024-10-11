@@ -126,6 +126,18 @@ namespace nre::newrg
             "NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS",
             G_to_string(NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS)
         });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT",
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_CLUSTER_CHILD_ID_PACK_COUNT",
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_CLUSTER_CHILD_ID_PACK_COUNT)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_UNIFIED_MESH_CLUSTER_GROUP_LEVEL_COUNT",
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_CLUSTER_GROUP_LEVEL_COUNT)
+        });
     }
     F_unified_mesh_system::~F_unified_mesh_system()
     {

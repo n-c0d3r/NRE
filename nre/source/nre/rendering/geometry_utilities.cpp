@@ -773,7 +773,7 @@ namespace nre
                 F_nanoflann_point_cloud point_cloud;
                 point_cloud.points.resize(non_locked_vertex_count);
 
-                F_global_vertex_id point_to_vertex_id[NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER * 4];
+                F_global_vertex_id point_to_vertex_id[NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER * NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT];
 
                 next_point_index = 0;
                 for(u32 i = 0; i < src_cluster_header.vertex_count; ++i)

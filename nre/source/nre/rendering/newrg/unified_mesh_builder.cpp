@@ -349,53 +349,50 @@ namespace nre::newrg
                             }
 
                             // calculate child cluster ids
-                            TG_fixed_vector<F_cluster_id, 4, false> child_cluster_ids;
+                            TG_fixed_vector<F_cluster_id, NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT, false> child_cluster_ids;
                             {
                                 F_cluster_id split_cluster_group_child_id = split_cluster_group_child_ids[i];
 
-                                auto& first_cluster_group_header = cluster_group_header_arrays[1][split_cluster_group_child_id];
-                                if(first_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
+                                eastl::function<void(u32, u32)>* push_back_child_ids_p = 0;
+                                eastl::function<void(u32, u32)> push_back_child_ids = [&](u32 group_level, F_cluster_id id)
                                 {
-                                    auto& second_cluster_group_header = cluster_group_header_arrays[0][
-                                        first_cluster_group_header.child_ids[0]
-                                    ];
-                                    if(second_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
+                                    auto& cluster_group_header = cluster_group_header_arrays[group_level][id];
+
+                                    if(group_level > 0)
                                     {
-                                        child_cluster_ids.push_back(
-                                            current_level_cluster_offset
-                                            + second_cluster_group_header.child_ids[0]
-                                        );
+                                        for(u32 local_child_index = 0; local_child_index < 2; ++local_child_index)
+                                        {
+                                            if(cluster_group_header.child_ids[local_child_index] != NCPP_U32_MAX)
+                                            {
+                                                (*push_back_child_ids_p)(
+                                                    group_level - 1,
+                                                    cluster_group_header.child_ids[local_child_index]
+                                                );
+                                            }
+                                        }
                                     }
-                                    if(second_cluster_group_header.child_ids[1] != NCPP_U32_MAX)
+                                    else
                                     {
-                                        child_cluster_ids.push_back(
-                                            current_level_cluster_offset
-                                            + second_cluster_group_header.child_ids[1]
-                                        );
+                                        for(u32 local_child_index = 0; local_child_index < 2; ++local_child_index)
+                                        {
+                                            if(cluster_group_header.child_ids[local_child_index] != NCPP_U32_MAX)
+                                            {
+                                                child_cluster_ids.push_back(
+                                                    current_level_cluster_offset
+                                                    + cluster_group_header.child_ids[local_child_index]
+                                                );
+                                            }
+                                        }
                                     }
-                                }
-                                if(first_cluster_group_header.child_ids[1] != NCPP_U32_MAX)
-                                {
-                                    auto& second_cluster_group_header = cluster_group_header_arrays[0][
-                                        first_cluster_group_header.child_ids[1]
-                                    ];
-                                    if(second_cluster_group_header.child_ids[0] != NCPP_U32_MAX)
-                                    {
-                                        child_cluster_ids.push_back(
-                                            current_level_cluster_offset
-                                            + second_cluster_group_header.child_ids[0]
-                                        );
-                                    }
-                                    if(second_cluster_group_header.child_ids[1] != NCPP_U32_MAX)
-                                    {
-                                        child_cluster_ids.push_back(
-                                            current_level_cluster_offset
-                                            + second_cluster_group_header.child_ids[1]
-                                        );
-                                    }
-                                }
+                                };
+                                push_back_child_ids_p = &push_back_child_ids;
+
+                                push_back_child_ids(
+                                    NRE_NEWRG_UNIFIED_MESH_CLUSTER_GROUP_LEVEL_COUNT - 1,
+                                    split_cluster_group_child_id
+                                );
                             }
-                            for(u32 child_index = 0; child_index < 4; ++child_index)
+                            for(u32 child_index = 0; child_index < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++child_index)
                             {
                                 if(child_index < child_cluster_ids.size())
                                 {
@@ -409,7 +406,7 @@ namespace nre::newrg
 
                             // calculate cluster error
                             f32 cluster_error = 0.0f;
-                            for(u32 child_index = 0; child_index < 4; ++child_index)
+                            for(u32 child_index = 0; child_index < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++child_index)
                             {
                                 if(child_index < child_cluster_ids.size())
                                 {
@@ -797,7 +794,7 @@ namespace nre::newrg
                         {
                             F_vector3_f32 avg_child_bbox_center = F_vector3_f32::zero();
                             u32 child_count = 0;
-                            for(u32 i = 0; i < 4; ++i)
+                            for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
                             {
                                 F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
 
@@ -819,7 +816,7 @@ namespace nre::newrg
 
                         // update error
                         {
-                            for(u32 i = 0; i < 4; ++i)
+                            for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
                             {
                                 F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
 
@@ -846,7 +843,7 @@ namespace nre::newrg
 
                         // child node count
                         cluster_hierarchical_culling_data.child_node_count = 0;
-                        for(u32 i = 0; i < 4; ++i)
+                        for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
                         {
                             F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
 
@@ -880,6 +877,7 @@ namespace nre::newrg
             );
         }
     }
+
 
 
     F_compressed_unified_mesh_data H_unified_mesh_builder::compress(

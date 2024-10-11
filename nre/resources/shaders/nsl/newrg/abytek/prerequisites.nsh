@@ -51,7 +51,7 @@ struct F_cluster_header(
     local_triangle_vertex_id_count(u32)
 )
 struct F_cluster_node_header(
-    child_node_ids(u32x4)
+    child_node_id_packs(u32x4 NRE_NEWRG_UNIFIED_MESH_CLUSTER_CHILD_ID_PACK_COUNT)
 )
 struct F_cluster_id_range(
     begin(F_cluster_id)
