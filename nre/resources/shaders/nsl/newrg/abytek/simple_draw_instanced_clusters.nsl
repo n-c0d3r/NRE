@@ -186,7 +186,7 @@ pixel_shader PS(
             0.3f, 
             1.0f,
             saturate(
-                dot(mesh_vertex_data.vertex_world_normal, -light_dir)
+                dot(normalize(mesh_vertex_data.vertex_world_normal), -light_dir)
             )
         ) 
         * float4(1, 1, 1, 1)

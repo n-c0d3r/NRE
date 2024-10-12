@@ -716,9 +716,9 @@ namespace nre::newrg
                                     f32 edge_length1 = length(vertex_data1.position - vertex_data2.position);
                                     f32 edge_length2 = length(vertex_data2.position - vertex_data0.position);
 
-                                    error_radius = eastl::max<f32>(error_radius, edge_length0);
-                                    error_radius = eastl::max<f32>(error_radius, edge_length1);
-                                    error_radius = eastl::max<f32>(error_radius, edge_length2);
+                                    error_radius = eastl::max<f32>(error_radius, edge_length0 * 0.5f);
+                                    error_radius = eastl::max<f32>(error_radius, edge_length1 * 0.5f);
+                                    error_radius = eastl::max<f32>(error_radius, edge_length2 * 0.5f);
                                 }
 
                                 error_factor += data.cluster_errors[cluster_id];
