@@ -35,6 +35,7 @@ int main() {
 	F_vector2_i32 begin_spawn_coord = F_vector2_i32::zero();
 	F_vector2_i32 end_spawn_coord = F_vector2_i32::zero();
 	F_vector2_f32 spawn_gap = F_vector2_f32::one() * 4.0f;
+	F_vector3_f32 spawn_size = F_vector3_f32::one() * 5.0f;
 
 	TG_queue<F_vector2_i32> spawn_queue;
 	u32 spawn_steps_per_frame = 8;
@@ -86,6 +87,7 @@ int main() {
 			ImGui::InputInt2("End Spawn Coord", (i32*)&end_spawn_coord);
 			ImGui::InputFloat2("Spawn Gap", (f32*)&spawn_gap);
 			ImGui::InputInt("Spawn Steps Per Frame", (i32*)&spawn_steps_per_frame);
+			ImGui::InputFloat3("Spawn Size", (f32*)&spawn_size);
 			if(ImGui::Button("Spawn"))
 			{
 				spawn_queue = TG_queue<F_vector2_i32>();
@@ -112,7 +114,7 @@ int main() {
 					auto model_material_p = model_actor_p->template T_add_component<F_simple_abytek_drawable_material>();
 
 					model_transform_node_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(
-						make_scale(F_vector3::one() * 5.0f)
+						make_scale(spawn_size)
 					);
 
 					model_transform_node_p->transform = make_translation(F_vector3_f32::right() * f32(coord.x) * spawn_gap.x) * model_transform_node_p->transform;

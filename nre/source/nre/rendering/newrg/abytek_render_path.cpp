@@ -406,6 +406,33 @@ namespace nre::newrg
                         )
                     );
 
+                    if(depth_prepass_options.enable)
+                    {
+                        F_indirect_data_batch expanded_instanced_cluster_range_data_batch;
+                        expand_clusters(
+                            NCPP_FOH_VALID(casted_view_p),
+                            rg_instanced_cluster_header_buffer_p,
+                            instanced_cluster_range_data_batch,
+                            expanded_instanced_cluster_range_data_batch
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.depth_prepass(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ").expand_clusters"
+                            )
+                        );
+
+                        depth_prepass(
+                            NCPP_FOH_VALID(casted_view_p),
+                            rg_instanced_cluster_header_buffer_p,
+                            expanded_instanced_cluster_range_data_batch
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.depth_prepass(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ")"
+                            )
+                        );
+                    }
+
                     F_indirect_data_batch expanded_instanced_cluster_range_data_batch;
                     expand_clusters(
                         NCPP_FOH_VALID(casted_view_p),
@@ -427,20 +454,6 @@ namespace nre::newrg
                             expanded_instanced_cluster_range_data_batch
                             NRE_OPTIONAL_DEBUG_PARAM(
                                 F_render_frame_name("nre.newrg.abytek_render_path.simple_draw_instanced_clusters(")
-                                + casted_view_p->actor_p()->name().c_str()
-                                + ")"
-                            )
-                        );
-                    }
-
-                    if(depth_prepass_options.enable)
-                    {
-                        depth_prepass(
-                            NCPP_FOH_VALID(casted_view_p),
-                            rg_instanced_cluster_header_buffer_p,
-                            expanded_instanced_cluster_range_data_batch
-                            NRE_OPTIONAL_DEBUG_PARAM(
-                                F_render_frame_name("nre.newrg.abytek_render_path.depth_prepass(")
                                 + casted_view_p->actor_p()->name().c_str()
                                 + ")"
                             )
