@@ -34,7 +34,7 @@ namespace nre::newrg
             simplify_clusters_options.max_error = lerp(
                 0.01f,
                 1.0f,
-                pow(f32(i + 1) / f32(result.max_level_count), 2.0f)
+                pow(f32(i + 1) / f32(result.max_level_count), 2.5f)
             );
 
             simplify_clusters_options.remove_duplicated_vertices_options.merge_vertices_options.min_normal_dot -= lerp(

@@ -216,9 +216,10 @@ compute_shader CS(
 
                 //
                 float error_square = (
-                    (
+                    pow(
                         cluster_hierarchical_culling_data.error_factor
-                        + 1.0f
+                        + 1.0f, 
+                        2.0f
                     )
                     * projected_error_radius_square
                 );
