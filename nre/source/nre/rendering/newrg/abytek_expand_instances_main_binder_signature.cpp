@@ -1,14 +1,14 @@
-#include <nre/rendering/newrg/abytek_expand_clusters_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_expand_instances_main_binder_signature.hpp>
 
 
 
 namespace nre::newrg
 {
-    TK<F_abytek_expand_clusters_binder_signature> F_abytek_expand_clusters_binder_signature::instance_p_;
+    TK<F_abytek_expand_instances_main_binder_signature> F_abytek_expand_instances_main_binder_signature::instance_p_;
 
 
 
-    F_abytek_expand_clusters_binder_signature::F_abytek_expand_clusters_binder_signature() :
+    F_abytek_expand_instances_main_binder_signature::F_abytek_expand_instances_main_binder_signature() :
         A_binder_signature(
             {
                 .param_descs = {
@@ -23,7 +23,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // instance inverse transform
+                    F_root_param_desc( // instance mesh id
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -34,7 +34,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // instance mesh id
+                    F_root_param_desc( // mesh headers
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -45,7 +45,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // mesh headers
+                    F_root_param_desc( // mesh bboxes
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -56,48 +56,11 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // mesh culling datas
-                        F_root_descriptor_table_desc{
-                            .range_descs = {
-                                F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
-                                    .descriptor_count = u32(-1),
-                                    .register_space = 4
-                                }
-                            }
-                        }
-                    ),
-                    F_root_param_desc( // cluster node headers
-                        F_root_descriptor_table_desc{
-                            .range_descs = {
-                                F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
-                                    .descriptor_count = u32(-1),
-                                    .register_space = 5
-                                }
-                            }
-                        }
-                    ),
-                    F_root_param_desc( // cluster bboxes
-                        F_root_descriptor_table_desc{
-                            .range_descs = {
-                                F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
-                                    .descriptor_count = u32(-1),
-                                    .register_space = 6
-                                }
-                            }
-                        }
-                    ),
-                    F_root_param_desc( // cluster hierarchical culling datas
-                        F_root_descriptor_table_desc{
-                            .range_descs = {
-                                F_descriptor_range_desc {
-                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
-                                    .descriptor_count = u32(-1),
-                                    .register_space = 7
-                                }
-                            }
+                    F_root_param_desc( // options
+                        F_root_constants_desc {
+                            .base_register = 0,
+                            .register_space = 4,
+                            .constant_count = 1
                         }
                     ),
                     F_root_param_desc(
@@ -107,29 +70,29 @@ namespace nre::newrg
                                     .type = ED_descriptor_range_type::CONSTANT_BUFFER,
                                     .descriptor_count = 1,
                                     .offset_in_descriptors_from_table_start = 0,
-                                    .base_register = 0,
-                                    .register_space = 8
+                                    .base_register = 1,
+                                    .register_space = 4
                                 },
-                                F_descriptor_range_desc { // 4UAVs (instanced cluster headers, global shared datas, global cached candidates, global cached candidate batches)
+                                F_descriptor_range_desc { // 2UAVs (instanced dag node headers, instanced dag node range)
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
-                                    .descriptor_count = 4,
+                                    .descriptor_count = 2,
                                     .offset_in_descriptors_from_table_start = 1,
                                     .base_register = 0,
-                                    .register_space = 8
+                                    .register_space = 4
                                 },
                                 F_descriptor_range_desc { // 1SRV (hzb)
                                     .type = ED_descriptor_range_type::SHADER_RESOURCE,
                                     .descriptor_count = 1,
-                                    .offset_in_descriptors_from_table_start = 5,
+                                    .offset_in_descriptors_from_table_start = 3,
                                     .base_register = 0,
-                                    .register_space = 8
+                                    .register_space = 4
                                 }
                             }
                         }
                     )
                 }
             },
-            "NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BINDER_SIGNATURE"
+            "NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_MAIN_BINDER_SIGNATURE"
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();

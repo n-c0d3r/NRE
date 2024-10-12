@@ -126,12 +126,10 @@ void cuboid_view_corners_to_ndc_corners(
 
 
 struct F_occluder(
-    min_ndc_xy(float2)
-    max_ndc_xy(float2)
+    min_ndc_xyz(float3)
     min_view_z(float)
+    max_ndc_xyz(float3)
     max_view_z(float)
-    ___padding_0___(float)
-    ___padding_1___(float)
 )
 
 void calculate_occluder(
@@ -140,12 +138,10 @@ void calculate_occluder(
     out F_occluder out_occluder
 )
 {
-    out_occluder.min_ndc_xy = ndc_corners[0].xy;
+    out_occluder.min_ndc_xyz = ndc_corners[0].xyz;
     out_occluder.min_view_z = corners[0].z;
-    out_occluder.max_ndc_xy = out_occluder.min_ndc_xy;
+    out_occluder.max_ndc_xyz = out_occluder.min_ndc_xyz;
     out_occluder.max_view_z = out_occluder.min_view_z;
-    out_occluder.___padding_0___ = 0.0f;
-    out_occluder.___padding_1___ = 0.0f;
     
     [unroll]
     for(u32 i = 0; i < 8; ++i)
@@ -153,8 +149,8 @@ void calculate_occluder(
         float4 corner = corners[i];
         float4 ndc_corner = ndc_corners[i];
 
-        out_occluder.min_ndc_xy = min(out_occluder.min_ndc_xy, ndc_corner.xy);
-        out_occluder.max_ndc_xy = max(out_occluder.max_ndc_xy, ndc_corner.xy);
+        out_occluder.min_ndc_xyz = min(out_occluder.min_ndc_xyz, ndc_corner.xyz);
+        out_occluder.max_ndc_xyz = max(out_occluder.max_ndc_xyz, ndc_corner.xyz);
         out_occluder.min_view_z = min(out_occluder.min_view_z, corner.z);
         out_occluder.max_view_z = max(out_occluder.max_view_z, corner.z);
     }
@@ -162,14 +158,13 @@ void calculate_occluder(
 
 
 
-b8 is_cuboid_overlap_frustum(
+b8 is_occluder_overlap_frustum(
     float4x4 projection_matrix,
     float near_plane,
     float far_plane,
     in F_occluder occluder
 )
 {
-
     return (
         true
         && !(
@@ -184,22 +179,22 @@ b8 is_cuboid_overlap_frustum(
         )
         && !(
             (
-                (occluder.min_ndc_xy.x < -1.0f)
-                && (occluder.max_ndc_xy.x < -1.0f)
+                (occluder.min_ndc_xyz.x < -1.0f)
+                && (occluder.max_ndc_xyz.x < -1.0f)
             )
             || (
-                (occluder.min_ndc_xy.x > 1.0f)
-                && (occluder.max_ndc_xy.x > 1.0f)
+                (occluder.min_ndc_xyz.x > 1.0f)
+                && (occluder.max_ndc_xyz.x > 1.0f)
             )
         )
         && !(
             (
-                (occluder.min_ndc_xy.y < -1.0f)
-                && (occluder.max_ndc_xy.y < -1.0f)
+                (occluder.min_ndc_xyz.y < -1.0f)
+                && (occluder.max_ndc_xyz.y < -1.0f)
             )
             || (
-                (occluder.min_ndc_xy.y > 1.0f)
-                && (occluder.max_ndc_xy.y > 1.0f)
+                (occluder.min_ndc_xyz.y > 1.0f)
+                && (occluder.max_ndc_xyz.y > 1.0f)
             )
         )
     );
@@ -232,4 +227,14 @@ float sphere_to_screen_space_radius_square(
     float2 v1 = (p1.xy - c.xy) * screen_size;
 
     return max(dot(v0,v0),dot(v1,v1));
+}
+
+
+
+b8 is_occluded_with_hzb(
+    in Texture2D<float> hzb,
+    in F_occluder occluder
+)
+{
+    return false;
 }

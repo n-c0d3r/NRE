@@ -37,8 +37,20 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> expand_instances_shader_asset_p_;
         K_compute_pipeline_state_handle expand_instances_pso_p_;
 
+        TS<F_nsl_shader_asset> expand_instances_main_shader_asset_p_;
+        K_compute_pipeline_state_handle expand_instances_main_pso_p_;
+
+        TS<F_nsl_shader_asset> expand_instances_no_occlusion_culling_shader_asset_p_;
+        K_compute_pipeline_state_handle expand_instances_no_occlusion_culling_pso_p_;
+
         TS<F_nsl_shader_asset> expand_clusters_shader_asset_p_;
         K_compute_pipeline_state_handle expand_clusters_pso_p_;
+
+        TS<F_nsl_shader_asset> expand_clusters_main_shader_asset_p_;
+        K_compute_pipeline_state_handle expand_clusters_main_pso_p_;
+
+        TS<F_nsl_shader_asset> expand_clusters_no_occlusion_culling_shader_asset_p_;
+        K_compute_pipeline_state_handle expand_clusters_no_occlusion_culling_pso_p_;
 
         TS<F_nsl_shader_asset> init_args_expand_clusters_shader_asset_p_;
         K_compute_pipeline_state_handle init_args_expand_clusters_pso_p_;
@@ -269,8 +281,20 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto expand_instances_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_instances_shader_asset_p_); }
         NCPP_FORCE_INLINE auto expand_instances_pso_p() const noexcept { return NCPP_FOH_VALID(expand_instances_pso_p_); }
 
+        NCPP_FORCE_INLINE auto expand_instances_main_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_instances_main_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto expand_instances_main_pso_p() const noexcept { return NCPP_FOH_VALID(expand_instances_main_pso_p_); }
+
+        NCPP_FORCE_INLINE auto expand_instances_no_occlusion_culling_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_instances_no_occlusion_culling_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto expand_instances_no_occlusion_culling_pso_p() const noexcept { return NCPP_FOH_VALID(expand_instances_no_occlusion_culling_pso_p_); }
+
         NCPP_FORCE_INLINE auto expand_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_shader_asset_p_); }
         NCPP_FORCE_INLINE auto expand_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_pso_p_); }
+
+        NCPP_FORCE_INLINE auto expand_clusters_main_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_main_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto expand_clusters_main_pso_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_main_pso_p_); }
+
+        NCPP_FORCE_INLINE auto expand_clusters_no_occlusion_culling_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_no_occlusion_culling_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto expand_clusters_no_occlusion_culling_pso_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_no_occlusion_culling_pso_p_); }
 
         NCPP_FORCE_INLINE auto init_args_expand_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(init_args_expand_clusters_shader_asset_p_); }
         NCPP_FORCE_INLINE auto init_args_expand_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(init_args_expand_clusters_pso_p_); }
@@ -341,17 +365,49 @@ namespace nre::newrg
         virtual void RG_end_register() override;
 
     public:
+        enum class E_expand_clusters_mode
+        {
+            DEFAULT,
+            MAIN,
+            NO_OCCLUSION_CULLING
+        };
+        struct F_expand_clusters_additional_options
+        {
+            E_expand_clusters_mode mode = E_expand_clusters_mode::DEFAULT;
+
+            F_render_resource* rg_post_instanced_cluster_header_buffer_p = 0;
+            const F_indirect_data_batch* post_instanced_cluster_range_data_batch_p = 0;
+            F_indirect_data_batch* post_expanded_instanced_cluster_range_data_batch_p = 0;
+        };
+
+        enum class E_expand_instances_mode
+        {
+            DEFAULT,
+            MAIN,
+            NO_OCCLUSION_CULLING
+        };
+        struct F_expand_instances_additional_options
+        {
+            E_expand_instances_mode mode = E_expand_instances_mode::DEFAULT;
+
+            F_render_resource* rg_post_instanced_cluster_header_buffer_p = 0;
+            const F_indirect_data_batch* post_instanced_cluster_range_data_batch_p = 0;
+        };
+
+    public:
         void expand_clusters(
             TKPA_valid<F_abytek_scene_render_view> view_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,
             const F_indirect_data_batch& instanced_cluster_range_data_batch,
-            F_indirect_data_batch& expanded_instanced_cluster_range_data_batch
+            F_indirect_data_batch& expanded_instanced_cluster_range_data_batch,
+            const F_expand_clusters_additional_options& additional_options = {}
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
         void expand_instances(
             TKPA_valid<F_abytek_scene_render_view> view_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,
-            const F_indirect_data_batch& instanced_cluster_range_data_batch
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            const F_expand_instances_additional_options& additional_options = {}
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
         void init_args_dispatch_mesh_instanced_clusters_indirect(

@@ -35,6 +35,12 @@ import(newrg/abytek/view.nssm)
 @slot(0 8)
 resource instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header))
 
+require(!NO_OCCLUSION_CULLING)
+{
+    @slot(0 8)
+    resource hzb(Texture2D(float))
+}
+
 
 
 require(ADDITIONAL_RESOURCES)
@@ -266,11 +272,28 @@ compute_shader CS(
 
                 // calculate cull
                 {
+                    require(PRE_CULL_CLUSTER)
+                    {
+                        import(PRE_CULL_CLUSTER)
+                    }
+
+                    require(ALTERNATIVE_INSTANCE_CULL_TRANSFORM)
+                    {
+                        import(ALTERNATIVE_INSTANCE_CULL_TRANSFORM)
+
+                        float4x4 local_to_view_matrix_for_culling = mul(world_to_view_matrix, instance_transform_for_culling);
+                    }
+                    otherwise()
+                    {
+                        #define instance_transform_for_culling instance_transform
+                        #define local_to_view_matrix_for_culling local_to_view_matrix
+                    }
+
                     float4 bbox_corners[8];
                     calculate_bbox_corners(cluster_cull_bbox, bbox_corners);
 
                     float4 view_bbox_corners[8];
-                    transform_cuboid_corners(local_to_view_matrix, bbox_corners, view_bbox_corners);
+                    transform_cuboid_corners(local_to_view_matrix_for_culling, bbox_corners, view_bbox_corners);
                     
                     float4 ndc_bbox_corners[8];
                     cuboid_view_corners_to_ndc_corners(
@@ -289,12 +312,21 @@ compute_shader CS(
                     );
 
                     // frustum culling
-                    is_culled = is_culled || !is_cuboid_overlap_frustum(
+                    is_culled = is_culled || !is_occluder_overlap_frustum(
                         view_to_clip_matrix,
                         view_near_plane,
                         view_far_plane,
                         occluder
                     );
+
+                    // occlusion culling
+                    require(!NO_OCCLUSION_CULLING)
+                    {
+                        is_culled = is_culled || is_occluded_with_hzb(
+                            hzb,
+                            occluder
+                        );
+                    }
 
                     // small cluster culling
                     f32 cull_error_threshold = global_shared_datas[0].cull_error_threshold;
@@ -307,6 +339,18 @@ compute_shader CS(
                     require(ADDITIONAL_CULL_INSTANCED_CLUSTER)
                     {
                         import(ADDITIONAL_CULL_INSTANCED_CLUSTER)
+                    }
+
+                    //
+                    require(!ALTERNATIVE_INSTANCE_CULL_TRANSFORM)
+                    {
+                        #undef instance_transform_for_culling
+                        #undef local_to_view_matrix_for_culling
+                    }
+
+                    require(POST_CULL_CLUSTER)
+                    {
+                        import(POST_CULL_CLUSTER)
                     }
                 }
 
@@ -544,5 +588,9 @@ compute_shader CS(
     }
 }
 
-@root_signature(NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BINDER_SIGNATURE)
+require(!ROOT_SIGNATURE)
+{
+    define ROOT_SIGNATURE(NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BINDER_SIGNATURE)
+}
+@root_signature(ROOT_SIGNATURE)
 pipeline_state PSO(CS)

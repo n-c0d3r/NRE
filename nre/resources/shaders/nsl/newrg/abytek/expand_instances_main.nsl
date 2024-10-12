@@ -1,0 +1,4 @@
+
+define ROOT_SIGNATURE(NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_MAIN_BINDER_SIGNATURE)
+
+import(expand_instances.nsl)

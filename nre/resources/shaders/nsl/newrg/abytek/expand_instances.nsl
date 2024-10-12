@@ -28,24 +28,15 @@ resource mesh_culling_datas(
     -1
 )
 
-require(!ALTERNATIVE_INSTANCE_COUNT_CALCULATION)
-{
-    @slot(0 4)
-    resource options(
-        ConstantBuffer
-    )
-    uniform instance_count(F_instance_id)
+@slot(0 4)
+resource options(
+    ConstantBuffer
+)
+uniform instance_count(F_instance_id)
 
-    define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
-    define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
-    import(newrg/abytek/view.nssm)
-}
-otherwise()
-{
-    define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(0)
-    define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
-    import(newrg/abytek/view.nssm)
-}
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
+import(newrg/abytek/view.nssm)
 
 @slot(0 4)
 resource instanced_cluster_headers(
@@ -56,6 +47,12 @@ resource instanced_cluster_headers(
 resource instanced_cluster_ranges(
     RWStructuredBuffer(F_instanced_cluster_range)
 )
+
+require(!NO_OCCLUSION_CULLING)
+{
+    @slot(0 4)
+    resource hzb(Texture2D(float))
+}
 
 
 
@@ -87,12 +84,6 @@ compute_shader CS(
 )
 {
     F_instance_id instance_id = global_thread_id.x;
-
-    //
-    require(ALTERNATIVE_INSTANCE_COUNT_CALCULATION)
-    {
-        import(ALTERNATIVE_INSTANCE_COUNT_CALCULATION)
-    }
 
     if(instance_id >= instance_count)
         return;
@@ -128,13 +119,30 @@ compute_shader CS(
         import(ADDITIONAL_LOAD_INSTANCE)
     }
 
+    require(PRE_CULL_CLUSTER)
+    {
+        import(PRE_CULL_CLUSTER)
+    }
+
+    require(ALTERNATIVE_INSTANCE_CULL_TRANSFORM)
+    {
+        import(ALTERNATIVE_INSTANCE_CULL_TRANSFORM)
+
+        float4x4 local_to_view_matrix_for_culling = mul(world_to_view_matrix, instance_transform_for_culling);
+    }
+    otherwise()
+    {
+        #define instance_transform_for_culling local_to_world_matrix
+        #define local_to_view_matrix_for_culling local_to_view_matrix
+    }
+
     F_bbox bbox = mesh_culling_data.bbox;
 
     float4 bbox_corners[8];
     calculate_bbox_corners(bbox, bbox_corners);
 
     float4 view_bbox_corners[8];
-    transform_cuboid_corners(local_to_view_matrix, bbox_corners, view_bbox_corners);
+    transform_cuboid_corners(local_to_view_matrix_for_culling, bbox_corners, view_bbox_corners);
     
     float4 ndc_bbox_corners[8];
     cuboid_view_corners_to_ndc_corners(
@@ -152,16 +160,35 @@ compute_shader CS(
         occluder
     );
 
-    is_culled = is_culled || !is_cuboid_overlap_frustum(
+    is_culled = is_culled || !is_occluder_overlap_frustum(
         view_to_clip_matrix,
         view_near_plane,
         view_far_plane,
         occluder
     );
 
+    require(!NO_OCCLUSION_CULLING)
+    {
+        is_culled = is_culled || is_occluded_with_hzb(
+            hzb,
+            occluder
+        );
+    }
+
     require(ADDITIONAL_CULL_INSTANCE)
     {
         import(ADDITIONAL_CULL_INSTANCE)
+    }
+
+    require(!ALTERNATIVE_INSTANCE_CULL_TRANSFORM)
+    {
+        #undef instance_transform_for_culling
+        #undef local_to_view_matrix_for_culling
+    }
+
+    require(POST_CULL_CLUSTER)
+    {
+        import(POST_CULL_CLUSTER)
     }
 
     if(is_culled)
@@ -205,5 +232,9 @@ compute_shader CS(
     }
 }
 
-@root_signature(NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BINDER_SIGNATURE)
+require(!ROOT_SIGNATURE)
+{
+    define ROOT_SIGNATURE(NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BINDER_SIGNATURE)
+}
+@root_signature(ROOT_SIGNATURE)
 pipeline_state PSO(CS)

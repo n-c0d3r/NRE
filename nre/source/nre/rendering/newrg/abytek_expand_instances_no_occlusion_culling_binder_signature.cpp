@@ -1,14 +1,14 @@
-#include <nre/rendering/newrg/abytek_expand_instances_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_expand_instances_no_occlusion_culling_binder_signature.hpp>
 
 
 
 namespace nre::newrg
 {
-    TK<F_abytek_expand_instances_binder_signature> F_abytek_expand_instances_binder_signature::instance_p_;
+    TK<F_abytek_expand_instances_no_occlusion_culling_binder_signature> F_abytek_expand_instances_no_occlusion_culling_binder_signature::instance_p_;
 
 
 
-    F_abytek_expand_instances_binder_signature::F_abytek_expand_instances_binder_signature() :
+    F_abytek_expand_instances_no_occlusion_culling_binder_signature::F_abytek_expand_instances_no_occlusion_culling_binder_signature() :
         A_binder_signature(
             {
                 .param_descs = {
@@ -79,20 +79,13 @@ namespace nre::newrg
                                     .offset_in_descriptors_from_table_start = 1,
                                     .base_register = 0,
                                     .register_space = 4
-                                },
-                                F_descriptor_range_desc { // 1SRV (hzb)
-                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
-                                    .descriptor_count = 1,
-                                    .offset_in_descriptors_from_table_start = 3,
-                                    .base_register = 0,
-                                    .register_space = 4
                                 }
                             }
                         }
                     )
                 }
             },
-            "NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BINDER_SIGNATURE"
+            "NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_NO_OCCLUSION_CULLING_BINDER_SIGNATURE"
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();

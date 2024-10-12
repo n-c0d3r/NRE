@@ -190,14 +190,38 @@ namespace nre::newrg
 
             // create first depth pyramid
             {
-                rg_first_depth_pyramid_p_ = render_graph_p->T_create<F_render_depth_pyramid>(
-                    depth_pyramid_size
-                    NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
-                        + actor_p()->name().c_str()
-                        + "].first_depth_pyramid"
-                    )
-                );
+                b8 need_to_recreate_hzb = false;
+
+                if(last_depth_pyramid_)
+                {
+                    if(last_depth_pyramid_.size() == depth_pyramid_size)
+                    {
+                        rg_depth_pyramid_p_ = render_graph_p->T_create<F_render_depth_pyramid>(
+                            eastl::move(last_depth_pyramid_)
+                        );
+                    }
+                    else
+                    {
+                        last_depth_pyramid_.reset();
+                        need_to_recreate_hzb = true;
+                    }
+                }
+                else
+                {
+                    need_to_recreate_hzb = true;
+                }
+
+                if(need_to_recreate_hzb)
+                {
+                    rg_depth_pyramid_p_ = render_graph_p->T_create<F_render_depth_pyramid>(
+                        depth_pyramid_size
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                            + actor_p()->name().c_str()
+                            + "].depth_pyramid"
+                        )
+                    );
+                }
             }
 
             // upload view buffer data
@@ -298,9 +322,9 @@ namespace nre::newrg
 
                 data_.view_size = texture_size;
 
-                if(is_first_register_)
+                if(is_register_)
                 {
-                    is_first_register_ = false;
+                    is_register_ = false;
                     last_data_ = data_;
                 }
 
@@ -332,9 +356,14 @@ namespace nre::newrg
     void F_abytek_scene_render_view::RG_end_register()
     {
         F_scene_render_view::RG_end_register();
+
+        // cache depth pyramid
+        {
+            last_depth_pyramid_ = eastl::move(*rg_depth_pyramid_p_);
+        }
     }
 
-    void F_abytek_scene_render_view::clear()
+    void F_abytek_scene_render_view::clear_textures()
     {
         clear_main_texture();
         clear_depth_texture();
@@ -367,8 +396,8 @@ namespace nre::newrg
             )
         );
     }
-    void F_abytek_scene_render_view::generate_first_depth_pyramid()
+    void F_abytek_scene_render_view::generate_depth_pyramid()
     {
-        rg_first_depth_pyramid_p_->generate(rg_depth_texture_p_);
+        rg_depth_pyramid_p_->generate(rg_depth_texture_p_);
     }
 }
