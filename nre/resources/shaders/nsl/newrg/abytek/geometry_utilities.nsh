@@ -3,13 +3,161 @@ import(newrg/abytek/prerequisites.nsh)
 
 
 
+void calculate_bbox_corners(
+    in F_bbox bbox,
+    out float4 out_corners[8]
+)
+{
+    out_corners[0] = float4(
+        bbox.min_position.x,
+        bbox.min_position.y,
+        bbox.min_position.z,
+        1.0f
+    );
+    out_corners[1] = float4(
+        bbox.max_position.x,
+        bbox.min_position.y,
+        bbox.min_position.z,
+        1.0f
+    );
+    out_corners[2] = float4(
+        bbox.min_position.x,
+        bbox.max_position.y,
+        bbox.min_position.z,
+        1.0f
+    );
+    out_corners[3] = float4(
+        bbox.min_position.x,
+        bbox.min_position.y,
+        bbox.max_position.z,
+        1.0f
+    );
+    out_corners[4] = float4(
+        bbox.max_position.x,
+        bbox.max_position.y,
+        bbox.min_position.z,
+        1.0f
+    );
+    out_corners[5] = float4(
+        bbox.min_position.x,
+        bbox.max_position.y,
+        bbox.max_position.z,
+        1.0f
+    );
+    out_corners[6] = float4(
+        bbox.max_position.x,
+        bbox.min_position.y,
+        bbox.max_position.z,
+        1.0f
+    );
+    out_corners[7] = float4(
+        bbox.max_position.x,
+        bbox.max_position.y,
+        bbox.max_position.z,
+        1.0f
+    );
+}
+
+void transform_cuboid_corners(
+    float4x4 transform,
+    in float4 corners[8],
+    out float4 out_corners[8]
+)
+{
+    [unroll]
+    for(u32 i = 0; i < 8; ++i)
+    {
+        out_corners[i] = mul(transform, corners[i]);
+    }
+}
+
+void copy_cuboid_corners(
+    in float4 corners[8],
+    out float4 out_corners[8]
+)
+{
+    [unroll]
+    for(u32 i = 0; i < 8; ++i)
+    {
+        out_corners[i] = corners[i];
+    }
+}
+
+
+
 float4 view_to_ndc(
     float4x4 projection_matrix,
+    float near_plane,
+    float far_plane,
     float4 p_4d
 )
 {
-    float4 clip_p = mul(projection_matrix, p_4d);
+    float4 clip_p = mul(
+        projection_matrix, 
+        float4(
+            p_4d.xy,
+            clamp(p_4d.z, near_plane, far_plane),
+            1.0f
+        )
+    );
     return clip_p / clip_p.w;
+}
+
+void cuboid_view_corners_to_ndc_corners(
+    float4x4 projection_matrix,
+    float near_plane,
+    float far_plane,
+    in float4 corners[8],
+    out float4 out_ndc_corners[8]
+)
+{
+    [unroll]
+    for(u32 i = 0; i < 8; ++i)
+    {
+        out_ndc_corners[i] = view_to_ndc(
+            projection_matrix,
+            near_plane,
+            far_plane,
+            corners[i]
+        );
+    }
+}
+
+
+
+struct F_occluder(
+    min_ndc_xy(float2)
+    max_ndc_xy(float2)
+    min_view_z(float)
+    max_view_z(float)
+    ___padding_0___(float)
+    ___padding_1___(float)
+)
+
+void calculate_occluder(
+    float4 corners[8],
+    float4 ndc_corners[8],
+    out F_occluder out_occluder
+)
+{
+    out_occluder.min_ndc_xy = ndc_corners[0].xy;
+    out_occluder.min_view_z = corners[0].z;
+    out_occluder.max_ndc_xy = out_occluder.min_ndc_xy;
+    out_occluder.max_view_z = out_occluder.min_view_z;
+    out_occluder.___padding_0___ = 0.0f;
+    out_occluder.___padding_1___ = 0.0f;
+    
+    [unroll]
+    for(u32 i = 0; i < 8; ++i)
+    {
+        float4 corner = corners[i];
+        float4 ndc_corner = ndc_corners[i];
+
+        out_occluder.min_ndc_xy = min(out_occluder.min_ndc_xy, ndc_corner.xy);
+        out_occluder.max_ndc_xy = max(out_occluder.max_ndc_xy, ndc_corner.xy);
+        out_occluder.min_view_z = min(out_occluder.min_view_z, corner.z);
+        out_occluder.max_view_z = max(out_occluder.max_view_z, corner.z);
+    }
 }
 
 
@@ -18,57 +166,40 @@ b8 is_cuboid_overlap_frustum(
     float4x4 projection_matrix,
     float near_plane,
     float far_plane,
-    float4 corners[8],
-    float4 ndc_corners[8]
+    in F_occluder occluder
 )
 {
-    float3 min_xyz = float3(ndc_corners[0].xy, corners[0].z);
-    float3 max_xyz = min_xyz;
-    
-    [unroll]
-    for(u32 i = 0; i < 8; ++i)
-    {
-        float4 corner = corners[i];
-        float4 ndc_corner = ndc_corners[i];
-        float3 xyz = float3(
-            ndc_corner.xy,
-            corner.z
-        );
-
-        max_xyz = max(max_xyz, xyz);
-        min_xyz = min(min_xyz, xyz);
-    }
 
     return (
         true
         && !(
             (
-                (min_xyz.z < near_plane)
-                && (max_xyz.z < near_plane)
+                (occluder.min_view_z < near_plane)
+                && (occluder.max_view_z < near_plane)
             )
             || (
-                (min_xyz.z > far_plane)
-                && (max_xyz.z > far_plane)
+                (occluder.min_view_z > far_plane)
+                && (occluder.max_view_z > far_plane)
             )
         )
         && !(
             (
-                (min_xyz.x < -1.0f)
-                && (max_xyz.x < -1.0f)
+                (occluder.min_ndc_xy.x < -1.0f)
+                && (occluder.max_ndc_xy.x < -1.0f)
             )
             || (
-                (min_xyz.x > 1.0f)
-                && (max_xyz.x > 1.0f)
+                (occluder.min_ndc_xy.x > 1.0f)
+                && (occluder.max_ndc_xy.x > 1.0f)
             )
         )
         && !(
             (
-                (min_xyz.y < -1.0f)
-                && (max_xyz.y < -1.0f)
+                (occluder.min_ndc_xy.y < -1.0f)
+                && (occluder.max_ndc_xy.y < -1.0f)
             )
             || (
-                (min_xyz.y > 1.0f)
-                && (max_xyz.y > 1.0f)
+                (occluder.min_ndc_xy.y > 1.0f)
+                && (occluder.max_ndc_xy.y > 1.0f)
             )
         )
     );

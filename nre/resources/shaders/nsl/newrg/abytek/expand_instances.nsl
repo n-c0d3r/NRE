@@ -28,15 +28,24 @@ resource mesh_culling_datas(
     -1
 )
 
-@slot(0 4)
-resource options(
-    ConstantBuffer
-)
-uniform instance_count(F_instance_id)
+require(!ALTERNATIVE_INSTANCE_COUNT_CALCULATION)
+{
+    @slot(0 4)
+    resource options(
+        ConstantBuffer
+    )
+    uniform instance_count(F_instance_id)
 
-define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
-define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
-import(newrg/abytek/view.nssm)
+    define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
+    define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
+    import(newrg/abytek/view.nssm)
+}
+otherwise()
+{
+    define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(0)
+    define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(4)
+    import(newrg/abytek/view.nssm)
+}
 
 @slot(0 4)
 resource instanced_cluster_headers(
@@ -50,7 +59,21 @@ resource instanced_cluster_ranges(
 
 
 
+require(ADDITIONAL_RESOURCES)
+{
+    import(ADDITIONAL_RESOURCES)
+}
+
+
+
 groupshared u32 group_instanced_cluster_offset;
+
+
+
+require(ADDITIONAL_GROUP_SHARES)
+{
+    import(ADDITIONAL_GROUP_SHARES)
+}
 
 
 
@@ -64,6 +87,12 @@ compute_shader CS(
 )
 {
     F_instance_id instance_id = global_thread_id.x;
+
+    //
+    require(ALTERNATIVE_INSTANCE_COUNT_CALCULATION)
+    {
+        import(ALTERNATIVE_INSTANCE_COUNT_CALCULATION)
+    }
 
     if(instance_id >= instance_count)
         return;
@@ -93,110 +122,50 @@ compute_shader CS(
         mesh_id % NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
     ];
 
+    //
+    require(ADDITIONAL_LOAD_INSTANCE)
+    {
+        import(ADDITIONAL_LOAD_INSTANCE)
+    }
+
     F_bbox bbox = mesh_culling_data.bbox;
 
+    float4 bbox_corners[8];
+    calculate_bbox_corners(bbox, bbox_corners);
+
     float4 view_bbox_corners[8];
-    view_bbox_corners[0] = mul(
-        local_to_view_matrix,
-        float4(
-            bbox.min_position.x,
-            bbox.min_position.y,
-            bbox.min_position.z,
-            1.0f
-        )
-    );
-    view_bbox_corners[1] = mul(
-        local_to_view_matrix,
-        float4(
-            bbox.max_position.x,
-            bbox.min_position.y,
-            bbox.min_position.z,
-            1.0f
-        )
-    );
-    view_bbox_corners[2] = mul(
-        local_to_view_matrix,
-        float4(
-            bbox.min_position.x,
-            bbox.max_position.y,
-            bbox.min_position.z,
-            1.0f
-        )
-    );
-    view_bbox_corners[3] = mul(
-        local_to_view_matrix,
-        float4(
-            bbox.min_position.x,
-            bbox.min_position.y,
-            bbox.max_position.z,
-            1.0f
-        )
-    );
-    view_bbox_corners[4] = mul(
-        local_to_view_matrix,
-        float4(
-            bbox.max_position.x,
-            bbox.max_position.y,
-            bbox.min_position.z,
-            1.0f
-        )
-    );
-    view_bbox_corners[5] = mul(
-        local_to_view_matrix,
-        float4(
-            bbox.min_position.x,
-            bbox.max_position.y,
-            bbox.max_position.z,
-            1.0f
-        )
-    );
-    view_bbox_corners[6] = mul(
-        local_to_view_matrix,
-        float4(
-            bbox.max_position.x,
-            bbox.min_position.y,
-            bbox.max_position.z,
-            1.0f
-        )
-    );
-    view_bbox_corners[7] = mul(
-        local_to_view_matrix,
-        float4(
-            bbox.max_position.x,
-            bbox.max_position.y,
-            bbox.max_position.z,
-            1.0f
-        )
-    );
+    transform_cuboid_corners(local_to_view_matrix, bbox_corners, view_bbox_corners);
     
     float4 ndc_bbox_corners[8];
-    [unroll]
-    for(u32 i = 0; i < 8; ++i)
-    {
-        float4 view_bbox_corner = view_bbox_corners[i];
-        view_bbox_corner.z = clamp(view_bbox_corner.z, view_near_plane, view_far_plane);
+    cuboid_view_corners_to_ndc_corners(
+        view_to_clip_matrix,
+        view_near_plane,
+        view_far_plane,
+        view_bbox_corners, 
+        ndc_bbox_corners
+    );
 
-        ndc_bbox_corners[i] = view_to_ndc(
-            view_to_clip_matrix,
-            view_bbox_corner
-        );
-    }
+    F_occluder occluder;
+    calculate_occluder(
+        view_bbox_corners,
+        ndc_bbox_corners,
+        occluder
+    );
 
     is_culled = is_culled || !is_cuboid_overlap_frustum(
         view_to_clip_matrix,
         view_near_plane,
         view_far_plane,
-        view_bbox_corners,
-        ndc_bbox_corners
+        occluder
     );
+
+    require(ADDITIONAL_CULL_INSTANCE)
+    {
+        import(ADDITIONAL_CULL_INSTANCE)
+    }
 
     if(is_culled)
         return;
-
-    require(additional_check)
-    {
-        import(additional_check)
-    }
 
     F_mesh_header mesh_header = mesh_headers[
         mesh_id / NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
@@ -228,6 +197,11 @@ compute_shader CS(
         );
 
         instanced_cluster_headers[instanced_cluster_offset + i] = instanced_cluster_header;
+    }
+
+    require(ADDITIONAL_END_PROCESS_INSTANCE)
+    {
+        import(ADDITIONAL_END_PROCESS_INSTANCE)
     }
 }
 

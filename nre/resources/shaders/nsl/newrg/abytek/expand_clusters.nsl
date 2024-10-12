@@ -37,6 +37,13 @@ resource instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header
 
 
 
+require(ADDITIONAL_RESOURCES)
+{
+    import(ADDITIONAL_RESOURCES)
+}
+
+
+
 @slot(1 8)
 @globally_coherent
 resource global_shared_datas(RWStructuredBuffer(F_expand_clusters_global_shared_data))
@@ -63,6 +70,13 @@ groupshared uint global_cached_candidate_offset;
 groupshared uint global_active_candidate_offset;
 
 groupshared u32 group_expanded_instanced_cluster_local_offset;
+
+
+
+require(ADDITIONAL_GROUP_SHARES)
+{
+    import(ADDITIONAL_GROUP_SHARES)
+}
 
 
 
@@ -108,6 +122,12 @@ compute_shader CS(
         group_active_candidates[group_thread_id.x] = instanced_cluster_headers[instanced_cluster_range.offset + global_thread_id.x];
     }
     AllMemoryBarrierWithGroupSync();
+
+    //
+    require(ADDITIONAL_INIT)
+    {
+        import(ADDITIONAL_INIT)
+    }
 
     //
     b8 process_active_candidates;
@@ -172,6 +192,12 @@ compute_shader CS(
                 ][
                     cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
                 ];
+
+                //
+                require(ADDITIONAL_LOAD_INSTANCED_CLUSTER)
+                {
+                    import(ADDITIONAL_LOAD_INSTANCED_CLUSTER)
+                }
 
                 float3 local_view_position = mul(
                     instance_inverse_transform,
@@ -240,100 +266,34 @@ compute_shader CS(
 
                 // calculate cull
                 {
+                    float4 bbox_corners[8];
+                    calculate_bbox_corners(cluster_cull_bbox, bbox_corners);
+
                     float4 view_bbox_corners[8];
-                    view_bbox_corners[0] = mul(
-                        local_to_view_matrix,
-                        float4(
-                            cluster_cull_bbox.min_position.x,
-                            cluster_cull_bbox.min_position.y,
-                            cluster_cull_bbox.min_position.z,
-                            1.0f
-                        )
-                    );
-                    view_bbox_corners[1] = mul(
-                        local_to_view_matrix,
-                        float4(
-                            cluster_cull_bbox.max_position.x,
-                            cluster_cull_bbox.min_position.y,
-                            cluster_cull_bbox.min_position.z,
-                            1.0f
-                        )
-                    );
-                    view_bbox_corners[2] = mul(
-                        local_to_view_matrix,
-                        float4(
-                            cluster_cull_bbox.min_position.x,
-                            cluster_cull_bbox.max_position.y,
-                            cluster_cull_bbox.min_position.z,
-                            1.0f
-                        )
-                    );
-                    view_bbox_corners[3] = mul(
-                        local_to_view_matrix,
-                        float4(
-                            cluster_cull_bbox.min_position.x,
-                            cluster_cull_bbox.min_position.y,
-                            cluster_cull_bbox.max_position.z,
-                            1.0f
-                        )
-                    );
-                    view_bbox_corners[4] = mul(
-                        local_to_view_matrix,
-                        float4(
-                            cluster_cull_bbox.max_position.x,
-                            cluster_cull_bbox.max_position.y,
-                            cluster_cull_bbox.min_position.z,
-                            1.0f
-                        )
-                    );
-                    view_bbox_corners[5] = mul(
-                        local_to_view_matrix,
-                        float4(
-                            cluster_cull_bbox.min_position.x,
-                            cluster_cull_bbox.max_position.y,
-                            cluster_cull_bbox.max_position.z,
-                            1.0f
-                        )
-                    );
-                    view_bbox_corners[6] = mul(
-                        local_to_view_matrix,
-                        float4(
-                            cluster_cull_bbox.max_position.x,
-                            cluster_cull_bbox.min_position.y,
-                            cluster_cull_bbox.max_position.z,
-                            1.0f
-                        )
-                    );
-                    view_bbox_corners[7] = mul(
-                        local_to_view_matrix,
-                        float4(
-                            cluster_cull_bbox.max_position.x,
-                            cluster_cull_bbox.max_position.y,
-                            cluster_cull_bbox.max_position.z,
-                            1.0f
-                        )
-                    );
+                    transform_cuboid_corners(local_to_view_matrix, bbox_corners, view_bbox_corners);
                     
                     float4 ndc_bbox_corners[8];
-                    [unroll]
-                    for(u32 i = 0; i < 8; ++i)
-                    {
-                        float4 view_bbox_corner = view_bbox_corners[i];
-                        view_bbox_corner.z = clamp(view_bbox_corner.z, view_near_plane, view_far_plane);
+                    cuboid_view_corners_to_ndc_corners(
+                        view_to_clip_matrix,
+                        view_near_plane,
+                        view_far_plane,
+                        view_bbox_corners, 
+                        ndc_bbox_corners
+                    );
 
-                        ndc_bbox_corners[i] = view_to_ndc(
-                            view_to_clip_matrix,
-                            view_bbox_corner
-                        );
-                    }
+                    F_occluder occluder;
+                    calculate_occluder(
+                        view_bbox_corners,
+                        ndc_bbox_corners,
+                        occluder
+                    );
 
                     // frustum culling
                     is_culled = is_culled || !is_cuboid_overlap_frustum(
                         view_to_clip_matrix,
                         view_near_plane,
                         view_far_plane,
-                        view_bbox_corners,
-                        ndc_bbox_corners
+                        occluder
                     );
 
                     // small cluster culling
@@ -342,6 +302,12 @@ compute_shader CS(
                         (error_square < (cull_error_threshold * cull_error_threshold))
                         && ((cluster_hierarchical_culling_data.flags & CLUSTER_HIERARCHICAL_CULLING_DATA_FLAG_HAS_PARENT) == 0)
                     );
+
+                    //
+                    require(ADDITIONAL_CULL_INSTANCED_CLUSTER)
+                    {
+                        import(ADDITIONAL_CULL_INSTANCED_CLUSTER)
+                    }
                 }
 
                 // if expand childs
@@ -408,6 +374,12 @@ compute_shader CS(
                         group_cached_candidates[local_cached_candidate_offset].local_cluster_id = local_child_node_ids[i];
                         ++local_cached_candidate_offset;
                     }
+                }
+
+                //
+                require(ADDITIONAL_END_PROCESS_INSTANCED_CLUSTER)
+                {
+                    import(ADDITIONAL_END_PROCESS_INSTANCED_CLUSTER)
                 }
             }      
             AllMemoryBarrierWithGroupSync();

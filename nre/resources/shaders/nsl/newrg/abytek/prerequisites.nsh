@@ -113,6 +113,12 @@ struct F_instanced_cluster_header(
 
 
 
+struct F_cuboid(
+    corners(float4 8)
+)
+
+
+
 float3 hue2rgb(float hue) {
     hue = frac(hue);
     float r = abs(hue * 6 - 3) - 1;
