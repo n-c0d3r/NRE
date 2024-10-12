@@ -220,6 +220,10 @@ compute_shader CS(
                         cluster_hierarchical_culling_data.error_factor
                         + 1.0f
                     )
+                    * (
+                        cluster_hierarchical_culling_data.error_factor
+                        + 1.0f
+                    )
                     * projected_error_radius_square
                 );
 
