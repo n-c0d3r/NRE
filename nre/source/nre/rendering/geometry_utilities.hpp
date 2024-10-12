@@ -274,7 +274,7 @@ namespace nre
     {
         b8 enable = true;
         F_clustered_geometry_merge_vertices_options merge_vertices_options;
-        f32 threshold_ratio = 0.0001f;
+        f32 threshold_ratio = 0.0033f;
         f32 max_distance = NMATH_F32_INFINITY;
     };
     struct F_clustered_geometry_simplify_clusters_options
