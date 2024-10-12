@@ -228,8 +228,8 @@ compute_shader CS(
                 );
 
                 // if expand childs
-                f32 error_threshold = global_shared_datas[0].error_threshold;
-                b8 late_expand_childs = (error_square >= (error_threshold * error_threshold));
+                f32 lod_error_threshold = global_shared_datas[0].lod_error_threshold;
+                b8 late_expand_childs = (error_square >= (lod_error_threshold * lod_error_threshold));
             
                 // process instanced cluster
                 b8 is_culled = false;
@@ -327,12 +327,20 @@ compute_shader CS(
                         );
                     }
 
+                    // frustum culling
                     is_culled = is_culled || !is_cuboid_overlap_frustum(
                         view_to_clip_matrix,
                         view_near_plane,
                         view_far_plane,
                         view_bbox_corners,
                         ndc_bbox_corners
+                    );
+
+                    // small cluster culling
+                    f32 cull_error_threshold = global_shared_datas[0].cull_error_threshold;
+                    is_culled = is_culled || (
+                        (error_square < (cull_error_threshold * cull_error_threshold))
+                        && ((cluster_hierarchical_culling_data.flags & CLUSTER_HIERARCHICAL_CULLING_DATA_FLAG_HAS_PARENT) == 0)
                     );
                 }
 
@@ -372,7 +380,7 @@ compute_shader CS(
                 // store group cached candidates
                 if(
                     expand_childs 
-                    && (cluster_hierarchical_culling_data.flags & CRITICAL_HIERARCHICAL_CULLING_DATA_FLAG)
+                    && (cluster_hierarchical_culling_data.flags & CLUSTER_HIERARCHICAL_CULLING_DATA_FLAG_CRITICAL)
                 )
                 {
                     uint local_cached_candidate_offset = WavePrefixSum(cluster_hierarchical_culling_data.child_node_count);

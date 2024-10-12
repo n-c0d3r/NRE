@@ -58,7 +58,9 @@ struct F_cluster_id_range(
     end(F_cluster_id)
 )
 
-define CRITICAL_HIERARCHICAL_CULLING_DATA_FLAG(0x1)
+define CLUSTER_HIERARCHICAL_CULLING_DATA_FLAG_NONE(0x0)
+define CLUSTER_HIERARCHICAL_CULLING_DATA_FLAG_CRITICAL(0x1)
+define CLUSTER_HIERARCHICAL_CULLING_DATA_FLAG_HAS_PARENT(0x2)
 
 struct F_cluster_hierarchical_culling_data(
     bbox(F_bbox)
@@ -123,9 +125,6 @@ float3 hue2rgb(float hue) {
 
 
 
-define NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BATCH_SIZE(NRE_NEWRG_MAX_WAVE_SIZE)
-define NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE(NRE_NEWRG_MAX_WAVE_SIZE)
-
 define INVALID_CACHED_CANDIDATE_ID(0xFFFFFFFF)
 define INVALID_CACHED_CANDIDATE_BATCH_ID(0xFFFFFFFF)
 
@@ -138,11 +137,11 @@ struct F_expand_clusters_global_shared_data(
     counter(u32)
     cached_candidate_batch_offset(u32)
     cached_candidate_offset(u32)
-    error_threshold(f32)
+    lod_error_threshold(f32)
     instanced_cluster_range(F_instanced_cluster_range)
     task_capacity_factor(f32)
     max_task_capacity(u32)
     expanded_instanced_cluster_range(F_instanced_cluster_range)
-    max_cached_candidate_batch_count(u32)
+    cull_error_threshold(f32)
     cached_candidate_batch_read_offset(u32)
 )

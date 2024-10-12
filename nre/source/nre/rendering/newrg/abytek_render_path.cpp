@@ -102,6 +102,22 @@ namespace nre::newrg
             ""
         });
 #endif
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT",
+            G_to_string(NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BATCH_SIZE",
+            G_to_string(expand_instances_batch_size())
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE",
+            G_to_string(expand_clusters_batch_size())
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_MAX_CACHED_CANDIDATE_BATCH_COUNT",
+            G_to_string(NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / expand_clusters_batch_size())
+        });
 
         // load shaders
         {
@@ -455,13 +471,13 @@ namespace nre::newrg
             sizeof(u32) // counter
             + sizeof(u32) // cached candidate batch offset
             + sizeof(u32) // cached candidate offset
-            + sizeof(f32) // error threshold
+            + sizeof(f32) // lod error threshold
             + 2 * sizeof(u32) // instanced cluster range
             + sizeof(f32) // task capacity factor
             + sizeof(u32) // max task capacity
             + 2 * sizeof(u32) // expanded instanced cluster range
-            + 4 // padding 0
-            + 4, // padding 1
+            + 4 // cull_error_threshold
+            + 4, // cached_candidate_batch_read_offset
             1
         );
         global_shared_data_data_list.T_set(
@@ -469,7 +485,7 @@ namespace nre::newrg
             sizeof(u32) // counter
             + sizeof(u32) // cached candidate batch offset
             + sizeof(u32), // cached candidate offset
-            lod_options.error_threshold
+            lod_options.lod_error_threshold
         );
         global_shared_data_data_list.T_set(
             0,
@@ -500,7 +516,7 @@ namespace nre::newrg
             + sizeof(f32) // task capacity factor
             + sizeof(u32) // max task capacity
             + 2 * sizeof(u32), // expanded instanced cluster range
-            max_cached_candidate_batch_count
+            lod_options.cull_error_threshold
         );
         global_shared_data_data_list.T_set(
             0,
@@ -2863,8 +2879,9 @@ namespace nre::newrg
             ImGui::Checkbox("Enable", &depth_prepass_options.enable);
             end_section();
 
-            begin_section("LOD");
-            ImGui::InputFloat("Error Threshold", &lod_options.error_threshold);
+            begin_section("LOD and Culling");
+            ImGui::InputFloat("LOD Error Threshold", &lod_options.lod_error_threshold);
+            ImGui::InputFloat("Cull Error Threshold", &lod_options.cull_error_threshold);
             ImGui::InputFloat("Task Capacity Factor", &lod_options.task_capacity_factor);
             end_section();
 

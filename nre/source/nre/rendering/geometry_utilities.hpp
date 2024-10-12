@@ -218,7 +218,8 @@ namespace nre
     enum class E_cluster_hierarchical_culling_data_flag
     {
         NONE = 0x0,
-        CRITICAL = 0x1
+        CRITICAL = 0x1,
+        HAS_PARENT = 0x2
     };
     struct NCPP_ALIGN(16) F_cluster_hierarchical_culling_data
     {

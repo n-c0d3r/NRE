@@ -57,7 +57,7 @@ compute_shader CS(
         );
     }
 
-    if(global_thread_id.x < global_shared_datas[0].max_cached_candidate_batch_count)
+    if(global_thread_id.x < NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_MAX_CACHED_CANDIDATE_BATCH_COUNT)
     {
         global_cached_candidate_batches[global_thread_id.x].count = 0;
     }
