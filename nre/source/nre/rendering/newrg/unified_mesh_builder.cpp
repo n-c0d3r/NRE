@@ -739,8 +739,30 @@ namespace nre::newrg
                     {
                         // update hierarchical_bbox
                         {
-                            F_vector3_f32 avg_child_bbox_center = F_vector3_f32::zero();
-                            u32 child_count = 0;
+                            // F_vector3_f32 avg_child_bbox_center = F_vector3_f32::zero();
+                            // u32 child_count = 0;
+                            // for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
+                            // {
+                            //     F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
+                            //
+                            //     if(child_cluster_id == NCPP_U32_MAX)
+                            //     {
+                            //         continue;
+                            //     }
+                            //
+                            //     ++child_count;
+                            //
+                            //     auto& child_cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[child_cluster_id];
+                            //
+                            //     avg_child_bbox_center += child_cluster_hierarchical_culling_data.bbox.center();
+                            // }
+                            // avg_child_bbox_center /= f32(child_count);
+                            // if(child_count)
+                            //     hierarchical_bbox = hierarchical_bbox.expand({
+                            //         avg_child_bbox_center - F_vector3_f32::one() * T_default_tolerance<f32>,
+                            //         avg_child_bbox_center + F_vector3_f32::one() * T_default_tolerance<f32>
+                            //     });
+
                             for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
                             {
                                 F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
@@ -749,19 +771,10 @@ namespace nre::newrg
                                 {
                                     continue;
                                 }
-
-                                ++child_count;
-
                                 auto& child_cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[child_cluster_id];
 
-                                avg_child_bbox_center += child_cluster_hierarchical_culling_data.bbox.center();
+                                hierarchical_bbox = hierarchical_bbox.expand(child_cluster_hierarchical_culling_data.bbox);
                             }
-                            avg_child_bbox_center /= f32(child_count);
-                            if(child_count)
-                                hierarchical_bbox = hierarchical_bbox.expand({
-                                    avg_child_bbox_center - F_vector3_f32::one() * T_default_tolerance<f32>,
-                                    avg_child_bbox_center + F_vector3_f32::one() * T_default_tolerance<f32>
-                                });
                         }
 
                         // update error
