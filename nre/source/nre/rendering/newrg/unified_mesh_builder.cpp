@@ -26,11 +26,14 @@ namespace nre::newrg
 
         for(u32 i = 0; i < result.max_level_count; ++i)
         {
-            // simplify_clusters_options.target_ratio *= 0.9f;
-
             result.levels[i].simplify_clusters_options = simplify_clusters_options;
             result.levels[i].build_next_level_options = build_next_level_options;
 
+            simplify_clusters_options.target_ratio = lerp(
+                0.75f,
+                0.5f,
+                pow(f32(i + 1) / f32(result.max_level_count), 0.5f)
+            );
             simplify_clusters_options.max_error = lerp(
                 0.01f,
                 1.0f,
