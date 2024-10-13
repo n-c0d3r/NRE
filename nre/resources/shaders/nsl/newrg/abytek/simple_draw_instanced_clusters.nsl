@@ -180,17 +180,18 @@ pixel_shader PS(
         float4(color * hue2rgb(((float)(mesh_vertex_data.vertex_cluster_id)) * 1.71f), 1) ,
         float4(color, 1)
     };
-    out_color = (
+    float4 final_color = (
         albedo_colors[color_mode]
         * lerp(
-            0.3f, 
+            0.05f, 
             1.0f,
             saturate(
                 dot(normalize(mesh_vertex_data.vertex_world_normal), -light_dir)
             )
         ) 
-        * float4(1, 1, 1, 1)
     );
+
+    out_color = (final_color * 3.1415) / (float4(1, 1, 1, 1) + (final_color * 3.1415));
 }
 
 require(!FILL_MODE)

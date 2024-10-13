@@ -124,16 +124,30 @@ compute_shader CS(
         import(PRE_CULL_CLUSTER)
     }
 
-    require(ALTERNATIVE_INSTANCE_CULL_TRANSFORM)
+    // define alternatives
+    require(ALTERNATIVE_INSTANCE_TRANSFORM_FOR_CULLING)
     {
-        import(ALTERNATIVE_INSTANCE_CULL_TRANSFORM)
-
-        float4x4 local_to_view_matrix_for_culling = mul(world_to_view_matrix, instance_transform_for_culling);
+        import(ALTERNATIVE_INSTANCE_TRANSFORM_FOR_CULLING)
     }
     otherwise()
     {
         #define instance_transform_for_culling local_to_world_matrix
-        #define local_to_view_matrix_for_culling local_to_view_matrix
+    }
+    require(ALTERNATIVE_WORLD_TO_VIEW_FOR_CULLING)
+    {
+        import(ALTERNATIVE_WORLD_TO_VIEW_FOR_CULLING)
+    }
+    otherwise()
+    {
+        #define world_to_view_matrix_for_culling world_to_view_matrix
+        require(ALTERNATIVE_INSTANCE_TRANSFORM_FOR_CULLING)
+        {
+            float4x4 local_to_view_matrix_for_culling = mul(world_to_view_matrix, instance_transform_for_culling);
+        }
+        otherwise()
+        {
+            #define local_to_view_matrix_for_culling local_to_view_matrix
+        }
     }
 
     F_bbox bbox = mesh_culling_data.bbox;
@@ -183,10 +197,18 @@ compute_shader CS(
         import(ADDITIONAL_CULL_INSTANCE)
     }
 
-    require(!ALTERNATIVE_INSTANCE_CULL_TRANSFORM)
+    // undef alternatives
+    require(!ALTERNATIVE_INSTANCE_TRANSFORM_FOR_CULLING)
     {
         #undef instance_transform_for_culling
-        #undef local_to_view_matrix_for_culling
+    }
+    require(!ALTERNATIVE_WORLD_TO_VIEW_MATRIX_FOR_CULLING)
+    {
+        #undef world_to_view_matrix_for_culling
+        require(!ALTERNATIVE_INSTANCE_TRANSFORM_FOR_CULLING)
+        {
+            #undef local_to_view_matrix_for_culling
+        }
     }
 
     require(POST_CULL_CLUSTER)
