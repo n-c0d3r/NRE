@@ -119,14 +119,29 @@ struct F_cuboid(
 
 
 
-float3 hue2rgb(float hue) {
-    hue = frac(hue);
-    float r = abs(hue * 6 - 3) - 1;
-    float g = 2 - abs(hue * 6 - 2);
-    float b = 2 - abs(hue * 6 - 4);
-    float3 rgb = float3(r,g,b);
-    rgb = saturate(rgb);
-    return rgb;
+float3 id_to_color(uint value) 
+{
+    const uint prime1 = 2654435761u;
+    const uint prime2 = 2246822519u;
+    const uint prime3 = 3266489917u;
+    const uint prime4 = 668265263u;
+
+    uint h1 = value * prime1;
+    uint h2 = value * prime2;
+    uint h3 = value * prime3;
+    uint h4 = value * prime4;
+
+    float scale = 4.0 / 255.0;
+
+    float3 result = float3(
+        exp(-scale * float(255 - (h1 & 0xFF))),
+        exp(-scale * float(255 - (h2 & 0xFF))),
+        exp(-scale * float(255 - (h3 & 0xFF)))
+    );
+
+    result = pow(result, 0.5f * float3(1, 1, 1));
+
+    return result;
 }
 
 

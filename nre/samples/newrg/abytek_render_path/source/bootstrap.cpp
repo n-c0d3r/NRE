@@ -24,8 +24,7 @@ int main() {
 
 
 	// unified mesh asset
-	// auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/hq_cube_1.obj");
-	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/gitignores/hq_rock_1.obj");
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
 
 
 
@@ -56,11 +55,11 @@ int main() {
 
 	auto spectator_view_p = spectator_camera_p->render_view_p().T_cast<F_abytek_scene_render_view>();
 
-	spectator_p->position = F_vector3 { 0.0f, 10.0f, 0.0f };
+	spectator_p->position = F_vector3 { 0.0f, 0.0f, 0.0f };
 	spectator_p->move_speed = 4.0f;
 
 	spectator_view_p->bind_output(NRE_MAIN_SWAPCHAIN());
-	spectator_view_p->clear_color = F_vector4::one() * 0.23f;
+	spectator_view_p->clear_color = F_vector4::one() * 0.75f;
 
 
 

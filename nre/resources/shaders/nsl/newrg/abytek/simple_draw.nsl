@@ -180,8 +180,10 @@ pixel_shader PS(
     out out_color(SV_TARGET)
 )
 {
+    float4 cluster_color = float4(color * id_to_color(mesh_vertex_data.vertex_cluster_id), 1);
+
     float4 final_color = (
-        float4(color * hue2rgb(((float)(mesh_vertex_data.vertex_cluster_id)) * 1.71f), 1) 
+        cluster_color
         * lerp(
             0.05f, 
             1.0f,
