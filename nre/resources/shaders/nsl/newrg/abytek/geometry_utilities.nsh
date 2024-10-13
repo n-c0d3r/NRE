@@ -138,22 +138,28 @@ void calculate_occluder(
     out F_occluder out_occluder
 )
 {
-    out_occluder.min_ndc_xyz = ndc_corners[0].xyz;
-    out_occluder.min_view_z = corners[0].z;
-    out_occluder.max_ndc_xyz = out_occluder.min_ndc_xyz;
-    out_occluder.max_view_z = out_occluder.min_view_z;
+    F_occluder result;
+    result.min_ndc_xyz = ndc_corners[0].xyz;
+    result.min_view_z = corners[0].z;
+    result.max_ndc_xyz = result.min_ndc_xyz;
+    result.max_view_z = result.min_view_z;
     
     [unroll]
-    for(u32 i = 0; i < 8; ++i)
+    for(u32 i = 1; i < 8; ++i)
     {
         float4 corner = corners[i];
         float4 ndc_corner = ndc_corners[i];
 
-        out_occluder.min_ndc_xyz = min(out_occluder.min_ndc_xyz, ndc_corner.xyz);
-        out_occluder.max_ndc_xyz = max(out_occluder.max_ndc_xyz, ndc_corner.xyz);
-        out_occluder.min_view_z = min(out_occluder.min_view_z, corner.z);
-        out_occluder.max_view_z = max(out_occluder.max_view_z, corner.z);
+        result.min_ndc_xyz = min(result.min_ndc_xyz, ndc_corner.xyz);
+        result.max_ndc_xyz = max(result.max_ndc_xyz, ndc_corner.xyz);
+        result.min_view_z = min(result.min_view_z, corner.z);
+        result.max_view_z = max(result.max_view_z, corner.z);
     }
+
+    out_occluder.min_ndc_xyz = result.min_ndc_xyz;
+    out_occluder.max_ndc_xyz = result.max_ndc_xyz;
+    out_occluder.min_view_z = result.min_view_z;
+    out_occluder.max_view_z = result.max_view_z;
 }
 
 
@@ -246,9 +252,7 @@ b8 is_occluded_with_hzb(
     float2 min_uv = occluder.min_ndc_xyz.xy * 0.5f + float2(0.5f, 0.5f);
     float2 max_uv = occluder.max_ndc_xyz.xy * 0.5f + float2(0.5f, 0.5f);
 
-    float2 coord_limit = hzb_size_2d_float - float2(1, 1);
-
-    float2 coord_size = ceil(coord_limit * max_uv) - floor(coord_limit * min_uv) + float2(1, 1);
+    float2 coord_size = hzb_size_2d_float * (max_uv - min_uv);
 
     uint mip_level = ceil(
         log2(
@@ -256,9 +260,10 @@ b8 is_occluded_with_hzb(
                 coord_size.x,
                 coord_size.y
             ) 
-            / 2.0f
+            * 4.0f
         )
     );
+    mip_level = min(mip_level, num_of_levels - 1);
 
     uint mip_width = max(width >> mip_level, 1);
     uint mip_height = max(height >> mip_level, 1);
