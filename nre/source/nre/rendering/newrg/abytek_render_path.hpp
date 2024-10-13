@@ -128,7 +128,7 @@ namespace nre::newrg
         {
             b8 enable = false;
             F_vector3_f32 color = F_vector3_f32::one();
-            F_vector3_f32 light_dir = normalize({ -0.5f, -1.0f, 0.2f });
+            F_vector3_f32 light_dir = normalize({ -0.2f, -1.0f, 0.2f });
             u32 level = 0;
             ED_fill_mode fill_mode = ED_fill_mode::SOLID;
         };
@@ -239,7 +239,7 @@ namespace nre::newrg
         {
             b8 enable = true;
             F_vector3_f32 color = F_vector3_f32::one();
-            F_vector3_f32 light_dir = normalize({ -0.5f, -1.0f, 0.2f });
+            F_vector3_f32 light_dir = normalize({ -0.2f, -1.0f, 0.2f });
             ED_fill_mode fill_mode = ED_fill_mode::SOLID;
         };
         struct F_simple_draw_instanced_clusters_global_options_data
