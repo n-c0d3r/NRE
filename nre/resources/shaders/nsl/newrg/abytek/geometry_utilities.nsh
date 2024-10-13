@@ -252,6 +252,8 @@ b8 is_occluded_with_hzb(
     float2 min_uv = occluder.min_ndc_xyz.xy * 0.5f + float2(0.5f, 0.5f);
     float2 max_uv = occluder.max_ndc_xyz.xy * 0.5f + float2(0.5f, 0.5f);
 
+    float2 center_uv = (min_uv + max_uv) * 0.5f;
+
     float2 coord_size = hzb_size_2d_float * (max_uv - min_uv);
 
     uint mip_level = ceil(
@@ -259,11 +261,9 @@ b8 is_occluded_with_hzb(
             max(
                 coord_size.x,
                 coord_size.y
-            ) 
-            * 4.0f
+            )
         )
     );
-    mip_level = min(mip_level, num_of_levels - 1);
 
     uint mip_width = max(width >> mip_level, 1);
     uint mip_height = max(height >> mip_level, 1);
@@ -271,14 +271,14 @@ b8 is_occluded_with_hzb(
     float2 mip_size_2d_float = float2(mip_width, mip_height); 
 
     float2 mip_coord_limit = mip_size_2d_float - float2(1, 1);
-    uint2 mip_min_coord = floor(mip_coord_limit * min_uv);
-    uint2 mip_max_coord = ceil(mip_coord_limit * max_uv);
+    int2 mip_min_coord = floor(mip_coord_limit * center_uv);
+    int2 mip_max_coord = ceil(mip_coord_limit * center_uv);
 
-    uint2 mip_coords[4] = {
-        uint2(mip_min_coord.x, mip_min_coord.y),
-        uint2(mip_max_coord.x, mip_min_coord.y),
-        uint2(mip_min_coord.x, mip_max_coord.y),
-        uint2(mip_max_coord.x, mip_max_coord.y)
+    int2 mip_coords[4] = {
+        int2(mip_min_coord.x, mip_min_coord.y),
+        int2(mip_max_coord.x, mip_min_coord.y),
+        int2(mip_min_coord.x, mip_max_coord.y),
+        int2(mip_max_coord.x, mip_max_coord.y)
     };
 
     float min_z = 1.0f;

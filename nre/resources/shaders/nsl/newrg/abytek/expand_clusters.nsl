@@ -336,7 +336,7 @@ compute_shader CS(
                     // occlusion culling
                     require(!NO_OCCLUSION_CULLING)
                     {
-                        if(!cluster_hierarchical_culling_data.child_node_count && !is_culled)
+                        if(!is_culled)
                         {
                             is_culled = is_culled || is_occluded_with_hzb(
                                 hzb,
