@@ -177,6 +177,6 @@ mesh_shader MS(
 @depth_stencil
 (
     enable_depth_test(true)
-    depth_comparison_func(GREATER)
+    depth_comparison_func(GREATER_EQUAL)
 )
 pipeline_state PSO(MS)

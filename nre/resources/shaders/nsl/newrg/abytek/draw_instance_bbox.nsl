@@ -76,7 +76,7 @@ pixel_shader PS(
 @depth_stencil
 (
     enable_depth_test(true)
-    depth_comparison_func(GREATER)
+    depth_comparison_func(GREATER_EQUAL)
 )
 @input_assembler(
     VERTEX_POSITION

@@ -169,10 +169,13 @@ compute_shader CS(
 
     require(!NO_OCCLUSION_CULLING)
     {
-        is_culled = is_culled || is_occluded_with_hzb(
-            hzb,
-            occluder
-        );
+        if(!is_culled)
+        {
+            is_culled = is_occluded_with_hzb(
+                hzb,
+                occluder
+            );
+        }
     }
 
     require(ADDITIONAL_CULL_INSTANCE)

@@ -24,7 +24,8 @@ int main() {
 
 
 	// unified mesh asset
-	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
+	// auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/hq_cube_1.obj");
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/gitignores/hq_rock_1.obj");
 
 
 

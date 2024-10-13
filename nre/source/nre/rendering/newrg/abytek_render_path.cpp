@@ -885,48 +885,76 @@ namespace nre::newrg
             auto pass_p = H_indirect_command_batch::execute(
                 [=](F_render_pass*, TKPA<A_command_list> command_list_p)
                 {
-                    command_list_p->ZC_bind_root_signature(
-                        F_abytek_expand_clusters_binder_signature::instance_p()->root_signature_p()
-                    );
-                    command_list_p->ZC_bind_root_descriptor_table(
-                        0,
-                        instance_transform_srv_element.handle().gpu_address
-                    );
-                    command_list_p->ZC_bind_root_descriptor_table(
-                        1,
-                        instance_inverse_transform_srv_element.handle().gpu_address
-                    );
-                    command_list_p->ZC_bind_root_descriptor_table(
-                        2,
-                        instance_mesh_id_srv_element.handle().gpu_address
-                    );
-                    command_list_p->ZC_bind_root_descriptor_table(
-                        3,
-                        mesh_header_srv_element.handle().gpu_address
-                    );
-                    command_list_p->ZC_bind_root_descriptor_table(
-                        4,
-                        mesh_culling_data_srv_element.handle().gpu_address
-                    );
-                    command_list_p->ZC_bind_root_descriptor_table(
-                        5,
-                        cluster_node_header_srv_element.handle().gpu_address
-                    );
-                    command_list_p->ZC_bind_root_descriptor_table(
-                        6,
-                        cluster_bbox_srv_element.handle().gpu_address
-                    );
-                    command_list_p->ZC_bind_root_descriptor_table(
-                        7,
-                        cluster_hierarchical_culling_data_srv_element.handle().gpu_address
-                    );
-                    command_list_p->ZC_bind_root_descriptor_table(
-                        8,
-                        main_descriptor_element.handle().gpu_address
-                    );
-                    command_list_p->ZC_bind_pipeline_state(
-                        NCPP_FOH_VALID(expand_clusters_pso_p_)
-                    );
+                    auto bind_base_slots = [&]()
+                    {
+                        command_list_p->ZC_bind_root_descriptor_table(
+                            0,
+                            instance_transform_srv_element.handle().gpu_address
+                        );
+                        command_list_p->ZC_bind_root_descriptor_table(
+                            1,
+                            instance_inverse_transform_srv_element.handle().gpu_address
+                        );
+                        command_list_p->ZC_bind_root_descriptor_table(
+                            2,
+                            instance_mesh_id_srv_element.handle().gpu_address
+                        );
+                        command_list_p->ZC_bind_root_descriptor_table(
+                            3,
+                            mesh_header_srv_element.handle().gpu_address
+                        );
+                        command_list_p->ZC_bind_root_descriptor_table(
+                            4,
+                            mesh_culling_data_srv_element.handle().gpu_address
+                        );
+                        command_list_p->ZC_bind_root_descriptor_table(
+                            5,
+                            cluster_node_header_srv_element.handle().gpu_address
+                        );
+                        command_list_p->ZC_bind_root_descriptor_table(
+                            6,
+                            cluster_bbox_srv_element.handle().gpu_address
+                        );
+                        command_list_p->ZC_bind_root_descriptor_table(
+                            7,
+                            cluster_hierarchical_culling_data_srv_element.handle().gpu_address
+                        );
+                        command_list_p->ZC_bind_root_descriptor_table(
+                            8,
+                            main_descriptor_element.handle().gpu_address
+                        );
+                    };
+
+                    switch (additional_options.mode)
+                    {
+                    case E_expand_clusters_mode::DEFAULT:
+                        command_list_p->ZC_bind_root_signature(
+                            F_abytek_expand_clusters_binder_signature::instance_p()->root_signature_p()
+                        );
+                        bind_base_slots();
+                        command_list_p->ZC_bind_pipeline_state(
+                            NCPP_FOH_VALID(expand_clusters_pso_p_)
+                        );
+                        break;
+                    case E_expand_clusters_mode::MAIN:
+                        command_list_p->ZC_bind_root_signature(
+                            F_abytek_expand_clusters_main_binder_signature::instance_p()->root_signature_p()
+                        );
+                        bind_base_slots();
+                        command_list_p->ZC_bind_pipeline_state(
+                            NCPP_FOH_VALID(expand_clusters_main_pso_p_)
+                        );
+                        break;
+                    case E_expand_clusters_mode::NO_OCCLUSION_CULLING:
+                        command_list_p->ZC_bind_root_signature(
+                            F_abytek_expand_clusters_no_occlusion_culling_binder_signature::instance_p()->root_signature_p()
+                        );
+                        bind_base_slots();
+                        command_list_p->ZC_bind_pipeline_state(
+                            NCPP_FOH_VALID(expand_clusters_no_occlusion_culling_pso_p_)
+                        );
+                        break;
+                    }
                 },
                 dispatch_command_batch,
                 flag_combine(
@@ -1153,48 +1181,60 @@ namespace nre::newrg
         auto pass_p = H_render_pass::dispatch(
             [=](F_render_pass*, TKPA<A_command_list> command_list_p)
             {
-                command_list_p->ZC_bind_root_signature(
-                    F_abytek_expand_instances_binder_signature::instance_p()->root_signature_p()
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    0,
-                    instance_transform_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    1,
-                    instance_mesh_id_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    2,
-                    mesh_header_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    3,
-                    mesh_culling_data_srv_element.handle().gpu_address
-                );
-                command_list_p->ZC_bind_root_constant(
-                    4,
-                    instance_count,
-                    0
-                );
-                command_list_p->ZC_bind_root_descriptor_table(
-                    5,
-                    main_descriptor_element.handle().gpu_address
-                );
+                auto bind_base_slots = [&]()
+                {
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        0,
+                        instance_transform_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        1,
+                        instance_mesh_id_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        2,
+                        mesh_header_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        3,
+                        mesh_culling_data_srv_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_constant(
+                        4,
+                        instance_count,
+                        0
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        5,
+                        main_descriptor_element.handle().gpu_address
+                    );
+                };
 
                 switch (additional_options.mode)
                 {
                 case E_expand_instances_mode::DEFAULT:
+                    command_list_p->ZC_bind_root_signature(
+                        F_abytek_expand_instances_binder_signature::instance_p()->root_signature_p()
+                    );
+                    bind_base_slots();
                     command_list_p->ZC_bind_pipeline_state(
                         NCPP_FOH_VALID(expand_instances_pso_p_)
                     );
                     break;
                 case E_expand_instances_mode::MAIN:
+                    command_list_p->ZC_bind_root_signature(
+                        F_abytek_expand_instances_main_binder_signature::instance_p()->root_signature_p()
+                    );
+                    bind_base_slots();
                     command_list_p->ZC_bind_pipeline_state(
                         NCPP_FOH_VALID(expand_instances_main_pso_p_)
                     );
                     break;
                 case E_expand_instances_mode::NO_OCCLUSION_CULLING:
+                    command_list_p->ZC_bind_root_signature(
+                        F_abytek_expand_instances_no_occlusion_culling_binder_signature::instance_p()->root_signature_p()
+                    );
+                    bind_base_slots();
                     command_list_p->ZC_bind_pipeline_state(
                         NCPP_FOH_VALID(expand_instances_no_occlusion_culling_pso_p_)
                     );
@@ -1453,7 +1493,7 @@ namespace nre::newrg
             [=](F_render_pass*, TKPA<A_command_list> command_list_p)
             {
                 command_list_p->ZG_bind_root_signature(
-                    F_abytek_simple_draw_instanced_clusters_binder_signature::instance_p()->root_signature_p()
+                    F_abytek_depth_prepass_binder_signature::instance_p()->root_signature_p()
                 );
                 command_list_p->ZG_bind_root_descriptor_table(
                     0,

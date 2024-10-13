@@ -100,7 +100,7 @@ float4 view_to_ndc(
             1.0f
         )
     );
-    return clip_p / clip_p.w;
+    return (clip_p / clip_p.w) * float4(1.0f, -1.0f, 1.0f, 1.0f);
 }
 
 void cuboid_view_corners_to_ndc_corners(
@@ -236,5 +236,72 @@ b8 is_occluded_with_hzb(
     in F_occluder occluder
 )
 {
-    return false;
+    uint width;
+    uint height;
+    uint num_of_levels;
+    hzb.GetDimensions(0, width, height, num_of_levels);
+
+    float2 hzb_size_2d_float = float2(width, height);
+
+    float2 min_uv = occluder.min_ndc_xyz.xy * 0.5f + float2(0.5f, 0.5f);
+    float2 max_uv = occluder.max_ndc_xyz.xy * 0.5f + float2(0.5f, 0.5f);
+
+    float2 coord_limit = hzb_size_2d_float - float2(1, 1);
+    float2 min_coord = min(
+        floor(hzb_size_2d_float * min_uv),
+        coord_limit
+    );
+    float2 max_coord = min(
+        ceil(hzb_size_2d_float * max_uv),
+        coord_limit
+    );
+    float2 coord_size = (
+        max_coord 
+        - min_coord
+        + float2(1, 1)
+    );
+
+    uint mip_level = ceil(
+        log2(
+            max(
+                coord_size.x,
+                coord_size.y
+            )
+        )
+    );
+
+    uint mip_width = max(width >> mip_level, 1);
+    uint mip_height = max(height >> mip_level, 1);
+
+    float2 mip_size_2d_float = float2(mip_width, mip_height); 
+
+    uint2 mip_coord_limit = mip_size_2d_float - float2(1, 1);
+    uint2 mip_min_coord = min(
+        floor(mip_size_2d_float * min_uv),
+        mip_coord_limit
+    );
+    uint2 mip_max_coord = min(
+        ceil(mip_size_2d_float * max_uv),
+        mip_coord_limit
+    );
+
+    uint2 mip_coords[4] = {
+        uint2(mip_min_coord.x, mip_min_coord.y),
+        uint2(mip_max_coord.x, mip_min_coord.y),
+        uint2(mip_min_coord.x, mip_max_coord.y),
+        uint2(mip_max_coord.x, mip_max_coord.y)
+    };
+
+    float min_z = 1.0f;
+
+    [unroll]
+    for(u32 i = 0; i < 4; ++i) 
+    {
+        min_z = min(
+            min_z, 
+            hzb.mips[mip_level][mip_coords[i]]
+        );    
+    }
+
+    return (occluder.max_ndc_xyz.z < min_z);
 }

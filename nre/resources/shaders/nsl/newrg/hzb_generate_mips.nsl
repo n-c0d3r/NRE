@@ -32,9 +32,15 @@ compute_shader CS(
 )
 {
     uint2 base_texture_size;
-    mips[mip_level_offset].GetDimensions(base_texture_size.x, base_texture_size.y);
+    mips[0].GetDimensions(base_texture_size.x, base_texture_size.y);
 
-    uint2 texture_size = base_texture_size;
+    uint2 first_mip_texture_size = max(
+        uint2(
+            base_texture_size.x >> (mip_level_offset - 1),
+            base_texture_size.y >> (mip_level_offset - 1)
+        ),
+        uint2(1, 1)
+    );
 
     [unroll]
     for(uint i = 0; i < NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND; ++i)
@@ -45,6 +51,14 @@ compute_shader CS(
         }
 
         uint mip_level_index = mip_level_offset + i;
+
+        uint2 texture_size = max(
+            uint2(
+                base_texture_size.x >> mip_level_index,
+                base_texture_size.y >> mip_level_index
+            ),
+            uint2(1, 1)
+        );
 
         if(
             (global_thread_id.x >= texture_size.x)
@@ -66,15 +80,18 @@ compute_shader CS(
                 min_depth = min(
                     min_depth,
                     mips[mip_level_offset - 1][
-                        global_thread_id.xy * uint2(subtexel_size_x, subtexel_size_x) + uint2(j, t)
+                        min(
+                            global_thread_id.xy 
+                            * uint2(subtexel_size_x, subtexel_size_x) 
+                            + uint2(j, t),
+                            first_mip_texture_size - uint2(1, 1)
+                        )
                     ]
                 );
             }
         }
 
         mips[mip_level_index][global_thread_id.xy] = min_depth;
-
-        texture_size = texture_size / 2;
     }
 }
 
