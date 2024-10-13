@@ -16,16 +16,8 @@ namespace nre::newrg
 
 
 
-    class NRE_API F_indirect_command_system final : public F_gpu_driven_stack
+    class NRE_API F_indirect_command_stack : public F_gpu_driven_stack
     {
-    private:
-        static TK<F_indirect_command_system> instance_p_;
-
-    public:
-        static NCPP_FORCE_INLINE TKPA_valid<F_indirect_command_system> instance_p() { return (TKPA_valid<F_indirect_command_system>)instance_p_; }
-
-
-
     private:
         TU<F_draw_indexed_instanced_indirect_argument_list_layout> draw_indexed_instanced_indirect_argument_list_layout_p_;
         TU<F_draw_instanced_indirect_argument_list_layout> draw_instanced_indirect_argument_list_layout_p_;
@@ -35,11 +27,13 @@ namespace nre::newrg
 
 
     public:
-        F_indirect_command_system();
-        ~F_indirect_command_system() override;
+        F_indirect_command_stack(
+            NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(const F_debug_name& name = "")
+        );
+        ~F_indirect_command_stack() override;
 
     public:
-        NCPP_OBJECT(F_indirect_command_system);
+        NCPP_OBJECT(F_indirect_command_stack);
 
     public:
         void execute(

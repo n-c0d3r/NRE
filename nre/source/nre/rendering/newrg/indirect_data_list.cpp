@@ -1,5 +1,5 @@
 #include <nre/rendering/newrg/indirect_data_list.hpp>
-#include <nre/rendering/newrg/indirect_data_system.hpp>
+#include <nre/rendering/newrg/indirect_data_stack.hpp>
 #include <nre/rendering/newrg/render_descriptor_element.hpp>
 
 
@@ -83,22 +83,21 @@ namespace nre::newrg
         data_ = {};
     }
 
-    F_indirect_data_batch F_indirect_data_list::build()
+    F_indirect_data_batch F_indirect_data_list::build(TKPA_valid<F_indirect_data_stack> stack_p)
     {
-        auto indirect_data_system_p = F_indirect_data_system::instance_p();
-
-        sz offset = indirect_data_system_p->push(
+        sz offset = stack_p->push(
             size() + stride(),
             16
         );
         offset += stride() - (offset % stride());
 
-        indirect_data_system_p->enqueue_initial_value(
+        stack_p->enqueue_initial_value(
             data_,
             offset
         );
 
         return {
+            stack_p,
             offset,
             stride_,
             count_

@@ -1,5 +1,5 @@
 #include <nre/rendering/newrg/indirect_command_batch_utilities.hpp>
-#include <nre/rendering/newrg/indirect_command_system.hpp>
+#include <nre/rendering/newrg/indirect_command_stack.hpp>
 
 
 
@@ -10,7 +10,7 @@ namespace nre::newrg
         const F_indirect_command_batch& command_batch
     )
     {
-        F_indirect_command_system::instance_p()->execute(
+        command_batch.stack_p()->execute(
             command_list_p,
             command_batch
         );

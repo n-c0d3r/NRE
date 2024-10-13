@@ -1,4 +1,4 @@
-#include <nre/rendering/newrg/indirect_command_system.hpp>
+#include <nre/rendering/newrg/indirect_command_stack.hpp>
 #include <nre/rendering/newrg/indirect_command_batch.hpp>
 #include <nre/rendering/newrg/indirect_argument_list.hpp>
 #include <nre/rendering/newrg/render_resource_utilities.hpp>
@@ -7,11 +7,9 @@
 
 namespace nre::newrg
 {
-    TK<F_indirect_command_system> F_indirect_command_system::instance_p_;
-
-
-
-    F_indirect_command_system::F_indirect_command_system() :
+    F_indirect_command_stack::F_indirect_command_stack(
+        NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(const F_debug_name& name)
+    ) :
         F_gpu_driven_stack(
             ED_resource_flag::INDIRECT_ARGUMENT_BUFFER
             | ED_resource_flag::CONSTANT_BUFFER
@@ -21,21 +19,19 @@ namespace nre::newrg
             NRE_NEWRG_MAX_INDIRECT_COMMAND_COUNT,
             NRE_NEWRG_MAX_INDIRECT_COMMAND_COUNT,
             NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT
-            NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.indirect_command_system")
+            NRE_OPTIONAL_DEBUG_PARAM(name)
         )
     {
-        instance_p_ = NCPP_KTHIS_UNSAFE();
-
         draw_indexed_instanced_indirect_argument_list_layout_p_ = TU<F_draw_indexed_instanced_indirect_argument_list_layout>()();
         draw_instanced_indirect_argument_list_layout_p_ = TU<F_draw_instanced_indirect_argument_list_layout>()();
         dispatch_indirect_argument_list_layout_p_ = TU<F_dispatch_indirect_argument_list_layout>()();
         dispatch_mesh_indirect_argument_list_layout_p_ = TU<F_dispatch_mesh_indirect_argument_list_layout>()();
     }
-    F_indirect_command_system::~F_indirect_command_system()
+    F_indirect_command_stack::~F_indirect_command_stack()
     {
     }
 
-    void F_indirect_command_system::execute(
+    void F_indirect_command_stack::execute(
         TKPA_valid<A_command_list> command_list_p,
         const F_indirect_command_batch& command_batch
     )
@@ -47,7 +43,7 @@ namespace nre::newrg
             command_batch.address_offset()
         );
     }
-    void F_indirect_command_system::execute_with_dynamic_count(
+    void F_indirect_command_stack::execute_with_dynamic_count(
         TKPA_valid<A_command_list> command_list_p,
         const F_indirect_command_batch& command_batch,
         sz count_offset

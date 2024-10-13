@@ -1,25 +1,36 @@
 #include <nre/rendering/newrg/indirect_data_batch.hpp>
-#include <nre/rendering/newrg/indirect_data_system.hpp>
+#include <nre/rendering/newrg/indirect_data_stack.hpp>
 #include <nre/rendering/newrg/render_descriptor_element.hpp>
 
 
 
 namespace nre::newrg
 {
-    F_indirect_data_batch::F_indirect_data_batch(u32 stride, u32 count) :
+    F_indirect_data_batch::F_indirect_data_batch(
+        TKPA_valid<F_indirect_data_stack> stack_p,
+        u32 stride,
+        u32 count
+    ) :
+        stack_p_(stack_p.no_requirements()),
         stride_(stride),
         count_(count)
     {
         if(count && stride)
         {
-            address_offset_ = F_indirect_data_system::instance_p()->push(
+            address_offset_ = stack_p_->push(
                 stride * count + stride,
                 stride
             );
             address_offset_ += stride - (address_offset_ % stride);
         }
     }
-    F_indirect_data_batch::F_indirect_data_batch(sz address_offset, u32 stride, u32 count) :
+    F_indirect_data_batch::F_indirect_data_batch(
+        TKPA_valid<F_indirect_data_stack> stack_p,
+        sz address_offset,
+        u32 stride,
+        u32 count
+    ) :
+        stack_p_(stack_p.no_requirements()),
         address_offset_(address_offset),
         stride_(stride),
         count_(count)
@@ -33,6 +44,7 @@ namespace nre::newrg
 
     void F_indirect_data_batch::reset()
     {
+        stack_p_ = null;
         address_offset_ = sz(-1);
         stride_ = 0;
         count_ = 0;
@@ -60,7 +72,7 @@ namespace nre::newrg
 
         F_render_graph::instance_p()->enqueue_initialize_resource_view({
             .element = descriptor_element,
-            .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+            .resource_p = stack_p_->target_resource_p(),
             .desc = parsed_desc
         });
     }

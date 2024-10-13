@@ -1,14 +1,16 @@
 #include <nre/rendering/newrg/indirect_command_batch.hpp>
-#include <nre/rendering/newrg/indirect_command_system.hpp>
+#include <nre/rendering/newrg/indirect_command_stack.hpp>
 
 
 
 namespace nre::newrg
 {
     F_indirect_command_batch::F_indirect_command_batch(
+        TKPA_valid<F_indirect_command_stack> stack_p,
         TKPA_valid<A_command_signature> signature_p,
         u32 count
     ) :
+        stack_p_(stack_p.no_requirements()),
         signature_p_(signature_p.no_requirements()),
         count_(count)
     {
@@ -16,7 +18,7 @@ namespace nre::newrg
         {
             auto stride = signature_p->desc().stride;
 
-            address_offset_ = F_indirect_command_system::instance_p()->push(
+            address_offset_ = stack_p_->push(
                 stride * count + stride,
                 stride
             );
@@ -24,10 +26,12 @@ namespace nre::newrg
         }
     }
     F_indirect_command_batch::F_indirect_command_batch(
+        TKPA_valid<F_indirect_command_stack> stack_p,
         TKPA_valid<A_command_signature> signature_p,
         sz address_offset,
         u32 count
     ) :
+        stack_p_(stack_p.no_requirements()),
         signature_p_(signature_p.no_requirements()),
         address_offset_(address_offset),
         count_(count)
@@ -37,6 +41,7 @@ namespace nre::newrg
 
     void F_indirect_command_batch::reset()
     {
+        stack_p_ = null;
         signature_p_ = null;
         address_offset_ = sz(-1);
         count_ = 0;
@@ -66,7 +71,7 @@ namespace nre::newrg
 
         F_render_graph::instance_p()->enqueue_initialize_resource_view({
             .element = descriptor_element,
-            .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+            .resource_p = stack_p_->target_resource_p(),
             .desc = parsed_desc
         });
     }

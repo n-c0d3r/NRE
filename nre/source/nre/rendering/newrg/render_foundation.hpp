@@ -11,8 +11,8 @@ namespace nre::newrg
     class F_uniform_transient_resource_uploader;
     class F_render_primitive_data_pool;
     class F_unified_mesh_system;
-    class F_indirect_command_system;
-    class F_indirect_data_system;
+    class F_main_indirect_command_stack;
+    class F_main_indirect_data_stack;
     class F_render_depth_pyramid_system;
 
 
@@ -40,8 +40,8 @@ namespace nre::newrg
         TU<F_uniform_transient_resource_uploader> uniform_transient_resource_uploader_p_;
         TU<F_render_primitive_data_pool> render_primitive_data_pool_p_;
         TU<F_unified_mesh_system> unified_mesh_system_p_;
-        TU<F_indirect_command_system> indirect_command_system_p_;
-        TU<F_indirect_data_system> indirect_data_system_p_;
+        TU<F_main_indirect_command_stack> main_indirect_command_stack_p_;
+        TU<F_main_indirect_data_stack> main_indirect_data_stack_p_;
         TU<F_render_depth_pyramid_system> render_depth_pyramid_system_p_;
 
     public:

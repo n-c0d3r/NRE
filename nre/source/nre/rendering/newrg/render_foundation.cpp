@@ -8,8 +8,8 @@
 #include <nre/rendering/newrg/transient_resource_uploader.hpp>
 #include <nre/rendering/newrg/render_primitive_data_pool.hpp>
 #include <nre/rendering/newrg/unified_mesh_system.hpp>
-#include <nre/rendering/newrg/indirect_command_system.hpp>
-#include <nre/rendering/newrg/indirect_data_system.hpp>
+#include <nre/rendering/newrg/main_indirect_command_stack.hpp>
+#include <nre/rendering/newrg/main_indirect_data_stack.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid_system.hpp>
 #include <nre/rendering/nsl_shader_system.hpp>
 
@@ -27,8 +27,8 @@ namespace nre::newrg
         uniform_transient_resource_uploader_p_ = TU<F_uniform_transient_resource_uploader>()();
         render_primitive_data_pool_p_ = TU<F_render_primitive_data_pool>()();
         unified_mesh_system_p_ = TU<F_unified_mesh_system>()();
-        indirect_command_system_p_ = TU<F_indirect_command_system>()();
-        indirect_data_system_p_ = TU<F_indirect_data_system>()();
+        main_indirect_command_stack_p_ = TU<F_main_indirect_command_stack>()();
+        main_indirect_data_stack_p_ = TU<F_main_indirect_data_stack>()();
         render_depth_pyramid_system_p_ = TU<F_render_depth_pyramid_system>()();
 
         F_nsl_shader_system::instance_p()->define_global_macro({
@@ -58,8 +58,8 @@ namespace nre::newrg
         );
 
         uniform_transient_resource_uploader_p_->RG_begin_register();
-        indirect_command_system_p_->RG_begin_register();
-        indirect_data_system_p_->RG_begin_register();
+        main_indirect_command_stack_p_->RG_begin_register();
+        main_indirect_data_stack_p_->RG_begin_register();
 
         unified_mesh_system_p_->RG_begin_register();
         unified_mesh_system_rg_begin_register_event_.invoke();
@@ -84,8 +84,8 @@ namespace nre::newrg
             render_path_p->RG_end_register();
         }
 
-        indirect_data_system_p_->RG_end_register();
-        indirect_command_system_p_->RG_end_register();
+        main_indirect_data_stack_p_->RG_end_register();
+        main_indirect_command_stack_p_->RG_end_register();
         uniform_transient_resource_uploader_p_->RG_end_register();
 
         render_graph_p->execute();

@@ -47,7 +47,7 @@ namespace nre::newrg
         void reset();
 
     public:
-        F_indirect_data_batch build();
+        F_indirect_data_batch build(TKPA_valid<F_indirect_data_stack> stack_p);
 
     public:
         void set(

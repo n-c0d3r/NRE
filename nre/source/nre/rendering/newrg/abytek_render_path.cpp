@@ -307,6 +307,8 @@ namespace nre::newrg
                 if(view_p.T_try_interface<F_abytek_scene_render_view>(casted_view_p))
                 {
                     auto render_graph_p = F_render_graph::instance_p();
+                    auto main_indirect_data_stack_p = F_main_indirect_data_stack::instance_p();
+                    auto main_indirect_command_stack_p = F_main_indirect_command_stack::instance_p();
 
                     auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
                     auto instance_count = render_primitive_data_pool_p->primitive_count();
@@ -435,7 +437,9 @@ namespace nre::newrg
                         );
                         default_instanced_cluster_range_data_list.T_set<u32>(0, 0, 0);
                         default_instanced_cluster_range_data_list.T_set<u32>(0, 4, 0);
-                        F_indirect_data_batch instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build();
+                        F_indirect_data_batch instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build(
+                            main_indirect_data_stack_p
+                        );
 
                         expand_instances(
                             NCPP_FOH_VALID(casted_view_p),
@@ -491,8 +495,12 @@ namespace nre::newrg
                         );
                         default_instanced_cluster_range_data_list.T_set<u32>(0, 0, 0);
                         default_instanced_cluster_range_data_list.T_set<u32>(0, 4, 0);
-                        F_indirect_data_batch instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build();
-                        F_indirect_data_batch post_instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build();
+                        F_indirect_data_batch instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build(
+                            main_indirect_data_stack_p
+                        );
+                        F_indirect_data_batch post_instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build(
+                            main_indirect_data_stack_p
+                        );
 
                         expand_instances(
                             NCPP_FOH_VALID(casted_view_p),
@@ -560,6 +568,8 @@ namespace nre::newrg
     )
     {
         auto render_graph_p = F_render_graph::instance_p();
+        auto main_indirect_data_stack_p = F_main_indirect_data_stack::instance_p();
+        auto main_indirect_command_stack_p = F_main_indirect_command_stack::instance_p();
 
         u32 max_cached_candidate_batch_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / expand_clusters_batch_size();
 
@@ -637,7 +647,7 @@ namespace nre::newrg
             + sizeof(u32), // expanded instanced cluster range offset
             0
         );
-        F_indirect_data_batch global_shared_data_batch = global_shared_data_data_list.build();
+        F_indirect_data_batch global_shared_data_batch = global_shared_data_data_list.build(main_indirect_data_stack_p);
 
         expanded_instanced_cluster_range_data_batch = global_shared_data_batch.submemory(
             sizeof(u32) // counter
@@ -650,7 +660,7 @@ namespace nre::newrg
             2 * sizeof(u32)
         );
 
-        F_dispatch_indirect_command_batch dispatch_command_batch(1);
+        F_dispatch_indirect_command_batch dispatch_command_batch(main_indirect_command_stack_p, 1);
 
         auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
         auto instance_count = render_primitive_data_pool_p->primitive_count();
@@ -795,11 +805,11 @@ namespace nre::newrg
                 NRE_OPTIONAL_DEBUG_PARAM(name + ".init_args")
             );
             pass_p->add_resource_state({
-                .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+                .resource_p = main_indirect_data_stack_p->target_resource_p(),
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
-                .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+                .resource_p = main_indirect_command_stack_p->target_resource_p(),
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
@@ -1056,11 +1066,11 @@ namespace nre::newrg
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
-                .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+                .resource_p = main_indirect_data_stack_p->target_resource_p(),
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
-                .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+                .resource_p = main_indirect_command_stack_p->target_resource_p(),
                 .states = ED_resource_state::INDIRECT_ARGUMENT
             });
             pass_p->add_resource_state({
@@ -1082,6 +1092,8 @@ namespace nre::newrg
     )
     {
         auto render_graph_p = F_render_graph::instance_p();
+        auto main_indirect_data_stack_p = F_main_indirect_data_stack::instance_p();
+        auto main_indirect_command_stack_p = F_main_indirect_command_stack::instance_p();
 
         auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
         auto instance_count = render_primitive_data_pool_p->primitive_count();
@@ -1305,7 +1317,7 @@ namespace nre::newrg
             .states = ED_resource_state::UNORDERED_ACCESS
         });
         pass_p->add_resource_state({
-            .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+            .resource_p = main_indirect_data_stack_p->target_resource_p(),
             .states = ED_resource_state::UNORDERED_ACCESS
         });
     }
@@ -1317,8 +1329,10 @@ namespace nre::newrg
     )
     {
         auto render_graph_p = F_render_graph::instance_p();
+        auto main_indirect_data_stack_p = F_main_indirect_data_stack::instance_p();
+        auto main_indirect_command_stack_p = F_main_indirect_command_stack::instance_p();
 
-        out_dispatch_mesh_command_batch = F_dispatch_mesh_indirect_command_batch(1);
+        out_dispatch_mesh_command_batch = F_dispatch_mesh_indirect_command_batch(main_indirect_command_stack_p, 1);
 
         // init args pass
         {
@@ -1366,11 +1380,11 @@ namespace nre::newrg
                 NRE_OPTIONAL_DEBUG_PARAM(name)
             );
             pass_p->add_resource_state({
-                .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+                .resource_p = main_indirect_data_stack_p->target_resource_p(),
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
-                .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+                .resource_p = main_indirect_command_stack_p->target_resource_p(),
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
         }
@@ -1382,6 +1396,9 @@ namespace nre::newrg
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
+        auto main_indirect_data_stack_p = F_main_indirect_data_stack::instance_p();
+        auto main_indirect_command_stack_p = F_main_indirect_command_stack::instance_p();
+
         F_dispatch_mesh_indirect_command_batch dispatch_mesh_indirect_command_batch;
         init_args_dispatch_mesh_instanced_clusters_indirect(
             1,
@@ -1453,6 +1470,7 @@ namespace nre::newrg
             - instanced_cluster_range_data_index * 16
         );
         F_indirect_data_batch instanced_cluster_ranges_data_batch(
+            main_indirect_data_stack_p,
             instanced_cluster_ranges_data_adress_offset,
             16,
             NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT / 16
@@ -1632,11 +1650,11 @@ namespace nre::newrg
             .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
         });
         pass_p->add_resource_state({
-            .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+            .resource_p = main_indirect_data_stack_p->target_resource_p(),
             .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
         });
         pass_p->add_resource_state({
-            .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+            .resource_p = main_indirect_command_stack_p->target_resource_p(),
             .states = ED_resource_state::INDIRECT_ARGUMENT
         });
         pass_p->add_resource_state({
@@ -2748,6 +2766,9 @@ namespace nre::newrg
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
+        auto main_indirect_data_stack_p = F_main_indirect_data_stack::instance_p();
+        auto main_indirect_command_stack_p = F_main_indirect_command_stack::instance_p();
+
         F_dispatch_mesh_indirect_command_batch dispatch_mesh_indirect_command_batch;
         init_args_dispatch_mesh_instanced_clusters_indirect(
             1,
@@ -2819,6 +2840,7 @@ namespace nre::newrg
             - instanced_cluster_range_data_index * 16
         );
         F_indirect_data_batch instanced_cluster_ranges_data_batch(
+            main_indirect_data_stack_p,
             instanced_cluster_ranges_data_adress_offset,
             16,
             NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT / 16
@@ -3008,11 +3030,11 @@ namespace nre::newrg
             .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
         });
         pass_p->add_resource_state({
-            .resource_p = F_indirect_data_system::instance_p()->target_resource_p(),
+            .resource_p = main_indirect_data_stack_p->target_resource_p(),
             .states = ED_resource_state::INPUT_AND_CONSTANT_BUFFER
         });
         pass_p->add_resource_state({
-            .resource_p = F_indirect_command_system::instance_p()->target_resource_p(),
+            .resource_p = main_indirect_command_stack_p->target_resource_p(),
             .states = ED_resource_state::INDIRECT_ARGUMENT
         });
         pass_p->add_resource_state({

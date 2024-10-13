@@ -6,6 +6,7 @@
 
 namespace nre::newrg
 {
+    class F_indirect_data_stack;
     struct F_descriptor_handle_range;
     struct F_render_descriptor_element;
     class F_render_bind_list;
@@ -15,11 +16,13 @@ namespace nre::newrg
     class NRE_API F_indirect_data_batch final
     {
     private:
+        TK<F_indirect_data_stack> stack_p_;
         sz address_offset_ = sz(-1);
         u32 stride_ = 0;
         u32 count_ = 0;
 
     public:
+        NCPP_FORCE_INLINE TKPA_valid<F_indirect_data_stack> stack_p() const noexcept { return (TKPA_valid<F_indirect_data_stack>)stack_p_; }
         NCPP_FORCE_INLINE sz address_offset() const noexcept { return address_offset_; }
         NCPP_FORCE_INLINE u32 stride() const noexcept { return stride_; }
         NCPP_FORCE_INLINE u32 count() const noexcept { return count_; }
@@ -29,8 +32,17 @@ namespace nre::newrg
 
     public:
         F_indirect_data_batch() = default;
-        F_indirect_data_batch(u32 stride, u32 count);
-        F_indirect_data_batch(sz address_offset, u32 stride, u32 count);
+        F_indirect_data_batch(
+            TKPA_valid<F_indirect_data_stack> stack_p,
+            u32 stride,
+            u32 count
+        );
+        F_indirect_data_batch(
+            TKPA_valid<F_indirect_data_stack> stack_p,
+            sz address_offset,
+            u32 stride,
+            u32 count
+        );
         ~F_indirect_data_batch();
 
         F_indirect_data_batch(const F_indirect_data_batch& x) = default;
@@ -85,22 +97,32 @@ namespace nre::newrg
         F_indirect_data_batch subrange(i32 begin_index, u32 count = 1)
         {
             NCPP_ASSERT(is_valid());
-            return { sz(ptrd(address_offset_) + begin_index * stride_), stride_, count };
+            return {
+                NCPP_FOH_VALID(stack_p_),
+                sz(ptrd(address_offset_) + begin_index * stride_),
+                stride_,
+                count
+            };
         }
         F_indirect_data_batch submemory(ptrd offset, u32 stride, u32 count = 1)
         {
             NCPP_ASSERT(is_valid());
-            return { sz(ptrd(address_offset_) + offset), stride, count };
+            return {
+                NCPP_FOH_VALID(stack_p_),
+                sz(ptrd(address_offset_) + offset),
+                stride,
+                count
+            };
         }
 
     public:
         NCPP_FORCE_INLINE b8 is_valid() const noexcept
         {
-            return (stride_ && count_);
+            return (stack_p_ && stride_ && count_);
         }
         NCPP_FORCE_INLINE b8 is_null() const noexcept
         {
-            return (!stride_ || !count_);
+            return (!stack_p_ || !stride_ || !count_);
         }
         NCPP_FORCE_INLINE operator b8 () const noexcept
         {

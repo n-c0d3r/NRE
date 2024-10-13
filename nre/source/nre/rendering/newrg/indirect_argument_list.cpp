@@ -1,7 +1,7 @@
 #include <nre/rendering/newrg/indirect_argument_list.hpp>
 #include <nre/rendering/newrg/indirect_argument_list_layout.hpp>
 #include <nre/rendering/newrg/indirect_argument_table.hpp>
-#include <nre/rendering/newrg/indirect_command_system.hpp>
+#include <nre/rendering/newrg/indirect_command_stack.hpp>
 
 
 
@@ -107,26 +107,25 @@ namespace nre::newrg
         data_ = {};
     }
 
-    F_indirect_command_batch F_indirect_argument_list::build()
+    F_indirect_command_batch F_indirect_argument_list::build(TKPA_valid<F_indirect_command_stack> stack_p)
     {
         NCPP_ASSERT(is_valid());
 
         const auto& table = layout_p_->table();
 
-        auto indirect_command_system_p = F_indirect_command_system::instance_p();
-
-        sz offset = indirect_command_system_p->push(
+        sz offset = stack_p->push(
             size_ + table.stride,
             table.alignment
         );
         offset += table.stride - (offset % table.stride);
 
-        indirect_command_system_p->enqueue_initial_value(
+        stack_p->enqueue_initial_value(
             data_,
             offset
         );
 
         return {
+            stack_p,
             layout_p_->command_signature_p(),
             offset,
             command_count_

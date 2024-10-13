@@ -53,7 +53,7 @@ namespace nre::newrg
         void reset();
 
     public:
-        F_indirect_command_batch build();
+        F_indirect_command_batch build(TKPA_valid<F_indirect_command_stack> stack_p);
 
     public:
         void draw(
