@@ -310,16 +310,22 @@ compute_shader CS(
                     );
 
                     // occlusion culling
-                    require(!ALTERNATIVE_OCCLUSION_CULLING)
+                    require(!NO_OCCLUSION_CULLING)
                     {
-                        is_culled = is_occluded_with_hzb(
-                            hzb,
-                            occluder
-                        );
-                    }
-                    otherwise()
-                    {
-                        import(ALTERNATIVE_OCCLUSION_CULLING)
+                        if(!is_culled)
+                        {
+                            require(!ALTERNATIVE_OCCLUSION_CULLING)
+                            {
+                                is_culled = is_occluded_with_hzb(
+                                    hzb,
+                                    occluder
+                                );
+                            }
+                            otherwise()
+                            {
+                                import(ALTERNATIVE_OCCLUSION_CULLING)
+                            }
+                        }
                     }
 
                     // small cluster culling
