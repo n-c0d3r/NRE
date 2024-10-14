@@ -357,18 +357,7 @@ namespace nre::newrg
                     {
                         casted_view_p->clear_textures();
 
-                        F_indirect_data_list default_instanced_cluster_range_data_list(
-                            4 // offset
-                            + 4 // count
-                            + 8, // padding
-                            1
-                        );
-                        default_instanced_cluster_range_data_list.T_set<u32>(0, 0, 0);
-                        default_instanced_cluster_range_data_list.T_set<u32>(0, 4, 0);
-                        F_indirect_data_batch instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build(
-                            main_indirect_data_stack_p
-                        );
-
+                        F_indirect_data_batch instanced_cluster_range_data_batch;
                         expand_instances(
                             NCPP_FOH_VALID(casted_view_p),
                             rg_instanced_cluster_header_buffer_p,
@@ -489,26 +478,15 @@ namespace nre::newrg
 
                     // main phase
                     {
-                        F_indirect_data_list default_instanced_cluster_range_data_list(
-                            4 // offset
-                            + 4 // count
-                            + 8, // padding
-                            1
-                        );
-                        default_instanced_cluster_range_data_list.T_set<u32>(0, 0, 0);
-                        default_instanced_cluster_range_data_list.T_set<u32>(0, 4, 0);
-                        F_indirect_data_batch instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build(
-                            main_indirect_data_stack_p
-                        );
-                        F_indirect_data_batch post_instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build(
-                            main_indirect_data_stack_p
-                        );
-
+                        F_indirect_data_batch instanced_cluster_range_data_batch;
+                        F_indirect_data_batch post_instanced_cluster_range_data_batch;
                         expand_instances(
                             NCPP_FOH_VALID(casted_view_p),
                             rg_instanced_cluster_header_buffer_p,
                             instanced_cluster_range_data_batch,
                             {
+                                .mode = E_expand_instances_mode::MAIN,
+                                .post_instanced_cluster_range_data_batch_p = &post_instanced_cluster_range_data_batch
                             }
                             NRE_OPTIONAL_DEBUG_PARAM(
                                 F_render_frame_name("nre.newrg.abytek_render_path.expand_instances(")
@@ -1096,7 +1074,7 @@ namespace nre::newrg
     void F_abytek_render_path::expand_instances(
         TKPA_valid<F_abytek_scene_render_view> view_p,
         F_render_resource* rg_instanced_cluster_header_buffer_p,
-        const F_indirect_data_batch& instanced_cluster_range_data_batch,
+        F_indirect_data_batch& instanced_cluster_range_data_batch,
         const F_expand_instances_additional_options& additional_options
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
@@ -1110,6 +1088,43 @@ namespace nre::newrg
 
         if(!instance_count)
             return;
+
+        u32 instanced_cluster_range_count = 1;
+        switch (additional_options.mode)
+        {
+        case E_expand_instances_mode::DEFAULT:
+            break;
+        case E_expand_instances_mode::MAIN:
+            ++instanced_cluster_range_count;
+            break;
+        case E_expand_instances_mode::NO_OCCLUSION_CULLING:
+            break;
+        }
+
+        F_indirect_data_list instanced_cluster_range_data_list(
+            4 // offset
+            + 4 // count
+            + 8, // padding
+            instanced_cluster_range_count
+        );
+        instanced_cluster_range_data_list.T_set<u32>(0, 0, 0);
+        instanced_cluster_range_data_list.T_set<u32>(0, 4, 0);
+        instanced_cluster_range_data_batch = instanced_cluster_range_data_list.build(
+            main_indirect_data_stack_p
+        );
+
+        switch (additional_options.mode)
+        {
+        case E_expand_instances_mode::DEFAULT:
+            break;
+        case E_expand_instances_mode::MAIN:
+            instanced_cluster_range_data_list.T_set<u32>(1, 0, 0);
+            instanced_cluster_range_data_list.T_set<u32>(1, 4, 0);
+            *(additional_options.post_instanced_cluster_range_data_batch_p) = instanced_cluster_range_data_batch.subrange(1);
+            break;
+        case E_expand_instances_mode::NO_OCCLUSION_CULLING:
+            break;
+        }
 
         auto& render_primitive_data_table = render_primitive_data_pool_p->table();
 

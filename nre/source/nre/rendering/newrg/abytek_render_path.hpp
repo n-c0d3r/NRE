@@ -391,7 +391,7 @@ namespace nre::newrg
             E_expand_instances_mode mode = E_expand_instances_mode::DEFAULT;
 
             F_render_resource* rg_post_instanced_cluster_header_buffer_p = 0;
-            const F_indirect_data_batch* post_instanced_cluster_range_data_batch_p = 0;
+            F_indirect_data_batch* post_instanced_cluster_range_data_batch_p = 0;
         };
 
     public:
@@ -406,7 +406,7 @@ namespace nre::newrg
         void expand_instances(
             TKPA_valid<F_abytek_scene_render_view> view_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,
-            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_indirect_data_batch& instanced_cluster_range_data_batch,
             const F_expand_instances_additional_options& additional_options = {}
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
