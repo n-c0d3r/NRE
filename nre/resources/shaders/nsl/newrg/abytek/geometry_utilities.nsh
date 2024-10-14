@@ -264,6 +264,26 @@ b8 is_occluded_with_hzb(
             )
         )
     );
+    {
+        int lower_mip_level = max(mip_level - 1, 0);
+        int lower_mip_width = max(width >> lower_mip_level, 1);
+        int lower_mip_height = max(height >> lower_mip_level, 1);
+
+        float2 lower_mip_size_2d_float = float2(lower_mip_width, lower_mip_height); 
+
+        float2 lower_mip_coord_limit = lower_mip_size_2d_float - float2(1, 1);
+        int2 lower_mip_min_coord = floor(lower_mip_coord_limit * min_uv);
+        int2 lower_mip_max_coord = ceil(lower_mip_coord_limit * max_uv);
+
+        mip_level = (
+            (
+                ((lower_mip_max_coord.x - lower_mip_min_coord.x) < 2)
+                && ((lower_mip_max_coord.y - lower_mip_min_coord.y) < 2)
+            )
+            ? lower_mip_level
+            : mip_level
+        );
+    }
 
     int mip_width = max(width >> mip_level, 1);
     int mip_height = max(height >> mip_level, 1);
@@ -292,5 +312,13 @@ b8 is_occluded_with_hzb(
         );    
     }
 
-    return ((occluder.max_ndc_xyz.z + 0.0005f) < min_z);
+    return (
+        (
+            occluder.max_ndc_xyz.z 
+            + 0.0003f 
+            * ((float)mip_level + 1) 
+            / ((float)num_of_levels)
+        ) 
+        < min_z
+    );
 }

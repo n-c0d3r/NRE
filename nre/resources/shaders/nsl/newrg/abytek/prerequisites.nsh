@@ -139,7 +139,7 @@ float3 id_to_color(uint value)
         exp(-scale * float(255 - (h3 & 0xFF)))
     );
 
-    result = pow(result, 0.4f * float3(1, 1, 1));
+    result = pow(result, 0.3f * float3(1, 1, 1));
 
     return result;
 }
