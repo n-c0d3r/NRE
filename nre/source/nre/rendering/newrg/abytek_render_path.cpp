@@ -313,10 +313,107 @@ namespace nre::newrg
                     auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
                     auto instance_count = render_primitive_data_pool_p->primitive_count();
 
-                    casted_view_p->clear_textures();
+                    F_render_resource* rg_instanced_cluster_header_buffer_p = H_render_resource::create_buffer(
+                        NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT,
+                        (
+                            4 // instance id
+                            + 4 // local cluster id
+                        ),
+                        ED_resource_flag::SHADER_RESOURCE
+                        | ED_resource_flag::UNORDERED_ACCESS
+                        | ED_resource_flag::STRUCTURED,
+                        ED_resource_heap_type::DEFAULT,
+                        {}
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_render_path.instanced_cluster_header_buffer[")
+                            + casted_view_p->actor_p()->name().c_str()
+                            + "]"
+                        )
+                    );
+
+                    F_render_resource* rg_post_instanced_cluster_header_buffer_p = H_render_resource::create_buffer(
+                        NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT,
+                        (
+                            4 // instance id
+                            + 4 // local cluster id
+                        ),
+                        ED_resource_flag::SHADER_RESOURCE
+                        | ED_resource_flag::UNORDERED_ACCESS
+                        | ED_resource_flag::STRUCTURED,
+                        ED_resource_heap_type::DEFAULT,
+                        {}
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_render_path.post_instanced_cluster_header_buffer[")
+                            + casted_view_p->actor_p()->name().c_str()
+                            + "]"
+                        )
+                    );
 
                     rg_register_view_event_.view_p_ = casted_view_p.no_requirements();
                     rg_register_view_event_.invoke();
+
+                    // depth prepass (for debugging)
+                    if(depth_prepass_options.enable)
+                    {
+                        casted_view_p->clear_textures();
+
+                        F_indirect_data_list default_instanced_cluster_range_data_list(
+                            4 // offset
+                            + 4 // count
+                            + 8, // padding
+                            1
+                        );
+                        default_instanced_cluster_range_data_list.T_set<u32>(0, 0, 0);
+                        default_instanced_cluster_range_data_list.T_set<u32>(0, 4, 0);
+                        F_indirect_data_batch instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build(
+                            main_indirect_data_stack_p
+                        );
+
+                        expand_instances(
+                            NCPP_FOH_VALID(casted_view_p),
+                            rg_instanced_cluster_header_buffer_p,
+                            instanced_cluster_range_data_batch,
+                            {
+                                .mode = E_expand_instances_mode::NO_OCCLUSION_CULLING
+                            }
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.depth_prepass(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ").expand_instances"
+                            )
+                        );
+
+                        F_indirect_data_batch expanded_instanced_cluster_range_data_batch;
+                        expand_clusters(
+                            NCPP_FOH_VALID(casted_view_p),
+                            rg_instanced_cluster_header_buffer_p,
+                            instanced_cluster_range_data_batch,
+                            expanded_instanced_cluster_range_data_batch,
+                            {
+                                .mode = E_expand_clusters_mode::NO_OCCLUSION_CULLING
+                            }
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.depth_prepass(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ").expand_clusters"
+                            )
+                        );
+
+                        depth_prepass(
+                            NCPP_FOH_VALID(casted_view_p),
+                            rg_instanced_cluster_header_buffer_p,
+                            expanded_instanced_cluster_range_data_batch
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.depth_prepass(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ")"
+                            )
+                        );
+
+                        casted_view_p->generate_depth_pyramid();
+                    }
+
+                    casted_view_p->clear_textures();
 
                     if(simple_draw_options.enable)
                     {
@@ -388,101 +485,6 @@ namespace nre::newrg
                                 + ")"
                             )
                         );
-                    }
-
-                    F_render_resource* rg_instanced_cluster_header_buffer_p = H_render_resource::create_buffer(
-                        NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT,
-                        (
-                            4 // instance id
-                            + 4 // local cluster id
-                        ),
-                        ED_resource_flag::SHADER_RESOURCE
-                        | ED_resource_flag::UNORDERED_ACCESS
-                        | ED_resource_flag::STRUCTURED,
-                        ED_resource_heap_type::DEFAULT,
-                        {}
-                        NRE_OPTIONAL_DEBUG_PARAM(
-                            F_render_frame_name("nre.newrg.abytek_render_path.instanced_cluster_header_buffer[")
-                            + casted_view_p->actor_p()->name().c_str()
-                            + "]"
-                        )
-                    );
-
-                    F_render_resource* rg_post_instanced_cluster_header_buffer_p = H_render_resource::create_buffer(
-                        NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT,
-                        (
-                            4 // instance id
-                            + 4 // local cluster id
-                        ),
-                        ED_resource_flag::SHADER_RESOURCE
-                        | ED_resource_flag::UNORDERED_ACCESS
-                        | ED_resource_flag::STRUCTURED,
-                        ED_resource_heap_type::DEFAULT,
-                        {}
-                        NRE_OPTIONAL_DEBUG_PARAM(
-                            F_render_frame_name("nre.newrg.abytek_render_path.post_instanced_cluster_header_buffer[")
-                            + casted_view_p->actor_p()->name().c_str()
-                            + "]"
-                        )
-                    );
-
-                    // depth prepass (for debugging)
-                    if(depth_prepass_options.enable)
-                    {
-                        F_indirect_data_list default_instanced_cluster_range_data_list(
-                            4 // offset
-                            + 4 // count
-                            + 8, // padding
-                            1
-                        );
-                        default_instanced_cluster_range_data_list.T_set<u32>(0, 0, 0);
-                        default_instanced_cluster_range_data_list.T_set<u32>(0, 4, 0);
-                        F_indirect_data_batch instanced_cluster_range_data_batch = default_instanced_cluster_range_data_list.build(
-                            main_indirect_data_stack_p
-                        );
-
-                        expand_instances(
-                            NCPP_FOH_VALID(casted_view_p),
-                            rg_instanced_cluster_header_buffer_p,
-                            instanced_cluster_range_data_batch,
-                            {
-                                .mode = E_expand_instances_mode::NO_OCCLUSION_CULLING
-                            }
-                            NRE_OPTIONAL_DEBUG_PARAM(
-                                F_render_frame_name("nre.newrg.abytek_render_path.depth_prepass(")
-                                + casted_view_p->actor_p()->name().c_str()
-                                + ").expand_instances"
-                            )
-                        );
-
-                        F_indirect_data_batch expanded_instanced_cluster_range_data_batch;
-                        expand_clusters(
-                            NCPP_FOH_VALID(casted_view_p),
-                            rg_instanced_cluster_header_buffer_p,
-                            instanced_cluster_range_data_batch,
-                            expanded_instanced_cluster_range_data_batch,
-                            {
-                                .mode = E_expand_clusters_mode::NO_OCCLUSION_CULLING
-                            }
-                            NRE_OPTIONAL_DEBUG_PARAM(
-                                F_render_frame_name("nre.newrg.abytek_render_path.depth_prepass(")
-                                + casted_view_p->actor_p()->name().c_str()
-                                + ").expand_clusters"
-                            )
-                        );
-
-                        depth_prepass(
-                            NCPP_FOH_VALID(casted_view_p),
-                            rg_instanced_cluster_header_buffer_p,
-                            expanded_instanced_cluster_range_data_batch
-                            NRE_OPTIONAL_DEBUG_PARAM(
-                                F_render_frame_name("nre.newrg.abytek_render_path.depth_prepass(")
-                                + casted_view_p->actor_p()->name().c_str()
-                                + ")"
-                            )
-                        );
-
-                        casted_view_p->generate_depth_pyramid();
                     }
 
                     // main phase
