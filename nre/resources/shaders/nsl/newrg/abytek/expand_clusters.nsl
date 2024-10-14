@@ -326,31 +326,31 @@ compute_shader CS(
                     );
 
                     // frustum culling
-                    is_culled = is_culled || !is_occluder_overlap_frustum(
-                        view_to_clip_matrix,
-                        view_near_plane,
-                        view_far_plane,
-                        occluder
-                    );
+                    // is_culled = is_culled || !is_occluder_overlap_frustum(
+                    //     view_to_clip_matrix,
+                    //     view_near_plane,
+                    //     view_far_plane,
+                    //     occluder
+                    // );
 
                     // occlusion culling
-                    require(!NO_OCCLUSION_CULLING)
-                    {
-                        if(!is_culled)
-                        {
-                            is_culled = is_culled || is_occluded_with_hzb(
-                                hzb,
-                                occluder
-                            );
-                        }
-                    }
+                    // require(!NO_OCCLUSION_CULLING)
+                    // {
+                    //     if(!is_culled)
+                    //     {
+                    //         is_culled = is_culled || is_occluded_with_hzb(
+                    //             hzb,
+                    //             occluder
+                    //         );
+                    //     }
+                    // }
 
                     // small cluster culling
-                    f32 cull_error_threshold = global_shared_datas[0].cull_error_threshold;
-                    is_culled = is_culled || (
-                        (error_square < (cull_error_threshold * cull_error_threshold))
-                        && ((cluster_hierarchical_culling_data.flags & CLUSTER_HIERARCHICAL_CULLING_DATA_FLAG_HAS_PARENT) == 0)
-                    );
+                    // f32 cull_error_threshold = global_shared_datas[0].cull_error_threshold;
+                    // is_culled = is_culled || (
+                    //     (error_square < (cull_error_threshold * cull_error_threshold))
+                    //     && ((cluster_hierarchical_culling_data.flags & CLUSTER_HIERARCHICAL_CULLING_DATA_FLAG_HAS_PARENT) == 0)
+                    // );
 
                     //
                     require(ADDITIONAL_CULL_INSTANCED_CLUSTER)

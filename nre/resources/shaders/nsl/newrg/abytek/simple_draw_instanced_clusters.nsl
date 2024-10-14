@@ -8,6 +8,7 @@ semantic VERTEX_WORLD_POSITION(float3)
 semantic VERTEX_WORLD_NORMAL(float3)
 semantic VERTEX_WORLD_TANGENT(float3)
 semantic VERTEX_CLUSTER_ID(uint)
+semantic VERTEX_INSTANCE_ID(uint)
 
 
 
@@ -16,6 +17,7 @@ struct F_mesh_vertex_data(
     vertex_world_normal(VERTEX_WORLD_NORMAL)
     vertex_world_tangent(VERTEX_WORLD_TANGENT)
     vertex_cluster_id(VERTEX_CLUSTER_ID)
+    vertex_instance_id(VERTEX_INSTANCE_ID)
     vertex_clip_position(SV_POSITION)
 )
 
@@ -25,7 +27,8 @@ struct F_mesh_vertex_data(
 resource global_options(ConstantBuffer)
 uniform color(float3)
 // 0 : cluster color
-// 1 : solid color
+// 1 : instance color
+// 2 : solid color
 uniform color_mode(u32) 
 uniform light_dir(float3)
 uniform ___global_options_padding_0___(u32)
@@ -166,6 +169,7 @@ mesh_shader MS(
         mesh_vertex_data.vertex_world_normal = vertex_world_normal;
         mesh_vertex_data.vertex_world_tangent = vertex_world_tangent;
         mesh_vertex_data.vertex_cluster_id = cluster_id;
+        mesh_vertex_data.vertex_instance_id = instance_id;
         mesh_vertex_data.vertex_clip_position = vertex_clip_position;
 
         out_mesh_vertex_datas[group_thread_id.x] = mesh_vertex_data;
@@ -177,9 +181,11 @@ pixel_shader PS(
 )
 {
     float4 cluster_color = float4(color * id_to_color(mesh_vertex_data.vertex_cluster_id), 1);
+    float4 instance_color = float4(color * id_to_color(mesh_vertex_data.vertex_instance_id), 1);
 
     float4 albedo_colors[] = {
         cluster_color,
+        instance_color,
         float4(color, 1)
     };
     

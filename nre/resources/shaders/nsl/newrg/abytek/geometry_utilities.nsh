@@ -254,9 +254,9 @@ b8 is_occluded_with_hzb(
 
     float2 center_uv = (min_uv + max_uv) * 0.5f;
 
-    float2 coord_size = hzb_size_2d_float * (max_uv - min_uv);
+    float2 coord_size = ceil(hzb_size_2d_float * (max_uv - min_uv));
 
-    uint mip_level = ceil(
+    int mip_level = ceil(
         log2(
             max(
                 coord_size.x,
@@ -265,8 +265,8 @@ b8 is_occluded_with_hzb(
         )
     );
 
-    uint mip_width = max(width >> mip_level, 1);
-    uint mip_height = max(height >> mip_level, 1);
+    int mip_width = max(width >> mip_level, 1);
+    int mip_height = max(height >> mip_level, 1);
 
     float2 mip_size_2d_float = float2(mip_width, mip_height); 
 

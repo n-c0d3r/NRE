@@ -3126,9 +3126,13 @@ namespace nre::newrg
                 {
                     color_mode = 0;
                 }
-                if(ImGui::Button("Enable Solid Color"))
+                if(ImGui::Button("Enable Instance Color"))
                 {
                     color_mode = 1;
+                }
+                if(ImGui::Button("Enable Solid Color"))
+                {
+                    color_mode = 2;
                 }
             }
             {
