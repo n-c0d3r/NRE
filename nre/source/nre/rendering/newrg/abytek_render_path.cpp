@@ -116,6 +116,10 @@ namespace nre::newrg
             G_to_string(NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT)
         });
         F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_MAX_POST_INSTANCED_CLUSTER_COUNT",
+            G_to_string(NRE_NEWRG_ABYTEK_MAX_POST_INSTANCED_CLUSTER_COUNT)
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
             "NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_BATCH_SIZE",
             G_to_string(expand_instances_batch_size())
         });
@@ -242,6 +246,12 @@ namespace nre::newrg
         //
         {
             drawable_material_system_p_ = TU<F_abytek_drawable_material_system>()();
+        }
+
+        //
+        {
+            u32& color_mode = ((u32*)&simple_draw_instanced_clusters_options.color)[3];
+            color_mode = 0;
         }
     }
     F_abytek_render_path::~F_abytek_render_path()
