@@ -86,6 +86,13 @@ namespace nre::newrg
                                     .offset_in_descriptors_from_table_start = 3,
                                     .base_register = 0,
                                     .register_space = 4
+                                },
+                                F_descriptor_range_desc { // 2UAVs (post instanced cluster headers, post instanced cluster ranges)
+                                    .type = ED_descriptor_range_type::UNORDERED_ACCESS,
+                                    .descriptor_count = 2,
+                                    .offset_in_descriptors_from_table_start = 4,
+                                    .base_register = 2,
+                                    .register_space = 4
                                 }
                             }
                         }

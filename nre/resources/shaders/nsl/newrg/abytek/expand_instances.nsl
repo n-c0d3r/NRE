@@ -136,7 +136,7 @@ compute_shader CS(
     calculate_bbox_corners(bbox, bbox_corners);
 
     float4 view_bbox_corners[8];
-    transform_cuboid_corners(local_to_view_matrix_for_culling, bbox_corners, view_bbox_corners);
+    transform_cuboid_corners(local_to_view_matrix, bbox_corners, view_bbox_corners);
     
     float4 ndc_bbox_corners[8];
     cuboid_view_corners_to_ndc_corners(

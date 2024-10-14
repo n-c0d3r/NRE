@@ -376,8 +376,7 @@ namespace nre::newrg
             E_expand_clusters_mode mode = E_expand_clusters_mode::DEFAULT;
 
             F_render_resource* rg_post_instanced_cluster_header_buffer_p = 0;
-            const F_indirect_data_batch* post_instanced_cluster_range_data_batch_p = 0;
-            F_indirect_data_batch* post_expanded_instanced_cluster_range_data_batch_p = 0;
+            const F_indirect_data_batch* post_expanded_instanced_cluster_range_data_batch_p = 0;
         };
 
         enum class E_expand_instances_mode
@@ -391,7 +390,7 @@ namespace nre::newrg
             E_expand_instances_mode mode = E_expand_instances_mode::DEFAULT;
 
             F_render_resource* rg_post_instanced_cluster_header_buffer_p = 0;
-            F_indirect_data_batch* post_instanced_cluster_range_data_batch_p = 0;
+            const F_indirect_data_batch* post_instanced_cluster_range_data_batch_p = 0;
         };
 
     public:
@@ -422,6 +421,7 @@ namespace nre::newrg
             const F_indirect_data_batch& instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
+        F_indirect_data_batch create_root_instanced_cluster_range_data_batch(u32 count = 1);
 
     public:
         void simple_draw(

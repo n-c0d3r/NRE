@@ -1,4 +1,19 @@
 
+submodule ADDITIONAL_RESOURCES(
+
+    @slot(2 4)
+    resource post_instanced_cluster_headers(
+        RWStructuredBuffer(F_instanced_cluster_header)
+    )
+
+    @slot(3 4)
+    resource post_instanced_cluster_ranges(
+        RWStructuredBuffer(F_instanced_cluster_range)
+    )
+)
+
+
+
 define ROOT_SIGNATURE(NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_MAIN_BINDER_SIGNATURE)
 
 import(expand_instances.nsl)
