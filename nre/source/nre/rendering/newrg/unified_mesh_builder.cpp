@@ -770,15 +770,24 @@ namespace nre::newrg
                                 auto& child_cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[child_cluster_id];
 
                                 outer_error_sphere = outer_error_sphere.expand_movable(
-                                    child_cluster_hierarchical_culling_data.outer_error_sphere
+                                    F_sphere_f32(
+                                        child_cluster_hierarchical_culling_data.outer_error_sphere.center(),
+                                        child_cluster_hierarchical_culling_data.outer_error_sphere.radius()
+                                        + T_default_tolerance<f32>
+                                    )
                                 );
                                 error_factor = eastl::max<f32>(
                                     error_factor,
                                     child_cluster_hierarchical_culling_data.error_factor
+                                    + T_default_tolerance<f32>
                                 );
                                 error_radius = eastl::max<f32>(
                                     error_radius,
-                                    child_cluster_hierarchical_culling_data.error_radius
+                                    (
+                                        child_cluster_hierarchical_culling_data.error_radius
+                                        * (1.0f + child_cluster_hierarchical_culling_data.error_factor)
+                                        + T_default_tolerance<f32>
+                                    )
                                 );
                             }
                         }
