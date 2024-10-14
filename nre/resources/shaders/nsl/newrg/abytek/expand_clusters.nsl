@@ -216,8 +216,10 @@ compute_shader CS(
                     cluster_hierarchical_culling_data.outer_error_sphere.center 
                     + normalize(outer_error_sphere_center_to_view_position)
                     * min(
-                        outer_error_sphere_center_to_view_position_length - cluster_hierarchical_culling_data.error_radius,
-                        cluster_hierarchical_culling_data.outer_error_sphere.radius - cluster_hierarchical_culling_data.error_radius
+                        outer_error_sphere_center_to_view_position_length 
+                        - cluster_hierarchical_culling_data.error_radius,
+                        cluster_hierarchical_culling_data.outer_error_sphere.radius 
+                        - cluster_hierarchical_culling_data.error_radius
                     )
                 );
 
