@@ -487,40 +487,40 @@ namespace nre::newrg
                     }
 
                     // main phase
+                    F_indirect_data_batch main_instanced_cluster_range_data_batch;
+                    F_indirect_data_batch main_expanded_instanced_cluster_range_data_batch;
                     F_indirect_data_batch post_instanced_cluster_range_data_batch;
                     {
                         post_instanced_cluster_range_data_batch = create_root_instanced_cluster_range_data_batch();
 
-                        F_indirect_data_batch instanced_cluster_range_data_batch;
                         expand_instances(
                             NCPP_FOH_VALID(casted_view_p),
                             rg_instanced_cluster_header_buffer_p,
-                            instanced_cluster_range_data_batch,
+                            main_instanced_cluster_range_data_batch,
                             {
                                 .mode = E_expand_instances_mode::MAIN,
                                 .rg_post_instanced_cluster_header_buffer_p = rg_post_instanced_cluster_header_buffer_p,
                                 .post_instanced_cluster_range_data_batch_p = &post_instanced_cluster_range_data_batch
                             }
                             NRE_OPTIONAL_DEBUG_PARAM(
-                                F_render_frame_name("nre.newrg.abytek_render_path.expand_instances(")
+                                F_render_frame_name("nre.newrg.abytek_render_path.main_phase.expand_instances(")
                                 + casted_view_p->actor_p()->name().c_str()
                                 + ")"
                             )
                         );
 
-                        F_indirect_data_batch expanded_instanced_cluster_range_data_batch;
                         expand_clusters(
                             NCPP_FOH_VALID(casted_view_p),
                             rg_instanced_cluster_header_buffer_p,
-                            instanced_cluster_range_data_batch,
-                            expanded_instanced_cluster_range_data_batch,
+                            main_instanced_cluster_range_data_batch,
+                            main_expanded_instanced_cluster_range_data_batch,
                             {
                                 .mode = E_expand_clusters_mode::MAIN,
                                 .rg_post_instanced_cluster_header_buffer_p = rg_post_instanced_cluster_header_buffer_p,
                                 .post_expanded_instanced_cluster_range_data_batch_p = &post_instanced_cluster_range_data_batch
                             }
                             NRE_OPTIONAL_DEBUG_PARAM(
-                                F_render_frame_name("nre.newrg.abytek_render_path.expand_clusters(")
+                                F_render_frame_name("nre.newrg.abytek_render_path.main_phase.expand_clusters(")
                                 + casted_view_p->actor_p()->name().c_str()
                                 + ")"
                             )
@@ -531,9 +531,9 @@ namespace nre::newrg
                             simple_draw_instanced_clusters(
                                 NCPP_FOH_VALID(casted_view_p),
                                 rg_instanced_cluster_header_buffer_p,
-                                expanded_instanced_cluster_range_data_batch
+                                main_expanded_instanced_cluster_range_data_batch
                                 NRE_OPTIONAL_DEBUG_PARAM(
-                                    F_render_frame_name("nre.newrg.abytek_render_path.simple_draw_instanced_clusters(")
+                                    F_render_frame_name("nre.newrg.abytek_render_path.main_phase.simple_draw_instanced_clusters(")
                                     + casted_view_p->actor_p()->name().c_str()
                                     + ")"
                                 )
@@ -544,7 +544,38 @@ namespace nre::newrg
                     }
 
                     // post phase
+                    F_indirect_data_batch post_expanded_instanced_cluster_range_data_batch;
                     {
+                        expand_clusters(
+                            NCPP_FOH_VALID(casted_view_p),
+                            rg_post_instanced_cluster_header_buffer_p,
+                            post_instanced_cluster_range_data_batch,
+                            post_expanded_instanced_cluster_range_data_batch,
+                            {
+                                .overrided_max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_POST_INSTANCED_CLUSTER_COUNT,
+                                .overrided_task_capacity_factor = 4.0f
+                            }
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.post_phase.expand_clusters(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ")"
+                            )
+                        );
+
+                        if(simple_draw_instanced_clusters_options.enable)
+                        {
+                            simple_draw_instanced_clusters(
+                                NCPP_FOH_VALID(casted_view_p),
+                                rg_post_instanced_cluster_header_buffer_p,
+                                post_expanded_instanced_cluster_range_data_batch
+                                NRE_OPTIONAL_DEBUG_PARAM(
+                                    F_render_frame_name("nre.newrg.abytek_render_path.post_phase.simple_draw_instanced_clusters(")
+                                    + casted_view_p->actor_p()->name().c_str()
+                                    + ")"
+                                )
+                            );
+                        }
+
                         casted_view_p->generate_depth_pyramid();
                     }
                 }
@@ -567,7 +598,20 @@ namespace nre::newrg
         auto main_indirect_data_stack_p = F_main_indirect_data_stack::instance_p();
         auto main_indirect_command_stack_p = F_main_indirect_command_stack::instance_p();
 
-        u32 max_cached_candidate_batch_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / expand_clusters_batch_size();
+        u32 max_instanced_cluster_count = additional_options.overrided_max_instanced_cluster_count;
+        if(max_instanced_cluster_count == 0)
+        {
+            max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT;
+        }
+
+        u32 max_cached_candidate_batch_count = max_instanced_cluster_count / expand_clusters_batch_size();
+        u32 max_task_capacity = max_instanced_cluster_count / 2;
+
+        f32 task_capacity_factor = additional_options.overrided_task_capacity_factor;
+        if(task_capacity_factor == 0.0f)
+        {
+            task_capacity_factor = lod_options.task_capacity_factor;
+        }
 
         F_indirect_data_list global_shared_data_data_list(
             sizeof(u32) // counter
@@ -596,7 +640,7 @@ namespace nre::newrg
             + sizeof(u32) // cached candidate offset
             + sizeof(u32) // error threshold
             + 2 * sizeof(u32), // instanced cluster range
-            lod_options.task_capacity_factor
+            task_capacity_factor
         );
         global_shared_data_data_list.T_set(
             0,
@@ -606,7 +650,7 @@ namespace nre::newrg
             + sizeof(u32) // error threshold
             + 2 * sizeof(u32) // instanced cluster range
             + sizeof(f32), // task capacity factor
-            NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / 2
+            max_task_capacity
         );
         global_shared_data_data_list.T_set(
             0,
@@ -716,7 +760,7 @@ namespace nre::newrg
         auto cluster_node_header_srv_element = cluster_node_header_bind_list[0];
 
         F_render_resource* rg_global_cached_candidate_buffer_p = H_render_resource::create_buffer(
-            NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT,
+            max_instanced_cluster_count,
             (
                 4 // instance id
                 + 4 // local cluster id

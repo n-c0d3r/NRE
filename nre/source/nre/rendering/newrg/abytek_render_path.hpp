@@ -377,6 +377,9 @@ namespace nre::newrg
 
             F_render_resource* rg_post_instanced_cluster_header_buffer_p = 0;
             const F_indirect_data_batch* post_expanded_instanced_cluster_range_data_batch_p = 0;
+
+            u32 overrided_max_instanced_cluster_count = 0;
+            f32 overrided_task_capacity_factor = 0.0f;
         };
 
         enum class E_expand_instances_mode
@@ -391,6 +394,8 @@ namespace nre::newrg
 
             F_render_resource* rg_post_instanced_cluster_header_buffer_p = 0;
             const F_indirect_data_batch* post_instanced_cluster_range_data_batch_p = 0;
+
+            b8 is_post_phase = false;
         };
 
     public:
