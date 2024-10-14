@@ -1081,6 +1081,14 @@ namespace nre::newrg
                 .resource_p = rg_global_cached_candidate_batch_buffer_p,
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
+
+            if(additional_options.mode != E_expand_clusters_mode::NO_OCCLUSION_CULLING)
+            {
+                pass_p->add_resource_state({
+                    .resource_p = view_p->rg_depth_pyramid_p()->texture_2d_p(),
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+            }
         }
     }
     void F_abytek_render_path::expand_instances(
@@ -1320,6 +1328,14 @@ namespace nre::newrg
             .resource_p = main_indirect_data_stack_p->target_resource_p(),
             .states = ED_resource_state::UNORDERED_ACCESS
         });
+
+        if(additional_options.mode != E_expand_instances_mode::NO_OCCLUSION_CULLING)
+        {
+            pass_p->add_resource_state({
+                .resource_p = view_p->rg_depth_pyramid_p()->texture_2d_p(),
+                .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+            });
+        }
     }
     void F_abytek_render_path::init_args_dispatch_mesh_instanced_clusters_indirect(
         u32 thread_group_size_x,
