@@ -781,12 +781,23 @@ namespace nre::newrg
                                     child_cluster_hierarchical_culling_data.error_factor
                                     + T_default_tolerance<f32>
                                 );
+                            }
+                            for(u32 i = 0; i < NRE_NEWRG_UNIFIED_MESH_MAX_CLUSTER_CHILD_COUNT; ++i)
+                            {
+                                F_cluster_id child_cluster_id = cluster_node_header.child_node_ids[i];
+
+                                if(child_cluster_id == NCPP_U32_MAX)
+                                {
+                                    continue;
+                                }
+
+                                auto& child_cluster_hierarchical_culling_data = data.cluster_hierarchical_culling_datas[child_cluster_id];
+
                                 error_radius = eastl::max<f32>(
                                     error_radius,
                                     (
                                         child_cluster_hierarchical_culling_data.error_radius
                                         * (1.0f + child_cluster_hierarchical_culling_data.error_factor)
-                                        + T_default_tolerance<f32>
                                     )
                                 );
                             }
