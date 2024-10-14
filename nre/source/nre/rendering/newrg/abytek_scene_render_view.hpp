@@ -30,19 +30,15 @@ namespace nre::newrg
         F_render_frame_buffer* rg_depth_only_frame_buffer_p_ = 0;
 
         F_abytek_scene_render_view_data data_;
-        F_abytek_scene_render_view_data cull_data_;
         F_abytek_scene_render_view_data last_data_;
 
         TF_render_uniform_batch<F_abytek_scene_render_view_data> rg_data_batch_;
-        TF_render_uniform_batch<F_abytek_scene_render_view_data> rg_cull_data_batch_;
         TF_render_uniform_batch<F_abytek_scene_render_view_data> rg_last_data_batch_;
 
         F_render_depth_pyramid* rg_depth_pyramid_p_ = 0;
         F_external_render_depth_pyramid last_depth_pyramid_;
 
         b8 is_register_ = true;
-
-        b8 update_cull_data_ = true;
 
     public:
         F_vector4 clear_color = F_vector4::zero();
@@ -56,17 +52,13 @@ namespace nre::newrg
         NCPP_FORCE_INLINE F_render_frame_buffer* rg_depth_only_frame_buffer_p() const noexcept { return rg_depth_only_frame_buffer_p_; }
 
         NCPP_FORCE_INLINE const auto& data() const noexcept { return data_; }
-        NCPP_FORCE_INLINE const auto& cull_data() const noexcept { return cull_data_; }
         NCPP_FORCE_INLINE const auto& last_data() const noexcept { return last_data_; }
 
         NCPP_FORCE_INLINE auto rg_data_batch() const noexcept { return rg_data_batch_; }
-        NCPP_FORCE_INLINE auto rg_cull_data_batch() const noexcept { return rg_cull_data_batch_; }
         NCPP_FORCE_INLINE auto rg_last_data_batch() const noexcept { return rg_last_data_batch_; }
 
         NCPP_FORCE_INLINE F_render_depth_pyramid* rg_depth_pyramid_p() const noexcept { return rg_depth_pyramid_p_; }
         NCPP_FORCE_INLINE auto& last_depth_pyramid() noexcept { return last_depth_pyramid_; }
-
-        NCPP_FORCE_INLINE b8 update_cull_data() const noexcept { return update_cull_data_; }
 
 
 

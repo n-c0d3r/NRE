@@ -69,7 +69,29 @@ namespace nre::newrg
             ).c_str()
         );
 
-        ImGui::Checkbox("Update Cull Data", &update_cull_data_);
+        auto output_size = size();
+        ImGui::Text("Output Size: (%d, %d)", output_size.x, output_size.y);
+
+        if(output_size.x && output_size.y)
+        {
+            auto depth_pyramid_size = depth_pyramid_size_internal();
+            ImGui::Text("Depth Pyramid Size: (%d, %d)", depth_pyramid_size.x, depth_pyramid_size.y);
+            ImGui::Text(
+                "Depth Pyramid Levels: %d",
+                eastl::max<u32>(
+                    ceil(
+                        log2(
+                            f32(depth_pyramid_size.x)
+                        )
+                    ),
+                    ceil(
+                        log2(
+                            f32(depth_pyramid_size.y)
+                        )
+                    )
+                ) + 1
+            );
+        }
 
         ImGui::End();
     }
@@ -97,261 +119,259 @@ namespace nre::newrg
         rg_depth_only_frame_buffer_p_ = 0;
 
         rg_last_data_batch_.reset();
-        rg_cull_data_batch_.reset();
         rg_data_batch_.reset();
 
         F_scene_render_view::RG_begin_register();
 
+        auto flush_last_frame_caches = [this]()
+        {
+            last_depth_pyramid_.reset();
+        };
+
         if(!is_renderable())
+        {
+            flush_last_frame_caches();
             return;
+        }
 
         auto render_graph_p = F_render_graph::instance_p();
         auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
+
+        auto texture_size = size();
+        F_vector2_u32 depth_pyramid_size = depth_pyramid_size_internal();
+
+        // create textures
         {
-            auto texture_size = size();
-            F_vector2_u32 depth_pyramid_size = depth_pyramid_size_internal();
+            rg_main_texture_p_ = render_graph_p->create_permanent_resource(
+                NCPP_AOH_VALID(output_texture_2d_p()),
+                ED_resource_state::PRESENT
+                NRE_OPTIONAL_DEBUG_PARAM(output_texture_2d_p()->debug_name().c_str())
+            );
+            F_render_descriptor* rg_main_view_p = render_graph_p->create_permanent_descriptor(
+                output_rtv_descriptor_handle(),
+                ED_descriptor_heap_type::RENDER_TARGET
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].main_view"
+                )
+            );
+            rg_main_view_element_ = {
+                .descriptor_p = rg_main_view_p
+            };
 
-            // create textures
-            {
-                rg_main_texture_p_ = render_graph_p->create_permanent_resource(
-                    NCPP_AOH_VALID(output_texture_2d_p()),
-                    ED_resource_state::PRESENT
-                    NRE_OPTIONAL_DEBUG_PARAM(output_texture_2d_p()->debug_name().c_str())
-                );
-                F_render_descriptor* rg_main_view_p = render_graph_p->create_permanent_descriptor(
-                    output_rtv_descriptor_handle(),
-                    ED_descriptor_heap_type::RENDER_TARGET
-                    NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
-                        + actor_p()->name().c_str()
-                        + "].main_view"
-                    )
-                );
-                rg_main_view_element_ = {
-                    .descriptor_p = rg_main_view_p
-                };
-
-                rg_depth_texture_p_ = H_render_resource::create_texture_2d(
-                    texture_size.width,
-                    texture_size.height,
-                    ED_format::R32_TYPELESS,
-                    1,
-                    {},
-                    ED_resource_flag::DEPTH_STENCIL
-                    | ED_resource_flag::SHADER_RESOURCE,
-                    ED_resource_heap_type::DEFAULT,
-                    {
-                        .clear_value = F_resource_clear_value {
-                            .format = ED_format::D32_FLOAT,
-                            .depth = 0.0f // reverse depth
-                        }
-                    }
-                    NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
-                        + actor_p()->name().c_str()
-                        + "].depth_texture"
-                    )
-                );
-                F_render_descriptor* rg_depth_view_p = render_graph_p->create_resource_view(
-                    rg_depth_texture_p_,
-                    {
-                        .type = ED_resource_view_type::DEPTH_STENCIL,
-                        .overrided_format = ED_format::D32_FLOAT
-                    }
-                    NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
-                        + actor_p()->name().c_str()
-                        + "].depth_view"
-                    )
-                );
-                rg_depth_view_element_ = {
-                    .descriptor_p = rg_depth_view_p
-                };
-
-                rg_main_frame_buffer_p_ = render_graph_p->create_frame_buffer(
-                    { rg_main_view_element() },
-                    rg_depth_view_element_
-                    NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
-                        + actor_p()->name().c_str()
-                        + "].main_frame_buffer"
-                    )
-                );
-                rg_depth_only_frame_buffer_p_ = render_graph_p->create_frame_buffer(
-                    {},
-                    rg_depth_view_element_
-                    NRE_OPTIONAL_DEBUG_PARAM(
-                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
-                        + actor_p()->name().c_str()
-                        + "].depth_only_frame_buffer"
-                    )
-                );
-            }
-
-            // create first depth pyramid
-            {
-                b8 need_to_recreate_hzb = false;
-
-                if(last_depth_pyramid_)
+            rg_depth_texture_p_ = H_render_resource::create_texture_2d(
+                texture_size.width,
+                texture_size.height,
+                ED_format::R32_TYPELESS,
+                1,
+                {},
+                ED_resource_flag::DEPTH_STENCIL
+                | ED_resource_flag::SHADER_RESOURCE,
+                ED_resource_heap_type::DEFAULT,
                 {
-                    if(last_depth_pyramid_.size() == depth_pyramid_size)
-                    {
-                        rg_depth_pyramid_p_ = render_graph_p->T_create<F_render_depth_pyramid>(
-                            eastl::move(last_depth_pyramid_)
-                        );
+                    .clear_value = F_resource_clear_value {
+                        .format = ED_format::D32_FLOAT,
+                        .depth = 0.0f // reverse depth
                     }
-                    else
-                    {
-                        last_depth_pyramid_.reset();
-                        need_to_recreate_hzb = true;
-                    }
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].depth_texture"
+                )
+            );
+            F_render_descriptor* rg_depth_view_p = render_graph_p->create_resource_view(
+                rg_depth_texture_p_,
+                {
+                    .type = ED_resource_view_type::DEPTH_STENCIL,
+                    .overrided_format = ED_format::D32_FLOAT
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].depth_view"
+                )
+            );
+            rg_depth_view_element_ = {
+                .descriptor_p = rg_depth_view_p
+            };
+
+            rg_main_frame_buffer_p_ = render_graph_p->create_frame_buffer(
+                { rg_main_view_element() },
+                rg_depth_view_element_
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].main_frame_buffer"
+                )
+            );
+            rg_depth_only_frame_buffer_p_ = render_graph_p->create_frame_buffer(
+                {},
+                rg_depth_view_element_
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].depth_only_frame_buffer"
+                )
+            );
+        }
+
+        // create first depth pyramid
+        {
+            b8 need_to_recreate_hzb = false;
+
+            if(last_depth_pyramid_)
+            {
+                if(last_depth_pyramid_.size() == depth_pyramid_size)
+                {
+                    rg_depth_pyramid_p_ = render_graph_p->T_create<F_render_depth_pyramid>(
+                        eastl::move(last_depth_pyramid_)
+                    );
                 }
                 else
                 {
                     need_to_recreate_hzb = true;
                 }
-
-                if(need_to_recreate_hzb)
-                {
-                    rg_depth_pyramid_p_ = render_graph_p->T_create<F_render_depth_pyramid>(
-                        depth_pyramid_size
-                        NRE_OPTIONAL_DEBUG_PARAM(
-                            F_render_frame_name("nre.newrg.abytek_scene_render_views[")
-                            + actor_p()->name().c_str()
-                            + "].depth_pyramid"
-                        )
-                    );
-                }
+            }
+            else
+            {
+                need_to_recreate_hzb = true;
             }
 
-            // upload view buffer data
+            if(need_to_recreate_hzb)
             {
-                data_.world_to_view_matrix = view_matrix;
-                data_.view_to_world_matrix = invert(view_matrix);
-                data_.view_to_clip_matrix = projection_matrix;
-                data_.clip_to_view_matrix = invert(projection_matrix);
-
-                f32 near_plane = NMATH_F32_INFINITY;
-                f32 far_plane = NMATH_F32_NEGATIVE_INFINITY;
-
-                F_vector4_f32 clip_corners[8] = {
-                    F_vector4_f32(-1, -1, 1, 1),
-                    F_vector4_f32(-1, 1, 1, 1),
-                    F_vector4_f32(1, 1, 1, 1),
-                    F_vector4_f32(1, -1, 1, 1),
-                    F_vector4_f32(-1, -1, 0, 1),
-                    F_vector4_f32(-1, 1, 0, 1),
-                    F_vector4_f32(1, 1, 0, 1),
-                    F_vector4_f32(1, -1, 0, 1)
-                };
-                F_vector4_f32 corners[8];
-
-                for(u32 i = 0; i < 8; ++i)
-                {
-                    corners[i] = data_.clip_to_view_matrix * clip_corners[i];
-                    corners[i] /= corners[i].w;
-                }
-
-                for(u32 i = 0; i < 4; ++i)
-                {
-                    u32 corner_id0 = i;
-                    u32 corner_id1 = (i + 1) % 4 + 4;
-                    u32 corner_id2 = corner_id0 + 4;
-
-                    F_vector3_f32 pivot = corners[corner_id0].xyz();
-                    F_vector3_f32 right = normalize(
-                        (corners[corner_id1] - corners[corner_id0]).xyz()
-                    );
-                    F_vector3_f32 forward = normalize(
-                        (corners[corner_id2] - corners[corner_id0]).xyz()
-                    );
-                    F_vector3_f32 normal = normalize(
-                        cross(
-                            forward,
-                            right
-                        )
-                    );
-
-                    data_.frustum_planes[i] = {
-                        normal,
-                        -dot(pivot, normal)
-                    };
-                    near_plane = eastl::min(
-                        near_plane,
-                        corners[i].z
-                    );
-                    near_plane = eastl::min(
-                        near_plane,
-                        corners[i + 4].z
-                    );
-                    far_plane = eastl::max(
-                        far_plane,
-                        corners[i].z
-                    );
-                    far_plane = eastl::max(
-                        far_plane,
-                        corners[i + 4].z
-                    );
-                }
-
-                data_.frustum_planes[4] = {
-                    -F_vector3_f32::forward(),
-                    -near_plane
-                };
-                data_.frustum_planes[5] = {
-                    F_vector3_f32::forward(),
-                    far_plane
-                };
-                data_.near_plane = near_plane;
-                data_.far_plane = far_plane;
-
-                data_.view_position = (data_.view_to_world_matrix * F_vector4_f32::future()).xyz();
-
-                data_.view_right = normalize(
-                    data_.view_to_world_matrix.tl3x3()
-                    * F_vector3_f32 { 1, 0, 0 }
-                ).xyz();
-                data_.view_up = normalize(
-                    data_.view_to_world_matrix.tl3x3()
-                    * F_vector3_f32 { 0, 1, 0 }
-                ).xyz();
-                data_.view_forward = normalize(
-                    data_.view_to_world_matrix.tl3x3()
-                    * F_vector3_f32 { 0, 0, 1 }
-                ).xyz();
-
-                data_.view_size = texture_size;
-
-                if(is_register_)
-                {
-                    is_register_ = false;
-                    last_data_ = data_;
-                }
-
-                if(update_cull_data_)
-                {
-                    cull_data_ = data_;
-                }
-
-                rg_data_batch_ = {
-                    uniform_transient_resource_uploader_p->T_enqueue_upload(
-                        data_
+                rg_depth_pyramid_p_ = render_graph_p->T_create<F_render_depth_pyramid>(
+                    depth_pyramid_size
+                    NRE_OPTIONAL_DEBUG_PARAM(
+                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                        + actor_p()->name().c_str()
+                        + "].depth_pyramid"
                     )
-                };
-                rg_cull_data_batch_ = {
-                    uniform_transient_resource_uploader_p->T_enqueue_upload(
-                        cull_data_
-                    )
-                };
-                rg_last_data_batch_ = {
-                    uniform_transient_resource_uploader_p->T_enqueue_upload(
-                        last_data_
-                    )
-                };
-
-                last_data_ = data_;
+                );
             }
         }
+
+        // upload view buffer data
+        {
+            data_.world_to_view_matrix = view_matrix;
+            data_.view_to_world_matrix = invert(view_matrix);
+            data_.view_to_clip_matrix = projection_matrix;
+            data_.clip_to_view_matrix = invert(projection_matrix);
+
+            f32 near_plane = NMATH_F32_INFINITY;
+            f32 far_plane = NMATH_F32_NEGATIVE_INFINITY;
+
+            F_vector4_f32 clip_corners[8] = {
+                F_vector4_f32(-1, -1, 1, 1),
+                F_vector4_f32(-1, 1, 1, 1),
+                F_vector4_f32(1, 1, 1, 1),
+                F_vector4_f32(1, -1, 1, 1),
+                F_vector4_f32(-1, -1, 0, 1),
+                F_vector4_f32(-1, 1, 0, 1),
+                F_vector4_f32(1, 1, 0, 1),
+                F_vector4_f32(1, -1, 0, 1)
+            };
+            F_vector4_f32 corners[8];
+
+            for(u32 i = 0; i < 8; ++i)
+            {
+                corners[i] = data_.clip_to_view_matrix * clip_corners[i];
+                corners[i] /= corners[i].w;
+            }
+
+            for(u32 i = 0; i < 4; ++i)
+            {
+                u32 corner_id0 = i;
+                u32 corner_id1 = (i + 1) % 4 + 4;
+                u32 corner_id2 = corner_id0 + 4;
+
+                F_vector3_f32 pivot = corners[corner_id0].xyz();
+                F_vector3_f32 right = normalize(
+                    (corners[corner_id1] - corners[corner_id0]).xyz()
+                );
+                F_vector3_f32 forward = normalize(
+                    (corners[corner_id2] - corners[corner_id0]).xyz()
+                );
+                F_vector3_f32 normal = normalize(
+                    cross(
+                        forward,
+                        right
+                    )
+                );
+
+                data_.frustum_planes[i] = {
+                    normal,
+                    -dot(pivot, normal)
+                };
+                near_plane = eastl::min(
+                    near_plane,
+                    corners[i].z
+                );
+                near_plane = eastl::min(
+                    near_plane,
+                    corners[i + 4].z
+                );
+                far_plane = eastl::max(
+                    far_plane,
+                    corners[i].z
+                );
+                far_plane = eastl::max(
+                    far_plane,
+                    corners[i + 4].z
+                );
+            }
+
+            data_.frustum_planes[4] = {
+                -F_vector3_f32::forward(),
+                -near_plane
+            };
+            data_.frustum_planes[5] = {
+                F_vector3_f32::forward(),
+                far_plane
+            };
+            data_.near_plane = near_plane;
+            data_.far_plane = far_plane;
+
+            data_.view_position = (data_.view_to_world_matrix * F_vector4_f32::future()).xyz();
+
+            data_.view_right = normalize(
+                data_.view_to_world_matrix.tl3x3()
+                * F_vector3_f32 { 1, 0, 0 }
+            ).xyz();
+            data_.view_up = normalize(
+                data_.view_to_world_matrix.tl3x3()
+                * F_vector3_f32 { 0, 1, 0 }
+            ).xyz();
+            data_.view_forward = normalize(
+                data_.view_to_world_matrix.tl3x3()
+                * F_vector3_f32 { 0, 0, 1 }
+            ).xyz();
+
+            data_.view_size = texture_size;
+
+            if(is_register_)
+            {
+                is_register_ = false;
+                last_data_ = data_;
+            }
+
+            rg_data_batch_ = {
+                uniform_transient_resource_uploader_p->T_enqueue_upload(
+                    data_
+                )
+            };
+            rg_last_data_batch_ = {
+                uniform_transient_resource_uploader_p->T_enqueue_upload(
+                    last_data_
+                )
+            };
+
+            last_data_ = data_;
+        }
+
+        //
+        flush_last_frame_caches();
     }
     void F_abytek_scene_render_view::RG_end_register()
     {

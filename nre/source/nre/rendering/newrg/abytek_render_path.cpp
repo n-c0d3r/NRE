@@ -488,7 +488,6 @@ namespace nre::newrg
 
                     // main phase
                     F_indirect_data_batch post_instanced_cluster_range_data_batch;
-                    F_indirect_data_batch post_expanded_instanced_cluster_range_data_batch;
                     {
                         post_instanced_cluster_range_data_batch = create_root_instanced_cluster_range_data_batch();
 
@@ -518,7 +517,7 @@ namespace nre::newrg
                             {
                                 .mode = E_expand_clusters_mode::MAIN,
                                 .rg_post_instanced_cluster_header_buffer_p = rg_post_instanced_cluster_header_buffer_p,
-                                .post_expanded_instanced_cluster_range_data_batch_p = &post_expanded_instanced_cluster_range_data_batch
+                                .post_expanded_instanced_cluster_range_data_batch_p = &post_instanced_cluster_range_data_batch
                             }
                             NRE_OPTIONAL_DEBUG_PARAM(
                                 F_render_frame_name("nre.newrg.abytek_render_path.expand_clusters(")
@@ -841,7 +840,7 @@ namespace nre::newrg
                 + additional_descriptor_count
                 NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
             );
-            view_p->rg_cull_data_batch().enqueue_initialize_cbv(
+            view_p->rg_data_batch().enqueue_initialize_cbv(
                 main_render_bind_list[0]
             );
             main_render_bind_list.enqueue_initialize_resource_view(
@@ -1114,11 +1113,15 @@ namespace nre::newrg
         auto& instance_transform_bind_list = instance_bind_lists.bases()[
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM
         ];
+        auto& instance_last_transform_bind_list = instance_bind_lists.bases()[
+            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_TRANSFORM
+        ];
         auto& instance_mesh_id_bind_list = instance_bind_lists.bases()[
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID
         ];
 
         auto instance_transform_srv_element = instance_transform_bind_list[0];
+        auto instance_last_transform_srv_element = instance_last_transform_bind_list[0];
         auto instance_mesh_id_srv_element = instance_mesh_id_bind_list[0];
 
         auto unified_mesh_system_p = F_unified_mesh_system::instance_p();
@@ -1148,6 +1151,7 @@ namespace nre::newrg
                 1 // hzb
                 + 1 // post instanced cluster headers
                 + 1 // post instanced cluster ranges
+                + 1 // last view data
             );
             break;
         case E_expand_instances_mode::NO_OCCLUSION_CULLING:
@@ -1161,7 +1165,7 @@ namespace nre::newrg
             + additional_descriptor_count
             NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
         );
-        view_p->rg_cull_data_batch().enqueue_initialize_cbv(
+        view_p->rg_data_batch().enqueue_initialize_cbv(
             main_render_bind_list[0]
         );
         main_render_bind_list.enqueue_initialize_resource_view(
@@ -1201,6 +1205,9 @@ namespace nre::newrg
                 1,
                 main_render_bind_list[5],
                 ED_resource_view_type::UNORDERED_ACCESS
+            );
+            view_p->rg_last_data_batch().enqueue_initialize_cbv(
+                main_render_bind_list[6]
             );
             break;
         case E_expand_instances_mode::NO_OCCLUSION_CULLING:
@@ -1258,6 +1265,10 @@ namespace nre::newrg
                         F_abytek_expand_instances_main_binder_signature::instance_p()->root_signature_p()
                     );
                     bind_base_slots();
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        6,
+                        instance_last_transform_srv_element.handle().gpu_address
+                    );
                     command_list_p->ZC_bind_pipeline_state(
                         NCPP_FOH_VALID(expand_instances_main_pso_p_)
                     );
@@ -1358,6 +1369,17 @@ namespace nre::newrg
                 .resource_p = additional_options.rg_post_instanced_cluster_header_buffer_p,
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
+            render_primitive_data_table.T_for_each_rg_page<
+                NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_TRANSFORM
+            >(
+                [&](F_render_resource* rg_page_p)
+                {
+                    pass_p->add_resource_state({
+                        .resource_p = rg_page_p,
+                        .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                    });
+                }
+            );
             break;
         case E_expand_instances_mode::NO_OCCLUSION_CULLING:
             break;
