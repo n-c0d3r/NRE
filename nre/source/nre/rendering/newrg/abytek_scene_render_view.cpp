@@ -249,6 +249,8 @@ namespace nre::newrg
                         + "].depth_pyramid"
                     )
                 );
+                clear_depth_texture();
+                rg_depth_pyramid_p_->generate(rg_depth_texture_p_);
             }
         }
 
