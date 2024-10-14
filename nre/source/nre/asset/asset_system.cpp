@@ -53,6 +53,8 @@ namespace nre {
 	{
 		eastl::optional<G_string> abs_path_opt = H_path::find_absolute_path(path, external_base_paths);
 
+		NCPP_INFO() << "loading an asset at " << T_cout_value(path);
+
 		if(abs_path_opt) {
 
 			const auto& abs_path = abs_path_opt.value();
@@ -87,6 +89,8 @@ namespace nre {
 	{
 		auto asset_factory_p = find_asset_factory(overrided_file_extension);
 
+		NCPP_INFO() << "loading an asset at " << T_cout_value(path);
+
 		if(!asset_factory_p)
 			return null;
 
@@ -99,6 +103,8 @@ namespace nre {
 	TS<A_asset> F_asset_system::load_asset(const G_string& path, TK_valid<A_asset_factory> asset_factory_p, const TG_span<G_string>& external_base_paths)
 	{
 		eastl::optional<G_string> abs_path_opt = H_path::find_absolute_path(path, external_base_paths);
+
+		NCPP_INFO() << "loading an asset at " << T_cout_value(path);
 
 		if(abs_path_opt) {
 
@@ -130,6 +136,8 @@ namespace nre {
 			H_path::extension(abs_path)
 		);
 
+		NCPP_INFO() << "loading an asset at " << T_cout_value(abs_path);
+
 		if(!asset_factory_p)
 			return null;
 
@@ -153,6 +161,8 @@ namespace nre {
 	{
 		auto asset_factory_p = find_asset_factory(overrided_file_extension);
 
+		NCPP_INFO() << "loading an asset at " << T_cout_value(abs_path);
+
 		if(!asset_factory_p)
 			return null;
 
@@ -163,6 +173,8 @@ namespace nre {
 	}
 	TS<A_asset> F_asset_system::load_asset_from_abs_path(const G_string& abs_path, TK_valid<A_asset_factory> asset_factory_p)
 	{
+		NCPP_INFO() << "loading an asset at " << T_cout_value(abs_path);
+
 		if(asset_factory_p->build_mode() == E_asset_build_mode::FROM_FILE)
 		{
 			return asset_factory_p->build_from_file(abs_path);

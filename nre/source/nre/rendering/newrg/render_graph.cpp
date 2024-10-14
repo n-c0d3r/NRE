@@ -1806,6 +1806,8 @@ namespace nre::newrg
                     auto& resource_states = pass_p->resource_states_;
                     u32 resource_state_count = resource_states.size();
 
+                    resource_aliasing_barriers_before.resize(resource_state_count);
+
                     for(u32 i = 0; i < resource_state_count; ++i)
                     {
                         auto& resource_state = resource_states[i];
@@ -3028,6 +3030,7 @@ namespace nre::newrg
         setup_resource_concurrent_write_range_indices_internal();
         setup_resource_min_pass_ids_internal();
         setup_resource_max_pass_ids_internal();
+        setup_resource_min_sync_pass_ids_internal();
         setup_resource_max_sync_pass_ids_internal();
         setup_resource_allocation_lists_internal();
         setup_resource_deallocation_lists_internal();
