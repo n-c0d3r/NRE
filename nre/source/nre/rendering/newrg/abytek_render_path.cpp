@@ -670,6 +670,9 @@ namespace nre::newrg
         auto& instance_transform_bind_list = instance_bind_lists.bases()[
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM
         ];
+        auto& instance_last_transform_bind_list = instance_bind_lists.bases()[
+            NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_TRANSFORM
+        ];
         auto& instance_inverse_transform_bind_list = instance_bind_lists.bases()[
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_INVERSE_TRANSFORM
         ];
@@ -678,6 +681,7 @@ namespace nre::newrg
         ];
 
         auto instance_transform_srv_element = instance_transform_bind_list[0];
+        auto instance_last_transform_srv_element = instance_last_transform_bind_list[0];
         auto instance_inverse_transform_srv_element = instance_inverse_transform_bind_list[0];
         auto instance_mesh_id_srv_element = instance_mesh_id_bind_list[0];
 
@@ -827,6 +831,9 @@ namespace nre::newrg
             case E_expand_clusters_mode::MAIN:
                 additional_descriptor_count = (
                     1 // hzb
+                    + 1 // post instanced cluster headers
+                    + 1 // post instanced cluster ranges
+                    + 1 // last view data
                 );
                 break;
             case E_expand_clusters_mode::NO_OCCLUSION_CULLING:
@@ -879,6 +886,20 @@ namespace nre::newrg
                     view_p->rg_depth_pyramid_p()->texture_2d_p(),
                     ED_resource_view_type::SHADER_RESOURCE,
                     5
+                );
+                main_render_bind_list.enqueue_initialize_resource_view(
+                    additional_options.rg_post_instanced_cluster_header_buffer_p,
+                    ED_resource_view_type::UNORDERED_ACCESS,
+                    6
+                );
+                additional_options.post_expanded_instanced_cluster_range_data_batch_p->enqueue_initialize_resource_view(
+                    0,
+                    1,
+                    main_render_bind_list[7],
+                    ED_resource_view_type::UNORDERED_ACCESS
+                );
+                view_p->rg_last_data_batch().enqueue_initialize_cbv(
+                    main_render_bind_list[8]
                 );
                 break;
             case E_expand_clusters_mode::NO_OCCLUSION_CULLING:
@@ -947,6 +968,10 @@ namespace nre::newrg
                             F_abytek_expand_clusters_main_binder_signature::instance_p()->root_signature_p()
                         );
                         bind_base_slots();
+                        command_list_p->ZC_bind_root_descriptor_table(
+                            9,
+                            instance_last_transform_srv_element.handle().gpu_address
+                        );
                         command_list_p->ZC_bind_pipeline_state(
                             NCPP_FOH_VALID(expand_clusters_main_pso_p_)
                         );
@@ -1078,12 +1103,37 @@ namespace nre::newrg
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
 
-            if(additional_options.mode != E_expand_clusters_mode::NO_OCCLUSION_CULLING)
+            switch(additional_options.mode)
             {
+            case E_expand_clusters_mode::DEFAULT:
                 pass_p->add_resource_state({
                     .resource_p = view_p->rg_depth_pyramid_p()->texture_2d_p(),
                     .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
                 });
+                break;
+            case E_expand_clusters_mode::MAIN:
+                pass_p->add_resource_state({
+                    .resource_p = view_p->rg_depth_pyramid_p()->texture_2d_p(),
+                    .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                });
+                pass_p->add_resource_state({
+                    .resource_p = additional_options.rg_post_instanced_cluster_header_buffer_p,
+                    .states = ED_resource_state::UNORDERED_ACCESS
+                });
+                render_primitive_data_table.T_for_each_rg_page<
+                    NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_TRANSFORM
+                >(
+                    [&](F_render_resource* rg_page_p)
+                    {
+                        pass_p->add_resource_state({
+                            .resource_p = rg_page_p,
+                            .states = ED_resource_state::NON_PIXEL_SHADER_RESOURCE
+                        });
+                    }
+                );
+                break;
+            case E_expand_clusters_mode::NO_OCCLUSION_CULLING:
+                break;
             }
         }
     }

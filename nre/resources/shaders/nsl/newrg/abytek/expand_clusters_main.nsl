@@ -1,4 +1,91 @@
 
+import(view.nsh)
+
+
+
+submodule ADDITIONAL_RESOURCES(
+
+    @slot(4 8)
+    resource post_instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header))
+
+    @slot(5 8)
+    resource post_instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+    @slot(1 8)
+    resource last_view_data_cbuffer(ConstantBuffer)
+    uniform last_view_data(F_view_data)
+
+    @slot(0 9)
+    resource instance_last_transforms(StructuredBuffer(float4x4) -1)
+)
+
+
+
+submodule ADDITIONAL_GROUP_SHARES(
+    groupshared uint group_post_expanded_instanced_cluster_local_offset;
+)
+
+
+
+submodule ALTERNATIVE_OCCLUSION_CULLING(
+
+    float4x4 last_local_to_world_matrix = instance_last_transforms[
+        instanced_cluster_header.instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        instanced_cluster_header.instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+    float4x4 last_local_to_view_matrix = mul(last_view_data.world_to_view_matrix, last_local_to_world_matrix);
+
+    float4 last_view_bbox_corners[8];
+    transform_cuboid_corners(last_local_to_view_matrix, bbox_corners, last_view_bbox_corners);
+    
+    float4 last_ndc_bbox_corners[8];
+    cuboid_view_corners_to_ndc_corners(
+        view_to_clip_matrix,
+        view_near_plane,
+        view_far_plane,
+        last_view_bbox_corners, 
+        last_ndc_bbox_corners
+    );
+
+    F_occluder last_occluder;
+    calculate_occluder(
+        last_view_bbox_corners,
+        last_ndc_bbox_corners,
+        last_occluder
+    );
+
+    is_culled = is_occluded_with_hzb(
+        hzb,
+        last_occluder
+    );
+
+    if(is_culled)
+    {
+        u32 post_store_offset = WavePrefixCountBits(true);
+        u32 post_store_count = WaveActiveCountBits(true);
+        
+        if(WaveIsFirstLane())
+        {
+            InterlockedAdd(
+                post_instanced_cluster_ranges[0].count,
+                post_store_count,
+                group_post_expanded_instanced_cluster_local_offset
+            );
+        }
+        AllMemoryBarrierWithGroupSync();
+        
+        post_instanced_cluster_headers[
+            post_instanced_cluster_ranges[0].offset
+            + group_post_expanded_instanced_cluster_local_offset
+            + post_store_offset
+        ] = instanced_cluster_header;
+        AllMemoryBarrierWithGroupSync();
+    }
+)
+
+
+
 define ROOT_SIGNATURE(NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_MAIN_BINDER_SIGNATURE)
 
 import(expand_clusters.nsl)

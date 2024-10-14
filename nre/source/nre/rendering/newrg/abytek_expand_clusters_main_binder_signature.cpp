@@ -123,6 +123,31 @@ namespace nre::newrg
                                     .offset_in_descriptors_from_table_start = 5,
                                     .base_register = 0,
                                     .register_space = 8
+                                },
+                                F_descriptor_range_desc { // 2UAVs (post instanced cluster headers, post instanced cluster ranges)
+                                    .type = ED_descriptor_range_type::UNORDERED_ACCESS,
+                                    .descriptor_count = 2,
+                                    .offset_in_descriptors_from_table_start = 6,
+                                    .base_register = 4,
+                                    .register_space = 8
+                                },
+                                F_descriptor_range_desc { // 1CBV (last scene render view)
+                                    .type = ED_descriptor_range_type::CONSTANT_BUFFER,
+                                    .descriptor_count = 1,
+                                    .offset_in_descriptors_from_table_start = 8,
+                                    .base_register = 1,
+                                    .register_space = 8
+                                }
+                            }
+                        }
+                    ),
+                    F_root_param_desc( // instance last transforms
+                        F_root_descriptor_table_desc{
+                            .range_descs = {
+                                F_descriptor_range_desc {
+                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
+                                    .descriptor_count = u32(-1),
+                                    .register_space = 9
                                 }
                             }
                         }

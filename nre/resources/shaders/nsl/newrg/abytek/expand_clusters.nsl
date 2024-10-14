@@ -348,8 +348,7 @@ compute_shader CS(
                 }
 
                 // if expand childs
-                b8 expand_childs = false;
-                expand_childs = expand_childs || late_expand_childs;
+                b8 expand_childs = late_expand_childs;
                 expand_childs = expand_childs && cluster_hierarchical_culling_data.child_node_count;
                 expand_childs = expand_childs && !is_culled;
 
