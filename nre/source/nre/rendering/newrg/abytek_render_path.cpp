@@ -567,7 +567,7 @@ namespace nre::newrg
                         );
 
                         if(post_phase_options.only_init_args_when_expanding_clusters)
-                                goto end_post_phase;
+                            goto end_post_phase;
 
                         if(simple_draw_instanced_clusters_options.enable)
                         {
