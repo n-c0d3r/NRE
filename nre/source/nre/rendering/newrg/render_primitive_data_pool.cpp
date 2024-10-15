@@ -26,11 +26,11 @@ namespace nre::newrg
                 ED_resource_heap_type::DEFAULT
             },
             {
-                ED_resource_state::COMMON,
-                ED_resource_state::COMMON,
-                ED_resource_state::COMMON,
-                ED_resource_state::COMMON,
-                ED_resource_state::COMMON
+                ED_resource_state::ALL_SHADER_RESOURCE,
+                ED_resource_state::ALL_SHADER_RESOURCE,
+                ED_resource_state::ALL_SHADER_RESOURCE,
+                ED_resource_state::ALL_SHADER_RESOURCE,
+                ED_resource_state::ALL_SHADER_RESOURCE
             },
             NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS,
             0,

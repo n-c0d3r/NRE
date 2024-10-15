@@ -333,7 +333,9 @@ namespace nre::newrg
                         | ED_resource_flag::UNORDERED_ACCESS
                         | ED_resource_flag::STRUCTURED,
                         ED_resource_heap_type::DEFAULT,
-                        {}
+                        {
+                            .initial_state = ED_resource_state::UNORDERED_ACCESS
+                        }
                         NRE_OPTIONAL_DEBUG_PARAM(
                             F_render_frame_name("nre.newrg.abytek_render_path.instanced_cluster_header_buffer[")
                             + casted_view_p->actor_p()->name().c_str()
@@ -351,7 +353,9 @@ namespace nre::newrg
                         | ED_resource_flag::UNORDERED_ACCESS
                         | ED_resource_flag::STRUCTURED,
                         ED_resource_heap_type::DEFAULT,
-                        {}
+                        {
+                            .initial_state = ED_resource_state::UNORDERED_ACCESS
+                        }
                         NRE_OPTIONAL_DEBUG_PARAM(
                             F_render_frame_name("nre.newrg.abytek_render_path.post_instanced_cluster_header_buffer[")
                             + casted_view_p->actor_p()->name().c_str()
@@ -769,7 +773,9 @@ namespace nre::newrg
             | ED_resource_flag::UNORDERED_ACCESS
             | ED_resource_flag::STRUCTURED,
             ED_resource_heap_type::DEFAULT,
-            {}
+            {
+                .initial_state = ED_resource_state::UNORDERED_ACCESS
+            }
             NRE_OPTIONAL_DEBUG_PARAM(
                 name
                 + ".global_cached_candidates"
@@ -783,7 +789,9 @@ namespace nre::newrg
             | ED_resource_flag::UNORDERED_ACCESS
             | ED_resource_flag::STRUCTURED,
             ED_resource_heap_type::DEFAULT,
-            {}
+            {
+                .initial_state = ED_resource_state::UNORDERED_ACCESS
+            }
             NRE_OPTIONAL_DEBUG_PARAM(
                 name
                 + ".global_cached_candidate_batches"

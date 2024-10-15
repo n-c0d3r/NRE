@@ -25,8 +25,8 @@ namespace nre::newrg
                 ED_resource_heap_type::DEFAULT
             },
             {
-                ED_resource_state::COMMON,
-                ED_resource_state::COMMON
+                ED_resource_state::ALL_SHADER_RESOURCE,
+                ED_resource_state::ALL_SHADER_RESOURCE
             },
             NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
             0,
@@ -36,7 +36,7 @@ namespace nre::newrg
         subpage_header_table_(
             { ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED },
             { ED_resource_heap_type::DEFAULT },
-            { ED_resource_state::COMMON },
+            { ED_resource_state::ALL_SHADER_RESOURCE },
             NRE_NEWRG_UNIFIED_MESH_SUBPAGE_HEADER_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.subpage_header_table")
@@ -55,10 +55,10 @@ namespace nre::newrg
                 ED_resource_heap_type::DEFAULT
             },
             {
-                ED_resource_state::COMMON,
-                ED_resource_state::COMMON,
-                ED_resource_state::COMMON,
-                ED_resource_state::COMMON
+                ED_resource_state::ALL_SHADER_RESOURCE,
+                ED_resource_state::ALL_SHADER_RESOURCE,
+                ED_resource_state::ALL_SHADER_RESOURCE,
+                ED_resource_state::ALL_SHADER_RESOURCE
             },
             NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
             0
@@ -67,7 +67,7 @@ namespace nre::newrg
         vertex_data_table_(
             { ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED },
             { ED_resource_heap_type::DEFAULT },
-            { ED_resource_state::COMMON },
+            { ED_resource_state::ALL_SHADER_RESOURCE },
             NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS * NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER,
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.vertex_data_table")
@@ -75,7 +75,7 @@ namespace nre::newrg
         triangle_vertex_id_table_(
             { ED_resource_flag::SHADER_RESOURCE },
             { ED_resource_heap_type::DEFAULT },
-            { ED_resource_state::COMMON },
+            { ED_resource_state::ALL_SHADER_RESOURCE },
             NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS * NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3,
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.triangle_vertex_id_table")

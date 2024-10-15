@@ -1492,6 +1492,14 @@ namespace nre::newrg
                 auto& access_resource_states = access_pass_p->resource_states_;
                 auto& access_resource_state = access_resource_states[access_dependency.resource_state_index];
 
+                if(access_dependency_index == 0)
+                {
+                    if(!(access_resource_state.is_writable()))
+                    {
+                        access_resource_state.states = (access_resource_state.states | resource_p->default_states());
+                    }
+                }
+
                 auto& access_resource_producer_dependencies = access_pass_p->resource_producer_dependencies_;
                 auto& access_resource_producer_dependency = access_resource_producer_dependencies[access_dependency.resource_state_index];
 
@@ -1717,13 +1725,13 @@ namespace nre::newrg
                             )
                         )
                         {
-                            if(resource_p->default_states() != optimized_states)
+                            if(!flag_is_has(resource_p->default_states(), optimized_states))
                             {
                                 resource_barrier_before = H_resource_barrier::transition(
                                     F_resource_transition_barrier {
                                         .resource_p = (TKPA<A_resource>)rhi_p,
                                         .subresource_index = resource_state.subresource_index,
-                                        .state_before = ED_resource_state::COMMON,
+                                        .state_before = resource_p->default_states(),
                                         .state_after = optimized_states
                                     }
                                 );
