@@ -464,6 +464,7 @@ namespace nre::newrg
         );
         void simple_draw_instanced_clusters(
             TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_frame_buffer* rg_frame_buffer_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,
             const F_indirect_data_batch& instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")

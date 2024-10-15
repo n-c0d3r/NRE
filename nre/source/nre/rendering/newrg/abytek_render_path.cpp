@@ -530,6 +530,7 @@ namespace nre::newrg
                         {
                             simple_draw_instanced_clusters(
                                 NCPP_FOH_VALID(casted_view_p),
+                                casted_view_p->rg_main_frame_buffer_p(),
                                 rg_instanced_cluster_header_buffer_p,
                                 main_expanded_instanced_cluster_range_data_batch
                                 NRE_OPTIONAL_DEBUG_PARAM(
@@ -572,6 +573,7 @@ namespace nre::newrg
                         {
                             simple_draw_instanced_clusters(
                                 NCPP_FOH_VALID(casted_view_p),
+                                casted_view_p->rg_main_frame_buffer_p(),
                                 rg_post_instanced_cluster_header_buffer_p,
                                 post_expanded_instanced_cluster_range_data_batch
                                 NRE_OPTIONAL_DEBUG_PARAM(
@@ -2948,6 +2950,7 @@ namespace nre::newrg
     }
     void F_abytek_render_path::simple_draw_instanced_clusters(
         TKPA_valid<F_abytek_scene_render_view> view_p,
+        F_render_frame_buffer* rg_frame_buffer_p,
         F_render_resource* rg_instanced_cluster_header_buffer_p,
         const F_indirect_data_batch& instanced_cluster_range_data_batch
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
@@ -3111,7 +3114,7 @@ namespace nre::newrg
                 });
                 command_list_p->ZOM_bind_frame_buffer(
                     NCPP_FOH_VALID(
-                        view_p->rg_main_frame_buffer_p()->rhi_p()
+                        rg_frame_buffer_p->rhi_p()
                     )
                 );
 
