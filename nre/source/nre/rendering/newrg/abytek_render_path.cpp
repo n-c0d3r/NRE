@@ -3245,7 +3245,7 @@ namespace nre::newrg
     {
         auto begin_section = [](auto&& name)
         {
-            ImGui::BeginChild(name, ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
+            ImGui::BeginChild(name, ImVec2(0, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Border);
             ImGui::Text(name);
         };
         auto end_section = []()

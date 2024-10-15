@@ -45,6 +45,14 @@ namespace nre {
         ~F_render_foundation_rg_tick_event(){}
     };
 
+    class F_render_foundation_rg_pre_execute_event : public F_event {
+
+    public:
+        NCPP_FORCE_INLINE F_render_foundation_rg_pre_execute_event()
+        {}
+        ~F_render_foundation_rg_pre_execute_event(){}
+    };
+
     class F_render_foundation_upload_event : public F_event {
 
     public:

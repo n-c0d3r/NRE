@@ -29,6 +29,7 @@ namespace nre::newrg
 
     private:
         F_render_foundation_rg_tick_event rg_tick_event_;
+        F_render_foundation_rg_pre_execute_event rg_pre_execute_event_;
         F_render_foundation_rg_register_render_primitive_data_event rg_register_render_primitive_data_event_;
         F_render_foundation_rg_register_render_primitive_data_upload_event rg_register_render_primitive_data_upload_event_;
         F_render_foundation_unified_mesh_system_rg_begin_register_event unified_mesh_system_rg_begin_register_event_;
@@ -47,6 +48,7 @@ namespace nre::newrg
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_tick_event_,
+            rg_pre_execute_event_,
             rg_register_render_primitive_data_event_,
             rg_register_render_primitive_data_upload_event_,
             unified_mesh_system_rg_begin_register_event_,
@@ -87,6 +89,17 @@ namespace nre::newrg::internal
         NCPP_FORCE_INLINE void operator = (F__&& functor) {
 
             F_render_foundation::instance_p()->T_get_event<F_render_foundation_rg_tick_event>().T_push_back_listener(
+                std::forward<F__>(functor)
+            );
+        }
+    };
+
+    struct F_render_foundation_rg_pre_execute_event_caller
+    {
+        template<typename F__>
+        NCPP_FORCE_INLINE void operator = (F__&& functor) {
+
+            F_render_foundation::instance_p()->T_get_event<F_render_foundation_rg_pre_execute_event>().T_push_back_listener(
                 std::forward<F__>(functor)
             );
         }
@@ -174,6 +187,9 @@ namespace nre::newrg::internal
 #define NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER() \
     nre::newrg::internal::F_render_foundation_rg_tick_event_caller NCPP_GLUE(___nre_render_foundation_rg_tick_event___, NCPP_LINE); \
     NCPP_GLUE(___nre_render_foundation_rg_tick_event___, NCPP_LINE) = [&](auto&)
+#define NRE_NEWRG_RENDER_FOUNDATION_RG_PRE_EXECUTE_REGISTER() \
+    nre::newrg::internal::F_render_foundation_rg_pre_execute_event_caller NCPP_GLUE(___nre_render_foundation_rg_pre_execute_event___, NCPP_LINE); \
+    NCPP_GLUE(___nre_render_foundation_rg_pre_execute_event___, NCPP_LINE) = [&](auto&)
 #define NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER_RENDER_PRIMITIVE_DATA() \
     nre::newrg::internal::F_render_foundation_rg_register_render_primitive_data_event_caller NCPP_GLUE(___nre_render_foundation_rg_register_render_primitive_data_event___, NCPP_LINE); \
     NCPP_GLUE(___nre_render_foundation_rg_register_render_primitive_data_event___, NCPP_LINE) = [&](auto&)

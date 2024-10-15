@@ -120,6 +120,7 @@
 #include <nre/rendering/newrg/render_primitive_data.hpp>
 #include <nre/rendering/newrg/indirect_utilities.hpp>
 #include <nre/rendering/newrg/render_uniform_batch.hpp>
+#include <nre/rendering/newrg/render_resource_inspector.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif
