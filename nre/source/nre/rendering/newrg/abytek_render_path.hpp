@@ -260,13 +260,20 @@ namespace nre::newrg
         };
         F_depth_prepass_options depth_prepass_options;
 
-        struct F_lod_options
+        struct F_lod_and_culling_options
         {
             f32 lod_error_threshold = 5.0f;
             f32 cull_error_threshold = 2.0f;
             f32 task_capacity_factor = 64.0f;
         };
-        F_lod_options lod_options;
+        F_lod_and_culling_options lod_and_culling_options;
+
+        struct F_post_phase_options
+        {
+            b8 enable = true;
+            b8 only_init_args_when_expanding_clusters = true;
+        };
+        F_post_phase_options post_phase_options;
 
         u32 min_wave_size_ = 0;
         u32 max_wave_size_ = 0;
@@ -380,6 +387,8 @@ namespace nre::newrg
 
             u32 overrided_max_instanced_cluster_count = 0;
             f32 overrided_task_capacity_factor = 0.0f;
+
+            b8 only_init_args = false;
         };
 
         enum class E_expand_instances_mode

@@ -127,10 +127,6 @@ namespace nre::newrg
             "NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE",
             G_to_string(expand_clusters_batch_size())
         });
-        F_nsl_shader_system::instance_p()->define_global_macro({
-            "NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_MAX_CACHED_CANDIDATE_BATCH_COUNT",
-            G_to_string(NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / expand_clusters_batch_size())
-        });
 
         // load shaders
         {
@@ -549,6 +545,7 @@ namespace nre::newrg
 
                     // post phase
                     F_indirect_data_batch post_expanded_instanced_cluster_range_data_batch;
+                    if(post_phase_options.enable)
                     {
                         expand_clusters(
                             NCPP_FOH_VALID(casted_view_p),
@@ -556,8 +553,10 @@ namespace nre::newrg
                             post_instanced_cluster_range_data_batch,
                             post_expanded_instanced_cluster_range_data_batch,
                             {
-                                .overrided_max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_POST_INSTANCED_CLUSTER_COUNT,
-                                .overrided_task_capacity_factor = 4.0f
+                                .overrided_max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_POST_INSTANCED_CLUSTER_COUNT / 2,
+                                .overrided_task_capacity_factor = 4.0f,
+
+                                .only_init_args = post_phase_options.only_init_args_when_expanding_clusters
                             }
                             NRE_OPTIONAL_DEBUG_PARAM(
                                 F_render_frame_name("nre.newrg.abytek_render_path.post_phase.expand_clusters(")
@@ -565,6 +564,9 @@ namespace nre::newrg
                                 + ")"
                             )
                         );
+
+                        if(post_phase_options.only_init_args_when_expanding_clusters)
+                                goto end_post_phase;
 
                         if(simple_draw_instanced_clusters_options.enable)
                         {
@@ -581,6 +583,9 @@ namespace nre::newrg
                         }
 
                         casted_view_p->generate_depth_pyramid();
+
+                        end_post_phase:
+                        {}
                     }
                 }
             }
@@ -605,16 +610,16 @@ namespace nre::newrg
         u32 max_instanced_cluster_count = additional_options.overrided_max_instanced_cluster_count;
         if(max_instanced_cluster_count == 0)
         {
-            max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT;
+            max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT / 2;
         }
 
         u32 max_cached_candidate_batch_count = max_instanced_cluster_count / expand_clusters_batch_size();
-        u32 max_task_capacity = max_instanced_cluster_count / 2;
+        u32 max_task_capacity = max_instanced_cluster_count;
 
         f32 task_capacity_factor = additional_options.overrided_task_capacity_factor;
         if(task_capacity_factor == 0.0f)
         {
-            task_capacity_factor = lod_options.task_capacity_factor;
+            task_capacity_factor = lod_and_culling_options.task_capacity_factor;
         }
 
         F_indirect_data_list global_shared_data_data_list(
@@ -635,7 +640,7 @@ namespace nre::newrg
             sizeof(u32) // counter
             + sizeof(u32) // cached candidate batch offset
             + sizeof(u32), // cached candidate offset
-            lod_options.lod_error_threshold
+            lod_and_culling_options.lod_error_threshold
         );
         global_shared_data_data_list.T_set(
             0,
@@ -666,7 +671,7 @@ namespace nre::newrg
             + sizeof(f32) // task capacity factor
             + sizeof(u32) // max task capacity
             + 2 * sizeof(u32), // expanded instanced cluster range
-            lod_options.cull_error_threshold
+            lod_and_culling_options.cull_error_threshold
         );
         global_shared_data_data_list.T_set(
             0,
@@ -869,6 +874,8 @@ namespace nre::newrg
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
         }
+        if(additional_options.only_init_args)
+            return;
 
         // expand clusters pass
         {
@@ -3332,9 +3339,14 @@ namespace nre::newrg
             end_section();
 
             begin_section("LOD and Culling");
-            ImGui::InputFloat("LOD Error Threshold", &lod_options.lod_error_threshold);
-            ImGui::InputFloat("Cull Error Threshold", &lod_options.cull_error_threshold);
-            ImGui::InputFloat("Task Capacity Factor", &lod_options.task_capacity_factor);
+            ImGui::InputFloat("LOD Error Threshold", &lod_and_culling_options.lod_error_threshold);
+            ImGui::InputFloat("Cull Error Threshold", &lod_and_culling_options.cull_error_threshold);
+            ImGui::InputFloat("Task Capacity Factor", &lod_and_culling_options.task_capacity_factor);
+            end_section();
+
+            begin_section("Post Phase");
+            ImGui::Checkbox("Enable", &post_phase_options.enable);
+            ImGui::Checkbox("Only Init Args When Expanding Clusters", &post_phase_options.only_init_args_when_expanding_clusters);
             end_section();
 
             ImGui::End();

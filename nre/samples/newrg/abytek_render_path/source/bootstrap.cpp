@@ -32,8 +32,10 @@ int main() {
 	auto level_p = TU<F_level>()();
 
 	// create model actor
-	F_vector2_i32 begin_spawn_coord = F_vector2_i32 { -20, -20 };
-	F_vector2_i32 end_spawn_coord = F_vector2_i32 { 21, 21 };
+	F_vector2_i32 begin_spawn_coord = F_vector2_i32::zero();
+	F_vector2_i32 end_spawn_coord = F_vector2_i32::zero();
+	// F_vector2_i32 begin_spawn_coord = F_vector2_i32 { -20, -20 };
+	// F_vector2_i32 end_spawn_coord = F_vector2_i32 { 21, 21 };
 	// F_vector2_i32 begin_spawn_coord = F_vector2_i32::zero();
 	// F_vector2_i32 end_spawn_coord = F_vector2_i32::one();
 	F_vector2_f32 spawn_gap = F_vector2_f32::one() * 8.0f;
