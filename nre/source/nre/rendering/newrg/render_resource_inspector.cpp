@@ -44,7 +44,11 @@ namespace nre::newrg
             {
                 if(auto& allocation = resource_p->allocation())
                 {
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                     auto display_name = resource_p->name() + " { id: " + G_to_string(resource_p->id()).c_str() + " }";
+#else
+                    auto display_name = "{ id: " + G_to_string(resource_p->id()) + " }";
+#endif
                     begin_section(display_name.c_str());
 
                     auto allocator_p = allocation.allocator_p;
@@ -96,7 +100,11 @@ namespace nre::newrg
             {
                 if(resource_p->is_permanent())
                 {
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                     auto display_name = resource_p->name() + " { id: " + G_to_string(resource_p->id()).c_str() + " }";
+#else
+                    auto display_name = "{ id: " + G_to_string(resource_p->id()) + " }";
+#endif
                     begin_section(display_name.c_str());
 
                     end_section();
