@@ -34,12 +34,8 @@ int main() {
 	// create model actor
 	F_vector2_i32 begin_spawn_coord = F_vector2_i32::zero();
 	F_vector2_i32 end_spawn_coord = F_vector2_i32::zero();
-	// F_vector2_i32 begin_spawn_coord = F_vector2_i32 { -20, -20 };
-	// F_vector2_i32 end_spawn_coord = F_vector2_i32 { 21, 21 };
-	// F_vector2_i32 begin_spawn_coord = F_vector2_i32::zero();
-	// F_vector2_i32 end_spawn_coord = F_vector2_i32::one();
-	F_vector2_f32 spawn_gap = F_vector2_f32::one() * 8.0f;
-	F_vector3_f32 spawn_size = F_vector3_f32::one() * 0.1f;
+	F_vector2_f32 spawn_gap = F_vector2_f32::one() * 4.0f;
+	F_vector3_f32 spawn_size = F_vector3_f32::one() * 1.0f;
 
 	TG_queue<F_vector2_i32> spawn_queue;
 	u32 spawn_steps_per_frame = 8;
