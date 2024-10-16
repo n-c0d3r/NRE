@@ -130,7 +130,7 @@ namespace nre::newrg
         });
         F_nsl_shader_system::instance_p()->define_global_macro({
             "NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_MAX_TASK_CAPACITY",
-            G_to_string(max_task_capacity())
+            G_to_string(expand_clusters_max_task_capacity())
         });
 
         // load shaders

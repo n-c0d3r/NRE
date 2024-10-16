@@ -51,6 +51,9 @@ namespace nre {
 		void deregister_event_listeners();
 
 	private:
+		void update_ui_internal();
+
+	private:
 		void update_transform();
 		void update_mouse();
 

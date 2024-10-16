@@ -24,6 +24,8 @@ namespace nre {
 
 	void F_spectator::gameplay_tick() {
 
+		update_ui_internal();
+
 		update_transform();
 		update_mouse();
 	}
@@ -101,6 +103,22 @@ namespace nre {
 		NRE_MOUSE()->T_get_event<F_mouse_button_down_event>().remove_listener(
 			mouse_button_down_event_listener_handle_
 		);
+	}
+
+	void F_spectator::update_ui_internal()
+	{
+		ImGui::Begin(
+			(
+				"Spectator ("
+				+ actor_p()->name()
+				+ ")"
+			).c_str()
+		);
+
+		ImGui::InputFloat("Move Speed", &move_speed);
+		ImGui::InputFloat("Rotate Speed", &rotate_speed);
+
+		ImGui::End();
 	}
 
 	void F_spectator::update_transform() {
