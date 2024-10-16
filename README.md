@@ -46,6 +46,8 @@ NCoder's Learning Aimed C++ Render Engine.
 ---
 
 ## Samples
++ Abytek Render Path
+![alt text](./nre/resources/textures/screenshots/abytek_render_path.png)
 + Hello NRE
 ![alt text](./nre/resources/textures/screenshots/hello_nre.png)
 + Cube
