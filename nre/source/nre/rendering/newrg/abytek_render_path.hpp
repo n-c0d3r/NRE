@@ -271,7 +271,6 @@ namespace nre::newrg
         struct F_post_phase_options
         {
             b8 enable = true;
-            b8 only_init_args_when_expanding_clusters = true;
         };
         F_post_phase_options post_phase_options;
 
@@ -389,8 +388,6 @@ namespace nre::newrg
 
             u32 overrided_max_instanced_cluster_count = 0;
             f32 overrided_task_capacity_factor = 0.0f;
-
-            b8 only_init_args = false;
         };
 
         enum class E_expand_instances_mode

@@ -558,9 +558,7 @@ namespace nre::newrg
                             post_expanded_instanced_cluster_range_data_batch,
                             {
                                 .overrided_max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_POST_INSTANCED_CLUSTER_COUNT / 2,
-                                .overrided_task_capacity_factor = 4.0f,
-
-                                .only_init_args = post_phase_options.only_init_args_when_expanding_clusters
+                                .overrided_task_capacity_factor = 4.0f
                             }
                             NRE_OPTIONAL_DEBUG_PARAM(
                                 F_render_frame_name("nre.newrg.abytek_render_path.post_phase.expand_clusters(")
@@ -568,9 +566,6 @@ namespace nre::newrg
                                 + ")"
                             )
                         );
-
-                        if(post_phase_options.only_init_args_when_expanding_clusters)
-                            goto end_post_phase;
 
                         if(simple_draw_instanced_clusters_options.enable)
                         {
@@ -588,9 +583,6 @@ namespace nre::newrg
                         }
 
                         casted_view_p->generate_depth_pyramid();
-
-                        end_post_phase:
-                        {}
                     }
                 }
             }
@@ -896,8 +888,6 @@ namespace nre::newrg
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
         }
-        if(additional_options.only_init_args)
-            return;
 
         // expand clusters pass
         {
@@ -3369,7 +3359,6 @@ namespace nre::newrg
 
             begin_section("Post Phase");
             ImGui::Checkbox("Enable", &post_phase_options.enable);
-            ImGui::Checkbox("Only Init Args When Expanding Clusters", &post_phase_options.only_init_args_when_expanding_clusters);
             end_section();
 
             ImGui::End();
