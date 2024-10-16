@@ -375,6 +375,14 @@ namespace nre::newrg
         virtual void RG_end_register() override;
 
     public:
+        virtual void draw_opaque_instanced_clusters(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
+        );
+
+    public:
         enum class E_expand_clusters_mode
         {
             DEFAULT,

@@ -523,20 +523,16 @@ namespace nre::newrg
                             )
                         );
 
-                        if(simple_draw_instanced_clusters_options.enable)
-                        {
-                            simple_draw_instanced_clusters(
-                                NCPP_FOH_VALID(casted_view_p),
-                                casted_view_p->rg_main_frame_buffer_p(),
-                                rg_instanced_cluster_header_buffer_p,
-                                main_expanded_instanced_cluster_range_data_batch
-                                NRE_OPTIONAL_DEBUG_PARAM(
-                                    F_render_frame_name("nre.newrg.abytek_render_path.main_phase.simple_draw_instanced_clusters(")
-                                    + casted_view_p->actor_p()->name().c_str()
-                                    + ")"
-                                )
-                            );
-                        }
+                        draw_opaque_instanced_clusters(
+                            NCPP_FOH_VALID(casted_view_p),
+                            rg_instanced_cluster_header_buffer_p,
+                            main_expanded_instanced_cluster_range_data_batch
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.main_phase.draw_opaque_instanced_clusters(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ")"
+                            )
+                        );
 
                         casted_view_p->generate_depth_pyramid();
                     }
@@ -561,20 +557,16 @@ namespace nre::newrg
                             )
                         );
 
-                        if(simple_draw_instanced_clusters_options.enable)
-                        {
-                            simple_draw_instanced_clusters(
-                                NCPP_FOH_VALID(casted_view_p),
-                                casted_view_p->rg_main_frame_buffer_p(),
-                                rg_post_instanced_cluster_header_buffer_p,
-                                post_expanded_instanced_cluster_range_data_batch
-                                NRE_OPTIONAL_DEBUG_PARAM(
-                                    F_render_frame_name("nre.newrg.abytek_render_path.post_phase.simple_draw_instanced_clusters(")
-                                    + casted_view_p->actor_p()->name().c_str()
-                                    + ")"
-                                )
-                            );
-                        }
+                        draw_opaque_instanced_clusters(
+                            NCPP_FOH_VALID(casted_view_p),
+                            rg_post_instanced_cluster_header_buffer_p,
+                            post_expanded_instanced_cluster_range_data_batch
+                            NRE_OPTIONAL_DEBUG_PARAM(
+                                F_render_frame_name("nre.newrg.abytek_render_path.post_phase.draw_opaque_instanced_clusters(")
+                                + casted_view_p->actor_p()->name().c_str()
+                                + ")"
+                            )
+                        );
 
                         casted_view_p->generate_depth_pyramid();
                     }
@@ -583,6 +575,27 @@ namespace nre::newrg
         );
 
         H_scene_render_view::RG_end_register_all();
+    }
+
+    void F_abytek_render_path::draw_opaque_instanced_clusters(
+        TKPA_valid<F_abytek_scene_render_view> view_p,
+        F_render_resource* rg_instanced_cluster_header_buffer_p,
+        const F_indirect_data_batch& instanced_cluster_range_data_batch
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
+    )
+    {
+        if(simple_draw_instanced_clusters_options.enable)
+        {
+            simple_draw_instanced_clusters(
+                NCPP_FOH_VALID(view_p),
+                view_p->rg_main_frame_buffer_p(),
+                rg_instanced_cluster_header_buffer_p,
+                instanced_cluster_range_data_batch
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    name + ".simple_draw"
+                )
+            );
+        }
     }
 
     void F_abytek_render_path::expand_clusters(
