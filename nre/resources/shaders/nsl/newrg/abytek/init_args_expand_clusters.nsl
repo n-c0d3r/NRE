@@ -20,6 +20,12 @@ resource dispatch_indirect_arguments(RWStructuredBuffer(F_dispatch_indirect_argu
 @slot(3)
 resource global_cached_candidate_batches(RWStructuredBuffer(F_cached_candidate_batch))
 
+@slot(4)
+resource global_cached_candidates(RWStructuredBuffer(F_instanced_cluster_header))
+
+@slot(5)
+resource instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header))
+
 
 
 @thread_group_size(
@@ -31,18 +37,22 @@ compute_shader CS(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
 {
-    uint max_task_capacity = global_shared_datas[0].max_task_capacity;
-    uint max_task_group_count = ceil(
-        ((f32)max_task_capacity)
+    uint max_cached_candidate_batch_count = ceil(
+        ((f32)global_shared_datas[0].max_instanced_cluster_count)
         / ((f32)NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE)
     );
-    f32 task_capacity_factor = global_shared_datas[0].task_capacity_factor;
 
     F_instanced_cluster_range instanced_cluster_range = options[0].instanced_cluster_range;
 
+    uint instanced_cluster_batch_count = ceil(
+        ((f32)instanced_cluster_range.count)
+        / ((f32)NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE)
+    );
+
+    f32 task_capacity_factor = global_shared_datas[0].task_capacity_factor;
     uint dispatch_group_count = ceil(
         min(
-            max_task_capacity,
+            NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_MAX_TASK_CAPACITY,
             ((f32)instanced_cluster_range.count) 
             * task_capacity_factor 
         )
@@ -52,8 +62,8 @@ compute_shader CS(
     if(global_thread_id.x == 0)
     {
         global_shared_datas[0].counter = instanced_cluster_range.count;
-        global_shared_datas[0].cached_candidate_batch_offset = 0;
-        global_shared_datas[0].cached_candidate_offset = 0;
+        global_shared_datas[0].cached_candidate_batch_offset = instanced_cluster_batch_count;
+        global_shared_datas[0].cached_candidate_offset = instanced_cluster_range.count;
         global_shared_datas[0].instanced_cluster_range = instanced_cluster_range;
         global_shared_datas[0].expanded_instanced_cluster_range.offset = instanced_cluster_range.offset + instanced_cluster_range.count;
         global_shared_datas[0].expanded_instanced_cluster_range.count = 0;
@@ -66,8 +76,29 @@ compute_shader CS(
         );
     }
 
-    // init empty candidate batches
-    if(global_thread_id.x < max_task_group_count)
+    // init instanced cluster batches
+    if(global_thread_id.x < instanced_cluster_batch_count)
+    {
+        uint begin = global_thread_id.x * NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE;
+        uint end = min(
+            begin + NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
+            instanced_cluster_range.count
+        );
+
+        for(uint i = begin; i < end; ++i)
+        {
+            global_cached_candidates[i] = instanced_cluster_headers[instanced_cluster_range.offset + i];
+        }
+
+        global_cached_candidate_batches[global_thread_id.x].offset = begin;
+        global_cached_candidate_batches[global_thread_id.x].count = end - begin;
+    }
+
+    // init empty candidate batches 
+    if(
+        (global_thread_id.x >= instanced_cluster_batch_count)
+        && (global_thread_id.x < max_cached_candidate_batch_count)
+    )
     {
         global_cached_candidate_batches[global_thread_id.x].offset = 0;
         global_cached_candidate_batches[global_thread_id.x].count = 0;

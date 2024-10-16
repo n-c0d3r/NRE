@@ -67,6 +67,7 @@ namespace nre::newrg
         //
         min_wave_size_ = NRE_MAIN_DEVICE()->min_wave_size();
         max_wave_size_ = NRE_MAIN_DEVICE()->max_wave_size();
+        total_lane_count_ = NRE_MAIN_DEVICE()->total_lane_count();
 
         // register binder signatures
         F_binder_signature_manager::instance_p()->T_register<F_abytek_expand_instances_binder_signature>();
@@ -126,6 +127,10 @@ namespace nre::newrg
         F_nsl_shader_system::instance_p()->define_global_macro({
             "NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE",
             G_to_string(expand_clusters_batch_size())
+        });
+        F_nsl_shader_system::instance_p()->define_global_macro({
+            "NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_MAX_TASK_CAPACITY",
+            G_to_string(max_task_capacity())
         });
 
         // load shaders
@@ -489,10 +494,8 @@ namespace nre::newrg
                     // main phase
                     F_indirect_data_batch main_instanced_cluster_range_data_batch;
                     F_indirect_data_batch main_expanded_instanced_cluster_range_data_batch;
-                    F_indirect_data_batch post_instanced_cluster_range_data_batch;
+                    F_indirect_data_batch post_instanced_cluster_range_data_batch = create_root_instanced_cluster_range_data_batch();
                     {
-                        post_instanced_cluster_range_data_batch = create_root_instanced_cluster_range_data_batch();
-
                         expand_instances(
                             NCPP_FOH_VALID(casted_view_p),
                             rg_instanced_cluster_header_buffer_p,
@@ -616,7 +619,6 @@ namespace nre::newrg
         }
 
         u32 max_cached_candidate_batch_count = max_instanced_cluster_count / expand_clusters_batch_size();
-        u32 max_task_capacity = max_instanced_cluster_count;
 
         f32 task_capacity_factor = additional_options.overrided_task_capacity_factor;
         if(task_capacity_factor == 0.0f)
@@ -631,7 +633,7 @@ namespace nre::newrg
             + sizeof(f32) // lod error threshold
             + 2 * sizeof(u32) // instanced cluster range
             + sizeof(f32) // task capacity factor
-            + sizeof(u32) // max task capacity
+            + sizeof(u32) // max instanced cluster count
             + 2 * sizeof(u32) // expanded instanced cluster range
             + 4 // cull_error_threshold
             + 4, // cached_candidate_batch_read_offset
@@ -661,7 +663,7 @@ namespace nre::newrg
             + sizeof(u32) // error threshold
             + 2 * sizeof(u32) // instanced cluster range
             + sizeof(f32), // task capacity factor
-            max_task_capacity
+            max_instanced_cluster_count
         );
         global_shared_data_data_list.T_set(
             0,
@@ -809,7 +811,7 @@ namespace nre::newrg
         {
             F_render_bind_list main_render_bind_list(
                 ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
-                4
+                6
                 NRE_OPTIONAL_DEBUG_PARAM(name + ".main_render_bind_list")
             );
             instanced_cluster_range_data_batch.enqueue_initialize_resource_view(
@@ -834,6 +836,16 @@ namespace nre::newrg
                 rg_global_cached_candidate_batch_buffer_p,
                 ED_resource_view_type::UNORDERED_ACCESS,
                 3
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                rg_global_cached_candidate_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                4
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                rg_instanced_cluster_header_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                5
             );
 
             auto main_descriptor_element = main_render_bind_list[0];
@@ -873,6 +885,14 @@ namespace nre::newrg
             });
             pass_p->add_resource_state({
                 .resource_p = rg_global_cached_candidate_batch_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = rg_global_cached_candidate_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = rg_instanced_cluster_header_buffer_p,
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
         }

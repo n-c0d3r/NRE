@@ -111,22 +111,6 @@ compute_shader CS(
         group_expanded_instanced_cluster_local_offset = 0;
         global_active_candidate_offset = INVALID_CACHED_CANDIDATE_ID;
     }
-    if(global_thread_id.x < instanced_cluster_range.count)
-    {
-        if(group_thread_id.x == 0)
-        {
-            group_active_candidate_count = min(
-                max(
-                    (int)instanced_cluster_range.count - 
-                    (int)group_id.x * NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE,
-                    0
-                ),
-                NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_BATCH_SIZE
-            );
-        }
-
-        group_active_candidates[group_thread_id.x] = instanced_cluster_headers[instanced_cluster_range.offset + global_thread_id.x];
-    }
     AllMemoryBarrierWithGroupSync();
 
     //
@@ -264,6 +248,7 @@ compute_shader CS(
                 // if expand childs
                 f32 lod_error_threshold = global_shared_datas[0].lod_error_threshold;
                 b8 late_expand_childs = (error_square >= (lod_error_threshold * lod_error_threshold));
+                // late_expand_childs = false;
             
                 // process instanced cluster
                 b8 is_culled = false;

@@ -277,6 +277,7 @@ namespace nre::newrg
 
         u32 min_wave_size_ = 0;
         u32 max_wave_size_ = 0;
+        u32 total_lane_count_ = 0;
 
         b8 enable = true;
 
@@ -350,6 +351,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE u32 expand_instances_batch_size() const noexcept { return max_wave_size_; }
         NCPP_FORCE_INLINE u32 expand_clusters_batch_size() const noexcept { return max_wave_size_; }
+        NCPP_FORCE_INLINE u32 max_task_capacity() const noexcept { return total_lane_count_; }
 
         NCPP_FORCE_INLINE const auto& statistics() const noexcept { return statistics_; }
         NCPP_FORCE_INLINE const auto& statistics_times() const noexcept { return statistics_times_; }

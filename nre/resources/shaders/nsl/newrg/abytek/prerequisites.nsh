@@ -161,7 +161,7 @@ struct F_expand_clusters_global_shared_data(
     lod_error_threshold(f32)
     instanced_cluster_range(F_instanced_cluster_range)
     task_capacity_factor(f32)
-    max_task_capacity(u32)
+    max_instanced_cluster_count(u32)
     expanded_instanced_cluster_range(F_instanced_cluster_range)
     cull_error_threshold(f32)
     cached_candidate_batch_read_offset(u32)

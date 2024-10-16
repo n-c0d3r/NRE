@@ -44,6 +44,10 @@ namespace nre::newrg {
 			"NRE_NEWRG_MAX_WAVE_SIZE",
 			G_to_string(NRE_MAIN_DEVICE()->max_wave_size())
 		});
+		F_nsl_shader_system::instance_p()->define_global_macro({
+			"NRE_NEWRG_TOTAL_LANE_COUNT",
+			G_to_string(NRE_MAIN_DEVICE()->total_lane_count())
+		});
 
 		// render workers
 		auto main_render_worker_p = F_main_render_worker::instance_p();
