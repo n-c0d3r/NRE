@@ -9,6 +9,7 @@ semantic VERTEX_WORLD_NORMAL(float3)
 semantic VERTEX_WORLD_TANGENT(float3)
 semantic VERTEX_CLUSTER_ID(uint)
 semantic VERTEX_INSTANCE_ID(uint)
+semantic PRIMITIVE_LOCAL_ID(uint)
 
 
 
@@ -21,17 +22,22 @@ struct F_mesh_vertex_data(
     vertex_clip_position(SV_POSITION)
 )
 
+struct F_mesh_primitive(
+    local_id(PRIMITIVE_LOCAL_ID)
+)
+
 
 
 @slot(0 0)
 resource global_options(ConstantBuffer)
 uniform color(float3)
+uniform ___global_options_padding_0___(u32) 
+uniform light_dir(float3)
+uniform ___global_options_padding_1___(u32)
 // 0 : cluster color
 // 1 : instance color
 // 2 : solid color
-uniform color_mode(u32) 
-uniform light_dir(float3)
-uniform ___global_options_padding_0___(u32)
+uniform color_mode(u32)
 uniform instanced_cluster_range_index(u32)
 
 define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(1)
@@ -80,6 +86,8 @@ mesh_shader MS(
     out out_mesh_triangles(u32x3 124)
     @vertices
     out out_mesh_vertex_datas(F_mesh_vertex_data 124)
+    @primitives
+    out out_mesh_primitives(F_mesh_primitive 124)
 )
 {
     F_instanced_cluster_header instanced_cluster_header = instanced_cluster_headers[instanced_cluster_ranges[instanced_cluster_range_index].offset + group_id.x];
@@ -145,6 +153,8 @@ mesh_shader MS(
                 index_location_2 % NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS
             ]
         );
+
+        out_mesh_primitives[group_thread_id.x].local_id = group_thread_id.x;
     }
 
     if(group_thread_id.x < cluster_header.vertex_count)
@@ -177,13 +187,16 @@ mesh_shader MS(
 }
 pixel_shader PS(
     in mesh_vertex_data(F_mesh_vertex_data)
+    in mesh_primitive(F_mesh_primitive)
     out out_color(SV_TARGET)
 )
 {
+    float4 triangle_color = float4(color * id_to_color(mesh_vertex_data.vertex_cluster_id + mesh_vertex_data.vertex_instance_id + mesh_primitive.local_id), 1);
     float4 cluster_color = float4(color * id_to_color(mesh_vertex_data.vertex_cluster_id), 1);
     float4 instance_color = float4(color * id_to_color(mesh_vertex_data.vertex_instance_id), 1);
 
     float4 albedo_colors[] = {
+        triangle_color,
         cluster_color,
         instance_color,
         float4(color, 1)
@@ -205,6 +218,7 @@ pixel_shader PS(
     float4 tone_applied_color = (light_applied_color * 3.1415) / (float4(1, 1, 1, 1) + (light_applied_color * 3.1415));
 
     float4 post_colors[] = {
+        lerp(tone_applied_color, albedo_color, l),
         lerp(tone_applied_color, albedo_color, l),
         lerp(tone_applied_color, albedo_color, l),
         tone_applied_color

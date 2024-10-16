@@ -248,12 +248,6 @@ namespace nre::newrg
         {
             drawable_material_system_p_ = TU<F_abytek_drawable_material_system>()();
         }
-
-        //
-        {
-            u32& color_mode = ((u32*)&simple_draw_instanced_clusters_options.color)[3];
-            color_mode = 0;
-        }
     }
     F_abytek_render_path::~F_abytek_render_path()
     {
@@ -3050,6 +3044,7 @@ namespace nre::newrg
         global_options_data.color = simple_draw_instanced_clusters_options.color;
         global_options_data.light_dir = normalize(simple_draw_instanced_clusters_options.light_dir);
         global_options_data.instanced_cluster_range_index = instanced_cluster_range_data_index;
+        global_options_data.color_mode = simple_draw_instanced_clusters_options.color_mode;
 
         TF_render_uniform_batch<F_simple_draw_instanced_clusters_global_options_data> global_options_uniform_batch = {
             F_uniform_transient_resource_uploader::instance_p()->T_enqueue_upload(
@@ -3320,19 +3315,23 @@ namespace nre::newrg
             ImGui::Checkbox("Enable", &simple_draw_instanced_clusters_options.enable);
             ImGui::ColorEdit3("Color", (f32*)&simple_draw_instanced_clusters_options.color);
             {
-                u32& color_mode = ((u32*)&simple_draw_instanced_clusters_options.color)[3];
+                u32& color_mode = simple_draw_instanced_clusters_options.color_mode;
 
-                if(ImGui::Button("Enable Cluster Color"))
+                if(ImGui::Button("Enable Triangle Color"))
                 {
                     color_mode = 0;
                 }
-                if(ImGui::Button("Enable Instance Color"))
+                if(ImGui::Button("Enable Cluster Color"))
                 {
                     color_mode = 1;
                 }
-                if(ImGui::Button("Enable Solid Color"))
+                if(ImGui::Button("Enable Instance Color"))
                 {
                     color_mode = 2;
+                }
+                if(ImGui::Button("Enable Solid Color"))
+                {
+                    color_mode = 3;
                 }
             }
             {
