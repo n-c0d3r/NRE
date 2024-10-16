@@ -73,7 +73,7 @@ NCPP_VersionHelper_CreateVersionMacros(
     PROJECT_NAME NRE
     OUTPUT_FILE "${NRE_GENERATED_FILES_DIR}/version.hpp"
     MAJOR 0
-    MINOR 0
+    MINOR 1
     PATCH 0
 )
 
