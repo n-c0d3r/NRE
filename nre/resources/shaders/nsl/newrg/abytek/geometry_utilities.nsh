@@ -315,7 +315,7 @@ b8 is_occluded_with_hzb(
     return (
         (
             occluder.max_ndc_xyz.z 
-            + 0.0003f 
+            + 0.0002f 
             * ((float)mip_level + 1) 
             / ((float)num_of_levels)
         ) 
