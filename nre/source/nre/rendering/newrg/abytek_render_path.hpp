@@ -9,6 +9,7 @@
 #include <nre/rendering/newrg/render_foundation_events.hpp>
 #include <nre/rendering/newrg/indirect_utilities.hpp>
 #include <nre/rendering/newrg/unified_mesh_data.hpp>
+#include <nre/rendering/newrg/abytek_drawable_material_data.hpp>
 #include <nre/asset/static_mesh_asset.hpp>
 #include <nre/rendering/static_mesh.hpp>
 
@@ -383,6 +384,12 @@ namespace nre::newrg
         );
 
     public:
+        F_render_resource* create_instanced_cluster_header_buffer(
+            u32 capacity = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+
+    public:
         enum class E_expand_clusters_mode
         {
             DEFAULT,
@@ -409,6 +416,8 @@ namespace nre::newrg
         struct F_expand_instances_additional_options
         {
             E_expand_instances_mode mode = E_expand_instances_mode::DEFAULT;
+
+            E_abytek_drawable_material_flag drawable_material_flag = E_abytek_drawable_material_flag::DEFAULT;
 
             F_render_resource* rg_post_instanced_cluster_header_buffer_p = 0;
             const F_indirect_data_batch* post_instanced_cluster_range_data_batch_p = 0;

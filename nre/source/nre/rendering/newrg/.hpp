@@ -15,6 +15,7 @@
 #include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
 #include <nre/rendering/newrg/abytek_drawable.hpp>
 #include <nre/rendering/newrg/abytek_drawable_material.hpp>
+#include <nre/rendering/newrg/abytek_drawable_material_data.hpp>
 #include <nre/rendering/newrg/simple_abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/abytek_simple_draw_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_simple_draw_instanced_clusters_binder_signature.hpp>
@@ -121,6 +122,7 @@
 #include <nre/rendering/newrg/indirect_utilities.hpp>
 #include <nre/rendering/newrg/render_uniform_batch.hpp>
 #include <nre/rendering/newrg/render_resource_inspector.hpp>
+#include <nre/rendering/newrg/virtual_pixel_buffer.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

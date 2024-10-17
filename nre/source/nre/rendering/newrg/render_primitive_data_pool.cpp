@@ -16,6 +16,7 @@ namespace nre::newrg
                 ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
                 ED_resource_flag::SHADER_RESOURCE,
                 ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
+                ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED,
                 ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED
             },
             {
@@ -23,9 +24,11 @@ namespace nre::newrg
                 ED_resource_heap_type::DEFAULT,
                 ED_resource_heap_type::DEFAULT,
                 ED_resource_heap_type::DEFAULT,
+                ED_resource_heap_type::DEFAULT,
                 ED_resource_heap_type::DEFAULT
             },
             {
+                ED_resource_state::ALL_SHADER_RESOURCE,
                 ED_resource_state::ALL_SHADER_RESOURCE,
                 ED_resource_state::ALL_SHADER_RESOURCE,
                 ED_resource_state::ALL_SHADER_RESOURCE,
@@ -94,24 +97,27 @@ namespace nre::newrg
 
         table_render_bind_list_p_ = F_render_graph::instance_p()->T_create<F_table_render_bind_list>(
             &table_,
-            TG_array<ED_resource_view_type, 5>({
+            TG_array<ED_resource_view_type, 6>({
+                ED_resource_view_type::SHADER_RESOURCE,
                 ED_resource_view_type::SHADER_RESOURCE,
                 ED_resource_view_type::SHADER_RESOURCE,
                 ED_resource_view_type::SHADER_RESOURCE,
                 ED_resource_view_type::SHADER_RESOURCE,
                 ED_resource_view_type::SHADER_RESOURCE
             }),
-            TG_array<ED_resource_flag, 5>({
+            TG_array<ED_resource_flag, 6>({
                 ED_resource_flag::STRUCTURED,
                 ED_resource_flag::STRUCTURED,
                 ED_resource_flag::NONE,
                 ED_resource_flag::STRUCTURED,
+                ED_resource_flag::STRUCTURED,
                 ED_resource_flag::STRUCTURED
             }),
-            TG_array<ED_format, 5>({
+            TG_array<ED_format, 6>({
                 ED_format::NONE,
                 ED_format::NONE,
                 ED_format::R16_UINT,
+                ED_format::NONE,
                 ED_format::NONE,
                 ED_format::NONE
             })

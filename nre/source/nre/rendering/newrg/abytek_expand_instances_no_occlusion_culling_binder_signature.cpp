@@ -23,7 +23,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // instance mesh id
+                    F_root_param_desc( // instance drawable material datas
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -34,7 +34,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // mesh headers
+                    F_root_param_desc( // instance mesh id
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -45,7 +45,7 @@ namespace nre::newrg
                             }
                         }
                     ),
-                    F_root_param_desc( // mesh bboxes
+                    F_root_param_desc( // mesh headers
                         F_root_descriptor_table_desc{
                             .range_descs = {
                                 F_descriptor_range_desc {
@@ -56,11 +56,22 @@ namespace nre::newrg
                             }
                         }
                     ),
+                    F_root_param_desc( // mesh bboxes
+                        F_root_descriptor_table_desc{
+                            .range_descs = {
+                                F_descriptor_range_desc {
+                                    .type = ED_descriptor_range_type::SHADER_RESOURCE,
+                                    .descriptor_count = u32(-1),
+                                    .register_space = 4
+                                }
+                            }
+                        }
+                    ),
                     F_root_param_desc( // options
                         F_root_constants_desc {
                             .base_register = 0,
-                            .register_space = 4,
-                            .constant_count = 1
+                            .register_space = 5,
+                            .constant_count = 2
                         }
                     ),
                     F_root_param_desc(
@@ -71,14 +82,14 @@ namespace nre::newrg
                                     .descriptor_count = 1,
                                     .offset_in_descriptors_from_table_start = 0,
                                     .base_register = 1,
-                                    .register_space = 4
+                                    .register_space = 5
                                 },
                                 F_descriptor_range_desc { // 2UAVs (instanced dag node headers, instanced dag node range)
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
                                     .descriptor_count = 2,
                                     .offset_in_descriptors_from_table_start = 1,
                                     .base_register = 0,
-                                    .register_space = 4
+                                    .register_space = 5
                                 }
                             }
                         }

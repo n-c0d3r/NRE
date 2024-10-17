@@ -6,6 +6,7 @@
 #include <nre/rendering/newrg/render_resource_utilities.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/external_render_depth_pyramid.hpp>
+#include <nre/rendering/newrg/abytek_render_path.hpp>
 #include <nre/actor/actor.hpp>
 
 
@@ -136,6 +137,8 @@ namespace nre::newrg
 
         auto render_graph_p = F_render_graph::instance_p();
         auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
+
+        auto render_path_p = NRE_NEWRG_ABYTEK_RENDER_PATH();
 
         auto texture_size = size();
         F_vector2_u32 depth_pyramid_size = depth_pyramid_size_internal();

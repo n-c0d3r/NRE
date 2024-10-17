@@ -205,12 +205,21 @@ namespace nre::newrg
         auto& table = render_primitive_data_pool_p->table();
 
         if(
+            (table.T_element<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_DRAWABLE_MATERIAL_DATA>(render_primitive_data_id_) != data)
+            || is_first_upload_
+        )
+        {
+            table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_DRAWABLE_MATERIAL_DATA>(
+                render_primitive_data_id_,
+                data
+            );
+        }
+
+        if(
             (local_to_world_matrix != last_local_to_world_matrix_)
             || is_first_upload_
         )
         {
-            is_first_upload_ = false;
-
             table.T_enqueue_upload<NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_TRANSFORM>(
                 render_primitive_data_id_,
                 local_to_world_matrix
@@ -229,6 +238,8 @@ namespace nre::newrg
             );
             last_local_to_world_matrix_ = local_to_world_matrix;
         }
+
+        is_first_upload_ = false;
     }
 
 

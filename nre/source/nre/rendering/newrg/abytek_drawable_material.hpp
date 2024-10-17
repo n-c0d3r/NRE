@@ -2,6 +2,7 @@
 
 #include <nre/rendering/material.hpp>
 #include <nre/rendering/material_system.hpp>
+#include <nre/rendering/newrg/abytek_drawable_material_data.hpp>
 
 #include <nre/utilities/generic_system.hpp>
 
@@ -44,6 +45,9 @@ namespace nre::newrg
 
         TF_generic_handle<TK<A_abytek_drawable_material>, A_abytek_drawable_material> generic_handle_;
         TF_generic_handle<TK<A_abytek_drawable_material>, I_abytek_drawable_material_can_be_dynamic> generic_handle_dynamic_;
+
+    public:
+        F_abytek_drawable_material_data data;
 
     public:
         NCPP_FORCE_INLINE b8 is_static() const noexcept { return is_static_; }

@@ -166,3 +166,16 @@ struct F_expand_clusters_global_shared_data(
     cull_error_threshold(f32)
     cached_candidate_batch_read_offset(u32)
 )
+
+
+
+define E_abytek_drawable_material_flag(u32)
+
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_NONE(0)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_BLEND_OPAQUE(1)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_BLEND_TRANSPARENT(2)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_DEFAULT(3)
+
+struct F_abytek_drawable_material_data(
+    flags(E_abytek_drawable_material_flag)
+)

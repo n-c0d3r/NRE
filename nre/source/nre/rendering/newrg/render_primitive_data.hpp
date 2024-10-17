@@ -2,6 +2,8 @@
 
 #include <nre/prerequisites.hpp>
 
+#include <nre/rendering/newrg/abytek_drawable_material_data.hpp>
+
 
 
 namespace nre::newrg
@@ -14,7 +16,8 @@ namespace nre::newrg
         F_render_actor_transform,
         F_render_actor_mesh_id,
         F_render_actor_transform,
-        F_render_actor_transform
+        F_render_actor_transform,
+        F_abytek_drawable_material_data
     >;
 }
 
@@ -25,3 +28,4 @@ namespace nre::newrg
 #define NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_MESH_ID 2
 #define NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_INVERSE_TRANSFORM 3
 #define NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_INVERSE_TRANSFORM 4
+#define NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_DRAWABLE_MATERIAL_DATA 5

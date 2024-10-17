@@ -24,7 +24,7 @@ int main() {
 
 
 	// unified mesh asset
-	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/gitignores/hq_rock_1.obj");
 
 
 
@@ -123,6 +123,9 @@ int main() {
 					model_drawable_p->mesh_p = unified_mesh_asset_p->mesh_p();
 
 					model_material_p->set_static(true);
+
+					// model_material_p->data.flags = E_abytek_drawable_material_flag::DEFAULT;
+					model_material_p->data.flags = E_abytek_drawable_material_flag::BLEND_TRANSPARENT;
 				}
 			}
 		};

@@ -5,17 +5,17 @@ import(view.nsh)
 
 submodule ADDITIONAL_RESOURCES(
 
-    @slot(2 4)
+    @slot(2 5)
     resource post_instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header))
 
-    @slot(3 4)
+    @slot(3 5)
     resource post_instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
 
-    @slot(2 4)
+    @slot(2 5)
     resource last_view_data_cbuffer(ConstantBuffer)
     uniform last_view_data(F_view_data)
 
-    @slot(0 5)
+    @slot(0 6)
     resource instance_last_transforms(StructuredBuffer(float4x4) -1)
 )
 
