@@ -18,7 +18,7 @@ namespace nre::newrg
     class NRE_API F_render_depth_pyramid final
     {
     private:
-        F_vector2_u32 size_;
+        F_vector2_u32 size_ = F_vector2_u32::zero();
         F_render_resource* texture_2d_p_ = 0;
 
         NRHI_ENABLE_IF_DRIVER_DEBUGGER_ENABLED(F_render_frame_name name_);

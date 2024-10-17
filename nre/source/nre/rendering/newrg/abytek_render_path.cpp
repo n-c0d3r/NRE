@@ -319,7 +319,7 @@ namespace nre::newrg
                     auto render_primitive_data_pool_p = F_render_primitive_data_pool::instance_p();
                     auto instance_count = render_primitive_data_pool_p->primitive_count();
 
-                    //
+                    // resources for opaque passes
                     F_render_resource* rg_opaque_instanced_cluster_header_buffer_p = create_instanced_cluster_header_buffer(
                         NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
                         NRE_OPTIONAL_DEBUG_PARAM(
@@ -336,6 +336,8 @@ namespace nre::newrg
                             + "]"
                         )
                     );
+
+                    // resources for transparent passes
                     F_render_resource* rg_transparent_instanced_cluster_header_buffer_p = create_instanced_cluster_header_buffer(
                         NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
                         NRE_OPTIONAL_DEBUG_PARAM(
@@ -597,6 +599,9 @@ namespace nre::newrg
                             )
                         );
                     }
+
+                    //
+                    casted_view_p->apply_output();
                 }
             }
         );

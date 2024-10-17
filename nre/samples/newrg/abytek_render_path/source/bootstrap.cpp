@@ -124,8 +124,8 @@ int main() {
 
 					model_material_p->set_static(true);
 
-					// model_material_p->data.flags = E_abytek_drawable_material_flag::DEFAULT;
-					model_material_p->data.flags = E_abytek_drawable_material_flag::BLEND_TRANSPARENT;
+					model_material_p->data.flags = E_abytek_drawable_material_flag::DEFAULT;
+					// model_material_p->data.flags = E_abytek_drawable_material_flag::BLEND_TRANSPARENT;
 				}
 			}
 		};

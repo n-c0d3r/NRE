@@ -943,6 +943,9 @@ namespace nre::newrg
 
     void F_render_graph::calculate_resource_allocations_internal()
     {
+        auto device_p = NRE_MAIN_DEVICE();
+
+        //
         auto resource_span = resource_p_owf_stack_.item_span();
 
         // for unused resources
@@ -956,7 +959,10 @@ namespace nre::newrg
                 const auto& desc = *(resource_p->desc_to_create_p_);
                 auto& allocator = find_resource_allocator(desc.type, desc.flags, desc.heap_type);
                 resource_p->allocation_ = allocator.allocate(
-                    desc.size,
+                    H_resource::calculate_size(
+                        device_p,
+                        desc
+                    ),
                     desc.alignment
                 );
             }
@@ -975,7 +981,10 @@ namespace nre::newrg
                 auto& allocator = find_resource_allocator(desc.type, desc.flags, desc.heap_type);
 
                 resource_p->allocation_ = allocator.allocate(
-                    desc.size,
+                    H_resource::calculate_size(
+                        device_p,
+                        desc
+                    ),
                     desc.alignment
                 );
             }

@@ -571,5 +571,194 @@ namespace nre::newrg
                 NRE_OPTIONAL_DEBUG_PARAM(name)
             );
         }
+
+    public:
+        template<E_render_pass_flag additional_flags__ = E_render_pass_flag::MAIN_RENDER_WORKER>
+        static F_render_pass* T_copy_resource(
+            F_render_resource* dst_resource_p,
+            F_render_resource* src_resource_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            auto render_graph = F_render_graph::instance_p();
+
+            F_render_pass* result = render_graph->create_pass(
+                [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+                {
+                    auto dst_rhi_p = dst_resource_p->rhi_p();
+                    auto src_rhi_p = src_resource_p->rhi_p();
+
+                    command_list_p->async_copy_resource(
+                        NCPP_FOH_VALID(dst_rhi_p),
+                        NCPP_FOH_VALID(src_rhi_p)
+                    );
+                },
+                flag_combine(
+                    additional_flags__,
+                    E_render_pass_flag::GPU_ACCESS_COPY
+                )
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+            result->add_resource_state({
+                .resource_p = dst_resource_p,
+                .states = ED_resource_state::COPY_DEST
+            });
+            result->add_resource_state({
+                .resource_p = src_resource_p,
+                .states = ED_resource_state::COPY_SOURCE
+            });
+
+            return result;
+        }
+        NCPP_FORCE_INLINE static F_render_pass* copy_resource(
+            F_render_resource* dst_resource_p,
+            F_render_resource* src_resource_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            return T_copy_resource(
+                dst_resource_p,
+                src_resource_p
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+        }
+
+    public:
+        template<E_render_pass_flag additional_flags__ = E_render_pass_flag::MAIN_RENDER_WORKER>
+        static F_render_pass* T_copy_buffer_region(
+            F_render_resource* dst_resource_p,
+            F_render_resource* src_resource_p,
+            u64 dst_offset,
+            u64 src_offset,
+            u64 size
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            auto render_graph = F_render_graph::instance_p();
+
+            F_render_pass* result = render_graph->create_pass(
+                [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+                {
+                    auto dst_rhi_p = dst_resource_p->rhi_p();
+                    auto src_rhi_p = src_resource_p->rhi_p();
+
+                    command_list_p->async_copy_buffer_region(
+                        NCPP_FOH_VALID(dst_rhi_p),
+                        NCPP_FOH_VALID(src_rhi_p),
+                        dst_offset,
+                        src_offset,
+                        size
+                    );
+                },
+                flag_combine(
+                    additional_flags__,
+                    E_render_pass_flag::GPU_ACCESS_COPY
+                )
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+            result->add_resource_state({
+                .resource_p = dst_resource_p,
+                .states = ED_resource_state::COPY_DEST
+            });
+            result->add_resource_state({
+                .resource_p = src_resource_p,
+                .states = ED_resource_state::COPY_SOURCE
+            });
+
+            return result;
+        }
+        NCPP_FORCE_INLINE static F_render_pass* copy_buffer_region(
+            F_render_resource* dst_resource_p,
+            F_render_resource* src_resource_p,
+            u64 dst_offset,
+            u64 src_offset,
+            u64 size
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            return T_copy_buffer_region(
+                dst_resource_p,
+                src_resource_p,
+                dst_offset,
+                src_offset,
+                size
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+        }
+
+    public:
+        template<E_render_pass_flag additional_flags__ = E_render_pass_flag::MAIN_RENDER_WORKER>
+        static F_render_pass* T_copy_texture_region(
+            F_render_resource* dst_resource_p,
+            F_render_resource* src_resource_p,
+            const F_texture_copy_location& dst_location,
+            const F_texture_copy_location& src_location,
+            PA_vector3_u32 dst_coord,
+            PA_vector3_u32 src_coord,
+            PA_vector3_u32 volume
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            auto render_graph = F_render_graph::instance_p();
+
+            F_render_pass* result = render_graph->create_pass(
+                [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+                {
+                    auto dst_rhi_p = dst_resource_p->rhi_p();
+                    auto src_rhi_p = src_resource_p->rhi_p();
+
+                    F_texture_copy_location parsed_dst_location = dst_location;
+                    F_texture_copy_location parsed_src_location = src_location;
+
+                    parsed_dst_location.resource_p = dst_rhi_p;
+                    parsed_src_location.resource_p = src_rhi_p;
+
+                    command_list_p->async_copy_texture_region(
+                        parsed_dst_location,
+                        parsed_src_location,
+                        dst_coord,
+                        src_coord,
+                        volume
+                    );
+                },
+                flag_combine(
+                    additional_flags__,
+                    E_render_pass_flag::GPU_ACCESS_COPY
+                )
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+            result->add_resource_state({
+                .resource_p = dst_resource_p,
+                .states = ED_resource_state::COPY_DEST
+            });
+            result->add_resource_state({
+                .resource_p = src_resource_p,
+                .states = ED_resource_state::COPY_SOURCE
+            });
+
+            return result;
+        }
+        NCPP_FORCE_INLINE static F_render_pass* copy_texture_region(
+            F_render_resource* dst_resource_p,
+            F_render_resource* src_resource_p,
+            const F_texture_copy_location& dst_location,
+            const F_texture_copy_location& src_location,
+            PA_vector3_u32 dst_coord,
+            PA_vector3_u32 src_coord,
+            PA_vector3_u32 volume
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        )
+        {
+            return T_copy_texture_region(
+                dst_resource_p,
+                src_resource_p,
+                dst_location,
+                src_location,
+                dst_coord,
+                src_coord,
+                volume
+                NRE_OPTIONAL_DEBUG_PARAM(name)
+            );
+        }
     };
 }

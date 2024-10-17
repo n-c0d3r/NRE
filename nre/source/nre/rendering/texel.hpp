@@ -133,19 +133,19 @@ namespace nre {
 			u32 depth = 1
 		) {
 			u32 format_stride = H_format::stride(format);
-			sz first_pitch = H_resource::first_pitch(
+			sz texture_first_pitch = H_resource::texture_first_pitch(
 				format_stride,
 				width
 			);
-			sz second_pitch = H_resource::second_pitch(
-				first_pitch,
+			sz texture_second_pitch = H_resource::texture_second_pitch(
+				texture_first_pitch,
 				width
 			);
-			sz third_pitch = H_resource::third_pitch(
-				second_pitch,
+			sz texture_third_pitch = H_resource::texture_third_pitch(
+				texture_second_pitch,
 				depth
 			);
-			out_data_span.resize(third_pitch);
+			out_data_span.resize(texture_third_pitch);
 
 			u32 width_time_height = width * height;
 
@@ -160,8 +160,8 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = out_data_span[
-									t * second_pitch
-									+ j * first_pitch
+									t * texture_second_pitch
+									+ j * texture_first_pitch
 									+ i * format_stride
 								];
 								auto& color = color_span[
@@ -183,8 +183,8 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = out_data_span[
-									t * second_pitch
-									+ j * first_pitch
+									t * texture_second_pitch
+									+ j * texture_first_pitch
 									+ i * format_stride
 								];
 								auto& color = color_span[
@@ -206,8 +206,8 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = out_data_span[
-									t * second_pitch
-									+ j * first_pitch
+									t * texture_second_pitch
+									+ j * texture_first_pitch
 									+ i * format_stride
 								];
 								auto& color = color_span[
@@ -229,8 +229,8 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = out_data_span[
-									t * second_pitch
-									+ j * first_pitch
+									t * texture_second_pitch
+									+ j * texture_first_pitch
 									+ i * format_stride
 								];
 								auto& color = color_span[
@@ -254,16 +254,16 @@ namespace nre {
 			u32 depth = 1
 		) {
 			u32 format_stride = H_format::stride(format);
-			sz first_pitch = H_resource::first_pitch(
+			sz texture_first_pitch = H_resource::texture_first_pitch(
 				format_stride,
 				width
 			);
-			sz second_pitch = H_resource::second_pitch(
-				first_pitch,
+			sz texture_second_pitch = H_resource::texture_second_pitch(
+				texture_first_pitch,
 				width
 			);
-			sz third_pitch = H_resource::third_pitch(
-				second_pitch,
+			sz texture_third_pitch = H_resource::texture_third_pitch(
+				texture_second_pitch,
 				depth
 			);
 
@@ -282,8 +282,8 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = in_data_span[
-									t * second_pitch
-									+ j * first_pitch
+									t * texture_second_pitch
+									+ j * texture_first_pitch
 									+ i * format_stride
 								];
 								auto& color = color_span[
@@ -305,8 +305,8 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = in_data_span[
-									t * second_pitch
-									+ j * first_pitch
+									t * texture_second_pitch
+									+ j * texture_first_pitch
 									+ i * format_stride
 								];
 								auto& color = color_span[
@@ -328,8 +328,8 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = in_data_span[
-									t * second_pitch
-									+ j * first_pitch
+									t * texture_second_pitch
+									+ j * texture_first_pitch
 									+ i * format_stride
 								];
 								auto& color = color_span[
@@ -351,8 +351,8 @@ namespace nre {
 							for(u32 t = 0; t < depth; ++t)
 							{
 								auto& data = in_data_span[
-									t * second_pitch
-									+ j * first_pitch
+									t * texture_second_pitch
+									+ j * texture_first_pitch
 									+ i * format_stride
 								];
 								auto& color = color_span[

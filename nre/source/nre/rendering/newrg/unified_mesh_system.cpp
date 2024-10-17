@@ -68,7 +68,7 @@ namespace nre::newrg
             { ED_resource_flag::SHADER_RESOURCE | ED_resource_flag::STRUCTURED },
             { ED_resource_heap_type::DEFAULT },
             { ED_resource_state::ALL_SHADER_RESOURCE },
-            NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS * NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER,
+            NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.vertex_data_table")
         ),
@@ -76,7 +76,7 @@ namespace nre::newrg
             { ED_resource_flag::SHADER_RESOURCE },
             { ED_resource_heap_type::DEFAULT },
             { ED_resource_state::ALL_SHADER_RESOURCE },
-            NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS * NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3,
+            NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS,
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.unified_mesh_system.triangle_vertex_id_table")
         )
@@ -110,17 +110,11 @@ namespace nre::newrg
         });
         F_nsl_shader_system::instance_p()->define_global_macro({
             "NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS",
-            G_to_string(
-                NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
-                * NRE_NEWRG_UNIFIED_MESH_MAX_VERTEX_COUNT_PER_CLUSTER
-            )
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS)
         });
         F_nsl_shader_system::instance_p()->define_global_macro({
             "NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS",
-            G_to_string(
-                NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
-                * NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER * 3
-            )
+            G_to_string(NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS)
         });
         F_nsl_shader_system::instance_p()->define_global_macro({
             "NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS",

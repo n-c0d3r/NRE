@@ -60,14 +60,17 @@ namespace nre::newrg
         auto stride = signature_p_->desc().stride;
 
         sz alignment = (desc.type == ED_resource_view_type::CONSTANT_BUFFER) ? NRHI_CONSTANT_BUFFER_MIN_ALIGNMENT : 1;
+        sz aligned_stride = align_size(stride, alignment);
+
+        NCPP_ASSERT(address_offset_ % aligned_stride == 0);
 
         F_resource_view_desc parsed_desc = desc;
         parsed_desc.mem_offset = address_offset_ + stride * command_index;
-        parsed_desc.overrided_size = align_size(
+        parsed_desc.overrided_element_count = align_size(
             stride * command_count,
             alignment
-        );
-        parsed_desc.overrided_stride = stride;
+        ) / aligned_stride;
+        parsed_desc.overrided_stride = aligned_stride;
 
         F_render_graph::instance_p()->enqueue_initialize_resource_view({
             .element = descriptor_element,

@@ -62,15 +62,15 @@ namespace nre::newrg
     )
     {
         const auto& desc = resource_p->desc();
-        const auto& subresources = desc.subresources;
-        u32 subresource_count = subresources.size();
+        const auto& footprint = resource_p->footprint();
+        u32 subresource_count = footprint.placed_subresource_footprints.size();
 
         // if the heap type is GREAD_CWRITE, upload data directly into it
         if(desc.heap_type == ED_resource_heap_type::GREAD_CWRITE)
         {
             for(u32 i = 0; i < subresource_count; ++i)
             {
-                const auto& subresource = subresources[i];
+                const auto& placed_subresource_footprint = footprint.placed_subresource_footprints[i];
                 const auto& subresource_data = initial_resource_data[i];
 
                 auto mapped_subresource = resource_p->map(i);
@@ -78,7 +78,9 @@ namespace nre::newrg
                 memcpy(
                     mapped_subresource.data(),
                     subresource_data.data_p,
-                    subresource.size
+                    placed_subresource_footprint.footprint.first_pitch
+                    * placed_subresource_footprint.footprint.height
+                    * placed_subresource_footprint.footprint.depth
                 );
 
                 resource_p->unmap(i);
@@ -89,7 +91,7 @@ namespace nre::newrg
         // this resource will be used to upload
         U_buffer_handle temp_resource_p = H_buffer::create_committed(
             NRE_MAIN_DEVICE(),
-            desc.size,
+            footprint.size,
             sizeof(u8),
             ED_resource_flag::NONE,
             ED_resource_heap_type::GREAD_CWRITE,
@@ -100,7 +102,7 @@ namespace nre::newrg
         {
             for(u32 i = 0; i < subresource_count; ++i)
             {
-                const auto& subresource = subresources[i];
+                const auto& placed_subresource_footprint = footprint.placed_subresource_footprints[i];
                 const auto& subresource_data = initial_resource_data[i];
 
                 auto mapped_subresource = temp_resource_p->map(i);
@@ -108,7 +110,9 @@ namespace nre::newrg
                 memcpy(
                     mapped_subresource.data(),
                     subresource_data.data_p,
-                    subresource.size
+                    placed_subresource_footprint.footprint.first_pitch
+                    * placed_subresource_footprint.footprint.height
+                    * placed_subresource_footprint.footprint.depth
                 );
 
                 temp_resource_p->unmap(i);
@@ -123,46 +127,32 @@ namespace nre::newrg
                 NCPP_FOH_VALID(temp_resource_p),
                 0,
                 0,
-                desc.size
+                footprint.size
             );
         }
         else
         {
-            F_texture_copy_location dst_location = {
-                .resource_p = resource_p.no_requirements()
-            };
-            dst_location.subresource_index = 0;
-
-            F_texture_copy_location src_location = {
-                .resource_p = temp_resource_p.oref,
-                .type = ED_texture_copy_location_type::SUBRESOURCE_FOOTPRINT
-            };
-            src_location.subresource_footprint.format = desc.format;
-
             for(u32 i = 0; i < subresource_count; ++i)
             {
-                const auto& subresource = subresources[i];
-
-                dst_location.subresource_index = i;
-
-                src_location.subresource_footprint.offset = subresource.offset;
-                src_location.subresource_footprint.width = subresource.width;
-                src_location.subresource_footprint.height = subresource.height;
-                src_location.subresource_footprint.depth = subresource.depth;
-                src_location.subresource_footprint.first_pitch = H_resource::first_pitch(
-                    H_format::stride(desc.format),
-                    desc.width
-                );
+                auto& placed_subresource_footprint = footprint.placed_subresource_footprints[i];
 
                 command_list_p_->async_copy_texture_region(
-                    dst_location,
-                    src_location,
+                    {
+                        .resource_p = resource_p.no_requirements(),
+                        .type = ED_texture_copy_location_type::SUBRESOURCE_INDEX,
+                        .subresource_index = i
+                    },
+                    {
+                        .resource_p = NCPP_AOH_VALID(temp_resource_p).no_requirements(),
+                        .type = ED_texture_copy_location_type::PLACED_SUBRESOURCE_FOOTPRINT,
+                        .placed_subresource_footprint = footprint.placed_subresource_footprints[i]
+                    },
                     F_vector3_u32::zero(),
                     F_vector3_u32::zero(),
                     {
-                        subresource.width,
-                        subresource.height,
-                        subresource.depth
+                        placed_subresource_footprint.footprint.width,
+                        placed_subresource_footprint.footprint.height,
+                        placed_subresource_footprint.footprint.depth
                     }
                 );
             }

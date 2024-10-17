@@ -123,6 +123,7 @@
 #include <nre/rendering/newrg/render_uniform_batch.hpp>
 #include <nre/rendering/newrg/render_resource_inspector.hpp>
 #include <nre/rendering/newrg/virtual_pixel_buffer.hpp>
+#include <nre/rendering/newrg/virtual_pixel_buffer_system.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif
