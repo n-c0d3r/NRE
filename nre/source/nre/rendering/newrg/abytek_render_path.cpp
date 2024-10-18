@@ -34,7 +34,6 @@
 #include <nre/rendering/newrg/unified_mesh_system.hpp>
 #include <nre/rendering/newrg/render_frame_buffer.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
-#include <nre/rendering/newrg/virtual_pixel_buffer.hpp>
 #include <nre/rendering/nsl_shader_system.hpp>
 #include <nre/asset/asset_system.hpp>
 #include <nre/asset/nsl_shader_asset.hpp>
@@ -346,6 +345,15 @@ namespace nre::newrg
                             + "]"
                         )
                     );
+                    F_instanced_cluster_tile_buffer rg_instanced_cluster_tile_buffer = create_instanced_cluster_tile_buffer(
+                        casted_view_p->size(),
+                        NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_render_path.instanced_cluster_tile_buffers[")
+                            + casted_view_p->actor_p()->name().c_str()
+                            + "]"
+                        )
+                    );
 
                     //
                     rg_register_view_event_.view_p_ = casted_view_p.no_requirements();
@@ -630,20 +638,84 @@ namespace nre::newrg
         }
     }
 
-    F_render_resource* F_abytek_render_path::create_instanced_cluster_header_buffer(
+    F_abytek_render_path::F_instanced_cluster_tile_buffer F_abytek_render_path::create_instanced_cluster_tile_buffer(
+        PA_vector2_u32 view_size,
+        u32 max_instanced_cluster_count
+        NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
+    )
+    {
+        F_vector2_u32 tile_count_2d = F_vector2_u32 {
+            (u32)ceil(
+                f32(view_size.x)
+                / ((f32)NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_X)
+            ),
+            (u32)ceil(
+                f32(view_size.y)
+                / ((f32)NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_Y)
+            )
+        };
+        u32 tile_count = tile_count_2d.x * tile_count_2d.y;
+
+        return {
+            .tile_count_2d = tile_count_2d,
+
+            .rg_node_instanced_cluster_id_buffer_p = H_render_resource::create_buffer(
+                max_instanced_cluster_count,
+                ED_format::R32_UINT,
+                ED_resource_flag::SHADER_RESOURCE
+                | ED_resource_flag::UNORDERED_ACCESS,
+                ED_resource_heap_type::DEFAULT,
+                {
+                    .initial_state = ED_resource_state::UNORDERED_ACCESS
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".node_instanced_cluster_id_buffer")
+            ),
+            .rg_next_node_id_buffer_p = H_render_resource::create_buffer(
+                max_instanced_cluster_count,
+                ED_format::R32_UINT,
+                ED_resource_flag::SHADER_RESOURCE
+                | ED_resource_flag::UNORDERED_ACCESS,
+                ED_resource_heap_type::DEFAULT,
+                {
+                    .initial_state = ED_resource_state::UNORDERED_ACCESS
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".next_node_id_buffer")
+            ),
+            .rg_tile_head_node_id_buffer_p = H_render_resource::create_buffer(
+                max_instanced_cluster_count,
+                ED_format::R32_UINT,
+                ED_resource_flag::SHADER_RESOURCE
+                | ED_resource_flag::UNORDERED_ACCESS,
+                ED_resource_heap_type::DEFAULT,
+                {
+                    .initial_state = ED_resource_state::UNORDERED_ACCESS
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".tile_head_node_id_buffer")
+            ),
+            .rg_tile_header_buffer_p = H_render_resource::create_buffer(
+                tile_count,
+                sizeof(F_instanced_cluster_tile_buffer::F_tile_header),
+                ED_resource_flag::SHADER_RESOURCE
+                | ED_resource_flag::UNORDERED_ACCESS
+                | ED_resource_flag::STRUCTURED,
+                ED_resource_heap_type::DEFAULT,
+                {
+                    .initial_state = ED_resource_state::UNORDERED_ACCESS
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".tile_header_buffer")
+            )
+        };
+    }
+    F_render_resource* create_instanced_cluster_shading_group_buffer(
         u32 capacity
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
         return H_render_resource::create_buffer(
             capacity,
-            (
-                4 // instance id
-                + 4 // local cluster id
-            ),
+            ED_format::R8_UINT,
             ED_resource_flag::SHADER_RESOURCE
-            | ED_resource_flag::UNORDERED_ACCESS
-            | ED_resource_flag::STRUCTURED,
+            | ED_resource_flag::UNORDERED_ACCESS,
             ED_resource_heap_type::DEFAULT,
             {
                 .initial_state = ED_resource_state::UNORDERED_ACCESS

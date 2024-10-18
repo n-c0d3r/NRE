@@ -15,7 +15,6 @@ namespace nre::newrg
     class F_render_resource;
     class F_render_frame_buffer;
     class F_render_depth_pyramid;
-    class F_virtual_pixel_buffer;
 
 
 
@@ -41,8 +40,6 @@ namespace nre::newrg
         F_render_depth_pyramid* rg_depth_pyramid_p_ = 0;
         F_external_render_depth_pyramid last_depth_pyramid_;
 
-        F_virtual_pixel_buffer* rg_virtual_pixel_buffer_p_ = 0;
-
         b8 is_register_ = true;
 
     public:
@@ -67,8 +64,6 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE F_render_depth_pyramid* rg_depth_pyramid_p() const noexcept { return rg_depth_pyramid_p_; }
         NCPP_FORCE_INLINE auto& last_depth_pyramid() noexcept { return last_depth_pyramid_; }
-
-        NCPP_FORCE_INLINE auto rg_virtual_pixel_buffer_p() const noexcept { return rg_virtual_pixel_buffer_p_; }
 
 
 

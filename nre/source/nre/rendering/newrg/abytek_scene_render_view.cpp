@@ -6,7 +6,6 @@
 #include <nre/rendering/newrg/render_resource_utilities.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/external_render_depth_pyramid.hpp>
-#include <nre/rendering/newrg/virtual_pixel_buffer.hpp>
 #include <nre/rendering/newrg/abytek_render_path.hpp>
 #include <nre/actor/actor.hpp>
 
@@ -121,7 +120,6 @@ namespace nre::newrg
         rg_depth_texture_p_ = 0;
         rg_main_frame_buffer_p_ = 0;
         rg_depth_only_frame_buffer_p_ = 0;
-        rg_virtual_pixel_buffer_p_ = 0;
 
         rg_last_data_batch_.reset();
         rg_data_batch_.reset();
@@ -295,19 +293,6 @@ namespace nre::newrg
                 clear_depth_texture();
                 rg_depth_pyramid_p_->generate(rg_depth_texture_p_);
             }
-        }
-
-        // create virtual pixel buffer
-        {
-            rg_virtual_pixel_buffer_p_ = render_graph_p->T_create<F_virtual_pixel_buffer>(
-                texture_size,
-                color_format
-                NRE_OPTIONAL_DEBUG_PARAM(
-                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
-                    + actor_p()->name().c_str()
-                    + "].virtual_pixel_buffer"
-                )
-            );
         }
 
         // upload view buffer data

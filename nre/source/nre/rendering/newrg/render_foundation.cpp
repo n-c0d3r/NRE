@@ -11,7 +11,6 @@
 #include <nre/rendering/newrg/main_indirect_command_stack.hpp>
 #include <nre/rendering/newrg/main_indirect_data_stack.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid_system.hpp>
-#include <nre/rendering/newrg/virtual_pixel_buffer_system.hpp>
 #include <nre/rendering/nsl_shader_system.hpp>
 
 
@@ -31,8 +30,7 @@ namespace nre::newrg
         main_indirect_command_stack_p_ = TU<F_main_indirect_command_stack>()();
         main_indirect_data_stack_p_ = TU<F_main_indirect_data_stack>()();
         render_depth_pyramid_system_p_ = TU<F_render_depth_pyramid_system>()();
-        virtual_pixel_buffer_system_p_ = TU<F_virtual_pixel_buffer_system>()();
-
+        
         F_nsl_shader_system::instance_p()->define_global_macro({
             "NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND",
             G_to_string(NRE_NEWRG_RENDER_DEPTH_PYRAMID_MAX_MIP_LEVEL_COUNT_PER_COMMAND)

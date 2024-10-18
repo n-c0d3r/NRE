@@ -388,6 +388,31 @@ namespace nre::newrg
             u32 capacity = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
+        struct F_instanced_cluster_tile_buffer
+        {
+            struct NCPP_ALIGN(16) F_tile_header
+            {
+                u32 instanced_cluster_count = 0;
+                u32 instanced_cluster_offset = 0;
+
+                u32 odt_instanced_cluster_offset = 0;
+                u32 oit_instanced_cluster_offset = 0;
+            };
+
+            F_vector2_u32 tile_count_2d = F_vector2_u32::zero();
+
+            F_render_resource* rg_node_instanced_cluster_id_buffer_p = 0;
+            F_render_resource* rg_next_node_id_buffer_p = 0;
+            F_render_resource* rg_tile_head_node_id_buffer_p = 0;
+            F_render_resource* rg_tile_header_buffer_p = 0;
+
+            NCPP_FORCE_INLINE u32 tile_count() const noexcept { return tile_count_2d.x * tile_count_2d.y; }
+        };
+        F_instanced_cluster_tile_buffer create_instanced_cluster_tile_buffer(
+            PA_vector2_u32 view_size,
+            u32 max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
 
     public:
         enum class E_expand_clusters_mode

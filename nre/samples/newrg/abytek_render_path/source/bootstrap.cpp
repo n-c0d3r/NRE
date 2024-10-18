@@ -27,7 +27,7 @@ int main() {
 
 
 	// unified mesh asset
-	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/gitignores/hq_rock_1.obj");
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
 
 
 
@@ -38,15 +38,24 @@ int main() {
 	F_vector2_i32 begin_spawn_coord = F_vector2_i32::zero();
 	F_vector2_i32 end_spawn_coord = F_vector2_i32::zero();
 	F_vector2_f32 spawn_gap = F_vector2_f32::one() * 4.0f;
-	F_vector3_f32 spawn_size = F_vector3_f32::one() * 1.0f;
+	F_vector3_f32 spawn_size = F_vector3_f32::one() * 4.0f;
+	b8 transparent = true;
 
-	TG_queue<F_vector2_i32> spawn_queue;
+	struct F_spawn
+	{
+		F_vector2_i32 coord;
+		b8 transparent = true;
+	};
+	TG_queue<F_spawn> spawn_queue;
 	u32 spawn_steps_per_frame = 8;
 	for(i32 i = begin_spawn_coord.x; i < end_spawn_coord.x; ++i)
 	{
 		for(i32 j = begin_spawn_coord.y; j < end_spawn_coord.y; ++j)
 		{
-			spawn_queue.push({ i, j });
+			spawn_queue.push({
+				{ i, j },
+				transparent
+			});
 		}
 	}
 
@@ -93,14 +102,18 @@ int main() {
 			ImGui::InputFloat2("Spawn Gap", (f32*)&spawn_gap);
 			ImGui::InputInt("Spawn Steps Per Frame", (i32*)&spawn_steps_per_frame);
 			ImGui::InputFloat3("Spawn Size", (f32*)&spawn_size);
+			ImGui::Checkbox("Transparent", &transparent);
 			if(ImGui::Button("Spawn"))
 			{
-				spawn_queue = TG_queue<F_vector2_i32>();
+				spawn_queue = TG_queue<F_spawn>();
 				for(i32 i = begin_spawn_coord.x; i < end_spawn_coord.x; ++i)
 				{
 					for(i32 j = begin_spawn_coord.y; j < end_spawn_coord.y; ++j)
 					{
-						spawn_queue.push({ i, j });
+						spawn_queue.push({
+							{ i, j },
+							transparent
+						});
 					}
 				}
 			}
@@ -110,7 +123,7 @@ int main() {
 			{
 				if(spawn_queue.size())
 				{
-					auto coord = spawn_queue.front();
+					auto spawn = spawn_queue.front();
 					spawn_queue.pop();
 
 					auto model_actor_p = level_p->T_create_actor();
@@ -122,15 +135,17 @@ int main() {
 						make_scale(spawn_size)
 					);
 
-					model_transform_node_p->transform = make_translation(F_vector3_f32::right() * f32(coord.x) * spawn_gap.x) * model_transform_node_p->transform;
-					model_transform_node_p->transform = make_translation(F_vector3_f32::forward() * f32(coord.y) * spawn_gap.y) * model_transform_node_p->transform;
+					model_transform_node_p->transform = make_translation(F_vector3_f32::right() * f32(spawn.coord.x) * spawn_gap.x) * model_transform_node_p->transform;
+					model_transform_node_p->transform = make_translation(F_vector3_f32::forward() * f32(spawn.coord.y) * spawn_gap.y) * model_transform_node_p->transform;
 
 					model_drawable_p->mesh_p = unified_mesh_asset_p->mesh_p();
 
 					model_material_p->set_static(true);
 
-					// model_material_p->data.flags = E_abytek_drawable_material_flag::DEFAULT;
-					model_material_p->data.flags = E_abytek_drawable_material_flag::BLEND_TRANSPARENT;
+					if(spawn.transparent)
+					{
+						model_material_p->data.flags = E_abytek_drawable_material_flag::BLEND_TRANSPARENT;
+					}
 				}
 			}
 		};
