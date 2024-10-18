@@ -21,6 +21,7 @@ int main() {
 
 	auto render_path_p = TU<F_abytek_render_path>()();
 
+	auto adapter_inspector_p = TU<F_adapter_inspector>()();
 	auto gpu_memory_inspector_p = TU<F_gpu_memory_inspector>()();
 
 
@@ -83,6 +84,7 @@ int main() {
 			};
 
 			render_path_p->update_ui();
+			adapter_inspector_p->update_ui();
 			gpu_memory_inspector_p->enqueue_update();
 
 			ImGui::Begin("Instance Spawn Tool");
