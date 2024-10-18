@@ -127,7 +127,7 @@ namespace nre::newrg
                 NCPP_FOH_VALID(temp_resource_p),
                 0,
                 0,
-                footprint.size
+                footprint.subresource_sizes[0]
             );
         }
         else
