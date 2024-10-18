@@ -21,10 +21,12 @@ int main() {
 
 	auto render_path_p = TU<F_abytek_render_path>()();
 
+	auto gpu_memory_inspector_p = TU<F_gpu_memory_inspector>()();
+
 
 
 	// unified mesh asset
-	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/gitignores/hq_rock_1.obj");
 
 
 
@@ -81,6 +83,7 @@ int main() {
 			};
 
 			render_path_p->update_ui();
+			gpu_memory_inspector_p->enqueue_update();
 
 			ImGui::Begin("Instance Spawn Tool");
 			ImGui::InputInt2("Begin Spawn Coord", (i32*)&begin_spawn_coord);
@@ -124,8 +127,8 @@ int main() {
 
 					model_material_p->set_static(true);
 
-					model_material_p->data.flags = E_abytek_drawable_material_flag::DEFAULT;
-					// model_material_p->data.flags = E_abytek_drawable_material_flag::BLEND_TRANSPARENT;
+					// model_material_p->data.flags = E_abytek_drawable_material_flag::DEFAULT;
+					model_material_p->data.flags = E_abytek_drawable_material_flag::BLEND_TRANSPARENT;
 				}
 			}
 		};
