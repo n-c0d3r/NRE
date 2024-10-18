@@ -24,7 +24,7 @@ int main() {
 
 
 	// unified mesh asset
-	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/gitignores/hq_rock_1.obj");
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
 
 
 
@@ -59,7 +59,7 @@ int main() {
 	spectator_p->move_speed = 4.0f;
 
 	spectator_view_p->bind_output(NRE_MAIN_SWAPCHAIN());
-	spectator_view_p->clear_color = F_vector4::one() * 0.75f;
+	spectator_view_p->clear_color = F_vector4 { 0.75f, 0.75f, 0.75f, 1.0f };
 
 
 
