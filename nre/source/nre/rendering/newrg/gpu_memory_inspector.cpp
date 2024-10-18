@@ -32,9 +32,6 @@ namespace nre::newrg
 
         auto render_graph_p = F_render_graph::instance_p();
 
-        auto& resource_p_owf_stack = render_graph_p->resource_p_owf_stack();
-        auto resource_span = resource_p_owf_stack.item_span();
-
         ImGui::Begin("GPU Memory Inspector");
 
         // overall
@@ -43,6 +40,19 @@ namespace nre::newrg
             F_gpu_memory_info gpu_memory_info = NRE_MAIN_DEVICE()->adapter_p()->gpu_memory_info();
             ImGui::Text("Budget: %lf (MiB)", f64(gpu_memory_info.budget) / 1024.0 / 1024.0);
             ImGui::Text("Current Usage: %lf (MiB)", f64(gpu_memory_info.current_usage) / 1024.0 / 1024.0);
+            end_section();
+
+            begin_section("Render Graph Resource Allocators");
+            auto& resource_allocators = render_graph_p->resource_allocators();
+            for(auto& resource_allocator : resource_allocators)
+            {
+                begin_section(resource_allocator.name().c_str());
+                auto& pages = resource_allocator.pages();
+                ImGui::Text("Page Capacity: %d", resource_allocator.page_capacity());
+                ImGui::Text("Pages: %d", resource_allocator.pages().size());\
+                ImGui::Text("Current Page Budget: %lf (MiB)", f64(resource_allocator.pages().size() * resource_allocator.page_capacity()) / 1024.0 / 1024.0);\
+                end_section();
+            }
             end_section();
         }
 

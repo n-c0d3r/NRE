@@ -178,4 +178,7 @@ define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_DEFAULT(3)
 
 struct F_abytek_drawable_material_data(
     flags(E_abytek_drawable_material_flag)
+    ___padding_0___(u32)
+    ___padding_1___(u32)
+    ___padding_2___(u32)
 )

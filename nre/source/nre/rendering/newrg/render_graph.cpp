@@ -50,19 +50,23 @@ namespace nre::newrg
         rhi_frame_buffer_pool_(
             0
             NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.rhi_frame_buffer_pool")
-        )
+        ),
+        resource_heap_tier_(NRE_MAIN_DEVICE()->resource_heap_tier())
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
-        // setup resource allocators
+        // setup resource allocators (E_resource_heap_tier::A)
+        if(resource_heap_tier_ == E_resource_heap_tier::A)
         {
+            resource_allocators_.resize(9);
+
             // heap type: GREAD-GWRITE
             {
                 resource_allocators_[
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_BUFFERS
                 ] = F_render_resource_allocator(
                     NRE_RENDER_GRAPH_RESOURCE_GREAD_GWRITE_PAGE_CAPACITY,
-                    ED_resource_heap_type::DEFAULT,
+                    ED_resource_heap_type::GREAD_GWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_BUFFERS
                     NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_GWRITE, ALLOW_ONLY_BUFFERS]")
                 );
@@ -70,7 +74,7 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_TEXTURES_RT_DS
                 ] = F_render_resource_allocator(
                     NRE_RENDER_GRAPH_RESOURCE_GREAD_GWRITE_PAGE_CAPACITY,
-                    ED_resource_heap_type::DEFAULT,
+                    ED_resource_heap_type::GREAD_GWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_RT_DS_TEXTURES
                     NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_GWRITE, ALLOW_ONLY_RT_DS_TEXTURES]")
                 );
@@ -78,7 +82,7 @@ namespace nre::newrg
                     NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ONLY_TEXTURES_NON_RT_DS
                 ] = F_render_resource_allocator(
                     NRE_RENDER_GRAPH_RESOURCE_GREAD_GWRITE_PAGE_CAPACITY,
-                    ED_resource_heap_type::DEFAULT,
+                    ED_resource_heap_type::GREAD_GWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
                     NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_GWRITE, ALLOW_ONLY_NON_RT_DS_TEXTURES]")
                 );
@@ -137,6 +141,48 @@ namespace nre::newrg
                     ED_resource_heap_type::GREAD_CWRITE,
                     ED_resource_heap_flag::ALLOW_ONLY_NON_RT_DS_TEXTURES
                     NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_CWRITE, ALLOW_ONLY_NON_RT_DS_TEXTURES]")
+                );
+            }
+        }
+
+        // setup resource allocators (E_resource_heap_tier::B)
+        if(resource_heap_tier_ == E_resource_heap_tier::B)
+        {
+            resource_allocators_.resize(3);
+
+            // heap type: GREAD-GWRITE
+            {
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ALL
+                ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_GREAD_GWRITE_PAGE_CAPACITY,
+                    ED_resource_heap_type::GREAD_GWRITE,
+                    ED_resource_heap_flag::ALLOW_ALL_BUFFERS_AND_TEXTURES
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_GWRITE, ALLOW_ALL]")
+                );
+            }
+
+            // heap type: CREAD-GWRITE
+            {
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_CREAD_GWRITE_ALL
+                ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_CREAD_GWRITE_PAGE_CAPACITY,
+                    ED_resource_heap_type::CREAD_GWRITE,
+                    ED_resource_heap_flag::ALLOW_ALL_BUFFERS_AND_TEXTURES
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[CREAD_GWRITE, ALLOW_ALL]")
+                );
+            }
+
+            // heap type: GREAD-CWRITE
+            {
+                resource_allocators_[
+                    NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_CWRITE_ALL
+                ] = F_render_resource_allocator(
+                    NRE_RENDER_GRAPH_RESOURCE_GREAD_CWRITE_PAGE_CAPACITY,
+                    ED_resource_heap_type::GREAD_CWRITE,
+                    ED_resource_heap_flag::ALLOW_ALL_BUFFERS_AND_TEXTURES
+                    NRE_OPTIONAL_DEBUG_PARAM("nre.newrg.render_graph.resource_allocators[GREAD_CWRITE, ALLOW_ALL]")
                 );
             }
         }
@@ -3794,6 +3840,25 @@ namespace nre::newrg
         ED_resource_heap_type resource_heap_type
     )
     {
+        if(resource_heap_tier_ == E_resource_heap_tier::B)
+        {
+            NRHI_ENUM_SWITCH(
+                resource_heap_type,
+                NRHI_ENUM_CASE(
+                    ED_resource_heap_type::GREAD_GWRITE,
+                    return resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_GWRITE_ALL];
+                )
+                NRHI_ENUM_CASE(
+                    ED_resource_heap_type::CREAD_GWRITE,
+                    return resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_CREAD_GWRITE_ALL];
+                    )
+                NRHI_ENUM_CASE(
+                    ED_resource_heap_type::GREAD_CWRITE,
+                    return resource_allocators_[NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_INDEX_GREAD_CWRITE_ALL];
+                )
+            );
+        }
+
         u32 allocator_base_index = 0;
         NRHI_ENUM_SWITCH(
             resource_heap_type,

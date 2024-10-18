@@ -106,7 +106,8 @@ namespace nre::newrg
         TF_concurrent_owf_stack<F_temp_object_cache> temp_object_cache_stack_;
         b8 is_rhi_available_ = false;
 
-        TG_array<F_render_resource_allocator, NRE_RENDER_GRAPH_RESOURCE_ALLOCATOR_COUNT> resource_allocators_;
+        TG_vector<F_render_resource_allocator> resource_allocators_;
+        E_resource_heap_tier resource_heap_tier_ = E_resource_heap_tier::A;
         TG_unordered_map<u32, F_rhi_placed_resource_pool> rhi_placed_resource_pools_;
         F_rhi_frame_buffer_pool rhi_frame_buffer_pool_;
 
@@ -192,6 +193,7 @@ namespace nre::newrg
 
         NCPP_FORCE_INLINE const auto& resource_allocators() const noexcept { return resource_allocators_; }
         NCPP_FORCE_INLINE auto& resource_allocators() noexcept { return resource_allocators_; }
+        NCPP_FORCE_INLINE auto resource_heap_tier() const noexcept { return resource_heap_tier_; }
         NCPP_FORCE_INLINE const auto& rhi_placed_resource_pools() const noexcept { return rhi_placed_resource_pools_; }
         NCPP_FORCE_INLINE auto& rhi_placed_resource_pools() noexcept { return rhi_placed_resource_pools_; }
         NCPP_FORCE_INLINE const auto& rhi_frame_buffer_pool() const noexcept { return rhi_frame_buffer_pool_; }
