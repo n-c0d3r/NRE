@@ -48,7 +48,7 @@ namespace nre::newrg
             {
                 begin_section(resource_allocator.name().c_str());
                 auto& pages = resource_allocator.pages();
-                ImGui::Text("Page Capacity: %d", f64(resource_allocator.page_capacity()) / 1024.0 / 1024.0);
+                ImGui::Text("Page Capacity: %lf (MiB)", f64(resource_allocator.page_capacity()) / 1024.0 / 1024.0);
                 ImGui::Text("Pages: %d", resource_allocator.pages().size());\
                 ImGui::Text("Current Page Budget: %lf (MiB)", f64(resource_allocator.pages().size() * resource_allocator.page_capacity()) / 1024.0 / 1024.0);\
                 end_section();
