@@ -22,7 +22,7 @@ namespace nre::newrg
                                     //      next node ids,
                                     //      instanced cluster tile head node ids
                                     //      tile headers
-                                    //      instanced cluster headers
+                                    //      instanced cluster remap
                                     // )
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
                                     .descriptor_count = 6

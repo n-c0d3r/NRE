@@ -19,7 +19,7 @@ resource hierarchical_tile_head_node_ids(RWBuffer(u32))
 resource tile_headers(RWStructuredBuffer(F_instanced_cluster_tile_header))
 
 @slot(5)
-resource instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header))
+resource instanced_cluster_remap_buffer(RWBuffer(F_instanced_cluster_id))
 
 @slot(0 0)
 resource options(ConstantBuffer)
@@ -36,6 +36,102 @@ compute_shader CS(
     global_thread_id(SV_DISPATCH_THREAD_ID)
 )
 {
+    if(global_thread_id.x < (tile_count_2d.x * tile_count_2d.y))
+    {
+        uint hierarchical_tile_level_count = global_shared_datas[0].hierarchical_tile_level_count;
+
+        uint2 tile_id_2d = uint2(
+            global_thread_id.x % tile_count_2d.x,
+            global_thread_id.x / tile_count_2d.x
+        );
+
+        uint node_count = 0;
+
+        // calculate node_count
+        {
+            uint2 current_level_tile_id_2d = tile_id_2d;
+
+            for(u32 i = 0; i < hierarchical_tile_level_count; ++i)
+            {
+                F_instanced_cluster_hierarchical_tile_level_header hierarchical_tile_level_header = global_shared_datas[0].hierarchical_tile_level_headers[i];
+                
+                uint hierarchical_tile_id = (
+                    hierarchical_tile_level_header.offset
+                    + current_level_tile_id_2d.y * hierarchical_tile_level_header.count_2d.x
+                    + current_level_tile_id_2d.x
+                );
+
+                uint node_id = hierarchical_tile_head_node_ids[hierarchical_tile_id];
+
+                while(node_id != INVALID_INSTANCED_CLUSTER_NODE_ID)
+                {
+                    ++node_count;
+                    node_id = next_node_ids[node_id];
+                }
+
+                current_level_tile_id_2d /= 2;
+            }
+        }
+
+        //
+        uint wave_instanced_cluster_remap_offset = WavePrefixSum(node_count);
+        uint wave_instanced_cluster_remap_count = WaveActiveSum(node_count);
+
+        uint global_instanced_cluster_remap_offset;
+
+        if(WaveIsFirstLane())
+        {
+            InterlockedAdd(
+                global_shared_datas[0].instanced_cluster_remap_range.count,
+                wave_instanced_cluster_remap_count,
+                global_instanced_cluster_remap_offset
+            );
+        }
+        DeviceMemoryBarrierWithGroupSync();
+    
+        uint wave_global_instanced_cluster_remap_offset = WaveReadLaneFirst(global_instanced_cluster_remap_offset);
+        uint instanced_cluster_remap_offset = (
+            global_shared_datas[0].instanced_cluster_remap_range.offset 
+            + wave_global_instanced_cluster_remap_offset 
+            + wave_instanced_cluster_remap_offset
+        );
+
+        F_instanced_cluster_tile_header tile_header;
+        tile_header.instanced_cluster_remap_range.offset = instanced_cluster_remap_offset;
+        tile_header.instanced_cluster_remap_range.count = node_count;
+
+        tile_headers[global_thread_id.x] = tile_header;
+
+        // store back remap
+        {
+            uint local_node_id = 0;
+
+            uint2 current_level_tile_id_2d = tile_id_2d;
+
+            for(u32 i = 0; i < hierarchical_tile_level_count; ++i)
+            {
+                F_instanced_cluster_hierarchical_tile_level_header hierarchical_tile_level_header = global_shared_datas[0].hierarchical_tile_level_headers[i];
+                
+                uint hierarchical_tile_id = (
+                    hierarchical_tile_level_header.offset
+                    + current_level_tile_id_2d.y * hierarchical_tile_level_header.count_2d.x
+                    + current_level_tile_id_2d.x
+                );
+
+                uint node_id = hierarchical_tile_head_node_ids[hierarchical_tile_id];
+
+                while(node_id != INVALID_INSTANCED_CLUSTER_NODE_ID)
+                {
+                    instanced_cluster_remap_buffer[tile_header.instanced_cluster_remap_range.offset + local_node_id] = node_id;
+
+                    ++local_node_id;
+                    node_id = next_node_ids[node_id];
+                }
+
+                current_level_tile_id_2d /= 2;
+            }
+        }
+    }
 }
 
 @root_signature(NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_GATHER_BINDER_SIGNATURE)

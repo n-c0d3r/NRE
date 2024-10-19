@@ -422,8 +422,9 @@ namespace nre::newrg
             F_vector2_u32 tile_count_2d = F_vector2_u32::zero();
 
             F_render_resource* rg_tile_header_buffer_p = 0;
+            F_render_resource* rg_instance_cluster_remap_buffer_p = 0;
 
-            F_indirect_data_batch instanced_cluster_range_data_batch;
+            F_indirect_data_batch instanced_cluster_remap_range_data_batch;
 
             NCPP_FORCE_INLINE u32 tile_count() const noexcept { return tile_count_2d.x * tile_count_2d.y; }
         };

@@ -732,6 +732,17 @@ namespace nre::newrg
                     .initial_state = ED_resource_state::UNORDERED_ACCESS
                 }
                 NRE_OPTIONAL_DEBUG_PARAM(name + ".tile_header_buffer")
+            ),
+            .rg_instance_cluster_remap_buffer_p = H_render_resource::create_buffer(
+                tile_count,
+                ED_format::R32_UINT,
+                ED_resource_flag::SHADER_RESOURCE
+                | ED_resource_flag::UNORDERED_ACCESS,
+                ED_resource_heap_type::DEFAULT,
+                {
+                    .initial_state = ED_resource_state::UNORDERED_ACCESS
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".instance_cluster_remap_buffer")
             )
         };
     }
@@ -2123,7 +2134,7 @@ namespace nre::newrg
             + sizeof(u32) // next node id
             + sizeof(u32) // hierarchical tile level count
             + sizeof(hierarchical_tile_level_headers)
-            + 2 * sizeof(u32) // grouped instanced cluster range
+            + 2 * sizeof(u32) // instanced cluster remap range
             + 2 * sizeof(u32), // padding 0
             1
         );
@@ -2157,7 +2168,7 @@ namespace nre::newrg
         );
 
         //
-        instanced_cluster_tile_buffer.instanced_cluster_range_data_batch = global_shared_data_batch.submemory(
+        instanced_cluster_tile_buffer.instanced_cluster_remap_range_data_batch = global_shared_data_batch.submemory(
             2 * sizeof(u32) // instanced cluster range
             + sizeof(u32) // next node id
             + sizeof(u32) // hierarchical tile level count
@@ -2434,6 +2445,108 @@ namespace nre::newrg
                     });
                 }
             );
+        }
+
+        // gather pass
+        {
+            F_render_bind_list main_render_bind_list(
+                ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS,
+                6
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".init.main_render_bind_list")
+            );
+            global_shared_data_batch.enqueue_initialize_resource_view(
+                0,
+                1,
+                main_render_bind_list[0],
+                ED_resource_view_type::UNORDERED_ACCESS
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                rg_node_instanced_cluster_id_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                1
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                rg_next_node_id_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                2
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                rg_hierarchical_tile_head_node_id_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                3
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                instanced_cluster_tile_buffer.rg_tile_header_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                4
+            );
+            main_render_bind_list.enqueue_initialize_resource_view(
+                instanced_cluster_tile_buffer.rg_instance_cluster_remap_buffer_p,
+                ED_resource_view_type::UNORDERED_ACCESS,
+                5
+            );
+
+            auto main_descriptor_element = main_render_bind_list[0];
+
+            F_render_pass* pass_p = H_render_pass::dispatch(
+                [=](F_render_pass*, TKPA<A_command_list> command_list_p)
+                {
+                    command_list_p->ZC_bind_root_signature(
+                        F_abytek_instanced_cluster_tile_gather_binder_signature::instance_p()->root_signature_p()
+                    );
+                    command_list_p->ZC_bind_root_descriptor_table(
+                        0,
+                        main_descriptor_element.handle().gpu_address
+                    );
+                    command_list_p->ZC_bind_root_constant(
+                        1,
+                        tile_count_2d.x,
+                        0
+                    );
+                    command_list_p->ZC_bind_root_constant(
+                        1,
+                        tile_count_2d.y,
+                        1
+                    );
+                    command_list_p->ZC_bind_pipeline_state(
+                        NCPP_FOH_VALID(instanced_cluster_tile_gather_pso_p_)
+                    );
+                },
+                element_ceil(
+                    F_vector3_f32(
+                        tile_count,
+                        1,
+                        1
+                    )
+                    / f32(NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+                ),
+                0
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".gather")
+            );
+            pass_p->add_resource_state({
+                .resource_p = main_indirect_data_stack_p->target_resource_p(),
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = rg_node_instanced_cluster_id_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = rg_next_node_id_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = rg_hierarchical_tile_head_node_id_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = instanced_cluster_tile_buffer.rg_tile_header_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
+            pass_p->add_resource_state({
+                .resource_p = instanced_cluster_tile_buffer.rg_instance_cluster_remap_buffer_p,
+                .states = ED_resource_state::UNORDERED_ACCESS
+            });
         }
     }
 

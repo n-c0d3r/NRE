@@ -38,11 +38,11 @@ compute_shader CS(
         global_shared_datas[0].instanced_cluster_range = instanced_cluster_range;
         global_shared_datas[0].next_node_id = 0;
 
-        F_instanced_cluster_range grouped_instanced_cluster_range;
-        grouped_instanced_cluster_range.offset = instanced_cluster_range.offset + instanced_cluster_range.count;
-        grouped_instanced_cluster_range.count = 0;
+        F_instanced_cluster_remap_range instanced_cluster_remap_range;
+        instanced_cluster_remap_range.offset = 0;
+        instanced_cluster_remap_range.count = 0;
 
-        global_shared_datas[0].grouped_instanced_cluster_range = grouped_instanced_cluster_range;
+        global_shared_datas[0].instanced_cluster_remap_range = instanced_cluster_remap_range;
 
         dispatch_indirect_arguments[0] = F_aligned_dispatch_indirect_argument(
             ceil(
