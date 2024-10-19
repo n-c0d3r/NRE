@@ -182,3 +182,26 @@ struct F_abytek_drawable_material_data(
     ___padding_1___(u32)
     ___padding_2___(u32)
 )
+
+
+
+struct F_instanced_cluster_tile_header(
+    instanced_cluster_range(F_instanced_cluster_range) 
+    oit_instanced_cluster_offset(F_instanced_cluster_id)   
+    odt_instanced_cluster_offset(F_instanced_cluster_id)   
+)
+
+struct F_instanced_cluster_hierarchical_tile_level_header(
+    count_2d(uint2)
+    offset(uint)
+    ___padding_0___(uint) 
+)
+
+define INVALID_INSTANCED_CLUSTER_NODE_ID(0xFFFFFFFF)
+
+struct F_build_instanced_cluster_tile_global_shared_data(
+    instanced_cluster_range(F_instanced_cluster_range) 
+    next_node_id(uint)
+    hierarchical_tile_level_count(uint)
+    hierarchical_tile_level_headers(F_instanced_cluster_hierarchical_tile_level_header 16)    
+)

@@ -59,6 +59,15 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> init_args_dispatch_mesh_instanced_clusters_indirect_shader_asset_p_;
         K_compute_pipeline_state_handle init_args_dispatch_mesh_instanced_clusters_indirect_pso_p_;
 
+        TS<F_nsl_shader_asset> instanced_cluster_tile_init_shader_asset_p_;
+        K_compute_pipeline_state_handle instanced_cluster_tile_init_pso_p_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_tile_link_shader_asset_p_;
+        K_compute_pipeline_state_handle instanced_cluster_tile_link_pso_p_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_tile_gather_shader_asset_p_;
+        K_compute_pipeline_state_handle instanced_cluster_tile_gather_pso_p_;
+
         TS<F_nsl_shader_asset> simple_draw_shader_asset_p_;
         K_graphics_pipeline_state_handle simple_draw_pso_p_;
 
@@ -312,6 +321,15 @@ namespace nre::newrg
         NCPP_FORCE_INLINE auto init_args_dispatch_mesh_instanced_clusters_indirect_shader_asset_p() const noexcept { return NCPP_FOH_VALID(init_args_dispatch_mesh_instanced_clusters_indirect_shader_asset_p_); }
         NCPP_FORCE_INLINE auto init_args_dispatch_mesh_instanced_clusters_indirect_pso_p() const noexcept { return NCPP_FOH_VALID(init_args_dispatch_mesh_instanced_clusters_indirect_pso_p_); }
 
+        NCPP_FORCE_INLINE auto instanced_cluster_tile_init_shader_asset_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_tile_init_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto instanced_cluster_tile_init_pso_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_tile_init_pso_p_); }
+
+        NCPP_FORCE_INLINE auto instanced_cluster_tile_link_shader_asset_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_tile_link_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto instanced_cluster_tile_link_pso_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_tile_link_pso_p_); }
+
+        NCPP_FORCE_INLINE auto instanced_cluster_tile_gather_shader_asset_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_tile_gather_shader_asset_p_); }
+        NCPP_FORCE_INLINE auto instanced_cluster_tile_gather_pso_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_tile_gather_pso_p_); }
+
         NCPP_FORCE_INLINE auto simple_draw_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_shader_asset_p_); }
         NCPP_FORCE_INLINE auto simple_draw_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_pso_p_); }
 
@@ -388,23 +406,24 @@ namespace nre::newrg
             u32 capacity = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
+        struct NCPP_ALIGN(16) F_instanced_cluster_hierarchical_tile_level_header
+        {
+            F_vector2_u32 count_2d;
+            u32 offset;
+        };
         struct F_instanced_cluster_tile_buffer
         {
             struct NCPP_ALIGN(16) F_tile_header
             {
                 u32 instanced_cluster_count = 0;
                 u32 instanced_cluster_offset = 0;
-
-                u32 odt_instanced_cluster_offset = 0;
-                u32 oit_instanced_cluster_offset = 0;
             };
 
             F_vector2_u32 tile_count_2d = F_vector2_u32::zero();
 
-            F_render_resource* rg_node_instanced_cluster_id_buffer_p = 0;
-            F_render_resource* rg_next_node_id_buffer_p = 0;
-            F_render_resource* rg_tile_head_node_id_buffer_p = 0;
             F_render_resource* rg_tile_header_buffer_p = 0;
+
+            F_indirect_data_batch instanced_cluster_range_data_batch;
 
             NCPP_FORCE_INLINE u32 tile_count() const noexcept { return tile_count_2d.x * tile_count_2d.y; }
         };
@@ -478,6 +497,16 @@ namespace nre::newrg
             const F_indirect_data_batch& instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
+        void build_instanced_cluster_tile_buffer(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_instanced_cluster_tile_buffer& instanced_cluster_tile_buffer,
+            u32 max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+
+    public:
         F_indirect_data_batch create_root_instanced_cluster_range_data_batch(u32 count = 1);
 
     public:

@@ -17,6 +17,7 @@ require(NSL_HLSL)
         instance_offset(u32)
     )
 
+    define F_aligned_dispatch_indirect_argument(uint4)
     define F_dispatch_indirect_argument(uint3)
 
     struct F_input_buffer_indirect_argument(
@@ -43,5 +44,6 @@ require(NSL_HLSL)
         address(u64)
     )
 
+    define F_aligned_dispatch_mesh_indirect_argument(uint4)
     define F_dispatch_mesh_indirect_argument(uint3)
 }

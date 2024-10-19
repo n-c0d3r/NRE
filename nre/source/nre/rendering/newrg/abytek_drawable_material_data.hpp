@@ -9,10 +9,17 @@ namespace nre::newrg
     enum E_abytek_drawable_material_flag
     {
         NONE = 0x0,
+
         BLEND_OPAQUE = 0x1,
         BLEND_TRANSPARENT = 0x2,
 
-        DEFAULT = BLEND_OPAQUE
+        CULL_BACK = 0x4,
+        CULL_FRONT = 0x8,
+
+        DEFAULT = (
+            BLEND_OPAQUE
+            | CULL_BACK
+        )
     };
 
 

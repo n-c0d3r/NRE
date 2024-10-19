@@ -1,0 +1,66 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource options(ConstantBuffer)
+uniform tile_count(u32)
+uniform hierarchical_tile_count(u32)
+
+@slot(0)
+resource instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+@slot(1)
+resource hierarchical_tile_head_node_ids(RWBuffer(u32))
+
+@slot(2)
+resource dispatch_indirect_arguments(RWStructuredBuffer(F_aligned_dispatch_indirect_argument))
+
+@slot(3)
+resource global_shared_datas(RWStructuredBuffer(F_build_instanced_cluster_tile_global_shared_data))
+
+
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    if(global_thread_id.x == 0)
+    {
+        global_shared_datas[0].instanced_cluster_range = instanced_cluster_ranges[0];
+        global_shared_datas[0].next_node_id = 0;
+
+        dispatch_indirect_arguments[0] = F_aligned_dispatch_indirect_argument(
+            ceil(
+                ((f32)tile_count)
+                / ((f32)NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+            ),
+            1,
+            1,
+            0
+        ); 
+        dispatch_indirect_arguments[1] = F_aligned_dispatch_indirect_argument(
+            ceil(
+                ((f32)instanced_cluster_ranges[0].count)
+                / ((f32)NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+            ),
+            1,
+            1,
+            0
+        );    
+    }
+
+    if(global_thread_id.x < hierarchical_tile_count)
+    {
+        hierarchical_tile_head_node_ids[global_thread_id.x] = INVALID_INSTANCED_CLUSTER_NODE_ID;
+    }
+}
+
+@root_signature(NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_INIT_BINDER_SIGNATURE)
+pipeline_state PSO(CS)
