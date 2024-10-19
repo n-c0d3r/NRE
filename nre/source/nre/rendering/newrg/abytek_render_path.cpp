@@ -206,7 +206,7 @@ namespace nre::newrg
             instanced_cluster_tile_gather_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
                 "shaders/nsl/newrg/abytek/instanced_cluster_tile_gather.nsl"
             ).T_cast<F_nsl_shader_asset>();
-            // instanced_cluster_tile_gather_pso_p_ = { instanced_cluster_tile_gather_shader_asset_p_->pipeline_state_p_vector()[0] };
+            instanced_cluster_tile_gather_pso_p_ = { instanced_cluster_tile_gather_shader_asset_p_->pipeline_state_p_vector()[0] };
 
             simple_draw_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
                 "shaders/nsl/newrg/abytek/simple_draw.nsl"
@@ -2122,7 +2122,9 @@ namespace nre::newrg
             2 * sizeof(u32) // instanced cluster range
             + sizeof(u32) // next node id
             + sizeof(u32) // hierarchical tile level count
-            + sizeof(hierarchical_tile_level_headers),
+            + sizeof(hierarchical_tile_level_headers)
+            + 2 * sizeof(u32) // grouped instanced cluster range
+            + 2 * sizeof(u32), // padding 0
             1
         );
         global_shared_data_list.T_set(
@@ -2142,8 +2144,25 @@ namespace nre::newrg
                 hierarchical_tile_level_headers[i]
             );
         }
+        global_shared_data_list.T_set(
+            0,
+            2 * sizeof(u32) // instanced cluster range
+            + sizeof(u32) // next node id
+            + sizeof(u32) // hierarchical tile level count
+            + sizeof(hierarchical_tile_level_headers),
+            F_vector2_u32::zero()
+        );
         F_indirect_data_batch global_shared_data_batch = global_shared_data_list.build(
             main_indirect_data_stack_p
+        );
+
+        //
+        instanced_cluster_tile_buffer.instanced_cluster_range_data_batch = global_shared_data_batch.submemory(
+            2 * sizeof(u32) // instanced cluster range
+            + sizeof(u32) // next node id
+            + sizeof(u32) // hierarchical tile level count
+            + sizeof(hierarchical_tile_level_headers),
+            2 * sizeof(u32)
         );
 
         //

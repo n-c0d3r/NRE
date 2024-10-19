@@ -204,4 +204,6 @@ struct F_build_instanced_cluster_tile_global_shared_data(
     next_node_id(uint)
     hierarchical_tile_level_count(uint)
     hierarchical_tile_level_headers(F_instanced_cluster_hierarchical_tile_level_header 16)    
+    grouped_instanced_cluster_range(F_instanced_cluster_range) 
+    ___padding_0___(uint2)
 )

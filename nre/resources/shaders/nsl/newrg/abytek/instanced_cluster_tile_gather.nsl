@@ -1,0 +1,42 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource global_shared_datas(RWStructuredBuffer(F_build_instanced_cluster_tile_global_shared_data))
+
+@slot(1)
+resource node_instanced_cluster_ids(RWBuffer(F_instanced_cluster_id))
+
+@slot(2)
+resource next_node_ids(RWBuffer(F_instanced_cluster_id))
+
+@slot(3)
+resource hierarchical_tile_head_node_ids(RWBuffer(u32))
+
+@slot(4)
+resource tile_headers(RWStructuredBuffer(F_instanced_cluster_tile_header))
+
+@slot(5)
+resource instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header))
+
+@slot(0 0)
+resource options(ConstantBuffer)
+uniform tile_count_2d(uint2)
+
+
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+}
+
+@root_signature(NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_GATHER_BINDER_SIGNATURE)
+pipeline_state PSO(CS)

@@ -16,8 +16,8 @@ namespace nre::newrg
                         F_root_descriptor_table_desc {
                             .range_descs = {
                                 F_descriptor_range_desc {
-                                    // 6UAV (
-                                    //      instanced cluster ranges,
+                                    // 4UAV (
+                                    //      global shared datas,
                                     //      node instanced cluster ids,
                                     //      next node ids,
                                     //      instanced cluster tile head node ids
