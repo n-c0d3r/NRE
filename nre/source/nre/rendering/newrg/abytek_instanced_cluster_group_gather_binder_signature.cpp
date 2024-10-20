@@ -1,14 +1,14 @@
-#include <nre/rendering/newrg/abytek_instanced_cluster_tile_gather_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_group_gather_binder_signature.hpp>
 
 
 
 namespace nre::newrg
 {
-    TK<F_abytek_instanced_cluster_tile_gather_binder_signature> F_abytek_instanced_cluster_tile_gather_binder_signature::instance_p_;
+    TK<F_abytek_instanced_cluster_group_gather_binder_signature> F_abytek_instanced_cluster_group_gather_binder_signature::instance_p_;
 
 
 
-    F_abytek_instanced_cluster_tile_gather_binder_signature::F_abytek_instanced_cluster_tile_gather_binder_signature() :
+    F_abytek_instanced_cluster_group_gather_binder_signature::F_abytek_instanced_cluster_group_gather_binder_signature() :
         A_binder_signature(
             {
                 .param_descs = {
@@ -20,8 +20,8 @@ namespace nre::newrg
                                     //      global shared datas,
                                     //      node instanced cluster ids,
                                     //      next node ids,
-                                    //      instanced cluster tile head node ids
-                                    //      tile headers
+                                    //      instanced cluster group head node ids
+                                    //      group headers
                                     //      instanced cluster remap
                                     // )
                                     .type = ED_descriptor_range_type::UNORDERED_ACCESS,
@@ -37,7 +37,7 @@ namespace nre::newrg
                     )
                 }
             },
-            "NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_GATHER_BINDER_SIGNATURE"
+            "NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_GROUP_GATHER_BINDER_SIGNATURE"
         )
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();

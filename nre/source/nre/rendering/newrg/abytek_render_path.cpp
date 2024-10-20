@@ -16,9 +16,9 @@
 #include <nre/rendering/newrg/abytek_expand_clusters_no_occlusion_culling_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_init_args_expand_clusters_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_init_args_dispatch_mesh_instanced_clusters_indirect_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_instanced_cluster_tile_init_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_instanced_cluster_tile_link_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_instanced_cluster_tile_gather_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_group_init_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_group_link_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_group_gather_binder_signature.hpp>
 #include <nre/rendering/newrg/binder_signature_manager.hpp>
 #include <nre/rendering/newrg/render_primitive_data_pool.hpp>
 #include <nre/rendering/newrg/abytek_scene_render_view_data.hpp>
@@ -81,9 +81,9 @@ namespace nre::newrg
         F_binder_signature_manager::instance_p()->T_register<F_abytek_expand_clusters_no_occlusion_culling_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_init_args_expand_clusters_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_init_args_dispatch_mesh_instanced_clusters_indirect_binder_signature>();
-        F_binder_signature_manager::instance_p()->T_register<F_abytek_instanced_cluster_tile_init_binder_signature>();
-        F_binder_signature_manager::instance_p()->T_register<F_abytek_instanced_cluster_tile_link_binder_signature>();
-        F_binder_signature_manager::instance_p()->T_register<F_abytek_instanced_cluster_tile_gather_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_instanced_cluster_group_init_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_instanced_cluster_group_link_binder_signature>();
+        F_binder_signature_manager::instance_p()->T_register<F_abytek_instanced_cluster_group_gather_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_simple_draw_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_simple_draw_instanced_clusters_binder_signature>();
         F_binder_signature_manager::instance_p()->T_register<F_abytek_depth_prepass_binder_signature>();
@@ -138,18 +138,6 @@ namespace nre::newrg
             "NRE_NEWRG_ABYTEK_EXPAND_CLUSTERS_MAX_TASK_CAPACITY",
             G_to_string(expand_clusters_max_task_capacity())
         });
-        F_nsl_shader_system::instance_p()->define_global_macro({
-            "NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_X",
-            G_to_string(NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_X)
-        });
-        F_nsl_shader_system::instance_p()->define_global_macro({
-            "NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_Y",
-            G_to_string(NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_Y)
-        });
-        F_nsl_shader_system::instance_p()->define_global_macro({
-            "NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE",
-            G_to_string(NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE)
-        });
 
         // load shaders
         {
@@ -193,20 +181,20 @@ namespace nre::newrg
             ).T_cast<F_nsl_shader_asset>();
             init_args_dispatch_mesh_instanced_clusters_indirect_pso_p_ = { init_args_dispatch_mesh_instanced_clusters_indirect_shader_asset_p_->pipeline_state_p_vector()[0] };
 
-            instanced_cluster_tile_init_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
-                "shaders/nsl/newrg/abytek/instanced_cluster_tile_init.nsl"
+            instanced_cluster_group_init_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/instanced_cluster_group_init.nsl"
             ).T_cast<F_nsl_shader_asset>();
-            instanced_cluster_tile_init_pso_p_ = { instanced_cluster_tile_init_shader_asset_p_->pipeline_state_p_vector()[0] };
+            instanced_cluster_group_init_pso_p_ = { instanced_cluster_group_init_shader_asset_p_->pipeline_state_p_vector()[0] };
 
-            instanced_cluster_tile_link_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
-                "shaders/nsl/newrg/abytek/instanced_cluster_tile_link.nsl"
+            instanced_cluster_group_link_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/instanced_cluster_group_link.nsl"
             ).T_cast<F_nsl_shader_asset>();
-            instanced_cluster_tile_link_pso_p_ = { instanced_cluster_tile_link_shader_asset_p_->pipeline_state_p_vector()[0] };
+            instanced_cluster_group_link_pso_p_ = { instanced_cluster_group_link_shader_asset_p_->pipeline_state_p_vector()[0] };
 
-            instanced_cluster_tile_gather_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
-                "shaders/nsl/newrg/abytek/instanced_cluster_tile_gather.nsl"
+            instanced_cluster_group_gather_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
+                "shaders/nsl/newrg/abytek/instanced_cluster_group_gather.nsl"
             ).T_cast<F_nsl_shader_asset>();
-            instanced_cluster_tile_gather_pso_p_ = { instanced_cluster_tile_gather_shader_asset_p_->pipeline_state_p_vector()[0] };
+            instanced_cluster_group_gather_pso_p_ = { instanced_cluster_group_gather_shader_asset_p_->pipeline_state_p_vector()[0] };
 
             simple_draw_shader_asset_p_ = NRE_ASSET_SYSTEM()->load_asset(
                 "shaders/nsl/newrg/abytek/simple_draw.nsl"
@@ -603,7 +591,7 @@ namespace nre::newrg
                     // transparent passes
                     F_indirect_data_batch transparent_instanced_cluster_range_data_batch;
                     F_indirect_data_batch transparent_expanded_instanced_cluster_range_data_batch;
-                    F_instanced_cluster_tile_buffer rg_instanced_cluster_tile_buffer;
+                    F_instanced_cluster_group_buffer rg_instanced_cluster_group_buffer;
                     {
                         // expand instances, clusters, and cull
                         {
@@ -635,14 +623,14 @@ namespace nre::newrg
                             );
                         }
 
-                        build_instanced_cluster_tile_buffer(
+                        build_instanced_cluster_group_buffer(
                             NCPP_FOH_VALID(casted_view_p),
                             rg_transparent_instanced_cluster_header_buffer_p,
                             transparent_expanded_instanced_cluster_range_data_batch,
-                            rg_instanced_cluster_tile_buffer,
+                            rg_instanced_cluster_group_buffer,
                             NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
                             NRE_OPTIONAL_DEBUG_PARAM(
-                                F_render_frame_name("nre.newrg.abytek_render_path.transparent.build_instanced_cluster_tile_buffer(")
+                                F_render_frame_name("nre.newrg.abytek_render_path.transparent.build_instanced_cluster_group_buffer(")
                                 + casted_view_p->actor_p()->name().c_str()
                                 + ")"
                             )
@@ -700,30 +688,21 @@ namespace nre::newrg
             NRE_OPTIONAL_DEBUG_PARAM(name)
         );
     }
-    F_abytek_render_path::F_instanced_cluster_tile_buffer F_abytek_render_path::create_instanced_cluster_tile_buffer(
+    F_abytek_render_path::F_instanced_cluster_group_buffer F_abytek_render_path::create_instanced_cluster_group_buffer(
         PA_vector2_u32 view_size,
         u32 max_instanced_cluster_count
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
     {
-        F_vector2_u32 tile_count_2d = F_vector2_u32 {
-            (u32)ceil(
-                f32(view_size.x)
-                / ((f32)NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_X)
-            ),
-            (u32)ceil(
-                f32(view_size.y)
-                / ((f32)NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_Y)
-            )
-        };
-        u32 tile_count = tile_count_2d.x * tile_count_2d.y;
+        F_vector2_u32 group_count_2d = view_size;
+        u32 group_count = group_count_2d.x * group_count_2d.y;
 
         return {
-            .tile_count_2d = tile_count_2d,
+            .group_count_2d = group_count_2d,
 
-            .rg_tile_header_buffer_p = H_render_resource::create_buffer(
-                tile_count,
-                sizeof(F_instanced_cluster_tile_buffer::F_tile_header),
+            .rg_group_header_buffer_p = H_render_resource::create_buffer(
+                group_count,
+                sizeof(F_instanced_cluster_group_buffer::F_group_header),
                 ED_resource_flag::SHADER_RESOURCE
                 | ED_resource_flag::UNORDERED_ACCESS
                 | ED_resource_flag::STRUCTURED,
@@ -731,10 +710,10 @@ namespace nre::newrg
                 {
                     .initial_state = ED_resource_state::UNORDERED_ACCESS
                 }
-                NRE_OPTIONAL_DEBUG_PARAM(name + ".tile_header_buffer")
+                NRE_OPTIONAL_DEBUG_PARAM(name + ".group_header_buffer")
             ),
             .rg_instance_cluster_remap_buffer_p = H_render_resource::create_buffer(
-                tile_count,
+                group_count,
                 ED_format::R32_UINT,
                 ED_resource_flag::SHADER_RESOURCE
                 | ED_resource_flag::UNORDERED_ACCESS,
@@ -743,7 +722,8 @@ namespace nre::newrg
                     .initial_state = ED_resource_state::UNORDERED_ACCESS
                 }
                 NRE_OPTIONAL_DEBUG_PARAM(name + ".instance_cluster_remap_buffer")
-            )
+            ),
+            .max_instanced_cluster_count = max_instanced_cluster_count
         };
     }
 
@@ -2024,11 +2004,11 @@ namespace nre::newrg
             .states = ED_resource_state::DEPTH_WRITE
         });
     }
-    void F_abytek_render_path::build_instanced_cluster_tile_buffer(
+    void F_abytek_render_path::build_instanced_cluster_group_buffer(
         TKPA_valid<F_abytek_scene_render_view> view_p,
         F_render_resource* rg_instanced_cluster_header_buffer_p,
         const F_indirect_data_batch& instanced_cluster_range_data_batch,
-        F_instanced_cluster_tile_buffer& instanced_cluster_tile_buffer,
+        F_instanced_cluster_group_buffer& instanced_cluster_group_buffer,
         u32 max_instanced_cluster_count
         NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name)
     )
@@ -2037,41 +2017,41 @@ namespace nre::newrg
         auto main_indirect_command_stack_p = F_main_indirect_command_stack::instance_p();
 
         auto screen_size = view_p->size();
-        instanced_cluster_tile_buffer = create_instanced_cluster_tile_buffer(
+        instanced_cluster_group_buffer = create_instanced_cluster_group_buffer(
             screen_size,
             max_instanced_cluster_count
             NRE_OPTIONAL_DEBUG_PARAM(name + ".target")
         );
 
-        auto tile_count_2d = instanced_cluster_tile_buffer.tile_count_2d;
-        u32 tile_count = instanced_cluster_tile_buffer.tile_count();
+        auto group_count_2d = instanced_cluster_group_buffer.group_count_2d;
+        u32 group_count = instanced_cluster_group_buffer.group_count();
 
-        u32 hierarchical_tile_offset = 0;
-        u32 hierarchical_tile_count = 0;
-        u32 hierarchical_tile_level_count = 0;
-        F_instanced_cluster_hierarchical_tile_level_header hierarchical_tile_level_headers[16];
+        u32 hierarchical_group_offset = 0;
+        u32 hierarchical_group_count = 0;
+        u32 hierarchical_group_level_count = 0;
+        F_instanced_cluster_hierarchical_group_level_header hierarchical_group_level_headers[16];
         {
-            auto current_hierarchical_tile_count_2d = tile_count_2d;
+            auto current_hierarchical_group_count_2d = group_count_2d;
             while(true)
             {
-                hierarchical_tile_offset = hierarchical_tile_count;
-                hierarchical_tile_count += current_hierarchical_tile_count_2d.x * current_hierarchical_tile_count_2d.y;
+                hierarchical_group_offset = hierarchical_group_count;
+                hierarchical_group_count += current_hierarchical_group_count_2d.x * current_hierarchical_group_count_2d.y;
 
-                hierarchical_tile_level_headers[hierarchical_tile_level_count] = {
-                    .count_2d = current_hierarchical_tile_count_2d,
-                    .offset = hierarchical_tile_offset
+                hierarchical_group_level_headers[hierarchical_group_level_count] = {
+                    .count_2d = current_hierarchical_group_count_2d,
+                    .offset = hierarchical_group_offset
                 };
-                ++hierarchical_tile_level_count;
+                ++hierarchical_group_level_count;
 
-                if(current_hierarchical_tile_count_2d == F_vector2_u32::one())
+                if(current_hierarchical_group_count_2d == F_vector2_u32::one())
                     break;
 
-                current_hierarchical_tile_count_2d = element_ceil(
-                    F_vector2_f32(current_hierarchical_tile_count_2d)
+                current_hierarchical_group_count_2d = element_ceil(
+                    F_vector2_f32(current_hierarchical_group_count_2d)
                     / 2.0f
                 );
-                current_hierarchical_tile_count_2d = element_max(
-                    current_hierarchical_tile_count_2d,
+                current_hierarchical_group_count_2d = element_max(
+                    current_hierarchical_group_count_2d,
                     F_vector2_u32::one()
                 );
             }
@@ -2124,16 +2104,16 @@ namespace nre::newrg
             F_vector3_u32::zero()
         );
 
-        F_dispatch_indirect_command_batch dispatch_tiles_indirect_command_batch = dispatch_indirect_argument_list.build(
+        F_dispatch_indirect_command_batch dispatch_groups_indirect_command_batch = dispatch_indirect_argument_list.build(
             main_indirect_command_stack_p
         );
-        F_dispatch_indirect_command_batch dispatch_instanced_clusters_indirect_command_batch = dispatch_tiles_indirect_command_batch.subrange(1);
+        F_dispatch_indirect_command_batch dispatch_instanced_clusters_indirect_command_batch = dispatch_groups_indirect_command_batch.subrange(1);
 
         F_indirect_data_list global_shared_data_list(
             2 * sizeof(u32) // instanced cluster range
             + sizeof(u32) // next node id
-            + sizeof(u32) // hierarchical tile level count
-            + sizeof(hierarchical_tile_level_headers)
+            + sizeof(u32) // hierarchical group level count
+            + sizeof(hierarchical_group_level_headers)
             + 2 * sizeof(u32) // instanced cluster remap range
             + 2 * sizeof(u32), // padding 0
             1
@@ -2142,25 +2122,25 @@ namespace nre::newrg
             0,
             2 * sizeof(u32) // instanced cluster range
             + sizeof(u32), // next node id
-            hierarchical_tile_level_count
+            hierarchical_group_level_count
         );
-        for(u32 i = 0; i < hierarchical_tile_level_count; ++i)
+        for(u32 i = 0; i < hierarchical_group_level_count; ++i)
         {
             global_shared_data_list.T_set(
                 0,
                 2 * sizeof(u32) // instanced cluster range
                 + sizeof(u32) // next node id
-                + sizeof(u32) // hierarchical tile level count
-                + i * sizeof(F_instanced_cluster_hierarchical_tile_level_header),
-                hierarchical_tile_level_headers[i]
+                + sizeof(u32) // hierarchical group level count
+                + i * sizeof(F_instanced_cluster_hierarchical_group_level_header),
+                hierarchical_group_level_headers[i]
             );
         }
         global_shared_data_list.T_set(
             0,
             2 * sizeof(u32) // instanced cluster range
             + sizeof(u32) // next node id
-            + sizeof(u32) // hierarchical tile level count
-            + sizeof(hierarchical_tile_level_headers),
+            + sizeof(u32) // hierarchical group level count
+            + sizeof(hierarchical_group_level_headers),
             F_vector2_u32::zero()
         );
         F_indirect_data_batch global_shared_data_batch = global_shared_data_list.build(
@@ -2168,11 +2148,11 @@ namespace nre::newrg
         );
 
         //
-        instanced_cluster_tile_buffer.instanced_cluster_remap_range_data_batch = global_shared_data_batch.submemory(
+        instanced_cluster_group_buffer.instanced_cluster_remap_range_data_batch = global_shared_data_batch.submemory(
             2 * sizeof(u32) // instanced cluster range
             + sizeof(u32) // next node id
-            + sizeof(u32) // hierarchical tile level count
-            + sizeof(hierarchical_tile_level_headers),
+            + sizeof(u32) // hierarchical group level count
+            + sizeof(hierarchical_group_level_headers),
             2 * sizeof(u32)
         );
 
@@ -2199,8 +2179,8 @@ namespace nre::newrg
             }
             NRE_OPTIONAL_DEBUG_PARAM(name + ".next_node_id_buffer")
         );
-        F_render_resource* rg_hierarchical_tile_head_node_id_buffer_p = H_render_resource::create_buffer(
-            hierarchical_tile_count,
+        F_render_resource* rg_hierarchical_group_head_node_id_buffer_p = H_render_resource::create_buffer(
+            hierarchical_group_count,
             ED_format::R32_UINT,
             ED_resource_flag::SHADER_RESOURCE
             | ED_resource_flag::UNORDERED_ACCESS,
@@ -2208,7 +2188,7 @@ namespace nre::newrg
             {
                 .initial_state = ED_resource_state::UNORDERED_ACCESS
             }
-            NRE_OPTIONAL_DEBUG_PARAM(name + ".hierarchical_tile_head_node_id_buffer")
+            NRE_OPTIONAL_DEBUG_PARAM(name + ".hierarchical_group_head_node_id_buffer")
         );
 
         // init pass
@@ -2225,11 +2205,11 @@ namespace nre::newrg
                 ED_resource_view_type::UNORDERED_ACCESS
             );
             main_render_bind_list.enqueue_initialize_resource_view(
-                rg_hierarchical_tile_head_node_id_buffer_p,
+                rg_hierarchical_group_head_node_id_buffer_p,
                 ED_resource_view_type::UNORDERED_ACCESS,
                 1
             );
-            dispatch_tiles_indirect_command_batch.enqueue_initialize_resource_view(
+            dispatch_groups_indirect_command_batch.enqueue_initialize_resource_view(
                 0,
                 2,
                 main_render_bind_list[2],
@@ -2248,16 +2228,16 @@ namespace nre::newrg
                 [=](F_render_pass*, TKPA<A_command_list> command_list_p)
                 {
                     command_list_p->ZC_bind_root_signature(
-                        F_abytek_instanced_cluster_tile_init_binder_signature::instance_p()->root_signature_p()
+                        F_abytek_instanced_cluster_group_init_binder_signature::instance_p()->root_signature_p()
                     );
                     command_list_p->ZC_bind_root_constant(
                         0,
-                        tile_count,
+                        group_count,
                         0
                     );
                     command_list_p->ZC_bind_root_constant(
                         0,
-                        hierarchical_tile_count,
+                        hierarchical_group_count,
                         1
                     );
                     command_list_p->ZC_bind_root_descriptor_table(
@@ -2265,12 +2245,12 @@ namespace nre::newrg
                         main_descriptor_element.handle().gpu_address
                     );
                     command_list_p->ZC_bind_pipeline_state(
-                        NCPP_FOH_VALID(instanced_cluster_tile_init_pso_p_)
+                        NCPP_FOH_VALID(instanced_cluster_group_init_pso_p_)
                     );
                 },
                 element_ceil(
                     F_vector3_f32(
-                        hierarchical_tile_count,
+                        hierarchical_group_count,
                         1,
                         1
                     )
@@ -2288,7 +2268,7 @@ namespace nre::newrg
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
-                .resource_p = rg_hierarchical_tile_head_node_id_buffer_p,
+                .resource_p = rg_hierarchical_group_head_node_id_buffer_p,
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
         }
@@ -2317,7 +2297,7 @@ namespace nre::newrg
                 2
             );
             main_render_bind_list.enqueue_initialize_resource_view(
-                rg_hierarchical_tile_head_node_id_buffer_p,
+                rg_hierarchical_group_head_node_id_buffer_p,
                 ED_resource_view_type::UNORDERED_ACCESS,
                 3
             );
@@ -2336,7 +2316,7 @@ namespace nre::newrg
                 [=](F_render_pass*, TKPA<A_command_list> command_list_p)
                 {
                     command_list_p->ZC_bind_root_signature(
-                        F_abytek_instanced_cluster_tile_link_binder_signature::instance_p()->root_signature_p()
+                        F_abytek_instanced_cluster_group_link_binder_signature::instance_p()->root_signature_p()
                     );
                     command_list_p->ZC_bind_root_descriptor_table(
                         0,
@@ -2369,7 +2349,7 @@ namespace nre::newrg
                         cluster_bbox_srv_element.handle().gpu_address
                     );
                     command_list_p->ZC_bind_pipeline_state(
-                        NCPP_FOH_VALID(instanced_cluster_tile_link_pso_p_)
+                        NCPP_FOH_VALID(instanced_cluster_group_link_pso_p_)
                     );
                 },
                 dispatch_instanced_clusters_indirect_command_batch,
@@ -2398,7 +2378,7 @@ namespace nre::newrg
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
-                .resource_p = rg_hierarchical_tile_head_node_id_buffer_p,
+                .resource_p = rg_hierarchical_group_head_node_id_buffer_p,
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
@@ -2471,17 +2451,17 @@ namespace nre::newrg
                 2
             );
             main_render_bind_list.enqueue_initialize_resource_view(
-                rg_hierarchical_tile_head_node_id_buffer_p,
+                rg_hierarchical_group_head_node_id_buffer_p,
                 ED_resource_view_type::UNORDERED_ACCESS,
                 3
             );
             main_render_bind_list.enqueue_initialize_resource_view(
-                instanced_cluster_tile_buffer.rg_tile_header_buffer_p,
+                instanced_cluster_group_buffer.rg_group_header_buffer_p,
                 ED_resource_view_type::UNORDERED_ACCESS,
                 4
             );
             main_render_bind_list.enqueue_initialize_resource_view(
-                instanced_cluster_tile_buffer.rg_instance_cluster_remap_buffer_p,
+                instanced_cluster_group_buffer.rg_instance_cluster_remap_buffer_p,
                 ED_resource_view_type::UNORDERED_ACCESS,
                 5
             );
@@ -2492,7 +2472,7 @@ namespace nre::newrg
                 [=](F_render_pass*, TKPA<A_command_list> command_list_p)
                 {
                     command_list_p->ZC_bind_root_signature(
-                        F_abytek_instanced_cluster_tile_gather_binder_signature::instance_p()->root_signature_p()
+                        F_abytek_instanced_cluster_group_gather_binder_signature::instance_p()->root_signature_p()
                     );
                     command_list_p->ZC_bind_root_descriptor_table(
                         0,
@@ -2500,21 +2480,21 @@ namespace nre::newrg
                     );
                     command_list_p->ZC_bind_root_constant(
                         1,
-                        tile_count_2d.x,
+                        group_count_2d.x,
                         0
                     );
                     command_list_p->ZC_bind_root_constant(
                         1,
-                        tile_count_2d.y,
+                        group_count_2d.y,
                         1
                     );
                     command_list_p->ZC_bind_pipeline_state(
-                        NCPP_FOH_VALID(instanced_cluster_tile_gather_pso_p_)
+                        NCPP_FOH_VALID(instanced_cluster_group_gather_pso_p_)
                     );
                 },
                 element_ceil(
                     F_vector3_f32(
-                        tile_count,
+                        group_count,
                         1,
                         1
                     )
@@ -2536,15 +2516,15 @@ namespace nre::newrg
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
-                .resource_p = rg_hierarchical_tile_head_node_id_buffer_p,
+                .resource_p = rg_hierarchical_group_head_node_id_buffer_p,
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
-                .resource_p = instanced_cluster_tile_buffer.rg_tile_header_buffer_p,
+                .resource_p = instanced_cluster_group_buffer.rg_group_header_buffer_p,
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
             pass_p->add_resource_state({
-                .resource_p = instanced_cluster_tile_buffer.rg_instance_cluster_remap_buffer_p,
+                .resource_p = instanced_cluster_group_buffer.rg_instance_cluster_remap_buffer_p,
                 .states = ED_resource_state::UNORDERED_ACCESS
             });
         }

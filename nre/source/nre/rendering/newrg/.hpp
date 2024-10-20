@@ -31,9 +31,9 @@
 #include <nre/rendering/newrg/abytek_init_args_dispatch_mesh_instanced_clusters_indirect_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_expand_instances_main_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_expand_instances_no_occlusion_culling_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_instanced_cluster_tile_init_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_instanced_cluster_tile_link_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_instanced_cluster_tile_gather_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_group_init_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_group_link_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_group_gather_binder_signature.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/external_render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid_system.hpp>

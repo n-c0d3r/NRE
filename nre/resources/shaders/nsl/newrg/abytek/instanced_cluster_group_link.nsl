@@ -5,7 +5,7 @@ import(newrg/abytek/geometry_utilities.nsh)
 
 
 @slot(0)
-resource global_shared_datas(RWStructuredBuffer(F_build_instanced_cluster_tile_global_shared_data))
+resource global_shared_datas(RWStructuredBuffer(F_build_instanced_cluster_group_global_shared_data))
 
 @slot(1)
 resource node_instanced_cluster_ids(RWBuffer(F_instanced_cluster_id))
@@ -14,7 +14,7 @@ resource node_instanced_cluster_ids(RWBuffer(F_instanced_cluster_id))
 resource next_node_ids(RWBuffer(F_instanced_cluster_id))
 
 @slot(3)
-resource hierarchical_tile_head_node_ids(RWBuffer(u32))
+resource hierarchical_group_head_node_ids(RWBuffer(u32))
 
 @slot(0)
 resource instanced_cluster_headers(StructuredBuffer(F_instanced_cluster_header))
@@ -132,93 +132,82 @@ compute_shader CS(
             * screen_size_minus_one_float
         );
 
-        float2 tile_size_2d_float = float2(NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_X, NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_Y);
+        uint2 local_group_count_2d = last_screen_coord - first_screen_coord + uint2(1, 1);
 
-        uint2 first_tile_coord = floor(
-            first_screen_coord
-            / tile_size_2d_float
-        );
-        uint2 last_tile_coord = floor(
-            last_screen_coord
-            / tile_size_2d_float
-        );
-
-        uint2 local_tile_count_2d = last_tile_coord - first_tile_coord + uint2(1, 1);
-
-        uint hierarchical_tile_level = ceil(
+        uint hierarchical_group_level = ceil(
             log2(
                 max(
-                    local_tile_count_2d.x,
-                    local_tile_count_2d.y
+                    local_group_count_2d.x,
+                    local_group_count_2d.y
                 )
             )
         );
         {
-            uint lower_hierarchical_tile_level = max(((int)hierarchical_tile_level) - 1, 0);
+            uint lower_hierarchical_group_level = max(((int)hierarchical_group_level) - 1, 0);
 
-            float2 lower_hierarchical_tile_size_2d_float = float2(
-                ((u32)NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_X) << lower_hierarchical_tile_level, 
-                ((u32)NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_Y) << lower_hierarchical_tile_level
+            float2 lower_hierarchical_group_size_2d_float = float2(
+                1U << lower_hierarchical_group_level, 
+                1U << lower_hierarchical_group_level
             );
 
-            uint2 first_lower_hierarchical_tile_coord = floor(
+            uint2 first_lower_hierarchical_group_coord = floor(
                 first_screen_coord
-                / lower_hierarchical_tile_size_2d_float
+                / lower_hierarchical_group_size_2d_float
             );
-            uint2 last_lower_hierarchical_tile_coord = floor(
+            uint2 last_lower_hierarchical_group_coord = floor(
                 last_screen_coord
-                / lower_hierarchical_tile_size_2d_float
+                / lower_hierarchical_group_size_2d_float
             );
 
-            uint2 local_lower_hierarchical_tile_count_2d_minus_one = last_lower_hierarchical_tile_coord - first_lower_hierarchical_tile_coord;
+            uint2 local_lower_hierarchical_group_count_2d_minus_one = last_lower_hierarchical_group_coord - first_lower_hierarchical_group_coord;
 
-            hierarchical_tile_level = (
+            hierarchical_group_level = (
                 (
-                    (local_lower_hierarchical_tile_count_2d_minus_one.x < 2)
-                    && (local_lower_hierarchical_tile_count_2d_minus_one.y < 2)
+                    (local_lower_hierarchical_group_count_2d_minus_one.x < 2)
+                    && (local_lower_hierarchical_group_count_2d_minus_one.y < 2)
                 )
-                ? lower_hierarchical_tile_level
-                : hierarchical_tile_level
+                ? lower_hierarchical_group_level
+                : hierarchical_group_level
             );
         }
 
-        F_instanced_cluster_hierarchical_tile_level_header hierarchical_tile_level_header = global_shared_datas[0].hierarchical_tile_level_headers[hierarchical_tile_level];
+        F_instanced_cluster_hierarchical_group_level_header hierarchical_group_level_header = global_shared_datas[0].hierarchical_group_level_headers[hierarchical_group_level];
 
-        uint2 hierarchical_tile_size_2d = uint2(
-            ((u32)NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_X) << hierarchical_tile_level, 
-            ((u32)NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_Y) << hierarchical_tile_level
+        uint2 hierarchical_group_size_2d = uint2(
+            1U << hierarchical_group_level, 
+            1U << hierarchical_group_level
         );
-        float2 hierarchical_tile_size_2d_float = hierarchical_tile_size_2d;
+        float2 hierarchical_group_size_2d_float = hierarchical_group_size_2d;
 
-        uint2 first_hierarchical_tile_coord = floor(
+        uint2 first_hierarchical_group_coord = floor(
             first_screen_coord
-            / hierarchical_tile_size_2d_float
+            / hierarchical_group_size_2d_float
         );
-        uint2 last_hierarchical_tile_coord = floor(
+        uint2 last_hierarchical_group_coord = floor(
             last_screen_coord
-            / hierarchical_tile_size_2d_float
+            / hierarchical_group_size_2d_float
         );
 
-        uint2 local_hierarchical_tile_count_2d = last_hierarchical_tile_coord - first_hierarchical_tile_coord + uint2(1, 1);
-        uint local_hierarchical_tile_count = local_hierarchical_tile_count_2d.x * local_hierarchical_tile_count_2d.y;
+        uint2 local_hierarchical_group_count_2d = last_hierarchical_group_coord - first_hierarchical_group_coord + uint2(1, 1);
+        uint local_hierarchical_group_count = local_hierarchical_group_count_2d.x * local_hierarchical_group_count_2d.y;
 
         uint base_node_id;
         InterlockedAdd(
             global_shared_datas[0].next_node_id,
-            local_hierarchical_tile_count,
+            local_hierarchical_group_count,
             base_node_id
         );
 
-        for(uint i = 0; i < local_hierarchical_tile_count; ++i)
+        for(uint i = 0; i < local_hierarchical_group_count; ++i)
         {
-            uint2 hierarchical_tile_coord = first_hierarchical_tile_coord + uint2(
-                i % local_hierarchical_tile_count_2d.x,
-                i / local_hierarchical_tile_count_2d.x
+            uint2 hierarchical_group_coord = first_hierarchical_group_coord + uint2(
+                i % local_hierarchical_group_count_2d.x,
+                i / local_hierarchical_group_count_2d.x
             );
-            uint tile_id = hierarchical_tile_level_header.offset + (
-                hierarchical_tile_coord.y 
-                * hierarchical_tile_size_2d.x 
-                + hierarchical_tile_coord.x
+            uint group_id = hierarchical_group_level_header.offset + (
+                hierarchical_group_coord.y 
+                * hierarchical_group_size_2d.x 
+                + hierarchical_group_coord.x
             );
 
             uint node_id = base_node_id + i;
@@ -235,7 +224,7 @@ compute_shader CS(
                 next_node_ids[node_id] = expected_next_id;
 
                 InterlockedCompareExchange(
-                    hierarchical_tile_head_node_ids[tile_id],
+                    hierarchical_group_head_node_ids[group_id],
                     expected_next_id,
                     node_id,
                     last_expected_next_id
@@ -246,5 +235,5 @@ compute_shader CS(
     }
 }
 
-@root_signature(NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_LINK_BINDER_SIGNATURE)
+@root_signature(NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_GROUP_LINK_BINDER_SIGNATURE)
 pipeline_state PSO(CS)

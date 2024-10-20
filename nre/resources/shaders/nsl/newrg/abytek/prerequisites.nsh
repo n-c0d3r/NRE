@@ -190,11 +190,11 @@ struct F_instanced_cluster_remap_range(
     count(F_instanced_cluster_id)
 )
 
-struct F_instanced_cluster_tile_header(
+struct F_instanced_cluster_group_header(
     instanced_cluster_remap_range(F_instanced_cluster_remap_range) 
 )
 
-struct F_instanced_cluster_hierarchical_tile_level_header(
+struct F_instanced_cluster_hierarchical_group_level_header(
     count_2d(uint2)
     offset(uint)
     ___padding_0___(uint) 
@@ -202,11 +202,11 @@ struct F_instanced_cluster_hierarchical_tile_level_header(
 
 define INVALID_INSTANCED_CLUSTER_NODE_ID(0xFFFFFFFF)
 
-struct F_build_instanced_cluster_tile_global_shared_data(
+struct F_build_instanced_cluster_group_global_shared_data(
     instanced_cluster_range(F_instanced_cluster_range) 
     next_node_id(uint)
-    hierarchical_tile_level_count(uint)
-    hierarchical_tile_level_headers(F_instanced_cluster_hierarchical_tile_level_header 16)    
+    hierarchical_group_level_count(uint)
+    hierarchical_group_level_headers(F_instanced_cluster_hierarchical_group_level_header 16)    
     instanced_cluster_remap_range(F_instanced_cluster_remap_range) 
     ___padding_0___(uint2)
 )
