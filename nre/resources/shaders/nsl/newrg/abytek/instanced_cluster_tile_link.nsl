@@ -109,26 +109,26 @@ compute_shader CS(
             occluder
         );
 
-        float2 clamped_min_ndc_xy = clamp(
+        float2 clamped_min_uv = clamp(
             occluder.min_ndc_xyz.xy,
             float2(-1.0f, -1.0f),
             float2(1.0f, 1.0f)
-        );
-        float2 clamped_max_ndc_xy = clamp(
+        ) * 0.5f + float2(0.5f, 0.5f);
+        float2 clamped_max_uv = clamp(
             occluder.max_ndc_xyz.xy,
             float2(-1.0f, -1.0f),
             float2(1.0f, 1.0f)
-        );
+        ) * 0.5f + float2(0.5f, 0.5f);
 
         float2 screen_size_float = screen_size;
         float2 screen_size_minus_one_float = screen_size_float - float2(1, 1);
         
         float2 first_screen_coord = floor(
-            clamped_min_ndc_xy
+            clamped_min_uv
             * screen_size_minus_one_float
         );
         float2 last_screen_coord = ceil(
-            clamped_max_ndc_xy
+            clamped_max_uv
             * screen_size_minus_one_float
         );
 
