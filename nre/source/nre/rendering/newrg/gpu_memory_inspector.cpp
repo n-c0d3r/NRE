@@ -46,7 +46,11 @@ namespace nre::newrg
             auto& resource_allocators = render_graph_p->resource_allocators();
             for(auto& resource_allocator : resource_allocators)
             {
+#ifdef NRHI_ENABLE_DRIVER_DEBUGGER
                 begin_section(resource_allocator.name().c_str());
+#else
+                begin_section("Unnamed");
+#endif
                 auto& pages = resource_allocator.pages();
                 ImGui::Text("Page Capacity: %lf (MiB)", f64(resource_allocator.page_capacity()) / 1024.0 / 1024.0);
                 ImGui::Text("Pages: %d", resource_allocator.pages().size());\

@@ -49,27 +49,20 @@ compute_shader CS(
 
         // calculate node_count
         {
-            uint2 current_level_group_id_2d = group_id_2d;
+            F_instanced_cluster_hierarchical_group_level_header hierarchical_group_level_header = global_shared_datas[0].hierarchical_group_level_headers[0];
+            
+            uint hierarchical_group_id = (
+                hierarchical_group_level_header.offset
+                + group_id_2d.y * hierarchical_group_level_header.count_2d.x
+                + group_id_2d.x
+            );
 
-            for(u32 i = 0; i < hierarchical_group_level_count; ++i)
+            uint node_id = hierarchical_group_head_node_ids[hierarchical_group_id];
+
+            while(node_id != INVALID_INSTANCED_CLUSTER_NODE_ID)
             {
-                F_instanced_cluster_hierarchical_group_level_header hierarchical_group_level_header = global_shared_datas[0].hierarchical_group_level_headers[i];
-                
-                uint hierarchical_group_id = (
-                    hierarchical_group_level_header.offset
-                    + current_level_group_id_2d.y * hierarchical_group_level_header.count_2d.x
-                    + current_level_group_id_2d.x
-                );
-
-                uint node_id = hierarchical_group_head_node_ids[hierarchical_group_id];
-
-                while(node_id != INVALID_INSTANCED_CLUSTER_NODE_ID)
-                {
-                    ++node_count;
-                    node_id = next_node_ids[node_id];
-                }
-
-                current_level_group_id_2d /= 2;
+                ++node_count;
+                node_id = next_node_ids[node_id];
             }
         }
 
@@ -106,29 +99,22 @@ compute_shader CS(
         {
             uint local_node_id = 0;
 
-            uint2 current_level_group_id_2d = group_id_2d;
+            F_instanced_cluster_hierarchical_group_level_header hierarchical_group_level_header = global_shared_datas[0].hierarchical_group_level_headers[0];
+            
+            uint hierarchical_group_id = (
+                hierarchical_group_level_header.offset
+                + group_id_2d.y * hierarchical_group_level_header.count_2d.x
+                + group_id_2d.x
+            );
 
-            for(u32 i = 0; i < hierarchical_group_level_count; ++i)
+            uint node_id = hierarchical_group_head_node_ids[hierarchical_group_id];
+
+            while(node_id != INVALID_INSTANCED_CLUSTER_NODE_ID)
             {
-                F_instanced_cluster_hierarchical_group_level_header hierarchical_group_level_header = global_shared_datas[0].hierarchical_group_level_headers[i];
-                
-                uint hierarchical_group_id = (
-                    hierarchical_group_level_header.offset
-                    + current_level_group_id_2d.y * hierarchical_group_level_header.count_2d.x
-                    + current_level_group_id_2d.x
-                );
+                instanced_cluster_remap_buffer[group_header.instanced_cluster_remap_range.offset + local_node_id] = node_id;
 
-                uint node_id = hierarchical_group_head_node_ids[hierarchical_group_id];
-
-                while(node_id != INVALID_INSTANCED_CLUSTER_NODE_ID)
-                {
-                    instanced_cluster_remap_buffer[group_header.instanced_cluster_remap_range.offset + local_node_id] = node_id;
-
-                    ++local_node_id;
-                    node_id = next_node_ids[node_id];
-                }
-
-                current_level_group_id_2d /= 2;
+                ++local_node_id;
+                node_id = next_node_ids[node_id];
             }
         }
     }
