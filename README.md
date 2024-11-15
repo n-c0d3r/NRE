@@ -15,6 +15,7 @@ NCoder's Learning Aimed C++ Render Engine.
     + Render graph
     + Multithreaded rendering
     + Virtual Geometry
+      + Order-Independent Transparency
     + Unified Mesh System
       + Directed Acyclic Graph Generation
       + Mesh Clustering
@@ -48,6 +49,7 @@ NCoder's Learning Aimed C++ Render Engine.
 
 ## Samples
 + Abytek Render Path
+![alt text](./nre/resources/textures/screenshots/oit_vg.png)
 ![alt text](./nre/resources/textures/screenshots/abytek_render_path.png)
 + Hello NRE
 ![alt text](./nre/resources/textures/screenshots/hello_nre.png)
