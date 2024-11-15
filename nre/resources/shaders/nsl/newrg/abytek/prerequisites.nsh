@@ -4,7 +4,10 @@ import(indirect_arguments.nsh)
 
 
 
-define NSL_DISABLE_AUTO_SLOTS
+require(!NSL_DISABLE_AUTO_SLOTS)
+{
+    define NSL_DISABLE_AUTO_SLOTS
+}
 
 
 
@@ -171,16 +174,38 @@ struct F_expand_clusters_global_shared_data(
 
 define E_abytek_drawable_material_flag(u32)
 
-define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_NONE(0)
-define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_BLEND_OPAQUE(1)
-define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_BLEND_TRANSPARENT(2)
-define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_DEFAULT(3)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_NONE(0x0)
+
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_BLEND_OPAQUE(0x1)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_BLEND_TRANSPARENT(0x2)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_BLEND_BITS(0x3)
+
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_CULL_BACK(0x4)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_CULL_FRONT(0x8)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_CULL_NONE(0x10)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_CULL_BITS(0x1C)
+
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_FILL_SOLID(0x40)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_FILL_WIREFRAME(0x80)
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_FILL_BITS(0xC0)
+
+define NRE_NEWRG_ABYTEK_DRAWABLE_MATERIAL_FLAG_ALWAYS_USE_APPROXIMATED_OIT(0x100)
+
+define NRE_NEWRG_ABYTEK_INVALID_DRAWABLE_MATERIAL_TEMPLATE_ID(NCPP_U32_MAX)
 
 struct F_abytek_drawable_material_data(
     flags(E_abytek_drawable_material_flag)
-    ___padding_0___(u32)
+    template_id(u32)
     ___padding_1___(u32)
     ___padding_2___(u32)
+)
+
+
+
+struct F_dispatch_mesh_indirect_command(
+    instanced_cluster_range(F_instanced_cluster_range)
+    ___padding_0___(uint2)
+    dispatch_mesh_indirect_argument(F_aligned_dispatch_mesh_indirect_argument)
 )
 
 
@@ -190,23 +215,44 @@ struct F_instanced_cluster_remap_range(
     count(F_instanced_cluster_id)
 )
 
-struct F_instanced_cluster_group_header(
+struct F_instanced_cluster_tile_header(
     instanced_cluster_remap_range(F_instanced_cluster_remap_range) 
 )
 
-struct F_instanced_cluster_hierarchical_group_level_header(
+struct F_instanced_cluster_hierarchical_tile_level_header(
     count_2d(uint2)
     offset(uint)
-    ___padding_0___(uint) 
+    node_offset(uint)
+    instanced_node_offset(uint)
+    node_write_offset(uint)
+    instanced_node_write_offset(uint)
+    node_count(uint)
 )
 
 define INVALID_INSTANCED_CLUSTER_NODE_ID(0xFFFFFFFF)
 
-struct F_build_instanced_cluster_group_global_shared_data(
+struct F_build_instanced_cluster_tile_global_shared_data(
     instanced_cluster_range(F_instanced_cluster_range) 
     next_node_id(uint)
-    hierarchical_group_level_count(uint)
-    hierarchical_group_level_headers(F_instanced_cluster_hierarchical_group_level_header 16)    
+    hierarchical_tile_level_count(uint)
+    hierarchical_tile_level_headers(F_instanced_cluster_hierarchical_tile_level_header 16)    
     instanced_cluster_remap_range(F_instanced_cluster_remap_range) 
-    ___padding_0___(uint2)
+    next_instanced_node_id(uint)
+    ___padding_0___(uint)
+)
+
+
+
+struct F_coord_2d_range(
+    offset_2d(uint2)
+    count_2d(uint2)
+)
+
+
+
+struct F_frame_data(
+    time(f32)
+    delta_time(f32)
+    sin_time(f32)
+    cos_time(f32)
 )

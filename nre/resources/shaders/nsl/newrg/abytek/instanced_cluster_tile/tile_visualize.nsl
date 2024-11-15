@@ -1,0 +1,86 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource options(ConstantBuffer)
+uniform min_color(float3)
+uniform ___options_padding_0___(float)
+uniform max_color(float3)
+uniform ___options_padding_1___(float)
+uniform tile_count_2d(uint2)
+uniform max_count(uint)
+
+@slot(0)
+resource out_texture(RWTexture2D(float4))
+
+@slot(0)
+resource global_shared_datas(StructuredBuffer(F_build_instanced_cluster_tile_global_shared_data))
+
+@slot(1)
+resource tile_headers(StructuredBuffer(F_instanced_cluster_tile_header))
+
+
+
+@thread_group_size(
+    16
+    16
+    1
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint width;
+    uint height;
+    out_texture.GetDimensions(width, height);
+
+    if(
+        (global_thread_id.x < width)
+        && (global_thread_id.y < height) 
+    )
+    {
+        uint2 tile_coord = uint2(
+            global_thread_id.x / NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_X,
+            global_thread_id.y / NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_Y
+        );
+
+        uint tile_id = tile_coord.y * tile_count_2d.x + tile_coord.x;
+
+        F_instanced_cluster_tile_header tile_header = tile_headers[tile_id];
+
+        float4 highlight_color = float4(
+            lerp(
+                min_color,
+                max_color,
+                saturate(
+                    ((f32)tile_header.instanced_cluster_remap_range.count)
+                    / ((f32)max_count)
+                )
+            ) ,
+            1
+        );
+
+        out_texture[global_thread_id.xy] = (
+            (tile_header.instanced_cluster_remap_range.count == 0)
+            ? out_texture[global_thread_id.xy]
+            : lerp(
+                out_texture[global_thread_id.xy], 
+                pow(highlight_color, 2.0f), 
+                0.5f
+            )
+        );
+    }
+}
+
+root_signature ROOT_SIGNATURE(
+    DESCRIPTOR_TABLE(
+        CBV(1)
+        UAV(1)
+        SRV(2)
+    )
+)
+
+@root_signature(ROOT_SIGNATURE)
+pipeline_state PSO(CS)

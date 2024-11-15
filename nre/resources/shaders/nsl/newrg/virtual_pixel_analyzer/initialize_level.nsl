@@ -1,0 +1,44 @@
+
+import(nrhi)
+
+
+
+require(!NSL_DISABLE_AUTO_SLOTS)
+{
+    define NSL_DISABLE_AUTO_SLOTS
+}
+
+
+
+@slot(0)
+resource levels(RWTexture2D(u32))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint2 size;
+    levels.GetDimensions(size.x, size.y);
+
+    if(
+        (global_thread_id.x < size.x)
+        && (global_thread_id.y < size.y)
+    )
+    {
+        levels[global_thread_id.xy] = NCPP_U32_MAX;
+    }
+}
+
+
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        UAV(1)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

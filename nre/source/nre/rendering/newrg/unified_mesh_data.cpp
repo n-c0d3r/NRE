@@ -12,8 +12,6 @@ namespace nre::newrg
     {
     }
 
-
-
     b8 F_compressed_unified_mesh_data_file_saver::save(const G_string& abs_path, const F_compressed_unified_mesh_data& data, u32 flags)
     {
         F_data_stream data_stream;
@@ -54,8 +52,6 @@ namespace nre::newrg
     F_compressed_unified_mesh_data_file_loader::~F_compressed_unified_mesh_data_file_loader()
     {
     }
-
-
 
     b8 F_compressed_unified_mesh_data_file_loader::load(const G_string& abs_path, F_compressed_unified_mesh_data& data, u32 flags)
     {

@@ -1,0 +1,92 @@
+
+import(newrg/abytek/prerequisites.nsh)
+import(global_shared_data.nsh)
+
+
+
+@slot(0)
+resource options(ConstantBuffer)
+uniform true_oit_single_level_distance(f32)
+
+@slot(0)
+resource instanced_cluster_start_depths(Buffer(f32))
+
+@slot(1)
+resource instanced_cluster_depths(Buffer(f32))
+
+@slot(2)
+resource instanced_cluster_headers(StructuredBuffer(F_instanced_cluster_header))
+
+@slot(0)
+resource global_shared_datas(RWStructuredBuffer(F_global_shared_data))
+
+@slot(1)
+resource instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+@slot(2)
+resource classified_instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header))
+
+
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    F_instanced_cluster_range instanced_cluster_range = instanced_cluster_ranges[0];
+
+    if(global_thread_id.x < instanced_cluster_range.count)
+    {        
+        F_instanced_cluster_id instanced_cluster_id = instanced_cluster_range.offset + global_thread_id.x;
+
+        F_instanced_cluster_header instanced_cluster_header = instanced_cluster_headers[instanced_cluster_id];
+
+        float instanced_cluster_start_depth = instanced_cluster_start_depths[instanced_cluster_id];
+        float instanced_cluster_depth = instanced_cluster_depths[instanced_cluster_id];
+
+        float delta_depth = instanced_cluster_depth - instanced_cluster_start_depth;
+
+        uint true_oit_highest_level = global_shared_datas[0].true_oit_highest_level;
+
+        f32 max_level_depth = 0;
+        if(true_oit_highest_level != NCPP_U32_MAX)
+        {
+            max_level_depth = (
+                (
+                    ((f32)true_oit_highest_level)
+                    + 1.0f
+                )
+                * true_oit_single_level_distance
+            );
+        }
+
+        if(delta_depth < max_level_depth)
+        {
+            uint store_location;
+            InterlockedAdd(
+                global_shared_datas[0].true_oit_instanced_cluster_range.count,
+                1,
+                store_location  
+            );
+
+            classified_instanced_cluster_headers[store_location] = instanced_cluster_header;
+        }
+    }
+}
+
+root_signature ROOT_SIGNATURE(
+    CONSTANTS(1)
+
+    DESCRIPTOR_TABLE(
+        SRV(3)
+
+        UAV(3)
+    )
+)
+
+@root_signature(ROOT_SIGNATURE)
+pipeline_state PSO(CS)

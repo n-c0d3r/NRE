@@ -62,4 +62,19 @@ namespace nre
             return save(abs_path, *((const F_data*)(data.data())), flags);
         }
     };
+
+
+
+    class NRE_API F_string_file_saver final : public TA_file_saver<G_string>
+    {
+    public:
+        F_string_file_saver();
+        ~F_string_file_saver() override;
+
+    public:
+        NCPP_OBJECT(F_string_file_saver);
+
+    protected:
+        b8 save(const G_string& abs_path, const G_string& data, u32 flags) override;
+    };
 }

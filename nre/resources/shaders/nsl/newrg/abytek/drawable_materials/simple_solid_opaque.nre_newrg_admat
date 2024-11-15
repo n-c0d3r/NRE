@@ -1,0 +1,10 @@
+
+define BLEND_OPAQUE()
+define CULL_BACK()
+define FILL_SOLID()
+
+
+
+submodule SURFACE_PIXEL(
+    out_color = float4(1, 1, 1, 1);
+)

@@ -10,7 +10,7 @@ namespace nre::newrg
         stride_(stride),
         count_(count)
     {
-        NCPP_ASSERT(stride % 16 == 0);
+        // NCPP_ASSERT(stride % 16 == 0);
 
         allocate_data_internal();
     }

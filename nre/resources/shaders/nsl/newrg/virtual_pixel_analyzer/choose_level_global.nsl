@@ -1,0 +1,60 @@
+
+import(nrhi)
+
+
+
+require(!NSL_DISABLE_AUTO_SLOTS)
+{
+    define NSL_DISABLE_AUTO_SLOTS
+}
+
+
+
+@slot(0)
+resource options(ConstantBuffer)
+uniform max_pixel_count(u32)
+
+@slot(0)
+resource global_pixel_counters(RWBuffer(u32))
+
+@slot(1)
+resource global_levels(RWBuffer(u32))
+
+
+
+@thread_group_size(1 1 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    u32 total_pixel_count = 0;
+    u32 true_oit_highest_level = NCPP_U32_MAX;
+
+    for(u32 i = 0; i < NRE_NEWRG_ABYTEK_TRUE_OIT_LEVEL_COUNT; ++i)
+    {
+        u32 pixel_count = global_pixel_counters[i];
+
+        total_pixel_count += pixel_count;
+        if(total_pixel_count > max_pixel_count)
+        {
+            break;
+        }
+
+        true_oit_highest_level = i;
+    }
+
+    global_levels[0] = true_oit_highest_level;
+}
+
+
+
+root_signature RS(
+    CONSTANTS(1)
+
+    DESCRIPTOR_TABLE(
+        UAV(2)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

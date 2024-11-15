@@ -92,7 +92,7 @@ namespace nre::newrg
         }
 
     public:
-        F_indirect_command_batch subrange(i32 begin_index, u32 count = 1)
+        F_indirect_command_batch subrange(i32 begin_index, u32 count = 1) const
         {
             NCPP_ASSERT(is_valid());
             return {
@@ -102,7 +102,7 @@ namespace nre::newrg
                 count
             };
         }
-        F_indirect_command_batch submemory(ptrd offset, u32 count = 1)
+        F_indirect_command_batch submemory(ptrd offset, u32 count = 1) const
         {
             NCPP_ASSERT(is_valid());
             return {

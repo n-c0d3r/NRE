@@ -23,11 +23,41 @@ int main() {
 
 	auto adapter_inspector_p = TU<F_adapter_inspector>()();
 	auto gpu_memory_inspector_p = TU<F_gpu_memory_inspector>()();
+	auto render_resource_inspector_p = TU<F_render_resource_inspector>()();
 
 
 
 	// unified mesh asset
-	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/gitignores/hq_rock_1.obj");
+	auto unified_mesh_asset_p = H_unified_mesh_asset::load("models/rock.obj");
+
+
+
+	TG_vector<TS<F_abytek_drawable_material_template>> material_template_p_vector;
+	material_template_p_vector.push_back(
+		H_abytek_drawable_material_template::load(
+			"shaders/nsl/newrg/abytek/drawable_materials/simple_solid_opaque.nre_newrg_admat"
+		)
+	);
+	material_template_p_vector.push_back(
+		H_abytek_drawable_material_template::load(
+			"shaders/nsl/newrg/abytek/drawable_materials/simple_solid_transparent.nre_newrg_admat"
+		)
+	);
+	material_template_p_vector.push_back(
+		H_abytek_drawable_material_template::load(
+			"shaders/nsl/newrg/abytek/drawable_materials/simple_solid_transparent_2.nre_newrg_admat"
+		)
+	);
+	material_template_p_vector.push_back(
+		H_abytek_drawable_material_template::load(
+			"shaders/nsl/newrg/abytek/drawable_materials/simple_solid_transparent_3.nre_newrg_admat"
+		)
+	);
+	material_template_p_vector.push_back(
+		H_abytek_drawable_material_template::load(
+			"shaders/nsl/newrg/abytek/drawable_materials/simple_solid_transparent_4.nre_newrg_admat"
+		)
+	);
 
 
 
@@ -37,14 +67,16 @@ int main() {
 	// create model actor
 	F_vector2_i32 begin_spawn_coord = F_vector2_i32::zero();
 	F_vector2_i32 end_spawn_coord = F_vector2_i32::zero();
+	F_vector3_f32 spawn_offset = F_vector3_f32::zero();
 	F_vector2_f32 spawn_gap = F_vector2_f32::one() * 4.0f;
 	F_vector3_f32 spawn_size = F_vector3_f32::one() * 4.0f;
-	b8 transparent = true;
+	u32 material_template_index = 0;
 
 	struct F_spawn
 	{
 		F_vector2_i32 coord;
-		b8 transparent = true;
+		F_vector3_f32 ofset;
+		u32 material_template_index = 0;
 	};
 	TG_queue<F_spawn> spawn_queue;
 	u32 spawn_steps_per_frame = 8;
@@ -54,7 +86,8 @@ int main() {
 		{
 			spawn_queue.push({
 				{ i, j },
-				transparent
+				spawn_offset,
+				material_template_index
 			});
 		}
 	}
@@ -67,11 +100,12 @@ int main() {
 
 	auto spectator_view_p = spectator_camera_p->render_view_p().T_cast<F_abytek_scene_render_view>();
 
-	spectator_p->position = F_vector3 { 0.0f, 0.0f, 0.0f };
+	spectator_p->position = F_vector3 { 0.0f, 7.5f, 0.0f };
+	spectator_p->euler_angles = F_vector3 { 0.45f, 0.0f, 0.0f };
 	spectator_p->move_speed = 4.0f;
 
 	spectator_view_p->bind_output(NRE_MAIN_SWAPCHAIN());
-	spectator_view_p->clear_color = F_vector4 { 0.75f, 0.75f, 0.75f, 1.0f };
+	spectator_view_p->clear_color = F_vector3 { 0.75f, 0.75f, 0.75f };
 
 
 
@@ -83,6 +117,7 @@ int main() {
 
 			level_p.reset();
 			unified_mesh_asset_p.reset();
+			material_template_p_vector.clear();
 			render_path_p.reset();
 		};
 		NRE_APPLICATION_GAMEPLAY_TICK(application_p) {
@@ -95,14 +130,17 @@ int main() {
 			render_path_p->update_ui();
 			adapter_inspector_p->update_ui();
 			gpu_memory_inspector_p->enqueue_update();
+			render_resource_inspector_p->enqueue_update();
 
 			ImGui::Begin("Instance Spawn Tool");
 			ImGui::InputInt2("Begin Spawn Coord", (i32*)&begin_spawn_coord);
 			ImGui::InputInt2("End Spawn Coord", (i32*)&end_spawn_coord);
 			ImGui::InputFloat2("Spawn Gap", (f32*)&spawn_gap);
 			ImGui::InputInt("Spawn Steps Per Frame", (i32*)&spawn_steps_per_frame);
+			ImGui::InputFloat3("Spawn Offset", (f32*)&spawn_offset);
 			ImGui::InputFloat3("Spawn Size", (f32*)&spawn_size);
-			ImGui::Checkbox("Transparent", &transparent);
+			ImGui::InputInt("Material Template Index", (i32*)&material_template_index);
+			material_template_index = eastl::min<u32>(material_template_index, material_template_p_vector.size() - 1);
 			if(ImGui::Button("Spawn"))
 			{
 				spawn_queue = TG_queue<F_spawn>();
@@ -112,7 +150,8 @@ int main() {
 					{
 						spawn_queue.push({
 							{ i, j },
-							transparent
+							spawn_offset,
+							material_template_index
 						});
 					}
 				}
@@ -131,21 +170,17 @@ int main() {
 					auto model_drawable_p = model_actor_p->template T_add_component<F_abytek_drawable>();
 					auto model_material_p = model_actor_p->template T_add_component<F_simple_abytek_drawable_material>();
 
+					model_transform_node_p->transform = make_translation(spawn.ofset) * model_transform_node_p->transform;
 					model_transform_node_p->transform *= T_convert<F_matrix3x3, F_matrix4x4>(
 						make_scale(spawn_size)
 					);
-
 					model_transform_node_p->transform = make_translation(F_vector3_f32::right() * f32(spawn.coord.x) * spawn_gap.x) * model_transform_node_p->transform;
 					model_transform_node_p->transform = make_translation(F_vector3_f32::forward() * f32(spawn.coord.y) * spawn_gap.y) * model_transform_node_p->transform;
 
 					model_drawable_p->mesh_p = unified_mesh_asset_p->mesh_p();
 
 					model_material_p->set_static(true);
-
-					if(spawn.transparent)
-					{
-						model_material_p->data.flags = E_abytek_drawable_material_flag::BLEND_TRANSPARENT;
-					}
+					model_material_p->template_p = material_template_p_vector[spawn.material_template_index];
 				}
 			}
 		};

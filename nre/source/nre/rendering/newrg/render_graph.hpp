@@ -107,7 +107,7 @@ namespace nre::newrg
         b8 is_rhi_available_ = false;
 
         TG_vector<F_render_resource_allocator> resource_allocators_;
-        E_resource_heap_tier resource_heap_tier_ = E_resource_heap_tier::A;
+        ED_resource_heap_tier resource_heap_tier_ = ED_resource_heap_tier::A;
         TG_unordered_map<u32, F_rhi_placed_resource_pool> rhi_placed_resource_pools_;
         F_rhi_frame_buffer_pool rhi_frame_buffer_pool_;
 
@@ -389,6 +389,20 @@ namespace nre::newrg
             return (F__*)(
                 F_single_threaded_reference_render_frame_allocator().allocate(
                     sizeof(F__),
+                    NCPP_ALIGNOF(F__),
+                    0
+                )
+            );
+        }
+        /**
+         *  Thread-safe
+         */
+        template<typename F__>
+        NCPP_FORCE_INLINE F__* T_allocate(u32 count)
+        {
+            return (F__*)(
+                F_single_threaded_reference_render_frame_allocator().allocate(
+                    sizeof(F__) * count,
                     NCPP_ALIGNOF(F__),
                     0
                 )

@@ -1,5 +1,11 @@
 import(nrhi)
 
+
+
+define NSL_DISABLE_AUTO_SLOTS
+
+
+
 resource cb_main(ConstantBuffer)
 default_constant_buffer(cb_main)
 

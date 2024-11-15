@@ -34,7 +34,7 @@ namespace nre
         NCPP_OBJECT(F_file_saver_system);
         template<typename F_file_saver__>
         requires T_is_object_down_castable<F_file_saver__, A_file_saver>
-        TK_valid<F_file_saver__> T_registry_saver(auto&&... args)
+        TK_valid<F_file_saver__> T_register_saver(auto&&... args)
         {
             NCPP_ASSERT(!has_saver(T_type_hash_code<typename F_file_saver__::F_data>));
 

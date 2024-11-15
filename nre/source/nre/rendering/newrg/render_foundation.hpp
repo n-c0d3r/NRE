@@ -14,6 +14,8 @@ namespace nre::newrg
     class F_main_indirect_command_stack;
     class F_main_indirect_data_stack;
     class F_render_depth_pyramid_system;
+    class F_virtual_pixel_buffer_system;
+    class F_virtual_pixel_analyzer_system;
 
 
 
@@ -44,6 +46,8 @@ namespace nre::newrg
         TU<F_main_indirect_command_stack> main_indirect_command_stack_p_;
         TU<F_main_indirect_data_stack> main_indirect_data_stack_p_;
         TU<F_render_depth_pyramid_system> render_depth_pyramid_system_p_;
+        TU<F_virtual_pixel_buffer_system> virtual_pixel_buffer_system_p_;
+        TU<F_virtual_pixel_analyzer_system> virtual_pixel_analyzer_system_p_;
 
     public:
         NCPP_DECLARE_STATIC_EVENTS(

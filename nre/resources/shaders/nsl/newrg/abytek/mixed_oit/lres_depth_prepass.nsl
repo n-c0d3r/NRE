@@ -1,0 +1,212 @@
+
+import(newrg/abytek/prerequisites.nsh)
+import(newrg/abytek/geometry_utilities.nsh)
+
+
+
+struct F_mesh_vertex_data(
+    vertex_clip_position(SV_POSITION)
+)
+
+
+
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(0)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(0)
+import(newrg/abytek/view.nssm)
+
+@slot(1 0)
+resource instanced_cluster_range_cbuffer(ConstantBuffer)
+uniform instanced_cluster_range(F_instanced_cluster_range)
+
+@slot(0 0)
+resource instanced_cluster_headers(StructuredBuffer(F_instanced_cluster_header))
+
+@slot(0 1)
+resource mesh_headers(StructuredBuffer(F_mesh_header) -1)
+
+@slot(0 2)
+resource subpage_headers(StructuredBuffer(F_mesh_subpage_header) -1)
+
+@slot(0 3)
+resource cluster_headers(StructuredBuffer(F_cluster_header) -1)
+
+@slot(0 4)
+resource vertex_datas(StructuredBuffer(F_vertex_data) -1)
+
+@slot(0 5)
+resource triangle_vertex_ids(Buffer(uint) -1)
+
+@slot(0 6)
+resource instance_transforms(StructuredBuffer(float4x4) -1)
+
+@slot(0 7)
+resource instance_mesh_ids(Buffer(F_mesh_id) -1)
+
+
+
+@thread_group_size(
+    NRE_NEWRG_UNIFIED_MESH_MAX_TRIANGLE_COUNT_PER_CLUSTER
+    1
+    1
+)
+mesh_shader MS(
+    group_thread_id(SV_GROUP_THREAD_ID)
+    group_id(SV_GROUP_ID)
+    @indices
+    out out_mesh_triangles(u32x3 124)
+    @vertices
+    out out_mesh_vertex_datas(F_mesh_vertex_data 124)
+)
+{
+    F_instanced_cluster_header instanced_cluster_header = instanced_cluster_headers[instanced_cluster_range.offset + group_id.x];
+
+    F_instance_id instance_id = instanced_cluster_header.instance_id;
+    F_cluster_id local_cluster_id = instanced_cluster_header.local_cluster_id;
+
+    F_mesh_id mesh_id = instance_mesh_ids[
+        instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    float4x4 local_to_world_matrix = instance_transforms[
+        instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    F_mesh_header mesh_header = mesh_headers[
+        mesh_id / NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        mesh_id % NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    F_cluster_id cluster_id = mesh_header.cluster_offset + local_cluster_id;
+
+    F_cluster_header cluster_header = cluster_headers[
+        cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    u32 subpage_id = mesh_header.subpage_offset + local_cluster_id / NRE_NEWRG_UNIFIED_MESH_SUBPAGE_CAPACITY_IN_CLUSTERS;
+    F_mesh_subpage_header subpage_header = subpage_headers[
+        subpage_id / NRE_NEWRG_UNIFIED_MESH_SUBPAGE_HEADER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        subpage_id % NRE_NEWRG_UNIFIED_MESH_SUBPAGE_HEADER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    u32 triangle_count = cluster_header.local_triangle_vertex_id_count / 3;
+
+    SetMeshOutputCounts(cluster_header.vertex_count, triangle_count);
+
+    if(group_thread_id.x < triangle_count)
+    {
+        uint index_offset = subpage_header.index_offset + (uint)(cluster_header.local_triangle_vertex_id_offset) + group_thread_id.x * 3;
+
+        Buffer<uint> index_buffer = triangle_vertex_ids[index_offset / NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS];
+
+        uint index_location_0 = index_offset + 0;
+        uint index_location_1 = index_offset + 1;
+        uint index_location_2 = index_offset + 2;
+
+        out_mesh_triangles[group_thread_id.x] = uint3(
+            index_buffer[
+                index_location_0 % NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+            ],
+            index_buffer[
+                index_location_1 % NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+            ],
+            index_buffer[
+                index_location_2 % NRE_NEWRG_UNIFIED_MESH_TRIANGLE_VERTEX_ID_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+            ]
+        );
+    }
+
+    if(group_thread_id.x < cluster_header.vertex_count)
+    {
+        uint vertex_offset = subpage_header.vertex_offset + cluster_header.vertex_offset + group_thread_id.x;
+
+        F_vertex_data vertex_data = vertex_datas[
+            vertex_offset / NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ][
+            vertex_offset % NRE_NEWRG_UNIFIED_MESH_VERTEX_DATA_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ];
+
+        float4 vertex_world_position = mul(local_to_world_matrix, float4(vertex_data.position, 1.0f));
+
+        float4 vertex_view_position = mul(world_to_view_matrix, vertex_world_position);
+        float4 vertex_clip_position = mul(view_to_clip_matrix, vertex_view_position);
+
+        F_mesh_vertex_data mesh_vertex_data;
+        mesh_vertex_data.vertex_clip_position = vertex_clip_position;
+
+        out_mesh_vertex_datas[group_thread_id.x] = mesh_vertex_data;
+    }
+}
+
+
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        CBV(2)
+       
+        SRV(1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 1)
+        SRV(-1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 2)
+        SRV(-1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 3)
+        SRV(-1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 4)
+        SRV(-1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 5)
+        SRV(-1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 6)
+        SRV(-1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 7)
+        SRV(-1)
+    )
+)
+
+
+
+@root_signature(RS)
+@rasterizer(
+    cull_mode(NONE)
+    fill_mode(SOLID)
+)
+@depth_stencil
+(
+    enable_depth_test(true)
+    depth_comparison_func(GREATER_EQUAL)
+)
+pipeline_state PSO(MS)

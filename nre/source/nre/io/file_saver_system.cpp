@@ -11,6 +11,8 @@ namespace nre
     F_file_saver_system::F_file_saver_system()
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
+
+        T_register_saver<F_string_file_saver>();
     }
     F_file_saver_system::~F_file_saver_system()
     {

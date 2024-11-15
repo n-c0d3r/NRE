@@ -16,6 +16,9 @@
 #include <nre/rendering/newrg/abytek_drawable.hpp>
 #include <nre/rendering/newrg/abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/abytek_drawable_material_data.hpp>
+#include <nre/rendering/newrg/abytek_drawable_material_template.hpp>
+#include <nre/rendering/newrg/abytek_drawable_material_template_data.hpp>
+#include <nre/rendering/newrg/abytek_drawable_material_template_system.hpp>
 #include <nre/rendering/newrg/simple_abytek_drawable_material.hpp>
 #include <nre/rendering/newrg/abytek_simple_draw_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_simple_draw_instanced_clusters_binder_signature.hpp>
@@ -31,9 +34,14 @@
 #include <nre/rendering/newrg/abytek_init_args_dispatch_mesh_instanced_clusters_indirect_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_expand_instances_main_binder_signature.hpp>
 #include <nre/rendering/newrg/abytek_expand_instances_no_occlusion_culling_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_instanced_cluster_group_init_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_instanced_cluster_group_link_binder_signature.hpp>
-#include <nre/rendering/newrg/abytek_instanced_cluster_group_gather_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_tile_init_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_tile_link_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_tile_gather_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_instanced_cluster_tile_connect_binder_signature.hpp>
+#include <nre/rendering/newrg/abytek_drawable_material_shader_asset.hpp>
+#include <nre/rendering/newrg/abytek_opaque_drawable_material_shader_asset.hpp>
+#include <nre/rendering/newrg/abytek_transparent_drawable_material_shader_asset.hpp>
+#include <nre/rendering/newrg/abytek_drawable_material_shader_asset_factory.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/external_render_depth_pyramid.hpp>
 #include <nre/rendering/newrg/render_depth_pyramid_system.hpp>
@@ -127,6 +135,18 @@
 #include <nre/rendering/newrg/render_resource_inspector.hpp>
 #include <nre/rendering/newrg/gpu_memory_inspector.hpp>
 #include <nre/rendering/newrg/adapter_inspector.hpp>
+#include <nre/rendering/newrg/virtual_pixel_header_buffer.hpp>
+#include <nre/rendering/newrg/external_virtual_pixel_header_buffer.hpp>
+#include <nre/rendering/newrg/virtual_pixel_data_buffer.hpp>
+#include <nre/rendering/newrg/external_virtual_pixel_data_buffer.hpp>
+#include <nre/rendering/newrg/virtual_pixel_buffer.hpp>
+#include <nre/rendering/newrg/external_virtual_pixel_buffer.hpp>
+#include <nre/rendering/newrg/virtual_pixel_linked_buffer.hpp>
+#include <nre/rendering/newrg/external_virtual_pixel_linked_buffer.hpp>
+#include <nre/rendering/newrg/virtual_pixel_analyzer.hpp>
+#include <nre/rendering/newrg/external_virtual_pixel_analyzer.hpp>
+#include <nre/rendering/newrg/virtual_pixel_buffer_system.hpp>
+#include <nre/rendering/newrg/virtual_pixel_analyzer_system.hpp>
 #ifdef NRE_ENABLE_ASYNC_COMPUTE
 #include <nre/rendering/newrg/async_compute_render_worker.hpp>
 #endif

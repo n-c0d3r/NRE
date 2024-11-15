@@ -1,0 +1,47 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource mixed_oit_color_texture(Texture2D(float4))
+
+@slot(0)
+resource main_texture(RWTexture2D(float4))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint width;
+    uint height;
+    main_texture.GetDimensions(width, height);
+
+    if(
+        (global_thread_id.x < width)
+        && (global_thread_id.y < height)
+    )
+    {
+        float4 mixed_oit_color = mixed_oit_color_texture[global_thread_id.xy];
+        float4 main_color = main_texture[global_thread_id.xy];
+
+        main_texture[global_thread_id.xy] = float4(
+            (mixed_oit_color + (1.0f - mixed_oit_color.w) * main_color).xyz,
+            1.0f
+        );
+    }
+}
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        SRV(1)
+        
+        UAV(1)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

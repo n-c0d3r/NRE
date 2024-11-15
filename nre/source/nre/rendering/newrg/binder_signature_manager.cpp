@@ -22,18 +22,6 @@ namespace nre::newrg
         T_register<F_binder_signature_all_1cbv>();
         T_register<F_binder_signature_vs_1cbv_ps_1cbv>();
         T_register<F_binder_signature_vs_16cbv_ps_16cbv>();
-
-        F_nsl_shader_system::instance_p()->install_custom_create_pipeline_states(
-            [this](F_nsl_compiled_result& compiled_result)
-            ->TG_vector<TU<A_pipeline_state>>
-            {
-                return H_nsl_factory::create_pipeline_states_with_root_signature(
-                    NRE_MAIN_DEVICE(),
-                    compiled_result,
-                    this->root_signature_p_vector_
-                );
-            }
-        );
     }
     F_binder_signature_manager::~F_binder_signature_manager()
     {

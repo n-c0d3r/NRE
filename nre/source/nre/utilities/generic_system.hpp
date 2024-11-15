@@ -6,12 +6,11 @@
 
 namespace nre
 {
-    template<typename F_value__, typename F__>
+    template<typename F_value__>
     struct TF_generic_handle
     {
     public:
         using F_value = F_value__;
-        using F = F__;
         using F_iterator = typename TG_list<F_value>::iterator;
 
     public:
@@ -20,14 +19,13 @@ namespace nre
 
 
 
-    template<typename F_value__, typename F__>
+    template<typename F_value__>
     class TF_generic_system
     {
     public:
         using F_value = F_value__;
-        using F = F__;
         using F_list = TG_list<F_value__>;
-        using F_handle = TF_generic_handle<F_value__, F__>;
+        using F_handle = TF_generic_handle<F_value__>;
 
 
 

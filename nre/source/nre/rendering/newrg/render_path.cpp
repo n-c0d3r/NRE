@@ -23,6 +23,9 @@ namespace nre::newrg
     {
     }
 
+    void F_render_path::RG_early_register()
+    {
+    }
     void F_render_path::RG_begin_register()
     {
         NCPP_ASSERT(!is_started_register_);

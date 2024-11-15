@@ -29,7 +29,7 @@ namespace nre::newrg
     {
     }
 
-    F_vector2_u32 F_abytek_scene_render_view::depth_pyramid_size_internal()
+    F_vector2_u32 F_abytek_scene_render_view::depth_pyramid_size()
     {
         auto texture_size = size();
 
@@ -59,6 +59,21 @@ namespace nre::newrg
 
         return depth_pyramid_size;
     }
+    F_vector2_u32 F_abytek_scene_render_view::mixed_oit_lres_depth_texture_size()
+    {
+        return element_max(
+            F_vector2_u32::one(),
+            size()
+            / F_vector2_u32(
+                NRE_NEWRG_MIXED_OIT_LRES_DEPTH_SCALE_DOWN_X,
+                NRE_NEWRG_MIXED_OIT_LRES_DEPTH_SCALE_DOWN_Y
+            )
+        );
+    }
+    F_vector2_u32 F_abytek_scene_render_view::virtual_pixel_analyzer_size()
+    {
+        return mixed_oit_lres_depth_texture_size();
+    }
 
     void F_abytek_scene_render_view::update_ui_internal()
     {
@@ -75,7 +90,7 @@ namespace nre::newrg
 
         if(output_size.x && output_size.y)
         {
-            auto depth_pyramid_size = depth_pyramid_size_internal();
+            auto depth_pyramid_size = this->depth_pyramid_size();
             ImGui::Text("Depth Pyramid Size: (%d, %d)", depth_pyramid_size.x, depth_pyramid_size.y);
             ImGui::Text(
                 "Depth Pyramid Levels: %d",
@@ -94,6 +109,8 @@ namespace nre::newrg
             );
         }
 
+        ImGui::Text("Virtual Pixel Buffer Footprint: %lf (MiB)", f64(virtual_pixel_buffer_footprint_) / 1024.0 / 1024.0);
+
         ImGui::End();
     }
 
@@ -110,7 +127,7 @@ namespace nre::newrg
 
     void F_abytek_scene_render_view::RG_begin_register()
     {
-        NCPP_ASSERT(depth_mode == E_render_view_depth_mode::REVERSE);
+        NCPP_ASSERT(depth_mode == E_render_view_depth_mode::REVERSE) << "E_render_view_depth_mode::REVERSE is required";
 
         rg_output_rtv_element_ = {};
         rg_output_texture_p_ = 0;
@@ -124,11 +141,34 @@ namespace nre::newrg
         rg_last_data_batch_.reset();
         rg_data_batch_.reset();
 
+        rg_depth_pyramid_p_ = 0;
+
+        rg_virtual_pixel_buffer_p_ = 0;
+
+        rg_mixed_oit_lres_depth_dsv_element_ = {};
+        rg_mixed_oit_lres_depth_srv_element_ = {};
+        rg_mixed_oit_lres_depth_texture_p_ = 0;
+        rg_mixed_oit_lres_view_depth_uav_element_ = {};
+        rg_mixed_oit_lres_view_depth_srv_element_ = {};
+        rg_mixed_oit_lres_view_depth_texture_p_ = 0;
+        rg_mixed_oit_lres_depth_only_frame_buffer_p_ = 0;
+
+        rg_mixed_oit_depth_dsv_element_ = {};
+        rg_mixed_oit_depth_srv_element_ = {};
+        rg_mixed_oit_depth_texture_p_ = 0;
+        rg_mixed_oit_color_rtv_element_ = {};
+        rg_mixed_oit_color_srv_element_ = {};
+        rg_mixed_oit_color_texture_p_ = 0;
+        rg_mixed_oit_main_frame_buffer_p_ = 0;
+
+        rg_virtual_pixel_analyzer_p_ = 0;
+
         F_scene_render_view::RG_begin_register();
 
         auto flush_last_frame_caches = [this]()
         {
             last_depth_pyramid_.reset();
+            last_virtual_pixel_header_buffer_.reset();
         };
 
         if(!is_renderable())
@@ -143,7 +183,7 @@ namespace nre::newrg
         auto render_path_p = NRE_NEWRG_ABYTEK_RENDER_PATH();
 
         auto texture_size = size();
-        F_vector2_u32 depth_pyramid_size = depth_pyramid_size_internal();
+        F_vector2_u32 depth_pyramid_size = this->depth_pyramid_size();
 
         // create textures
         {
@@ -177,7 +217,7 @@ namespace nre::newrg
                 ED_resource_heap_type::DEFAULT,
                 {
                     .clear_value = F_resource_clear_value {
-                        .color = clear_color
+                        .color = F_vector4_f32(clear_color.xyz(), 1.0f)
                     }
                 }
                 NRE_OPTIONAL_DEBUG_PARAM(
@@ -256,6 +296,346 @@ namespace nre::newrg
                     + "].depth_only_frame_buffer"
                 )
             );
+
+            rg_approximated_oit_accum_texture_p_ = H_render_resource::create_texture_2d(
+                texture_size.width,
+                texture_size.height,
+                ED_format::R16G16B16A16_FLOAT,
+                1,
+                {},
+                ED_resource_flag::RENDER_TARGET
+                | ED_resource_flag::SHADER_RESOURCE
+                | ED_resource_flag::UNORDERED_ACCESS,
+                ED_resource_heap_type::DEFAULT,
+                {
+                    .clear_value = F_resource_clear_value {
+                        .color = F_vector4_f32::zero()
+                    }
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].approximated_oit_accum"
+                )
+            );
+            F_render_descriptor* rg_approximated_oit_accum_rtv_p = render_graph_p->create_resource_view(
+                rg_approximated_oit_accum_texture_p_,
+                {
+                    .type = ED_resource_view_type::RENDER_TARGET
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].approximated_oit_accum_rtv"
+                )
+            );
+            rg_approximated_oit_accum_rtv_element_ = {
+                .descriptor_p = rg_approximated_oit_accum_rtv_p
+            };
+            F_render_descriptor* rg_approximated_oit_accum_srv_p = render_graph_p->create_resource_view(
+                rg_approximated_oit_accum_texture_p_,
+                {
+                    .type = ED_resource_view_type::SHADER_RESOURCE
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].approximated_oit_accum_srv"
+                )
+            );
+            rg_approximated_oit_accum_srv_element_ = {
+                .descriptor_p = rg_approximated_oit_accum_srv_p
+            };
+
+            rg_approximated_oit_reveal_texture_p_ = H_render_resource::create_texture_2d(
+                texture_size.width,
+                texture_size.height,
+                ED_format::R16_UNORM,
+                1,
+                {},
+                ED_resource_flag::RENDER_TARGET
+                | ED_resource_flag::SHADER_RESOURCE
+                | ED_resource_flag::UNORDERED_ACCESS,
+                ED_resource_heap_type::DEFAULT,
+                {
+                    .clear_value = F_resource_clear_value {
+                        .color = F_vector4_f32::one()
+                    }
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].approximated_oit_reveal"
+                )
+            );
+            F_render_descriptor* rg_approximated_oit_reveal_rtv_p = render_graph_p->create_resource_view(
+                rg_approximated_oit_reveal_texture_p_,
+                {
+                    .type = ED_resource_view_type::RENDER_TARGET
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].approximated_oit_reveal_rtv"
+                )
+            );
+            rg_approximated_oit_reveal_rtv_element_ = {
+                .descriptor_p = rg_approximated_oit_reveal_rtv_p
+            };
+            F_render_descriptor* rg_approximated_oit_reveal_srv_p = render_graph_p->create_resource_view(
+                rg_approximated_oit_reveal_texture_p_,
+                {
+                    .type = ED_resource_view_type::SHADER_RESOURCE
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].approximated_oit_reveal_srv"
+                )
+            );
+            rg_approximated_oit_reveal_srv_element_ = {
+                .descriptor_p = rg_approximated_oit_reveal_srv_p
+            };
+
+            rg_approximated_oit_frame_buffer_p_ = render_graph_p->create_frame_buffer(
+                {
+                    rg_approximated_oit_accum_rtv_element_,
+                    rg_approximated_oit_reveal_rtv_element_
+                },
+                rg_depth_dsv_element_
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].approximated_oit_frame_buffer"
+                )
+            );
+
+
+
+            // create mixed oit depth lres texture
+            auto mixed_oit_lres_depth_texture_size = this->mixed_oit_lres_depth_texture_size();
+            rg_mixed_oit_lres_depth_texture_p_ = H_render_resource::create_texture_2d(
+                mixed_oit_lres_depth_texture_size.x,
+                mixed_oit_lres_depth_texture_size.y,
+                ED_format::R32_TYPELESS,
+                1,
+                {},
+                ED_resource_flag::DEPTH_STENCIL
+                | ED_resource_flag::SHADER_RESOURCE,
+                ED_resource_heap_type::DEFAULT,
+                {
+                    .clear_value = {
+                        .format = ED_format::D32_FLOAT,
+                        .depth = 0.0
+                    }
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_lres_depth"
+                )
+            );
+            F_render_descriptor* rg_mixed_oit_lres_depth_dsv_p = render_graph_p->create_resource_view(
+                rg_mixed_oit_lres_depth_texture_p_,
+                {
+                    .type = ED_resource_view_type::DEPTH_STENCIL,
+                    .overrided_format = ED_format::D32_FLOAT
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_lres_depth_dsv"
+                )
+            );
+            rg_mixed_oit_lres_depth_dsv_element_ = {
+                .descriptor_p = rg_mixed_oit_lres_depth_dsv_p
+            };
+            F_render_descriptor* rg_mixed_oit_lres_depth_srv_p = render_graph_p->create_resource_view(
+                rg_mixed_oit_lres_depth_texture_p_,
+                {
+                    .type = ED_resource_view_type::SHADER_RESOURCE,
+                    .overrided_format = ED_format::R32_FLOAT
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_lres_depth_srv"
+                )
+            );
+            rg_mixed_oit_lres_depth_srv_element_ = {
+                .descriptor_p = rg_mixed_oit_lres_depth_srv_p
+            };
+
+            rg_mixed_oit_lres_view_depth_texture_p_ = H_render_resource::create_texture_2d(
+                mixed_oit_lres_depth_texture_size.x,
+                mixed_oit_lres_depth_texture_size.y,
+                ED_format::R32_FLOAT,
+                1,
+                {},
+                ED_resource_flag::UNORDERED_ACCESS
+                | ED_resource_flag::SHADER_RESOURCE,
+                ED_resource_heap_type::DEFAULT,
+                {}
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_lres_view_depth"
+                )
+            );
+            F_render_descriptor* rg_mixed_oit_lres_view_depth_uav_p = render_graph_p->create_resource_view(
+                rg_mixed_oit_lres_view_depth_texture_p_,
+                {
+                    .type = ED_resource_view_type::UNORDERED_ACCESS
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_lres_view_depth_dsv"
+                )
+            );
+            rg_mixed_oit_lres_view_depth_uav_element_ = {
+                .descriptor_p = rg_mixed_oit_lres_view_depth_uav_p
+            };
+            F_render_descriptor* rg_mixed_oit_lres_view_depth_srv_p = render_graph_p->create_resource_view(
+                rg_mixed_oit_lres_view_depth_texture_p_,
+                {
+                    .type = ED_resource_view_type::SHADER_RESOURCE
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_lres_view_depth_srv"
+                )
+            );
+            rg_mixed_oit_lres_view_depth_srv_element_ = {
+                .descriptor_p = rg_mixed_oit_lres_view_depth_srv_p
+            };
+
+            rg_mixed_oit_lres_depth_only_frame_buffer_p_ = render_graph_p->create_frame_buffer(
+                {},
+                rg_mixed_oit_lres_depth_dsv_element_
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_lres_depth_only_frame_buffer"
+                )
+            );
+
+
+
+            // mixed oit textures
+            rg_mixed_oit_depth_texture_p_ = H_render_resource::create_texture_2d(
+                texture_size.width,
+                texture_size.height,
+                ED_format::R32_TYPELESS,
+                1,
+                {},
+                ED_resource_flag::DEPTH_STENCIL
+                | ED_resource_flag::SHADER_RESOURCE,
+                ED_resource_heap_type::DEFAULT,
+                {
+                    .clear_value = {
+                        .format = ED_format::D32_FLOAT,
+                        .depth = 0.0f
+                    }
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_depth"
+                )
+            );
+            F_render_descriptor* rg_mixed_oit_depth_dsv_p = render_graph_p->create_resource_view(
+                rg_mixed_oit_depth_texture_p_,
+                {
+                    .type = ED_resource_view_type::DEPTH_STENCIL,
+                    .overrided_format = ED_format::D32_FLOAT
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_depth_dsv"
+                )
+            );
+            rg_mixed_oit_depth_dsv_element_ = {
+                .descriptor_p = rg_mixed_oit_depth_dsv_p
+            };
+            F_render_descriptor* rg_mixed_oit_depth_srv_p = render_graph_p->create_resource_view(
+                rg_mixed_oit_depth_texture_p_,
+                {
+                    .type = ED_resource_view_type::SHADER_RESOURCE,
+                    .overrided_format = ED_format::R32_FLOAT
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_depth_srv"
+                )
+            );
+            rg_mixed_oit_depth_srv_element_ = {
+                .descriptor_p = rg_mixed_oit_depth_srv_p
+            };
+
+            rg_mixed_oit_color_texture_p_ = H_render_resource::create_texture_2d(
+                texture_size.width,
+                texture_size.height,
+                ED_format::R8G8B8A8_UNORM,
+                1,
+                {},
+                ED_resource_flag::RENDER_TARGET
+                | ED_resource_flag::SHADER_RESOURCE,
+                ED_resource_heap_type::DEFAULT,
+                {
+                    .clear_value = {
+                        .color = F_vector4_f32::zero()
+                    }
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_color"
+                )
+            );
+            F_render_descriptor* rg_mixed_oit_color_rtv_p = render_graph_p->create_resource_view(
+                rg_mixed_oit_color_texture_p_,
+                {
+                    .type = ED_resource_view_type::RENDER_TARGET
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_color_rtv"
+                )
+            );
+            rg_mixed_oit_color_rtv_element_ = {
+                .descriptor_p = rg_mixed_oit_color_rtv_p
+            };
+            F_render_descriptor* rg_mixed_oit_color_srv_p = render_graph_p->create_resource_view(
+                rg_mixed_oit_color_texture_p_,
+                {
+                    .type = ED_resource_view_type::SHADER_RESOURCE
+                }
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_color_srv"
+                )
+            );
+            rg_mixed_oit_color_srv_element_ = {
+                .descriptor_p = rg_mixed_oit_color_srv_p
+            };
+
+            rg_mixed_oit_main_frame_buffer_p_ = render_graph_p->create_frame_buffer(
+                {
+                    rg_mixed_oit_color_rtv_element_
+                },
+                rg_mixed_oit_depth_dsv_element_
+                NRE_OPTIONAL_DEBUG_PARAM(
+                    F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                    + actor_p()->name().c_str()
+                    + "].mixed_oit_main_frame_buffer"
+                )
+            );
         }
 
         // create first depth pyramid
@@ -293,6 +673,170 @@ namespace nre::newrg
                 clear_depth_texture();
                 rg_depth_pyramid_p_->generate(rg_depth_texture_p_);
             }
+        }
+
+        // create virtual pixel buffer
+        {
+            b8 need_to_recreate_header_buffer = false;
+
+            f32 capacity_factor = render_path_p->transparent_options.true_oit_capacity_factor();
+
+            if(last_virtual_pixel_header_buffer_)
+            {
+                if(last_virtual_pixel_header_buffer_.size() == texture_size)
+                {
+                    F_virtual_pixel_header_buffer rg_header_buffer(
+                        eastl::move(last_virtual_pixel_header_buffer_)
+                    );
+                    F_virtual_pixel_data_buffer rg_data_buffer(
+                        texture_size,
+                        render_path_p->transparent_options.true_oit_capacity_factor()
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                            + actor_p()->name().c_str()
+                            + "].virtual_pixel_buffer.data_buffer"
+                        )
+                    );
+                    F_virtual_pixel_linked_buffer rg_linked_buffer(
+                        texture_size,
+                        render_path_p->transparent_options.true_oit_capacity_factor()
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                            + actor_p()->name().c_str()
+                            + "].virtual_pixel_buffer.linked_buffer"
+                        )
+                    );
+
+                    rg_virtual_pixel_buffer_p_ = render_graph_p->T_create<F_virtual_pixel_buffer>(
+                        eastl::move(rg_header_buffer),
+                        eastl::move(rg_data_buffer),
+                        eastl::move(rg_linked_buffer)
+                        NRE_OPTIONAL_DEBUG_PARAM(
+                            F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                            + actor_p()->name().c_str()
+                            + "].virtual_pixel_buffer"
+                        )
+                    );
+                }
+                else
+                {
+                    need_to_recreate_header_buffer = true;
+                }
+            }
+            else
+            {
+                need_to_recreate_header_buffer = true;
+            }
+
+            if(need_to_recreate_header_buffer)
+            {
+                rg_virtual_pixel_buffer_p_ = render_graph_p->T_create<F_virtual_pixel_buffer>(
+                    texture_size,
+                    capacity_factor
+                    NRE_OPTIONAL_DEBUG_PARAM(
+                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                        + actor_p()->name().c_str()
+                        + "].virtual_pixel_buffer"
+                    )
+                );
+                rg_virtual_pixel_buffer_p_->header_buffer().RG_initialize();
+            }
+
+            rg_virtual_pixel_buffer_p_->linked_buffer().RG_initialize();
+
+            rg_virtual_pixel_buffer_p_->RG_initialize_global_shared_data();
+            rg_virtual_pixel_buffer_p_->RG_initialize_write_offset_texture_2d();
+        }
+
+        // create virtual pixel buffer
+        {
+            b8 need_to_recreate = false;
+
+            auto virtual_pixel_analyzer_size = this->virtual_pixel_analyzer_size();
+
+            if(last_virtual_pixel_analyzer_)
+            {
+                if(last_virtual_pixel_analyzer_.size() == virtual_pixel_analyzer_size)
+                {
+                    rg_virtual_pixel_analyzer_p_ = render_graph_p->T_create<F_virtual_pixel_analyzer>(
+                        eastl::move(last_virtual_pixel_analyzer_)
+                    );
+                }
+                else
+                {
+                    need_to_recreate = true;
+                }
+            }
+            else
+            {
+                need_to_recreate = true;
+            }
+
+            if(need_to_recreate)
+            {
+                rg_virtual_pixel_analyzer_p_ = render_graph_p->T_create<F_virtual_pixel_analyzer>(
+                    virtual_pixel_analyzer_size
+                    NRE_OPTIONAL_DEBUG_PARAM(
+                        F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                        + actor_p()->name().c_str()
+                        + "].virtual_pixel_analyzer"
+                    )
+                );
+                rg_virtual_pixel_analyzer_p_->RG_initialize_level();
+            }
+
+            rg_virtual_pixel_analyzer_p_->RG_initialize_payload();
+        }
+
+        //
+        {
+            auto& header_buffer = rg_virtual_pixel_buffer_p_->header_buffer();
+            auto& data_buffer = rg_virtual_pixel_buffer_p_->data_buffer();
+            auto& linked_buffer = rg_virtual_pixel_buffer_p_->linked_buffer();
+
+            auto count_texture_2d_p = header_buffer.count_texture_2d_p();
+            auto offset_texture_2d_p = header_buffer.offset_texture_2d_p();
+            auto color_buffer_p = data_buffer.color_buffer_p();
+            auto depth_buffer_p = data_buffer.depth_buffer_p();
+            auto head_node_id_texture_2d_p = linked_buffer.head_node_id_texture_2d_p();
+            auto next_node_id_buffer_p = linked_buffer.next_node_id_buffer_p();
+            auto data_id_buffer_p = linked_buffer.data_id_buffer_p();
+
+            render_graph_p->register_late_setup(
+                [
+                    this,
+                    count_texture_2d_p,
+                    offset_texture_2d_p,
+                    color_buffer_p,
+                    depth_buffer_p,
+                    head_node_id_texture_2d_p,
+                    next_node_id_buffer_p,
+                    data_id_buffer_p
+                ]()
+                {
+                    if(
+                        count_texture_2d_p->allocation()
+                        && offset_texture_2d_p->allocation()
+                        && color_buffer_p->allocation()
+                        && depth_buffer_p->allocation()
+                        && head_node_id_texture_2d_p->allocation()
+                        && next_node_id_buffer_p->allocation()
+                        && data_id_buffer_p->allocation()
+                    )
+                    {
+                        sz footprint = 0;
+                        footprint += count_texture_2d_p->allocation().placed_range.size();
+                        footprint += offset_texture_2d_p->allocation().placed_range.size();
+                        footprint += color_buffer_p->allocation().placed_range.size();
+                        footprint += depth_buffer_p->allocation().placed_range.size();
+                        footprint += head_node_id_texture_2d_p->allocation().placed_range.size();
+                        footprint += next_node_id_buffer_p->allocation().placed_range.size();
+                        footprint += data_id_buffer_p->allocation().placed_range.size();
+
+                        virtual_pixel_buffer_footprint_ = footprint;
+                    }
+                }
+            );
         }
 
         // upload view buffer data
@@ -420,9 +964,26 @@ namespace nre::newrg
     {
         F_scene_render_view::RG_end_register();
 
+        auto render_graph_p = F_render_graph::instance_p();
+
         // cache depth pyramid
         {
             last_depth_pyramid_ = eastl::move(*rg_depth_pyramid_p_);
+        }
+
+        // cache virtual pixel header buffer
+        {
+            F_virtual_pixel_header_buffer rg_header_buffer;
+            F_virtual_pixel_data_buffer rg_data_buffer;
+            F_virtual_pixel_linked_buffer rg_linked_buffer;
+            rg_virtual_pixel_buffer_p_->detach(rg_header_buffer, rg_data_buffer, rg_linked_buffer);
+
+            last_virtual_pixel_header_buffer_ = eastl::move(rg_header_buffer);
+        }
+
+        //
+        {
+            last_virtual_pixel_analyzer_ = eastl::move(*rg_virtual_pixel_analyzer_p_);
         }
     }
 
@@ -430,17 +991,20 @@ namespace nre::newrg
     {
         clear_main_texture();
         clear_depth_texture();
+        clear_approximate_oit_textures();
+        clear_mixed_oit_lres_depth_texture();
+        clear_mixed_oit_color_texture();
     }
     void F_abytek_scene_render_view::clear_main_texture()
     {
         H_render_pass::clear_render_target(
             rg_main_rtv_element_,
             rg_main_texture_p_,
-            clear_color
+            F_vector4_f32(clear_color.xyz(), 1.0f)
             NRE_OPTIONAL_DEBUG_PARAM(
                 F_render_frame_name("nre.newrg.abytek_scene_render_views[")
                 + actor_p()->name().c_str()
-                + "].clear_main_texture_pass"
+                + "].clear_main_texture"
             )
         );
     }
@@ -455,7 +1019,70 @@ namespace nre::newrg
             NRE_OPTIONAL_DEBUG_PARAM(
                 F_render_frame_name("nre.newrg.abytek_scene_render_views[")
                 + actor_p()->name().c_str()
-                + "].clear_depth_texture_pass"
+                + "].clear_depth_texture"
+            )
+        );
+    }
+    void F_abytek_scene_render_view::clear_approximate_oit_textures()
+    {
+        H_render_pass::clear_render_target(
+            rg_approximated_oit_accum_rtv_element_,
+            rg_approximated_oit_accum_texture_p_,
+            F_vector4_f32::zero()
+            NRE_OPTIONAL_DEBUG_PARAM(
+                F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                + actor_p()->name().c_str()
+                + "].clear_approximated_oit_accum_texture"
+            )
+        );
+        H_render_pass::clear_render_target(
+            rg_approximated_oit_reveal_rtv_element_,
+            rg_approximated_oit_reveal_texture_p_,
+            F_vector4_f32::one()
+            NRE_OPTIONAL_DEBUG_PARAM(
+                F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                + actor_p()->name().c_str()
+                + "].clear_approximated_oit_reveal_texture"
+            )
+        );
+    }
+    void F_abytek_scene_render_view::clear_mixed_oit_lres_depth_texture()
+    {
+        H_render_pass::clear_depth_stencil(
+            rg_mixed_oit_lres_depth_dsv_element_,
+            rg_mixed_oit_lres_depth_texture_p_,
+            ED_clear_flag::DEPTH,
+            0.0f,
+            0
+            NRE_OPTIONAL_DEBUG_PARAM(
+                F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                + actor_p()->name().c_str()
+                + "].clear_mixed_oit_lres_depth_texture"
+            )
+        );
+    }
+    void F_abytek_scene_render_view::clear_mixed_oit_color_texture()
+    {
+        H_render_pass::clear_render_target(
+            rg_mixed_oit_color_rtv_element_,
+            rg_mixed_oit_color_texture_p_,
+            F_vector4_f32::zero()
+            NRE_OPTIONAL_DEBUG_PARAM(
+                F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                + actor_p()->name().c_str()
+                + "].clear_mixed_oit_color_texture"
+            )
+        );
+    }
+    void F_abytek_scene_render_view::update_mixed_oit_depth()
+    {
+        H_render_pass::copy_resource(
+            rg_mixed_oit_depth_texture_p_,
+            rg_depth_texture_p_
+            NRE_OPTIONAL_DEBUG_PARAM(
+                F_render_frame_name("nre.newrg.abytek_scene_render_views[")
+                + actor_p()->name().c_str()
+                + "].update_mixed_oit_depth"
             )
         );
     }

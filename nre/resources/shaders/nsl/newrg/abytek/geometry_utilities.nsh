@@ -58,6 +58,33 @@ void calculate_bbox_corners(
     );
 }
 
+void cuboid_corners_to_min(
+    in float4 corners[8],
+    out float4 min_corner
+)
+{
+    float4 result = corners[0];
+    [unroll]
+    for(u32 i = 1; i < 8; ++i)
+    {
+        result = min(result, corners[i]);
+    }
+    min_corner = result;
+}
+void cuboid_corners_to_max(
+    in float4 corners[8],
+    out float4 max_corner
+)
+{
+    float4 result = corners[0];
+    [unroll]
+    for(u32 i = 1; i < 8; ++i)
+    {
+        result = max(result, corners[i]);
+    }
+    max_corner = result;
+}
+
 void transform_cuboid_corners(
     float4x4 transform,
     in float4 corners[8],
@@ -69,6 +96,59 @@ void transform_cuboid_corners(
     {
         out_corners[i] = mul(transform, corners[i]);
     }
+}
+
+void calculate_aligned_bbox_corners(
+    in float4 corners[8],
+    out float4 out_corners[8]
+)
+{
+    float4 min_corner;
+    cuboid_corners_to_min(corners, min_corner);
+
+    float4 max_corner;
+    cuboid_corners_to_max(corners, max_corner);
+
+    out_corners[0] = float4(
+        min_corner.xyz,
+        1.0f
+    );
+    out_corners[1] = float4(
+        max_corner.x,
+        min_corner.yz,
+        1.0f
+    );
+    out_corners[2] = float4(
+        min_corner.x,
+        max_corner.y,
+        min_corner.z,
+        1.0f
+    );
+    out_corners[3] = float4(
+        min_corner.xy,
+        max_corner.z,
+        1.0f
+    );
+    out_corners[4] = float4(
+        max_corner.xy,
+        min_corner.z,
+        1.0f
+    );
+    out_corners[5] = float4(
+        min_corner.x,
+        max_corner.yz,
+        1.0f
+    );
+    out_corners[6] = float4(
+        max_corner.x,
+        min_corner.y,
+        max_corner.z,
+        1.0f
+    );
+    out_corners[7] = float4(
+        max_corner.xyz,
+        1.0f
+    );
 }
 
 void copy_cuboid_corners(
@@ -118,6 +198,34 @@ void cuboid_view_corners_to_ndc_corners(
             projection_matrix,
             near_plane,
             far_plane,
+            corners[i]
+        );
+    }
+}
+
+float4 view_to_ndc_no_z_clamp(
+    float4x4 projection_matrix,
+    float4 p_4d
+)
+{
+    float4 clip_p = mul(
+        projection_matrix, 
+        p_4d
+    );
+    return (clip_p / clip_p.w) * float4(1.0f, -1.0f, 1.0f, 1.0f);
+}
+
+void cuboid_view_corners_to_ndc_corners_no_z_clamp(
+    float4x4 projection_matrix,
+    in float4 corners[8],
+    out float4 out_ndc_corners[8]
+)
+{
+    [unroll]
+    for(u32 i = 0; i < 8; ++i)
+    {
+        out_ndc_corners[i] = view_to_ndc_no_z_clamp(
+            projection_matrix,
             corners[i]
         );
     }

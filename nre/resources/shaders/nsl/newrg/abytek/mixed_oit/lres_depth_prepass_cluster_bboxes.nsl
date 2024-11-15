@@ -1,0 +1,190 @@
+
+import(newrg/abytek/prerequisites.nsh)
+import(newrg/abytek/geometry_utilities.nsh)
+
+
+
+struct F_mesh_vertex_data(
+    vertex_clip_position(SV_POSITION)
+)
+
+
+
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(0)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(0)
+import(newrg/abytek/view.nssm)
+
+@slot(1 0)
+resource instanced_cluster_range_cbuffer(ConstantBuffer)
+uniform instanced_cluster_range(F_instanced_cluster_range)
+
+@slot(0 0)
+resource instanced_cluster_headers(StructuredBuffer(F_instanced_cluster_header))
+
+@slot(0 1)
+resource instance_transforms(StructuredBuffer(float4x4) -1)
+
+@slot(0 2)
+resource instance_mesh_ids(Buffer(F_mesh_id) -1)
+
+@slot(0 3)
+resource mesh_headers(StructuredBuffer(F_mesh_header) -1)
+
+@slot(0 4)
+resource cluster_bboxes(StructuredBuffer(F_bbox) -1)
+
+
+
+static float4 vertices[8] = {
+    float4(0.0, 0.0, 0.0, 1.0), // Vertex 0
+    float4(1.0, 0.0, 0.0, 1.0), // Vertex 1
+    float4(1.0, 1.0, 0.0, 1.0), // Vertex 2
+    float4(0.0, 1.0, 0.0, 1.0), // Vertex 3
+    float4(0.0, 0.0, 1.0, 1.0), // Vertex 4
+    float4(1.0, 0.0, 1.0, 1.0), // Vertex 5
+    float4(1.0, 1.0, 1.0, 1.0), // Vertex 6
+    float4(0.0, 1.0, 1.0, 1.0)  // Vertex 7
+};
+static uint3 indices[12] = {
+    // Front face
+    uint3(0, 1, 2),
+    uint3(0, 2, 3),
+    // Back face
+    uint3(4, 5, 6),
+    uint3(4, 6, 7),
+    // Left face
+    uint3(0, 4, 7),
+    uint3(0, 7, 3),
+    // Right face
+    uint3(1, 5, 6),
+    uint3(1, 6, 2),
+    // Top face
+    uint3(3, 2, 6),
+    uint3(3, 6, 7),
+    // Bottom face
+    uint3(0, 1, 5),
+    uint3(0, 5, 4)
+};
+
+
+
+@thread_group_size(
+    12
+    1
+    1
+)
+mesh_shader MS(
+    group_thread_id(SV_GROUP_THREAD_ID)
+    group_id(SV_GROUP_ID)
+    @indices
+    out out_mesh_triangles(u32x3 12)
+    @vertices
+    out out_mesh_vertex_datas(F_mesh_vertex_data 8)
+)
+{
+    F_instanced_cluster_header instanced_cluster_header = instanced_cluster_headers[instanced_cluster_range.offset + group_id.x];
+
+    F_instance_id instance_id = instanced_cluster_header.instance_id;
+    F_cluster_id local_cluster_id = instanced_cluster_header.local_cluster_id;
+
+    F_mesh_id mesh_id = instance_mesh_ids[
+        instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    float4x4 local_to_world_matrix = instance_transforms[
+        instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    F_mesh_header mesh_header = mesh_headers[
+        mesh_id / NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        mesh_id % NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    F_cluster_id cluster_id = mesh_header.cluster_offset + local_cluster_id;
+
+    SetMeshOutputCounts(8, 12);
+
+    if(group_thread_id.x < 12)
+    {
+        out_mesh_triangles[group_thread_id.x] = indices[group_thread_id.x];
+    }
+
+    if(group_thread_id.x < 8)
+    {
+        F_bbox cluster_bbox = cluster_bboxes[
+            cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ][
+            cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ];
+
+        float4 vertex_local_position = vertices[group_thread_id.x];
+        vertex_local_position = lerp(
+            float4(cluster_bbox.min_position, 1.0f),
+            float4(cluster_bbox.max_position, 1.0f),
+            vertex_local_position
+        );
+
+        float4 vertex_world_position = mul(local_to_world_matrix, vertex_local_position);
+
+        float4 vertex_view_position = mul(world_to_view_matrix, vertex_world_position);
+        float4 vertex_clip_position = mul(view_to_clip_matrix, vertex_view_position);
+
+        F_mesh_vertex_data mesh_vertex_data;
+        mesh_vertex_data.vertex_clip_position = vertex_clip_position;
+
+        out_mesh_vertex_datas[group_thread_id.x] = mesh_vertex_data;
+    }
+}
+
+
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        CBV(2)
+       
+        SRV(1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 1)
+        SRV(-1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 2)
+        SRV(-1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 3)
+        SRV(-1)
+    )
+   
+    @shader_visibility(MESH)
+    DESCRIPTOR_TABLE(
+        @slot(0 4)
+        SRV(-1)
+    )
+)
+
+
+
+@root_signature(RS)
+@rasterizer(
+    cull_mode(NONE)
+    fill_mode(SOLID)
+)
+@depth_stencil
+(
+    enable_depth_test(true)
+    depth_comparison_func(GREATER_EQUAL)
+)
+pipeline_state PSO(MS)

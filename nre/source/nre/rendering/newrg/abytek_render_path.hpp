@@ -12,6 +12,7 @@
 #include <nre/rendering/newrg/abytek_drawable_material_data.hpp>
 #include <nre/asset/static_mesh_asset.hpp>
 #include <nre/rendering/static_mesh.hpp>
+#include <nre/rendering/nsl_shader_program.hpp>
 
 
 
@@ -25,6 +26,11 @@ namespace nre::newrg
     class F_abytek_drawable_material_system;
     class F_abytek_drawable_material_system_dynamic;
 
+    class F_abytek_opaque_drawable_material_shader_asset_system;
+    class F_abytek_transparent_drawable_material_shader_asset_system;
+    class F_abytek_drawable_material_template_system;
+    class F_abytek_drawable_material_template;
+
 
 
     class NRE_API F_abytek_render_path : public F_render_path
@@ -34,6 +40,8 @@ namespace nre::newrg
 
         F_render_foundation_rg_register_render_primitive_data_event::F_listener_handle rg_register_render_primitive_data_listener_handle_;
         F_render_foundation_rg_register_render_primitive_data_upload_event::F_listener_handle rg_register_render_primitive_data_upload_listener_handle_;
+
+        TU<F_abytek_drawable_material_template_system> drawable_material_template_system_p_;
 
         TS<F_nsl_shader_asset> expand_instances_shader_asset_p_;
         K_compute_pipeline_state_handle expand_instances_pso_p_;
@@ -59,14 +67,113 @@ namespace nre::newrg
         TS<F_nsl_shader_asset> init_args_dispatch_mesh_instanced_clusters_indirect_shader_asset_p_;
         K_compute_pipeline_state_handle init_args_dispatch_mesh_instanced_clusters_indirect_pso_p_;
 
-        TS<F_nsl_shader_asset> instanced_cluster_group_init_shader_asset_p_;
-        K_compute_pipeline_state_handle instanced_cluster_group_init_pso_p_;
+        TS<F_nsl_shader_asset> init_args_dispatch_mesh_instanced_clusters_indirect_2_shader_asset_p_;
+        F_nsl_shader_program init_args_dispatch_mesh_instanced_clusters_indirect_2_program_;
 
-        TS<F_nsl_shader_asset> instanced_cluster_group_link_shader_asset_p_;
-        K_compute_pipeline_state_handle instanced_cluster_group_link_pso_p_;
+        TS<F_nsl_shader_asset> instanced_cluster_tile_init_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_tile_init_program_;
 
-        TS<F_nsl_shader_asset> instanced_cluster_group_gather_shader_asset_p_;
-        K_compute_pipeline_state_handle instanced_cluster_group_gather_pso_p_;
+        TS<F_nsl_shader_asset> instanced_cluster_hierarchical_tile_count_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_hierarchical_tile_count_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_hierarchical_tile_allocate_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_hierarchical_tile_allocate_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_hierarchical_tile_store_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_hierarchical_tile_store_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_tile_init_post_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_tile_init_post_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_tile_count_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_tile_count_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_tile_allocate_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_tile_allocate_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_tile_store_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_tile_store_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_tile_finalize_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_tile_finalize_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_screen_coord_range_buffer_calculate_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_screen_coord_range_buffer_calculate_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_screen_coord_range_buffer_init_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_screen_coord_range_buffer_init_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_depth_buffer_calculate_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_depth_buffer_calculate_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_depth_buffer_init_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_depth_buffer_init_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_start_depth_init_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_start_depth_init_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_start_depth_hierarchical_tile_count_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_start_depth_hierarchical_tile_count_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_start_depth_hierarchical_tile_allocate_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_start_depth_hierarchical_tile_allocate_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_start_depth_hierarchical_tile_store_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_start_depth_hierarchical_tile_store_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_start_depth_init_post_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_start_depth_init_post_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_start_depth_calculate_for_nodes_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_start_depth_calculate_for_nodes_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_start_depth_finalize_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_start_depth_finalize_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_oit_classify_init_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_oit_classify_init_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_oit_classify_analyze_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_oit_classify_analyze_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_oit_classify_choose_level_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_oit_classify_choose_level_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_oit_classify_store_true_oit_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_oit_classify_store_true_oit_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_oit_classify_init_post_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_oit_classify_init_post_program_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_oit_classify_store_approximated_oit_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_oit_classify_store_approximated_oit_program_;
+
+        TS<F_nsl_shader_asset> drawable_material_template_classify_init_shader_asset_p_;
+        F_nsl_shader_program drawable_material_template_classify_init_program_;
+
+        TS<F_nsl_shader_asset> drawable_material_template_classify_count_shader_asset_p_;
+        F_nsl_shader_program drawable_material_template_classify_count_program_;
+
+        TS<F_nsl_shader_asset> drawable_material_template_classify_allocate_shader_asset_p_;
+        F_nsl_shader_program drawable_material_template_classify_allocate_program_;
+
+        TS<F_nsl_shader_asset> drawable_material_template_classify_store_shader_asset_p_;
+        F_nsl_shader_program drawable_material_template_classify_store_program_;
+
+        TS<F_nsl_shader_asset> approximated_oit_finalize_shader_asset_p_;
+        F_nsl_shader_program approximated_oit_finalize_program_;
+
+        TS<F_nsl_shader_asset> mixed_oit_finalize_shader_asset_p_;
+        F_nsl_shader_program mixed_oit_finalize_program_;
+
+        TS<F_nsl_shader_asset> mixed_oit_lres_depth_prepass_shader_asset_p_;
+        F_nsl_shader_program mixed_oit_lres_depth_prepass_program_;
+
+        TS<F_nsl_shader_asset> mixed_oit_lres_depth_prepass_cluster_bboxes_shader_asset_p_;
+        F_nsl_shader_program mixed_oit_lres_depth_prepass_cluster_bboxes_program_;
+
+        TS<F_nsl_shader_asset> mixed_oit_lres_depth_to_view_space_shader_asset_p_;
+        F_nsl_shader_program mixed_oit_lres_depth_to_view_space_program_;
 
         TS<F_nsl_shader_asset> simple_draw_shader_asset_p_;
         K_graphics_pipeline_state_handle simple_draw_pso_p_;
@@ -79,9 +186,6 @@ namespace nre::newrg
 
         TS<F_nsl_shader_asset> simple_draw_instanced_clusters_wireframe_shader_asset_p_;
         K_graphics_pipeline_state_handle simple_draw_instanced_clusters_wireframe_pso_p_;
-
-        TS<F_nsl_shader_asset> depth_prepass_shader_asset_p_;
-        K_graphics_pipeline_state_handle depth_prepass_pso_p_;
 
         TS<F_nsl_shader_asset> draw_instance_bbox_shader_asset_p_;
         K_graphics_pipeline_state_handle draw_instance_bbox_pso_p_;
@@ -97,6 +201,9 @@ namespace nre::newrg
 
         TS<F_nsl_shader_asset> draw_cluster_error_sphere_shader_asset_p_;
         K_graphics_pipeline_state_handle draw_cluster_error_sphere_pso_p_;
+
+        TS<F_nsl_shader_asset> instanced_cluster_tile_visualize_shader_asset_p_;
+        F_nsl_shader_program instanced_cluster_tile_visualize_program_;
 
         TS<F_static_mesh_asset> unit_cube_static_mesh_asset_p_;
         TS<F_static_mesh> unit_cube_static_mesh_p_;
@@ -258,19 +365,8 @@ namespace nre::newrg
             F_vector3_f32 color;
             F_vector3_f32 light_dir;
             u32 color_mode = 0;
-            u32 instanced_cluster_range_index;
         };
         F_simple_draw_instanced_clusters_options simple_draw_instanced_clusters_options;
-
-        struct F_depth_prepass_options
-        {
-            b8 enable = false;
-        };
-        struct F_depth_prepass_global_options_data
-        {
-            u32 instanced_cluster_range_index;
-        };
-        F_depth_prepass_options depth_prepass_options;
 
         struct F_lod_and_culling_options
         {
@@ -286,79 +382,76 @@ namespace nre::newrg
         };
         F_post_phase_options post_phase_options;
 
+        struct F_instanced_cluster_tile_visualize_options
+        {
+            b8 enable = false;
+            F_vector3_f32 min_color = F_vector3_f32 { 0, 0.5, 1 };
+            F_vector3_f32 max_color = F_vector3_f32 { 1, 1, 0 };
+            u32 max_count = 48;
+        };
+        struct F_instanced_cluster_tile_visualize_global_options_data
+        {
+            F_vector3_f32 min_color;
+            F_vector3_f32 max_color;
+            F_vector2_u32 tile_count_2d;
+            u32 max_count;
+        };
+        F_instanced_cluster_tile_visualize_options instanced_cluster_tile_visualize_options;
+
+        enum class E_transparent_shading_mode
+        {
+            SEPARATED,
+            MIXED,
+
+            DEFAULT = MIXED
+        };
+        enum class E_transparent_mixed_oit_lres_depth_prepass_mode
+        {
+            HIGH_POLY,
+            CLUSTER_BBOXES,
+
+            DEFAULT = CLUSTER_BBOXES
+        };
+        struct F_transparent_options
+        {
+            b8 enable = true;
+
+            E_transparent_shading_mode shading_mode = E_transparent_shading_mode::DEFAULT;
+
+            E_transparent_mixed_oit_lres_depth_prepass_mode mixed_oit_lres_depth_prepass_mode = E_transparent_mixed_oit_lres_depth_prepass_mode::DEFAULT;
+            f32 mixed_oit_max_view_depth_factor = 1.0f;
+
+            f32 approximated_oit_min_opaque_alpha = 0.9999f;
+
+            f32 true_oit_quality = 4.0f;
+            f32 true_oit_budget_level = 1.5f;
+            f32 true_oit_single_level_distance = 0.5f;
+
+            NCPP_FORCE_INLINE f32 true_oit_capacity_factor() const noexcept { return true_oit_quality * true_oit_budget_level; }
+        };
+        F_transparent_options transparent_options;
+
+        struct NCPP_ALIGN(16) F_frame_data
+        {
+            f32 time = 0.0f;
+            f32 delta_time;
+            f32 sin_time;
+            f32 cos_time;
+        };
+
         u32 min_wave_size_ = 0;
         u32 max_wave_size_ = 0;
         u32 total_lane_count_ = 0;
 
         b8 enable = true;
 
+    private:
+        F_frame_data frame_data_;
+
     public:
         NCPP_DECLARE_STATIC_EVENTS(
             rg_register_view_event_
         );
-
-        NCPP_FORCE_INLINE auto expand_instances_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_instances_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto expand_instances_pso_p() const noexcept { return NCPP_FOH_VALID(expand_instances_pso_p_); }
-
-        NCPP_FORCE_INLINE auto expand_instances_main_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_instances_main_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto expand_instances_main_pso_p() const noexcept { return NCPP_FOH_VALID(expand_instances_main_pso_p_); }
-
-        NCPP_FORCE_INLINE auto expand_instances_no_occlusion_culling_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_instances_no_occlusion_culling_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto expand_instances_no_occlusion_culling_pso_p() const noexcept { return NCPP_FOH_VALID(expand_instances_no_occlusion_culling_pso_p_); }
-
-        NCPP_FORCE_INLINE auto expand_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto expand_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_pso_p_); }
-
-        NCPP_FORCE_INLINE auto expand_clusters_main_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_main_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto expand_clusters_main_pso_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_main_pso_p_); }
-
-        NCPP_FORCE_INLINE auto expand_clusters_no_occlusion_culling_shader_asset_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_no_occlusion_culling_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto expand_clusters_no_occlusion_culling_pso_p() const noexcept { return NCPP_FOH_VALID(expand_clusters_no_occlusion_culling_pso_p_); }
-
-        NCPP_FORCE_INLINE auto init_args_expand_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(init_args_expand_clusters_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto init_args_expand_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(init_args_expand_clusters_pso_p_); }
-
-        NCPP_FORCE_INLINE auto init_args_dispatch_mesh_instanced_clusters_indirect_shader_asset_p() const noexcept { return NCPP_FOH_VALID(init_args_dispatch_mesh_instanced_clusters_indirect_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto init_args_dispatch_mesh_instanced_clusters_indirect_pso_p() const noexcept { return NCPP_FOH_VALID(init_args_dispatch_mesh_instanced_clusters_indirect_pso_p_); }
-
-        NCPP_FORCE_INLINE auto instanced_cluster_group_init_shader_asset_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_group_init_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto instanced_cluster_group_init_pso_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_group_init_pso_p_); }
-
-        NCPP_FORCE_INLINE auto instanced_cluster_group_link_shader_asset_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_group_link_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto instanced_cluster_group_link_pso_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_group_link_pso_p_); }
-
-        NCPP_FORCE_INLINE auto instanced_cluster_group_gather_shader_asset_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_group_gather_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto instanced_cluster_group_gather_pso_p() const noexcept { return NCPP_FOH_VALID(instanced_cluster_group_gather_pso_p_); }
-
-        NCPP_FORCE_INLINE auto simple_draw_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto simple_draw_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_pso_p_); }
-
-        NCPP_FORCE_INLINE auto simple_draw_wireframe_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_wireframe_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto simple_draw_wireframe_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_wireframe_pso_p_); }
-
-        NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_pso_p_); }
-
-        NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_wireframe_shader_asset_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_wireframe_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto simple_draw_instanced_clusters_wireframe_pso_p() const noexcept { return NCPP_FOH_VALID(simple_draw_instanced_clusters_wireframe_pso_p_); }
-
-        NCPP_FORCE_INLINE auto depth_prepass_shader_asset_p() const noexcept { return NCPP_FOH_VALID(depth_prepass_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto depth_prepass_pso_p() const noexcept { return NCPP_FOH_VALID(depth_prepass_pso_p_); }
-
-        NCPP_FORCE_INLINE auto draw_instance_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto draw_instance_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_instance_bbox_pso_p_); }
-
-        NCPP_FORCE_INLINE auto draw_cluster_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_bbox_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto draw_cluster_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_bbox_pso_p_); }
-
-        NCPP_FORCE_INLINE auto draw_cluster_hierarchical_bbox_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_hierarchical_bbox_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto draw_cluster_hierarchical_bbox_pso_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_hierarchical_bbox_pso_p_); }
-
-        NCPP_FORCE_INLINE auto draw_cluster_outer_error_sphere_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_outer_error_sphere_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto draw_cluster_outer_error_sphere_pso_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_outer_error_sphere_pso_p_); }
-
-        NCPP_FORCE_INLINE auto draw_cluster_error_sphere_shader_asset_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_error_sphere_shader_asset_p_); }
-        NCPP_FORCE_INLINE auto draw_cluster_error_sphere_pso_p() const noexcept { return NCPP_FOH_VALID(draw_cluster_error_sphere_pso_p_); }
 
         NCPP_FORCE_INLINE auto unit_cube_static_mesh_asset_p() const noexcept { return NCPP_FOH_VALID(unit_cube_static_mesh_asset_p_); }
         NCPP_FORCE_INLINE auto unit_cube_static_mesh_p() const noexcept { return NCPP_FOH_VALID(unit_cube_static_mesh_p_); }
@@ -377,6 +470,8 @@ namespace nre::newrg
         NCPP_FORCE_INLINE const auto& statistics_times() const noexcept { return statistics_times_; }
         NCPP_FORCE_INLINE const auto& statistics_durations() const noexcept { return statistics_durations_; }
 
+        NCPP_FORCE_INLINE const auto& frame_data() const noexcept { return frame_data_; }
+
 
 
     public:
@@ -390,6 +485,7 @@ namespace nre::newrg
         void update_statistics_internal();
 
     public:
+        virtual void RG_early_register() override;
         virtual void RG_begin_register() override;
         virtual void RG_end_register() override;
 
@@ -403,36 +499,50 @@ namespace nre::newrg
 
     public:
         F_render_resource* create_instanced_cluster_header_buffer(
-            u32 capacity = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
+            u32 capacity
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
-        struct NCPP_ALIGN(16) F_instanced_cluster_hierarchical_group_level_header
+        struct NCPP_ALIGN(16) F_instanced_cluster_hierarchical_tile_level_header
         {
             F_vector2_u32 count_2d;
             u32 offset;
+            u32 node_offset = 0;
+            u32 instanced_node_offset = 0;
+            u32 node_write_offset = 0;
+            u32 instanced_node_write_offset = 0;
+            u32 node_count = 0;
         };
-        struct F_instanced_cluster_group_buffer
+        struct F_instanced_cluster_tile_buffer
         {
-            struct NCPP_ALIGN(16) F_group_header
+            struct F_tile_header
             {
                 u32 instanced_cluster_count = 0;
                 u32 instanced_cluster_offset = 0;
             };
 
-            F_vector2_u32 group_count_2d = F_vector2_u32::zero();
+            F_vector2_u32 tile_count_2d = F_vector2_u32::zero();
 
-            F_render_resource* rg_group_header_buffer_p = 0;
+            F_render_resource* rg_tile_header_buffer_p = 0;
             F_render_resource* rg_instance_cluster_remap_buffer_p = 0;
+            F_render_resource* rg_instance_cluster_remap_tile_id_buffer_p = 0;
 
             F_indirect_data_batch instanced_cluster_remap_range_data_batch;
 
-            u32 max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT;
+            u32 max_instanced_cluster_count = 0;
 
-            NCPP_FORCE_INLINE u32 group_count() const noexcept { return group_count_2d.x * group_count_2d.y; }
+            NCPP_FORCE_INLINE u32 tile_count() const noexcept { return tile_count_2d.x * tile_count_2d.y; }
         };
-        F_instanced_cluster_group_buffer create_instanced_cluster_group_buffer(
+        F_instanced_cluster_tile_buffer create_instanced_cluster_tile_buffer(
             PA_vector2_u32 view_size,
-            u32 max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
+            u32 max_instanced_cluster_count
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        F_render_resource* create_instanced_cluster_screen_coord_range_buffer(
+            u32 capacity
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        F_render_resource* create_instanced_cluster_depth_buffer(
+            u32 capacity
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
 
@@ -450,7 +560,6 @@ namespace nre::newrg
             F_render_resource* rg_post_instanced_cluster_header_buffer_p = 0;
             const F_indirect_data_batch* post_expanded_instanced_cluster_range_data_batch_p = 0;
 
-            u32 overrided_max_instanced_cluster_count = 0;
             f32 overrided_task_capacity_factor = 0.0f;
         };
 
@@ -478,6 +587,7 @@ namespace nre::newrg
             F_render_resource* rg_instanced_cluster_header_buffer_p,
             const F_indirect_data_batch& instanced_cluster_range_data_batch,
             F_indirect_data_batch& expanded_instanced_cluster_range_data_batch,
+            u32 max_instanced_cluster_count,
             const F_expand_clusters_additional_options& additional_options = {}
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
@@ -494,23 +604,149 @@ namespace nre::newrg
             F_dispatch_mesh_indirect_command_batch& out_dispatch_mesh_command_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
-        void depth_prepass(
+        void init_args_dispatch_mesh_instanced_clusters_indirect_2(
+            u32 thread_group_size_x,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_dispatch_mesh_indirect_command_batch& out_dispatch_mesh_command_batch,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch_for_cbv
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void build_instanced_cluster_tile_buffer(
             TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_render_resource* rg_instanced_cluster_screen_coord_range_buffer_p,
+            F_instanced_cluster_tile_buffer& instanced_cluster_tile_buffer,
+            u32 max_instanced_cluster_count
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void build_instanced_cluster_screen_coord_range_buffer(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_render_resource*& rg_instanced_cluster_screen_coord_range_buffer_p,
+            u32 max_instanced_cluster_count
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void build_instanced_cluster_depth_buffer(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_render_resource*& rg_instanced_cluster_depth_buffer_p,
+            u32 max_instanced_cluster_count
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void build_instanced_cluster_start_depth_buffer(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_render_resource* rg_instanced_cluster_screen_coord_range_buffer_p,
+            F_render_resource* rg_instanced_cluster_depth_buffer_p,
+            F_render_resource*& rg_instanced_cluster_start_depth_buffer_p,
+            u32 max_instanced_cluster_count
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void oit_classify_instanced_clusters(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_render_resource* rg_instanced_cluster_screen_coord_range_buffer_p,
+            F_render_resource* rg_instanced_cluster_depth_buffer_p,
+            F_render_resource* rg_instanced_cluster_start_depth_buffer_p,
+            F_render_resource* rg_oit_classified_instanced_cluster_header_buffer_p,
+            F_indirect_data_batch& true_oit_classified_instanced_cluster_range_data_batch,
+            F_indirect_data_batch& approximated_oit_classified_instanced_cluster_range_data_batch,
+            F_indirect_data_batch& true_oit_highest_level_data_batch,
+            u32 max_instanced_cluster_count
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void drawable_material_template_classify_instanced_clusters(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            F_render_resource* rg_classified_instanced_cluster_header_buffer_p,
+            F_indirect_data_batch& classified_instanced_cluster_range_data_batch,
+            u32 max_instanced_cluster_count
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+
+    public:
+        void approximated_oit_draw_transparent_drawable_material_template(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_frame_buffer* rg_frame_buffer_p,
+            F_render_resource* rg_accum_texture_p,
+            F_render_resource* rg_reveal_texture_p,
+            F_render_resource* rg_depth_texture_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            TKPA_valid<F_abytek_drawable_material_template> template_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void approximated_oit_finalize(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_accum_texture_p,
+            F_render_resource* rg_reveal_texture_p,
+            F_render_resource* rg_output_texture_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+
+    public:
+        void true_oit_draw_transparent_drawable_material_template(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_frame_buffer* rg_frame_buffer_p,
+            F_render_resource* rg_depth_texture_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            TKPA_valid<F_abytek_drawable_material_template> template_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+
+    public:
+        void mixed_oit_draw_transparent_drawable_material_template(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_frame_buffer* rg_frame_buffer_p,
+            F_render_resource* rg_color_texture_p,
+            F_render_resource* rg_depth_texture_p,
+            F_render_resource* rg_lres_view_depth_texture_p,
+            F_render_resource* rg_instanced_cluster_header_buffer_p,
+            const F_indirect_data_batch& instanced_cluster_range_data_batch,
+            TKPA_valid<F_abytek_drawable_material_template> template_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void mixed_oit_finalize(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_transparent_color_texture_p,
+            F_render_resource* rg_base_color_texture_p
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+
+    public:
+        void mixed_oit_lres_depth_prepass(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_frame_buffer* rg_frame_buffer_p,
+            F_render_resource* rg_depth_texture_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,
             const F_indirect_data_batch& instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
-        void build_instanced_cluster_group_buffer(
+        void mixed_oit_lres_depth_prepass_cluster_bboxes(
             TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_frame_buffer* rg_frame_buffer_p,
+            F_render_resource* rg_depth_texture_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,
-            const F_indirect_data_batch& instanced_cluster_range_data_batch,
-            F_instanced_cluster_group_buffer& instanced_cluster_group_buffer,
-            u32 max_instanced_cluster_count = NRE_NEWRG_ABYTEK_MAX_INSTANCED_CLUSTER_COUNT
+            const F_indirect_data_batch& instanced_cluster_range_data_batch
+            NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
+        );
+        void mixed_oit_lres_depth_to_view_space(
+            TKPA_valid<F_abytek_scene_render_view> view_p,
+            F_render_resource* rg_depth_texture_p,
+            F_render_resource* rg_view_depth_texture_p
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")
         );
 
     public:
         F_indirect_data_batch create_root_instanced_cluster_range_data_batch(u32 count = 1);
+        F_indirect_data_batch create_uninitialized_instanced_cluster_range_data_batch(u32 count = 1);
 
     public:
         void simple_draw(
@@ -540,6 +776,8 @@ namespace nre::newrg
         void simple_draw_instanced_clusters(
             TKPA_valid<F_abytek_scene_render_view> view_p,
             F_render_frame_buffer* rg_frame_buffer_p,
+            F_render_resource* rg_color_texture_p,
+            F_render_resource* rg_depth_texture_p,
             F_render_resource* rg_instanced_cluster_header_buffer_p,
             const F_indirect_data_batch& instanced_cluster_range_data_batch
             NRE_OPTIONAL_DEBUG_PARAM(const F_render_frame_name& name = "")

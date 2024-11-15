@@ -17,7 +17,9 @@ namespace nre::newrg
         F_render_actor_mesh_id,
         F_render_actor_transform,
         F_render_actor_transform,
-        F_abytek_drawable_material_data
+        F_abytek_drawable_material_data,
+        u32,
+        u32
     >;
 }
 
@@ -29,3 +31,5 @@ namespace nre::newrg
 #define NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_INVERSE_TRANSFORM 3
 #define NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_LAST_INVERSE_TRANSFORM 4
 #define NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_DRAWABLE_MATERIAL_DATA 5
+#define NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_RESOURCE_VIEW_OFFSET 6
+#define NRE_NEWRG_RENDER_PRIMITIVE_DATA_INDEX_SAMPLER_STATE_OFFSET 7

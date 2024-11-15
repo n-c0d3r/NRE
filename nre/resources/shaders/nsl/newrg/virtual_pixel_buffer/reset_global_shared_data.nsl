@@ -1,0 +1,31 @@
+
+import(utilities.nsh)
+
+
+
+@slot(0)
+resource global_shared_datas(RWStructuredBuffer(F_virtual_pixel_global_shared_data))
+
+
+
+@thread_group_size(1 1 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    if(global_thread_id.x == 0)
+    {
+        global_shared_datas[0].next_data_id = 0;
+        global_shared_datas[0].next_linked_node_id = 0;
+        global_shared_datas[0].next_tile_id = 0;
+    }
+}
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        UAV(1)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

@@ -1,0 +1,36 @@
+
+import(utilities.nsh)
+
+
+
+@slot(0)
+resource tile_layer_count_texture_2d(RWTexture2D(uint))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint width;
+    uint height;
+    tile_layer_count_texture_2d.GetDimensions(width, height);
+
+    if(
+        (global_thread_id.x < width)
+        && (global_thread_id.y < height)
+    )
+    {
+        tile_layer_count_texture_2d[global_thread_id.xy] = 0;
+    }
+}
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        UAV(1)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

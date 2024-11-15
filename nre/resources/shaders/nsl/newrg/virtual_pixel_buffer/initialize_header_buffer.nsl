@@ -1,0 +1,40 @@
+
+import(utilities.nsh)
+
+
+
+@slot(0)
+resource count_texture_2d(RWTexture2D(uint))
+
+@slot(1)
+resource offset_texture_2d(RWTexture2D(uint))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint width;
+    uint height;
+    count_texture_2d.GetDimensions(width, height);
+
+    if(
+        (global_thread_id.x < width)
+        && (global_thread_id.y < height)
+    )
+    {
+        count_texture_2d[global_thread_id.xy] = 0;
+        offset_texture_2d[global_thread_id.xy] = 0;
+    }
+}
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        UAV(2)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

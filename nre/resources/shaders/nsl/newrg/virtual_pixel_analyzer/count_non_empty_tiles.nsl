@@ -1,0 +1,82 @@
+
+import(nrhi)
+
+
+
+require(!NSL_DISABLE_AUTO_SLOTS)
+{
+    define NSL_DISABLE_AUTO_SLOTS
+}
+
+
+
+@slot(0)
+resource resource(ConstantBuffer)
+uniform size(uint2)
+
+@slot(0)
+resource pixel_counters(Buffer(u32))
+
+@slot(0)
+resource non_empty_tile_counts(RWBuffer(u32))
+
+
+
+groupshared u32 is_non_empty;
+
+
+
+@thread_group_size(NRE_NEWRG_ABYTEK_TRUE_OIT_LEVEL_COUNT 1 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+    group_thread_id(SV_GROUP_THREAD_ID)
+    group_id(SV_GROUP_ID)
+)
+{
+    uint pixel_counter_id = (
+        (
+            group_id.y * size.x 
+            + group_id.x 
+        ) * NRE_NEWRG_ABYTEK_TRUE_OIT_LEVEL_COUNT 
+        + group_thread_id.x
+    );
+    uint pixel_count = pixel_counters[pixel_counter_id];
+
+    if(group_thread_id.x == 0)
+    {
+        is_non_empty = 0;
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    InterlockedOr(
+        is_non_empty,
+        pixel_count
+    );
+    GroupMemoryBarrierWithGroupSync();
+
+    if(
+        (group_thread_id.x == 0)
+        && is_non_empty
+    )
+    {
+        InterlockedAdd(
+            non_empty_tile_counts[0],
+            1
+        );
+    }
+}
+
+
+
+root_signature RS(
+    CONSTANTS(2)
+
+    DESCRIPTOR_TABLE(
+        SRV(1)
+
+        UAV(1)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

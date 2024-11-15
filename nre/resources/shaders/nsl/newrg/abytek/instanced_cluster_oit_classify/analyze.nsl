@@ -1,0 +1,74 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource options(ConstantBuffer)
+uniform true_oit_single_level_distance(f32)
+
+@slot(0)
+resource instanced_cluster_start_depths(Buffer(f32))
+
+@slot(1)
+resource instanced_cluster_depths(Buffer(f32))
+
+@slot(2)
+resource instanced_cluster_screen_coord_ranges(StructuredBuffer(F_coord_2d_range))
+
+@slot(0)
+resource instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+@slot(1)
+resource analyzed_data_list(RWBuffer(u32))
+
+
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    F_instanced_cluster_range instanced_cluster_range = instanced_cluster_ranges[0];
+
+    if(global_thread_id.x < instanced_cluster_range.count)
+    {        
+        F_instanced_cluster_id instanced_cluster_id = instanced_cluster_range.offset + global_thread_id.x;
+
+        float instanced_cluster_start_depth = instanced_cluster_start_depths[instanced_cluster_id];
+        float instanced_cluster_depth = instanced_cluster_depths[instanced_cluster_id];
+        F_coord_2d_range instanced_cluster_screen_coord_range = instanced_cluster_screen_coord_ranges[instanced_cluster_id];
+
+        float delta_depth = instanced_cluster_depth - instanced_cluster_start_depth;
+
+        uint level_index = floor(
+            delta_depth
+            / true_oit_single_level_distance
+        );
+    
+        if(level_index < NRE_NEWRG_ABYTEK_TRUE_OIT_LEVEL_COUNT)
+        {
+            InterlockedAdd(
+                analyzed_data_list[level_index],
+                instanced_cluster_screen_coord_range.count_2d.x * instanced_cluster_screen_coord_range.count_2d.y
+            );
+        }
+    }
+}
+
+root_signature ROOT_SIGNATURE(
+    CONSTANTS(1)
+
+    DESCRIPTOR_TABLE(
+        SRV(3)
+
+        UAV(2)
+    )
+)
+
+@root_signature(ROOT_SIGNATURE)
+pipeline_state PSO(CS)

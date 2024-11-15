@@ -62,4 +62,19 @@ namespace nre
             return load(abs_path, *((F_data*)(data.data())), flags);
         }
     };
+
+
+
+    class NRE_API F_string_file_loader final : public TA_file_loader<G_string>
+    {
+    public:
+        F_string_file_loader();
+        ~F_string_file_loader() override;
+
+    public:
+        NCPP_OBJECT(F_string_file_loader);
+
+    protected:
+        b8 load(const G_string& abs_path, G_string& data, u32 flags) override;
+    };
 }

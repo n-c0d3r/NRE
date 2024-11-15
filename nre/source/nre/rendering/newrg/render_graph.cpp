@@ -55,8 +55,8 @@ namespace nre::newrg
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
-        // setup resource allocators (E_resource_heap_tier::A)
-        if(resource_heap_tier_ == E_resource_heap_tier::A)
+        // setup resource allocators (ED_resource_heap_tier::A)
+        if(resource_heap_tier_ == ED_resource_heap_tier::A)
         {
             resource_allocators_.resize(9);
 
@@ -145,8 +145,8 @@ namespace nre::newrg
             }
         }
 
-        // setup resource allocators (E_resource_heap_tier::B)
-        if(resource_heap_tier_ == E_resource_heap_tier::B)
+        // setup resource allocators (ED_resource_heap_tier::B)
+        if(resource_heap_tier_ == ED_resource_heap_tier::B)
         {
             resource_allocators_.resize(3);
 
@@ -3840,7 +3840,7 @@ namespace nre::newrg
         ED_resource_heap_type resource_heap_type
     )
     {
-        if(resource_heap_tier_ == E_resource_heap_tier::B)
+        if(resource_heap_tier_ == ED_resource_heap_tier::B)
         {
             NRHI_ENUM_SWITCH(
                 resource_heap_type,

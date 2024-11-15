@@ -50,6 +50,10 @@ namespace nre {
 			return null;
 		}
 
+#ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_BINDING
+		TG_vector<TU<A_root_signature>> root_signature_p_vector;
+#endif
+
 		if(
 			!(
 				F_nsl_shader_system::instance_p()->compile(
@@ -57,7 +61,12 @@ namespace nre {
 					abs_path,
 					additional_macros,
 					compiled_result,
-					pipeline_state_p_vector
+					pipeline_state_p_vector,
+					{
+#ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_BINDING
+						.out_root_signature_p_vector_p = &root_signature_p_vector
+#endif
+					}
 				)
 			)
 		)
@@ -68,7 +77,10 @@ namespace nre {
 		return TS<F_nsl_shader_asset>()(
 			abs_path,
 			compiled_result,
-			std::move(pipeline_state_p_vector)
+			std::move(pipeline_state_p_vector),
+#ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_BINDING
+			eastl::move(root_signature_p_vector)
+#endif
 		);
 	}
 

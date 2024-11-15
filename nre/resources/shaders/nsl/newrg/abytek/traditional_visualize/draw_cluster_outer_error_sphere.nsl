@@ -1,0 +1,98 @@
+
+import(newrg/abytek/prerequisites.nsh)
+import(newrg/abytek/geometry_utilities.nsh)
+
+
+
+@classification(PER_VERTEX_DATA)
+semantic VERTEX_POSITION(float3)
+
+
+
+@slot(0 0)
+resource global_options(
+    ConstantBuffer
+)
+uniform color(
+    float3
+)
+
+@slot(1 0)
+resource per_object_options(
+    ConstantBuffer
+)
+uniform local_to_world_matrix(
+    float4x4
+)
+uniform cluster_offset(
+    u32
+)
+uniform cluster_count(
+    u32
+)
+
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(2)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(0)
+import(newrg/abytek/view.nssm)
+
+@slot(0 1)
+resource cluster_hierarchical_culling_datas(
+    StructuredBuffer(F_cluster_hierarchical_culling_data)
+    -1
+)
+
+
+
+vertex_shader VS(
+    in instance_id(SV_INSTANCE_ID)
+    in vertex_position(VERTEX_POSITION)
+    out out_vertex_clip_position(SV_POSITION)
+)
+{
+    u32 cluster_id = cluster_offset + instance_id;
+
+    F_cluster_hierarchical_culling_data culling_data = cluster_hierarchical_culling_datas[
+        cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+
+    float4 vertex_world_position = mul(
+        local_to_world_matrix,
+        float4(
+            culling_data.outer_error_sphere.center + culling_data.outer_error_sphere.radius * vertex_position, 
+            1.0f
+        )
+    );
+
+    float4 vertex_view_position = mul(
+        world_to_view_matrix,
+        vertex_world_position
+    );
+
+    out_vertex_clip_position = mul(
+        view_to_clip_matrix,
+        vertex_view_position  
+    );
+}
+pixel_shader PS(
+    out out_color(SV_TARGET)
+)
+{
+    out_color = float4(color, 1);
+}
+
+@root_signature(NRE_NEWRG_ABYTEK_DRAW_CLUSTER_BBOX_BINDER_SIGNATURE)
+@rasterizer(
+    cull_mode(NONE)
+    fill_mode(WIREFRAME)
+)
+@depth_stencil
+(
+    enable_depth_test(true)
+    depth_comparison_func(GREATER_EQUAL)
+)
+@input_assembler(
+    VERTEX_POSITION
+)
+pipeline_state PSO(VS PS)

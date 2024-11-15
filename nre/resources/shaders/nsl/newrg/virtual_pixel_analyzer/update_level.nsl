@@ -1,0 +1,84 @@
+
+import(nrhi)
+
+
+
+require(!NSL_DISABLE_AUTO_SLOTS)
+{
+    define NSL_DISABLE_AUTO_SLOTS
+}
+
+
+
+@slot(0)
+resource global_levels(Buffer(u32))
+
+@slot(1)
+resource pixel_counters(Buffer(u32))
+
+@slot(0)
+resource levels(RWTexture2D(u32))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint2 size;
+    levels.GetDimensions(size.x, size.y);
+
+    if(
+        (global_thread_id.x < size.x)
+        && (global_thread_id.y < size.y)
+    )
+    {
+        u32 true_oit_highest_level = NCPP_U32_MAX;
+
+        u32 chosed_global_level = global_levels[0];
+        if(chosed_global_level == NCPP_U32_MAX)
+        {
+            levels[global_thread_id.xy] = NCPP_U32_MAX;
+            return;
+        }
+
+        u32 global_level = 0;
+
+        uint pixel_counter_id = (
+            global_thread_id.y * size.x 
+            + global_thread_id.x 
+        ) * NRE_NEWRG_ABYTEK_TRUE_OIT_LEVEL_COUNT;
+        for(u32 i = 0; i < NRE_NEWRG_ABYTEK_TRUE_OIT_LEVEL_COUNT; ++i)
+        {
+            uint pixel_count = pixel_counters[pixel_counter_id];
+            
+            if(global_level <= chosed_global_level)
+            {
+                true_oit_highest_level = i;
+            }
+            
+            if(pixel_count)
+            {
+                ++global_level;
+            }
+            
+            ++pixel_counter_id;
+        }
+        
+        levels[global_thread_id.xy] = true_oit_highest_level;
+    }
+}
+
+
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        SRV(2)
+
+        UAV(1)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

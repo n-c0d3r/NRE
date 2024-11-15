@@ -1,0 +1,31 @@
+
+define BLEND_TRANSPARENT()
+define CULL_NONE()
+define FILL_SOLID()
+
+
+
+submodule SURFACE_PIXEL(
+    float3 cluster_color = id_to_color(mesh_vertex_data.vertex_cluster_id);
+
+    float l = lerp(
+        0.05f, 
+        1.0f,
+        saturate(
+            dot(normalize(mesh_vertex_data.vertex_world_normal), normalize(float3(0.2f, 1, 0)))
+        )
+    );
+    float3 light_applied_color = (
+        float3(1, 1, 1) 
+        * cluster_color
+        * l
+    );
+    float3 tone_applied_color = (light_applied_color * 3.1415) / (float3(1, 1, 1) + (light_applied_color * 3.1415));
+
+    float alpha = 0.5f;
+
+    out_color = float4(
+        tone_applied_color * alpha,
+        alpha
+    );
+)

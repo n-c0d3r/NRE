@@ -1,0 +1,68 @@
+
+import(utilities.nsh)
+
+
+
+@slot(0)
+resource tile_layer_count_texture_2d(Texture2D(uint))
+
+@slot(0)
+resource tiles(RWBuffer(uint4))
+
+@slot(1)
+resource global_shared_datas(RWStructuredBuffer(F_virtual_pixel_global_shared_data))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint width;
+    uint height;
+    tile_layer_count_texture_2d.GetDimensions(width, height);
+
+    if(
+        (global_thread_id.x < width)
+        && (global_thread_id.y < height)
+    )
+    {
+        uint tile_layer_count = tile_layer_count_texture_2d[global_thread_id.xy];
+
+        uint wave_tile_offset = WavePrefixSum(tile_layer_count);
+        uint wave_tile_count = WaveActiveSum(tile_layer_count);
+
+        uint global_tile_offset;
+        if(WaveIsFirstLane())
+        {
+            InterlockedAdd(
+                global_shared_datas[0].next_tile_id,
+                wave_tile_count,
+                global_tile_offset
+            );
+        }
+
+        uint tile_id = WaveReadLaneFirst(global_tile_offset) + wave_tile_offset;
+
+        for(u32 i = 0; i < tile_layer_count; ++i)
+        {
+            tiles[tile_id + i] = uint4(
+                global_thread_id.xy,
+                i,
+                0
+            );
+        }
+    }
+}
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        SRV(1)
+
+        UAV(2)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

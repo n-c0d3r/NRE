@@ -1,0 +1,64 @@
+
+import(utilities.nsh)
+
+
+
+@slot(0)
+resource temp_colors(Buffer(float4))
+
+@slot(1)
+resource temp_depths(Buffer(float))
+
+@slot(2)
+resource count_texture_2d(Texture2D(uint))
+
+@slot(3)
+resource offset_texture_2d(Texture2D(uint))
+
+@slot(0)
+resource out_colors(RWBuffer(float4))
+
+@slot(1)
+resource out_depths(RWBuffer(float))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint width;
+    uint height;
+    count_texture_2d.GetDimensions(width, height);
+
+    if(
+        (global_thread_id.x < width)
+        && (global_thread_id.y < height)
+    )
+    {
+        uint count = count_texture_2d[global_thread_id.xy];
+        uint offset = offset_texture_2d[global_thread_id.xy];
+
+        for(u32 i = 0; i < count; ++i)
+        {
+            u32 location = offset + i;
+
+            out_colors[location] = temp_colors[location];
+            out_depths[location] = temp_depths[location];
+        }
+    }
+}
+
+root_signature RS(
+    CONSTANTS(1)
+
+    DESCRIPTOR_TABLE(
+        SRV(4)
+        
+        UAV(2)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

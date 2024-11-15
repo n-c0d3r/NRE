@@ -1,0 +1,37 @@
+
+import(utilities.nsh)
+
+
+
+@slot(0)
+resource global_shared_datas(RWStructuredBuffer(F_virtual_pixel_global_shared_data))
+
+@slot(1)
+resource dispatch_mesh_indirect_arguments(RWStructuredBuffer(F_aligned_dispatch_mesh_indirect_argument))
+
+
+
+@thread_group_size(1 1 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    if(global_thread_id.x == 0)
+    {
+        dispatch_mesh_indirect_arguments[0] = F_aligned_dispatch_mesh_indirect_argument(
+            global_shared_datas[0].next_tile_id,
+            1,
+            1,
+            0
+        );
+    }
+}
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        UAV(2)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

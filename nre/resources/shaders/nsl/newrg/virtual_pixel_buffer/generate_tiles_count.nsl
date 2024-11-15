@@ -1,0 +1,50 @@
+
+import(utilities.nsh)
+
+
+
+@slot(0)
+resource count_texture_2d(Texture2D(uint))
+
+@slot(0)
+resource tile_layer_count_texture_2d(RWTexture2D(uint))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint width;
+    uint height;
+    count_texture_2d.GetDimensions(width, height);
+
+    if(
+        (global_thread_id.x < width)
+        && (global_thread_id.y < height)
+    )
+    {
+        InterlockedMax(
+            tile_layer_count_texture_2d[
+                global_thread_id.xy
+                / uint2(
+                    NRE_NEWRG_VIRTUAL_PIXEL_BUFFER_TILE_SIZE_X,
+                    NRE_NEWRG_VIRTUAL_PIXEL_BUFFER_TILE_SIZE_Y
+                )
+            ],
+            count_texture_2d[global_thread_id.xy]
+        );
+    }
+}
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        SRV(1)
+
+        UAV(1)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

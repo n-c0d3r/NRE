@@ -1,0 +1,44 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+@slot(1)
+resource dispatch_indirect_arguments(RWStructuredBuffer(F_aligned_dispatch_indirect_argument))
+
+
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    if(global_thread_id.x == 0)
+    {        
+        dispatch_indirect_arguments[0] = F_aligned_dispatch_indirect_argument(
+            ceil(
+                ((f32)instanced_cluster_ranges[0].count)
+                / ((f32)NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+            ),
+            1,
+            1,
+            0
+        );    
+    }
+}
+
+root_signature ROOT_SIGNATURE(
+    DESCRIPTOR_TABLE(
+        UAV(2)
+    )
+)
+
+@root_signature(ROOT_SIGNATURE)
+pipeline_state PSO(CS)

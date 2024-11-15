@@ -1,0 +1,82 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource options(ConstantBuffer)
+uniform tile_count(u32)
+
+@slot(0)
+resource instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+@slot(1)
+resource instanced_cluster_tile_start_depths(RWBuffer(float))
+
+@slot(2)
+resource instanced_cluster_start_depths(RWBuffer(float))
+
+@slot(3)
+resource dispatch_indirect_arguments(RWStructuredBuffer(F_aligned_dispatch_indirect_argument))
+
+@slot(4)
+resource global_shared_datas(RWStructuredBuffer(F_build_instanced_cluster_tile_global_shared_data))
+
+
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    F_instanced_cluster_range instanced_cluster_range = instanced_cluster_ranges[0];
+
+    if(global_thread_id.x == 0)
+    {        
+        global_shared_datas[0].instanced_cluster_range = instanced_cluster_range;
+        global_shared_datas[0].next_node_id = 0;
+
+        F_instanced_cluster_remap_range instanced_cluster_remap_range;
+        instanced_cluster_remap_range.offset = 0;
+        instanced_cluster_remap_range.count = 0;
+
+        global_shared_datas[0].instanced_cluster_remap_range = instanced_cluster_remap_range;
+
+        global_shared_datas[0].next_instanced_node_id = 0;
+
+        dispatch_indirect_arguments[0] = F_aligned_dispatch_indirect_argument(
+            ceil(
+                ((f32)instanced_cluster_ranges[0].count)
+                / ((f32)NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X)
+            ),
+            1,
+            1,
+            0
+        );    
+    }
+
+    if(global_thread_id.x < tile_count)
+    {
+        instanced_cluster_tile_start_depths[global_thread_id.x] = 10000.0f;
+    }
+
+    if(global_thread_id.x < instanced_cluster_range.count)
+    {
+        instanced_cluster_start_depths[instanced_cluster_range.offset + global_thread_id.x] = 10000.0f;
+    }
+}
+
+root_signature ROOT_SIGNATURE(
+    CONSTANTS(2)
+
+    DESCRIPTOR_TABLE(
+        UAV(5)
+    )
+)
+
+@root_signature(ROOT_SIGNATURE)
+pipeline_state PSO(CS)

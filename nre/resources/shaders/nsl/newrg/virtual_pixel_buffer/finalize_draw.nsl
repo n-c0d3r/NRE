@@ -1,0 +1,101 @@
+
+import(utilities.nsh)
+
+
+
+@slot(0)
+resource count_texture_2d(Texture2D(uint))
+
+@slot(1)
+resource offset_texture_2d(Texture2D(uint))
+
+@slot(2)
+resource depth_texture_2d(Texture2D(float))
+
+@slot(0)
+resource colors(RWBuffer(float4))
+
+@slot(1)
+resource depths(RWBuffer(float))
+
+@slot(2)
+resource output_texture_2d(RWTexture2D(float4))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint width;
+    uint height;
+    count_texture_2d.GetDimensions(width, height);
+
+    if(
+        (global_thread_id.x < width)
+        && (global_thread_id.y < height)
+    )
+    {
+        float base_depth = depth_texture_2d[global_thread_id.xy];
+        uint count = count_texture_2d[global_thread_id.xy];
+        uint offset = offset_texture_2d[global_thread_id.xy];
+
+        u32 important_count = min(count, NRE_NEWRG_ABYTEK_TRUE_OIT_MAX_LAYER_COUNT);
+
+        for(u32 i = 0; i < important_count; ++i)
+        {
+            uint i_id = offset + i;
+
+            for(u32 j = i + 1; j < count; ++j)
+            {
+                uint j_id = offset + j;
+
+                float4 icolor = colors[i_id];
+                float idepth = depths[i_id];
+
+                float4 jcolor = colors[j_id];
+                float jdepth = depths[j_id];
+
+                if(idepth < jdepth)
+                {
+                    colors[i_id] = jcolor;
+                    depths[i_id] = jdepth;
+
+                    colors[j_id] = icolor;
+                    depths[j_id] = idepth;
+                }
+            }
+        }
+
+        float4 out_color = output_texture_2d[global_thread_id.xy];
+
+        for(u32 i = important_count - 1; i != NCPP_U32_MAX; --i)
+        {
+            uint i_id = offset + i;
+
+            float4 icolor = colors[i_id];
+            float idepth = depths[i_id];
+
+            if(idepth >= base_depth)
+            {
+                out_color = icolor + out_color * (1.0f - icolor.w);
+            }
+        }
+
+        output_texture_2d[global_thread_id.xy] = out_color;
+    }
+}
+
+
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        SRV(3)
+
+        UAV(3)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

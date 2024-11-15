@@ -16,6 +16,72 @@ namespace nre
         instance_p_ = NCPP_KTHIS_UNSAFE();
 
         install_import_directory("shaders/nsl");
+
+        define_global_macro({
+            "NCPP_U8_MAX",
+            G_to_string(NCPP_U8_MAX)
+        });
+        define_global_macro({
+            "NCPP_U16_MAX",
+            G_to_string(NCPP_U16_MAX)
+        });
+        define_global_macro({
+            "NCPP_U32_MAX",
+            G_to_string(NCPP_U32_MAX)
+        });
+        define_global_macro({
+            "NCPP_U64_MAX",
+            G_to_string(NCPP_U64_MAX)
+        });
+        define_global_macro({
+            "NCPP_I8_MAX",
+            G_to_string(i8(NCPP_I8_MAX))
+        });
+        define_global_macro({
+            "NCPP_I16_MAX",
+            G_to_string(i16(NCPP_I16_MAX))
+        });
+        define_global_macro({
+            "NCPP_I32_MAX",
+            G_to_string(i32(NCPP_I32_MAX))
+        });
+        define_global_macro({
+            "NCPP_I64_MAX",
+            G_to_string(i64(NCPP_I64_MAX))
+        });
+
+        define_global_macro({
+            "NCPP_U8_MIN",
+            G_to_string(NCPP_U8_MIN)
+        });
+        define_global_macro({
+            "NCPP_U16_MIN",
+            G_to_string(NCPP_U16_MIN)
+        });
+        define_global_macro({
+            "NCPP_U32_MIN",
+            G_to_string(NCPP_U32_MIN)
+        });
+        define_global_macro({
+            "NCPP_U64_MIN",
+            G_to_string(NCPP_U64_MIN)
+        });
+        define_global_macro({
+            "NCPP_I8_MIN",
+            G_to_string(i8(NCPP_I8_MIN))
+        });
+        define_global_macro({
+            "NCPP_I16_MIN",
+            G_to_string(i16(NCPP_I16_MIN))
+        });
+        define_global_macro({
+            "NCPP_I32_MIN",
+            G_to_string(i32(NCPP_I32_MIN))
+        });
+        define_global_macro({
+            "NCPP_I64_MIN",
+            G_to_string(i64(NCPP_I64_MIN))
+        });
     }
     F_nsl_shader_system::~F_nsl_shader_system()
     {
@@ -84,7 +150,8 @@ namespace nre
         const G_string& abs_path,
         const TG_vector<eastl::pair<G_string, G_string>>& additional_macros,
         F_nsl_compiled_result& compiled_result,
-        TG_vector<TU<A_pipeline_state>>& pipeline_state_p_vector
+        TG_vector<TU<A_pipeline_state>>& pipeline_state_p_vector,
+        const F_compile_additional_options& additional_options
     )
     {
         TG_vector<eastl::pair<G_string, G_string>> macros;
@@ -116,22 +183,55 @@ namespace nre
             return false;
         }
 
+        if(additional_options.nsl_shader_compiler_pp)
+        {
+            *(additional_options.nsl_shader_compiler_pp) = eastl::move(compiler_p);
+        }
+
         auto& temp_compiled_result = compiled_result_opt.value();
 
         temp_compiled_result.finalize();
 
         const auto& reflection = temp_compiled_result.reflection;
 
-        TG_vector<TU<A_pipeline_state>> temp_pipeline_state_p_vector;
+#ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_BINDING
+        auto root_signature_map = external_root_signature_map_;
+#endif
 
-        if(custom_create_pipeline_states_)
-            temp_pipeline_state_p_vector = custom_create_pipeline_states_(temp_compiled_result);
-        else
+#ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_BINDING
+        auto embedded_root_signature_p_vector = H_nsl_factory::create_root_signatures(
+            NRE_MAIN_DEVICE(),
+            temp_compiled_result
+        );
+#endif
+        NRHI_DRIVER_ENABLE_IF_SUPPORT_ADVANCED_RESOURCE_BINDING(
+            auto& embedded_root_signature_reflections = temp_compiled_result.reflection.root_signatures;
+            for(u32 i = 0; i < embedded_root_signature_p_vector.size(); ++i)
+            {
+                auto& embedded_root_signature_reflection = embedded_root_signature_reflections[i];
+                auto& embedded_root_signature_p = embedded_root_signature_p_vector[i];
+
+                root_signature_map[embedded_root_signature_reflection.name] = embedded_root_signature_p;
+            }
+        )
+
+        //
+        TG_vector<TU<A_pipeline_state>> temp_pipeline_state_p_vector;
+        NRHI_DRIVER_ENABLE_IF_SUPPORT_ADVANCED_RESOURCE_BINDING(
+            temp_pipeline_state_p_vector = H_nsl_factory::create_pipeline_states_with_root_signature(
+                NRE_MAIN_DEVICE(),
+                temp_compiled_result,
+                root_signature_map
+            );
+        )
+        else NRHI_DRIVER_ENABLE_IF_SUPPORT_SIMPLE_RESOURCE_BINDING(
             temp_pipeline_state_p_vector = H_nsl_factory::create_pipeline_states(
                 NRE_MAIN_DEVICE(),
-                compiled_result
+                temp_compiled_result
             );
+        );
 
+        //
 #ifdef NRHI_ENABLE_DRIVER_DEBUGGER
         for(u32 i = 0; i < reflection.pipeline_states.size(); ++i)
         {
@@ -150,6 +250,10 @@ namespace nre
 
         compiled_result = eastl::move(temp_compiled_result);
         pipeline_state_p_vector = eastl::move(temp_pipeline_state_p_vector);
+
+        NRHI_DRIVER_ENABLE_IF_SUPPORT_ADVANCED_RESOURCE_BINDING(
+            *(additional_options.out_root_signature_p_vector_p) = eastl::move(embedded_root_signature_p_vector);
+        );
 
         return true;
     }

@@ -1,0 +1,183 @@
+
+import(utilities.nsh)
+
+
+
+semantic VERTEX_INTERPOLATED_CLIP_POSITION(float4)
+semantic PRIMITIVE_LOCAL_PIXEL_INDEX(uint)
+
+
+
+struct F_mesh_vertex_data(
+    vertex_interpolated_clip_position(VERTEX_INTERPOLATED_CLIP_POSITION)
+    vertex_clip_position(SV_POSITION)
+)
+
+struct F_mesh_primitive(
+    local_pixel_index(PRIMITIVE_LOCAL_PIXEL_INDEX)
+)
+
+
+
+@slot(0 0)
+resource global_options(ConstantBuffer)
+uniform view_size(uint2)
+uniform tile_size_ndc_2d(float2)
+
+@slot(0 0)
+resource tiles(Buffer(uint4))
+
+@slot(1 0)
+resource count_texture_2d(Texture2D(uint))
+
+@slot(2 0)
+resource offset_texture_2d(Texture2D(uint))
+
+@slot(3 0)
+resource colors(Buffer(float4))
+
+@slot(4 0)
+resource depths(Buffer(float))
+
+@slot(0 0)
+resource output_texture_2d(RasterizerOrderedTexture2D(float4))
+
+
+
+@thread_group_size(
+    1
+    1
+    1
+)
+mesh_shader MS(
+    group_thread_id(SV_GROUP_THREAD_ID)
+    group_id(SV_GROUP_ID)
+    @indices
+    out out_mesh_triangles(u32x3 2)
+    @vertices
+    out out_mesh_vertex_datas(F_mesh_vertex_data 4)
+    @primitives
+    out out_mesh_primitives(F_mesh_primitive 2)
+)
+{
+    SetMeshOutputCounts(4, 2);
+
+    uint4 tile = tiles[group_id.x];
+
+    out_mesh_triangles[0] = u32x3(0, 1, 2);
+    out_mesh_triangles[1] = u32x3(0, 2, 3);
+
+    out_mesh_primitives[0].local_pixel_index = tile.z;
+    out_mesh_primitives[1].local_pixel_index = tile.z;
+    
+    float2 min_ndc_2d = tile_size_ndc_2d * float2(tile.xy) - float2(1.0f, 1.0f);
+    float2 max_ndc_2d = tile_size_ndc_2d * float2(tile.xy + uint2(1, 1)) - float2(1.0f, 1.0f);
+
+    {
+        F_mesh_vertex_data mesh_vertex_data;
+        mesh_vertex_data.vertex_interpolated_clip_position = float4(
+            min_ndc_2d.x,
+            min_ndc_2d.y,
+            0.5f,
+            1.0f
+        );
+        mesh_vertex_data.vertex_clip_position = mesh_vertex_data.vertex_interpolated_clip_position;
+
+        out_mesh_vertex_datas[0] = mesh_vertex_data;
+    }
+
+    {
+        F_mesh_vertex_data mesh_vertex_data;
+        mesh_vertex_data.vertex_interpolated_clip_position = float4(
+            max_ndc_2d.x,
+            min_ndc_2d.y,
+            0.5f,
+            1.0f
+        );
+        mesh_vertex_data.vertex_clip_position = mesh_vertex_data.vertex_interpolated_clip_position;
+
+        out_mesh_vertex_datas[1] = mesh_vertex_data;
+    }
+
+    {
+        F_mesh_vertex_data mesh_vertex_data;
+        mesh_vertex_data.vertex_interpolated_clip_position = float4(
+            max_ndc_2d.x,
+            max_ndc_2d.y,
+            0.5f,
+            1.0f
+        );
+        mesh_vertex_data.vertex_clip_position = mesh_vertex_data.vertex_interpolated_clip_position;
+
+        out_mesh_vertex_datas[2] = mesh_vertex_data;
+    }
+
+    {
+        F_mesh_vertex_data mesh_vertex_data;
+        mesh_vertex_data.vertex_interpolated_clip_position = float4(
+            min_ndc_2d.x,
+            max_ndc_2d.y,
+            0.5f,
+            1.0f
+        );
+        mesh_vertex_data.vertex_clip_position = mesh_vertex_data.vertex_interpolated_clip_position;
+
+        out_mesh_vertex_datas[3] = mesh_vertex_data;
+    }
+}
+pixel_shader PS(
+    in mesh_vertex_data(F_mesh_vertex_data)
+    in mesh_primitive(F_mesh_primitive)
+)
+{
+    float2 screen_uv = saturate(mesh_vertex_data.vertex_interpolated_clip_position.xy * float2(0.5f, 0.5f) + float2(0.5f, 0.5f));
+
+    uint2 screen_coord = round(screen_uv * float2(view_size - uint2(1, 1)));
+
+    uint count = count_texture_2d[screen_coord];
+    uint offset = offset_texture_2d[screen_coord];
+
+    if(mesh_primitive.local_pixel_index >= count)
+    {
+        discard;
+    }
+
+    uint data_id = offset + mesh_primitive.local_pixel_index;
+
+    float4 color = colors[data_id];
+    float depth = depths[data_id];
+
+    float4 last_color = output_texture_2d[screen_coord];
+
+    // float4 out_color = color + last_color * (1.0f - color.w);
+
+    // output_texture_2d[screen_coord] = out_color;
+
+    float4 out_color = color + last_color;
+
+    output_texture_2d[screen_coord] = out_color;
+}
+
+root_signature RS(
+    CONSTANTS(4)
+
+    DESCRIPTOR_TABLE(
+        SRV(5)
+
+        UAV(1)
+    )
+)
+
+@root_signature(RS)
+@rasterizer(
+    cull_mode(NONE)
+    fill_mode(SOLID)
+)
+@depth_stencil
+(
+    enable_depth_test(true)
+    depth_buffer_write(false)
+    depth_comparison_func(GREATER_EQUAL)
+)
+@color_formats()
+pipeline_state PSO(MS PS)

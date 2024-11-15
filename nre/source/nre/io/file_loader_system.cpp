@@ -11,6 +11,8 @@ namespace nre
     F_file_loader_system::F_file_loader_system()
     {
         instance_p_ = NCPP_KTHIS_UNSAFE();
+
+        T_register_loader<F_string_file_loader>();
     }
     F_file_loader_system::~F_file_loader_system()
     {

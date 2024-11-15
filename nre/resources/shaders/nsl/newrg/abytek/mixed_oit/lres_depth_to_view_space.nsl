@@ -1,0 +1,58 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(0)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(0)
+import(newrg/abytek/view.nssm)
+
+@slot(0)
+resource depth_texture_2d(Texture2D(float))
+
+@slot(0)
+resource view_depth_texture_2d(RWTexture2D(float))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint width;
+    uint height;
+    depth_texture_2d.GetDimensions(width, height);
+
+    if(
+        (global_thread_id.x < width)
+        && (global_thread_id.y < height)
+    )
+    {
+        float ndc_z = depth_texture_2d[global_thread_id.xy];
+
+        float view_z = ndc_z;
+
+        float4 test_point = float4(0, 0, ndc_z, 1);
+
+        float4 test_view_point = mul(clip_to_view_matrix, test_point);
+        test_view_point /= test_view_point.w;
+
+        view_depth_texture_2d[global_thread_id.xy] = max(test_view_point.z, 0);
+    }
+}
+
+
+
+root_signature RS(
+    DESCRIPTOR_TABLE(
+        CBV(1)
+
+        SRV(1)
+
+        UAV(1)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

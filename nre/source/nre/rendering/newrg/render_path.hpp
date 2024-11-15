@@ -39,6 +39,7 @@ namespace nre::newrg
         NCPP_OBJECT(F_render_path);
 
     public:
+        virtual void RG_early_register();
         virtual void RG_begin_register();
         virtual void RG_end_register();
     };

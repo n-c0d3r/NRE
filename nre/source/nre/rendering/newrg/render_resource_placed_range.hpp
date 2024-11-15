@@ -15,5 +15,9 @@ namespace nre::newrg
         {
             return (end > begin);
         }
+        NCPP_FORCE_INLINE sz size() const noexcept
+        {
+            return end - begin;
+        }
     };
 }

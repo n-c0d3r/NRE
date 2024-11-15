@@ -1,0 +1,79 @@
+
+import(newrg/abytek/prerequisites.nsh)
+import(global_shared_data.nsh)
+
+
+
+@slot(0)
+resource options(ConstantBuffer)
+uniform max_analyzed_data(u32)
+
+@slot(0)
+resource analyzed_data_list(RWBuffer(u32))
+
+@slot(1)
+resource global_shared_datas(RWStructuredBuffer(F_global_shared_data))
+
+
+
+@thread_group_size(
+    1
+    1
+    1
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    if(global_thread_id.x == 0)
+    {
+        u32 total_analyzed_data = 0;
+        u32 true_oit_highest_level = NCPP_U32_MAX;
+
+        for(u32 i = 0; i < NRE_NEWRG_ABYTEK_TRUE_OIT_LEVEL_COUNT; ++i)
+        {
+            u32 analyzed_data = analyzed_data_list[i];
+
+            total_analyzed_data += analyzed_data;
+            if(total_analyzed_data > max_analyzed_data)
+            {
+                break;
+            }
+
+            true_oit_highest_level = i;
+        }
+
+        // true_oit_highest_level = 0; // for debugging
+
+        global_shared_datas[0].true_oit_highest_level = true_oit_highest_level;
+
+        // write true_oit_instanced_cluster_range
+        {
+            F_instanced_cluster_range true_oit_instanced_cluster_range;
+            true_oit_instanced_cluster_range.offset = 0;
+            true_oit_instanced_cluster_range.count = 0;
+
+            global_shared_datas[0].true_oit_instanced_cluster_range = true_oit_instanced_cluster_range;
+        }
+        
+        // write approximated_oit_instanced_cluster_range
+        {
+            F_instanced_cluster_range approximated_oit_instanced_cluster_range;
+            approximated_oit_instanced_cluster_range.offset = 0;
+            approximated_oit_instanced_cluster_range.count = 0;
+
+            global_shared_datas[0].approximated_oit_instanced_cluster_range = approximated_oit_instanced_cluster_range;
+        }
+    }
+}
+
+root_signature ROOT_SIGNATURE(
+    CONSTANTS(1)
+
+    DESCRIPTOR_TABLE(
+        UAV(2)
+    )
+)
+
+@root_signature(ROOT_SIGNATURE)
+pipeline_state PSO(CS)

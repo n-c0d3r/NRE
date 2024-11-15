@@ -1,0 +1,98 @@
+
+import(newrg/abytek/view.nsh)
+
+
+
+submodule ADDITIONAL_RESOURCES(
+
+    @slot(2 5)
+    resource post_instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header))
+
+    @slot(3 5)
+    resource post_instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+    @slot(2 5)
+    resource last_view_data_cbuffer(ConstantBuffer)
+    uniform last_view_data(F_view_data)
+
+    @slot(0 6)
+    resource instance_last_transforms(StructuredBuffer(float4x4) -1)
+)
+
+
+
+submodule ADDITIONAL_GROUP_SHARES(
+    groupshared uint group_post_instanced_cluster_offset;
+)
+
+
+
+submodule ALTERNATIVE_OCCLUSION_CULLING(
+
+    float4x4 last_local_to_world_matrix = instance_last_transforms[
+        instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ][
+        instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+    ];
+    float4x4 last_local_to_view_matrix = mul(last_view_data.world_to_view_matrix, last_local_to_world_matrix);
+
+    float4 last_view_bbox_corners[8];
+    transform_cuboid_corners(last_local_to_view_matrix, bbox_corners, last_view_bbox_corners);
+    
+    float4 last_ndc_bbox_corners[8];
+    cuboid_view_corners_to_ndc_corners(
+        view_to_clip_matrix,
+        view_near_plane,
+        view_far_plane,
+        last_view_bbox_corners, 
+        last_ndc_bbox_corners
+    );
+
+    F_occluder last_occluder;
+    calculate_occluder(
+        last_view_bbox_corners,
+        last_ndc_bbox_corners,
+        last_occluder
+    );
+
+    is_culled = is_occluded_with_hzb(
+        hzb,
+        last_occluder
+    );
+
+    // store occluded instanced clusters
+    if(is_culled)
+    {
+        u32 post_store_offset = WavePrefixSum(mesh_header.root_cluster_count);
+        u32 post_store_count = WaveActiveSum(mesh_header.root_cluster_count);
+
+        if(WaveIsFirstLane())
+        {
+            InterlockedAdd(
+                post_instanced_cluster_ranges[0].count,
+                post_store_count,
+                group_post_instanced_cluster_offset
+            );
+        }
+        AllMemoryBarrierWithGroupSync();
+
+        u32 post_instanced_cluster_offset = post_instanced_cluster_ranges[0].offset + group_post_instanced_cluster_offset + post_store_offset;
+
+        for(u32 i = 0; i < mesh_header.root_cluster_count; ++i)
+        {
+            F_instanced_cluster_header instanced_cluster_header;
+            instanced_cluster_header.instance_id = instance_id;
+            instanced_cluster_header.local_cluster_id = (
+                (mesh_header.root_cluster_offset - mesh_header.cluster_offset) + i
+            );
+
+            post_instanced_cluster_headers[post_instanced_cluster_offset + i] = instanced_cluster_header;
+        }
+    }
+)
+
+
+
+define ROOT_SIGNATURE(NRE_NEWRG_ABYTEK_EXPAND_INSTANCES_MAIN_BINDER_SIGNATURE)
+
+import(base.nsl)

@@ -1,0 +1,72 @@
+
+import(nrhi)
+
+
+
+require(!NSL_DISABLE_AUTO_SLOTS)
+{
+    define NSL_DISABLE_AUTO_SLOTS
+}
+
+
+
+@slot(0)
+resource resource(ConstantBuffer)
+uniform size(uint2)
+
+@slot(0)
+resource pixel_counters(Buffer(u32))
+
+@slot(0)
+resource global_pixel_counters(RWBuffer(u32))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    if(
+        (global_thread_id.x < size.x)
+        && (global_thread_id.y < size.y)
+    )
+    {
+        u32 global_level = 0;
+
+        uint pixel_counter_id = (
+            global_thread_id.y * size.x 
+            + global_thread_id.x 
+        ) * NRE_NEWRG_ABYTEK_TRUE_OIT_LEVEL_COUNT;
+        for(u32 i = 0; i < NRE_NEWRG_ABYTEK_TRUE_OIT_LEVEL_COUNT; ++i)
+        {
+            uint pixel_count = pixel_counters[pixel_counter_id];
+            
+            if(pixel_count)
+            {
+                InterlockedAdd(
+                    global_pixel_counters[global_level],
+                    pixel_count
+                );
+                ++global_level;
+            }
+            
+            ++pixel_counter_id;
+        }
+    }
+}
+
+
+
+root_signature RS(
+    CONSTANTS(2)
+
+    DESCRIPTOR_TABLE(
+        SRV(1)
+
+        UAV(1)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

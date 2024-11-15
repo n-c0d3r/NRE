@@ -7,10 +7,13 @@
 namespace nre::newrg
 {
     class NRE_API F_simple_abytek_drawable_material :
-        public A_abytek_drawable_material
+        public F_abytek_drawable_material
     {
     public:
-        F_simple_abytek_drawable_material(TKPA_valid<F_actor> actor_p, F_material_mask mask = 0);
+        F_simple_abytek_drawable_material(
+            TKPA_valid<F_actor> actor_p,
+            F_material_mask mask = 0
+        );
         virtual ~F_simple_abytek_drawable_material() override;
 
     public:

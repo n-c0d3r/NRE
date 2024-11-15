@@ -1,0 +1,145 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource global_shared_datas(RWStructuredBuffer(F_build_instanced_cluster_tile_global_shared_data))
+
+@slot(1)
+resource tile_headers(RWStructuredBuffer(F_instanced_cluster_tile_header))
+
+@slot(0)
+resource node_instanced_cluster_ids(StructuredBuffer(F_instanced_cluster_id))
+
+@slot(1)
+resource node_hierarchical_tile_coords(Buffer(uint2))
+
+@slot(2)
+resource instanced_cluster_screen_coord_ranges(StructuredBuffer(F_coord_2d_range))
+
+@slot(0 0)
+resource options(ConstantBuffer)
+uniform tile_count_2d(uint2)
+
+
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    u32 instanced_node_count = global_shared_datas[0].next_instanced_node_id;
+    u32 hierarchical_tile_level_count = global_shared_datas[0].hierarchical_tile_level_count;
+
+    if(global_thread_id.x < instanced_node_count)
+    {
+        uint2 hierarchical_tile_size_2d_in_tiles;
+        hierarchical_tile_size_2d_in_tiles.x = 1;
+
+        uint node_instance_count;
+
+        uint hierarchical_tile_level;
+
+        for(u32 i = 0; i < hierarchical_tile_level_count; ++i)
+        {
+            node_instance_count = hierarchical_tile_size_2d_in_tiles.x;
+            node_instance_count *= node_instance_count;
+
+            uint hierarchical_tile_level_instanced_node_count = global_shared_datas[0].hierarchical_tile_level_headers[i].node_count * node_instance_count;
+            uint hierarchical_tile_level_instanced_node_offset = global_shared_datas[0].hierarchical_tile_level_headers[i].instanced_node_offset;
+
+            if(
+                global_thread_id.x 
+                < (
+                    hierarchical_tile_level_instanced_node_offset 
+                    + hierarchical_tile_level_instanced_node_count
+                )
+            )
+            {
+                hierarchical_tile_level = i;
+                break;
+            }
+
+            hierarchical_tile_size_2d_in_tiles.x <<= 1;
+        }
+
+        hierarchical_tile_size_2d_in_tiles.y = hierarchical_tile_size_2d_in_tiles.x;
+
+        F_instanced_cluster_hierarchical_tile_level_header hierarchical_tile_level_header = global_shared_datas[0].hierarchical_tile_level_headers[hierarchical_tile_level];
+
+        uint local_level_instanced_node_index = global_thread_id.x - hierarchical_tile_level_header.instanced_node_offset;
+        uint node_instance_index = local_level_instanced_node_index % node_instance_count;
+
+        uint local_level_node_index = local_level_instanced_node_index / node_instance_count;
+
+        uint node_id = hierarchical_tile_level_header.node_offset + local_level_node_index;
+
+        uint instanced_cluster_id = node_instanced_cluster_ids[node_id];
+        uint2 hierarchical_tile_coord = node_hierarchical_tile_coords[node_id];
+
+        uint2 tile_id_2d = (
+            hierarchical_tile_coord * hierarchical_tile_size_2d_in_tiles
+            + uint2(
+                node_instance_index % hierarchical_tile_size_2d_in_tiles.x,
+                node_instance_index / hierarchical_tile_size_2d_in_tiles.x
+            )
+        );
+
+        F_coord_2d_range instanced_cluster_screen_coord_range = instanced_cluster_screen_coord_ranges[instanced_cluster_id];
+
+        float2 first_screen_coord = instanced_cluster_screen_coord_range.offset_2d;
+        float2 last_screen_coord = instanced_cluster_screen_coord_range.offset_2d + instanced_cluster_screen_coord_range.count_2d - uint2(1, 1);
+
+        uint2 tile_size_2d = uint2(
+            NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_X, 
+            NRE_NEWRG_ABYTEK_INSTANCED_CLUSTER_TILE_SIZE_Y
+        );
+        float2 tile_size_2d_float = tile_size_2d;
+
+        float2 first_tile_coord = floor(
+            first_screen_coord
+            / tile_size_2d_float
+        );
+        float2 last_tile_coord = floor(
+            last_screen_coord
+            / tile_size_2d_float
+        );
+
+        if(
+            (
+                (tile_id_2d.x >= first_tile_coord.x)
+                && (tile_id_2d.x <= last_tile_coord.x)
+            )
+            && (
+                (tile_id_2d.y >= first_tile_coord.y)
+                && (tile_id_2d.y <= last_tile_coord.y)
+            )
+        )
+        {
+            uint tile_id = tile_id_2d.y * tile_count_2d.x + tile_id_2d.x;
+
+            InterlockedAdd(
+                tile_headers[tile_id].instanced_cluster_remap_range.count,
+                1
+            );
+        }
+    }
+}
+
+root_signature ROOT_SIGNATURE(
+    DESCRIPTOR_TABLE(
+        UAV(2)
+
+        SRV(3)
+    )
+
+    CONSTANTS(2)
+)
+
+@root_signature(ROOT_SIGNATURE)
+pipeline_state PSO(CS)

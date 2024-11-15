@@ -1,0 +1,132 @@
+
+import(utilities.nsh)
+
+
+
+@slot(0)
+resource options(ConstantBuffer)
+uniform capacity(u32)
+
+@slot(0)
+resource colors(Buffer(float4))
+
+@slot(1)
+resource depths(Buffer(float))
+
+@slot(0)
+resource count_texture_2d(RWTexture2D(uint))
+
+@slot(1)
+resource offset_texture_2d(RWTexture2D(uint))
+
+@slot(2)
+resource write_offset_texture_2d(RWTexture2D(uint))
+
+@slot(3)
+resource linked_head_node_ids(RWTexture2D(uint))
+
+@slot(4)
+resource linked_next_node_ids(RWBuffer(uint))
+
+@slot(5)
+resource linked_data_ids(RWBuffer(uint))
+
+@slot(6)
+resource out_colors(RWBuffer(float4))
+
+@slot(7)
+resource out_depths(RWBuffer(float))
+
+@slot(8)
+resource global_shared_datas(RWStructuredBuffer(F_virtual_pixel_global_shared_data))
+
+
+
+@thread_group_size(16 16 1)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    uint width;
+    uint height;
+    count_texture_2d.GetDimensions(width, height);
+
+    if(
+        (global_thread_id.x < width)
+        && (global_thread_id.y < height)
+    )
+    {
+        uint count = count_texture_2d[global_thread_id.xy];
+        uint offset = offset_texture_2d[global_thread_id.xy];
+        uint write_offset = write_offset_texture_2d[global_thread_id.xy];
+
+        uint actual_count = write_offset - offset;
+
+        uint dense_count = min(actual_count, count);
+
+        uint store_location;
+        {
+            uint wave_store_offset = WavePrefixSum(actual_count);
+            uint wave_store_count = WaveActiveSum(actual_count);
+        
+            uint global_store_location;
+            if(WaveIsFirstLane())
+            {
+                InterlockedAdd(
+                    global_shared_datas[0].next_data_id,
+                    wave_store_count,
+                    global_store_location
+                );
+            }
+            store_location = WaveReadLaneFirst(global_store_location) + wave_store_offset;
+        }
+
+        if(
+            (store_location + actual_count)
+            > capacity 
+        )
+        {
+            count_texture_2d[global_thread_id.xy] = 0;
+            return;
+        }
+
+        for(u32 i = 0; i < dense_count; ++i)
+        {
+            u32 src_location = offset + i;
+            u32 dst_location = store_location + i;
+
+            out_colors[dst_location] = colors[src_location];
+            out_depths[dst_location] = depths[src_location];
+        }
+
+        u32 node_id = linked_head_node_ids[global_thread_id.xy];
+        u32 linked_dst_location = store_location + dense_count;
+        while(node_id != INVALID_VIRTUAL_PIXEL_LINKED_NODE_ID)
+        {
+            u32 src_location = linked_data_ids[node_id];
+
+            out_colors[linked_dst_location] = colors[src_location];
+            out_depths[linked_dst_location] = depths[src_location];
+
+            node_id = linked_next_node_ids[node_id];
+
+            ++linked_dst_location;
+        }
+
+        count_texture_2d[global_thread_id.xy] = actual_count;
+        offset_texture_2d[global_thread_id.xy] = store_location;
+    }
+}
+
+root_signature RS(
+    CONSTANTS(1)
+
+    DESCRIPTOR_TABLE(
+        SRV(2)
+        
+        UAV(9)
+    )
+)
+
+@root_signature(RS)
+pipeline_state PSO(CS)

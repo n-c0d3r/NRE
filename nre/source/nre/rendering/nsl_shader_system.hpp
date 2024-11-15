@@ -22,20 +22,20 @@ namespace nre
 
     private:
         TG_unordered_map<G_string, G_string> global_macros_;
-        eastl::function<
-            TG_vector<TU<A_pipeline_state>>(F_nsl_compiled_result& compiled_result)
-        > custom_create_pipeline_states_;
 
         TG_vector<G_string> import_directories_;
 
         TG_unordered_map<u64, eastl::pair<TS<F_nsl_shader_asset>, u32>> cached_shader_asset_map_;
 
+        TG_unordered_map<G_string, TK<A_root_signature>> external_root_signature_map_;
+
     public:
         NCPP_FORCE_INLINE const auto& global_macros() const noexcept { return global_macros_; }
-        NCPP_FORCE_INLINE const auto& custom_create_pipeline_states() const noexcept { return custom_create_pipeline_states_; }
         NCPP_FORCE_INLINE const auto& import_directories() const noexcept { return import_directories_; }
 
         NCPP_FORCE_INLINE const auto& cached_shader_asset_map() const noexcept { return cached_shader_asset_map_; }
+
+        NCPP_FORCE_INLINE const auto& external_root_signature_map() const noexcept { return external_root_signature_map_; }
 
 
 
@@ -66,6 +66,17 @@ namespace nre
         {
             global_macros_.insert(global_macro);
         }
+        void try_define_global_macro(const eastl::pair<G_string, G_string>& global_macro)
+        {
+            auto it = global_macros_.find(global_macro.first);
+
+            if(it != global_macros_.end())
+            {
+                return;
+            }
+
+            global_macros_.insert(global_macro);
+        }
         void undef_global_macro(const G_string& name)
         {
             auto it = global_macros_.find(name);
@@ -76,9 +87,31 @@ namespace nre
         }
 
     public:
-        void install_custom_create_pipeline_states(auto&& functor)
+        b8 has_external_root_signature(const G_string& name) const
         {
-            custom_create_pipeline_states_ = NCPP_FORWARD(functor);
+            return (external_root_signature_map_.find(name) != external_root_signature_map_.end());
+        }
+        TKPA_valid<A_root_signature> external_root_signature_p(const G_string& name) const
+        {
+            auto it = external_root_signature_map_.find(name);
+
+            NCPP_ASSERT(it != external_root_signature_map_.end());
+
+            return NCPP_FOH_VALID(it->second);
+        }
+        void register_external_root_signature(const G_string& name, TKPA_valid<A_root_signature> root_signature_p)
+        {
+            NCPP_ASSERT(external_root_signature_map_.find(name) == external_root_signature_map_.end());
+
+            external_root_signature_map_[name] = root_signature_p.no_requirements();
+        }
+        void deregister_external_root_signature(const G_string& name)
+        {
+            auto it = external_root_signature_map_.find(name);
+
+            NCPP_ASSERT(it != external_root_signature_map_.end());
+
+            external_root_signature_map_.erase(it);
         }
 
     public:
@@ -88,12 +121,21 @@ namespace nre
         }
 
     public:
+        struct F_compile_additional_options
+        {
+            TU<F_nsl_shader_compiler>* nsl_shader_compiler_pp = 0;
+
+#ifdef NRHI_DRIVER_SUPPORT_ADVANCED_RESOURCE_BINDING
+            TG_vector<TU<A_root_signature>>* out_root_signature_p_vector_p = 0;
+#endif
+        };
         b8 compile(
             const G_string& raw_src_content,
             const G_string& abs_path,
             const TG_vector<eastl::pair<G_string, G_string>>& additional_macros,
             F_nsl_compiled_result& compiled_result,
-            TG_vector<TU<A_pipeline_state>>& pipeline_state_p_vector
+            TG_vector<TU<A_pipeline_state>>& pipeline_state_p_vector,
+            const F_compile_additional_options& additional_options = {}
         );
 
     public:

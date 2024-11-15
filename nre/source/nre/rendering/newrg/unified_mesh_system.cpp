@@ -85,8 +85,8 @@ namespace nre::newrg
 
         NRE_ASSET_SYSTEM()->T_registry_asset_factory<F_unified_mesh_asset_factory>();
 
-        NRE_FILE_SAVER_SYSTEM()->T_registry_saver<F_compressed_unified_mesh_data_file_saver>();
-        NRE_FILE_LOADER_SYSTEM()->T_registry_loader<F_compressed_unified_mesh_data_file_loader>();
+        NRE_FILE_SAVER_SYSTEM()->T_register_saver<F_compressed_unified_mesh_data_file_saver>();
+        NRE_FILE_LOADER_SYSTEM()->T_register_loader<F_compressed_unified_mesh_data_file_loader>();
 
         F_nsl_shader_system::instance_p()->define_global_macro({
             "NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS",

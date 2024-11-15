@@ -1,0 +1,160 @@
+
+import(newrg/abytek/prerequisites.nsh)
+import(newrg/abytek/geometry_utilities.nsh)
+
+
+
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT(0)
+define NRE_NEWRG_ABYTEK_VIEW_BUFFER_SLOT_SPACE(0)
+import(newrg/abytek/view.nssm)
+
+@slot(0)
+resource instanced_cluster_headers(StructuredBuffer(F_instanced_cluster_header))
+
+@slot(0)
+resource instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+@slot(1)
+resource screen_coord_ranges(RWStructuredBuffer(F_coord_2d_range))
+
+@slot(0 1)
+resource instance_transforms(StructuredBuffer(float4x4) -1)
+
+@slot(0 2)
+resource instance_mesh_ids(Buffer(F_mesh_id) -1)
+
+@slot(0 3)
+resource mesh_headers(StructuredBuffer(F_mesh_header) -1)
+
+@slot(0 4)
+resource cluster_bboxes(StructuredBuffer(F_bbox) -1)
+
+
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    F_instanced_cluster_range instanced_cluster_range = instanced_cluster_ranges[0];  
+
+    if(global_thread_id.x < instanced_cluster_range.count)
+    {
+        F_instanced_cluster_id instanced_cluster_id = instanced_cluster_range.offset + global_thread_id.x;
+        F_instanced_cluster_header instanced_cluster_header = instanced_cluster_headers[instanced_cluster_id];
+
+        float4x4 instance_transform = instance_transforms[
+            instanced_cluster_header.instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+        ][
+            instanced_cluster_header.instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+        ];
+
+        float4x4 local_to_view_matrix = mul(world_to_view_matrix, instance_transform);
+
+        F_mesh_id mesh_id = instance_mesh_ids[
+            instanced_cluster_header.instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+        ][
+            instanced_cluster_header.instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+        ];
+
+        F_mesh_header mesh_header = mesh_headers[
+            mesh_id / NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ][
+            mesh_id % NRE_NEWRG_UNIFIED_MESH_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ];
+
+        F_cluster_id cluster_id = mesh_header.cluster_offset + instanced_cluster_header.local_cluster_id;
+
+        F_bbox cluster_bbox = cluster_bboxes[
+            cluster_id / NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ][
+            cluster_id % NRE_NEWRG_UNIFIED_MESH_CLUSTER_TABLE_PAGE_CAPACITY_IN_ELEMENTS
+        ];
+
+        float4 bbox_corners[8];
+        calculate_bbox_corners(cluster_bbox, bbox_corners);
+
+        float4 non_aligned_view_bbox_corners[8];
+        transform_cuboid_corners(local_to_view_matrix, bbox_corners, non_aligned_view_bbox_corners);
+
+        float4 view_bbox_corners[8];
+        calculate_aligned_bbox_corners(non_aligned_view_bbox_corners, view_bbox_corners);
+        
+        float4 ndc_bbox_corners[8];
+        cuboid_view_corners_to_ndc_corners(
+            view_to_clip_matrix,
+            view_near_plane,
+            view_far_plane,
+            view_bbox_corners, 
+            ndc_bbox_corners
+        );
+
+        F_occluder occluder;
+        calculate_occluder(
+            view_bbox_corners,
+            ndc_bbox_corners,
+            occluder
+        );
+
+        float2 clamped_min_uv = saturate(
+            occluder.min_ndc_xyz.xy * 0.5f + float2(0.5f, 0.5f)
+        );
+        float2 clamped_max_uv = saturate(
+            occluder.max_ndc_xyz.xy * 0.5f + float2(0.5f, 0.5f)
+        );
+
+        float2 view_size_minus_one_float = view_size - float2(1, 1);
+        
+        float2 first_screen_coord = floor(
+            clamped_min_uv
+            * view_size_minus_one_float
+        );
+        float2 last_screen_coord = ceil(
+            clamped_max_uv
+            * view_size_minus_one_float
+        );
+
+        F_coord_2d_range result;
+        result.offset_2d = first_screen_coord;
+        result.count_2d = last_screen_coord - first_screen_coord + uint2(1, 1);
+        
+        screen_coord_ranges[instanced_cluster_id] = result;
+    }
+}
+
+root_signature ROOT_SIGNATURE(
+    DESCRIPTOR_TABLE(
+        CBV(1)
+
+        SRV(1)
+
+        UAV(2)
+    )
+
+    DESCRIPTOR_TABLE(
+        @slot(0 1)
+        SRV(-1)
+    )
+
+    DESCRIPTOR_TABLE(
+        @slot(0 2)
+        SRV(-1)
+    )
+
+    DESCRIPTOR_TABLE(
+        @slot(0 3)
+        SRV(-1)
+    )
+
+    DESCRIPTOR_TABLE(
+        @slot(0 4)
+        SRV(-1)
+    )
+)
+
+@root_signature(ROOT_SIGNATURE)
+pipeline_state PSO(CS)

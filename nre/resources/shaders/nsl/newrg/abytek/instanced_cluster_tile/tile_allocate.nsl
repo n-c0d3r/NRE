@@ -1,0 +1,63 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource global_shared_datas(RWStructuredBuffer(F_build_instanced_cluster_tile_global_shared_data))
+
+@slot(1)
+resource tile_headers(RWStructuredBuffer(F_instanced_cluster_tile_header))
+
+@slot(0 0)
+resource options(ConstantBuffer)
+uniform tile_count(uint)
+
+
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    if(global_thread_id.x < tile_count)
+    {
+        uint local_instanced_cluster_remap_count = tile_headers[global_thread_id.x].instanced_cluster_remap_range.count;
+
+        uint wave_instanced_cluster_remap_offset = WavePrefixSum(local_instanced_cluster_remap_count);
+        uint wave_instanced_cluster_remap_count = WaveActiveSum(local_instanced_cluster_remap_count);
+
+        uint global_instanced_cluster_remap_offset;
+
+        if(WaveIsFirstLane())
+        {
+            InterlockedAdd(
+                global_shared_datas[0].instanced_cluster_remap_range.count,
+                wave_instanced_cluster_remap_count,
+                global_instanced_cluster_remap_offset
+            );
+        }
+
+        uint instanced_cluster_remap_offset = WaveReadLaneFirst(global_instanced_cluster_remap_offset) + wave_instanced_cluster_remap_offset;
+
+        tile_headers[global_thread_id.x].instanced_cluster_remap_range.offset = (
+            global_shared_datas[0].instanced_cluster_remap_range.offset
+            + instanced_cluster_remap_offset
+        );
+    }
+}
+
+root_signature ROOT_SIGNATURE(
+    DESCRIPTOR_TABLE(
+        UAV(2)
+    )
+
+    CONSTANTS(1)
+)
+
+@root_signature(ROOT_SIGNATURE)
+pipeline_state PSO(CS)

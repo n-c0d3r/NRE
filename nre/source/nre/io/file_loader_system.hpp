@@ -34,7 +34,7 @@ namespace nre
         NCPP_OBJECT(F_file_loader_system);
         template<typename F_file_loader__>
         requires T_is_object_down_castable<F_file_loader__, A_file_loader>
-        TK_valid<F_file_loader__> T_registry_loader(auto&&... args)
+        TK_valid<F_file_loader__> T_register_loader(auto&&... args)
         {
             NCPP_ASSERT(!has_loader(T_type_hash_code<typename F_file_loader__::F_data>));
 

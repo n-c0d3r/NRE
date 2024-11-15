@@ -3,6 +3,10 @@ import(nrhi)
 
 
 
+define NSL_DISABLE_AUTO_SLOTS
+
+
+
 @slot(0)
 sampler_state default_sampler_state
 

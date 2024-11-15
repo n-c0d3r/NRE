@@ -1,0 +1,79 @@
+
+import(newrg/abytek/prerequisites.nsh)
+
+
+
+@slot(0)
+resource instanced_cluster_headers(StructuredBuffer(F_instanced_cluster_header))
+
+@slot(0)
+resource classified_instanced_cluster_headers(RWStructuredBuffer(F_instanced_cluster_header))
+
+@slot(1)
+resource instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+@slot(2)
+resource classified_instanced_cluster_ranges(RWStructuredBuffer(F_instanced_cluster_range))
+
+@slot(0 1)
+resource instance_drawable_material_datas(
+    StructuredBuffer(F_abytek_drawable_material_data)
+    -1
+)
+
+
+
+@thread_group_size(
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_X
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Y
+    NRE_NEWRG_ABYTEK_DEFAULT_THREAD_GROUP_SIZE_Z
+)
+compute_shader CS(
+    global_thread_id(SV_DISPATCH_THREAD_ID)
+)
+{
+    F_instanced_cluster_range instanced_cluster_range = instanced_cluster_ranges[0];
+
+    if(global_thread_id.x < instanced_cluster_range.count)
+    {
+        F_instanced_cluster_id instanced_cluster_id = instanced_cluster_range.offset + global_thread_id.x;
+
+        F_instanced_cluster_header instanced_cluster_header = instanced_cluster_headers[instanced_cluster_id];
+
+        F_instance_id instance_id = instanced_cluster_header.instance_id;
+
+        F_abytek_drawable_material_data instance_drawable_material_data = instance_drawable_material_datas[
+            instance_id / NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+        ][
+            instance_id % NRE_NEWRG_RENDER_PRIMITIVE_DATA_POOL_PAGE_CAPACITY_IN_ELEMENTS
+        ];
+
+        u32 template_id = instance_drawable_material_data.template_id;
+
+        uint store_location;
+        InterlockedAdd(
+            classified_instanced_cluster_ranges[template_id].count,
+            1,
+            store_location
+        );
+        store_location += classified_instanced_cluster_ranges[template_id].offset;
+    
+        classified_instanced_cluster_headers[store_location] = instanced_cluster_header;
+    }
+}
+
+root_signature ROOT_SIGNATURE(
+    DESCRIPTOR_TABLE(
+        SRV(1)
+
+        UAV(3)
+    )
+    
+    DESCRIPTOR_TABLE(
+        @slot(0 1)
+        SRV(-1)
+    )
+)
+
+@root_signature(ROOT_SIGNATURE)
+pipeline_state PSO(CS)

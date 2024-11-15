@@ -45,6 +45,7 @@ namespace nre::newrg
     F_external_render_depth_pyramid& F_external_render_depth_pyramid::operator = (F_render_depth_pyramid&& x) noexcept
     {
         size_ = x.size();
+        texture_2d_p_.reset();
 
         if(x)
         {
