@@ -16,7 +16,17 @@ int main() {
 
 
 
-	auto render_path_p = TU<F_abytek_render_path>()();
+	TG_vector<TU<A_object>> objects_to_defer_destroy;
+	auto forward_weak_object = [&](auto&& owner)
+	{
+		auto result = NCPP_FOH_VALID(owner).no_requirements();
+		objects_to_defer_destroy.push_back(eastl::move(owner.oref));
+		return result;
+	};
+
+
+
+	auto render_path_p = TU<F_render_path>()();
 
 	auto adapter_inspector_p = TU<F_adapter_inspector>()();
 	auto gpu_memory_inspector_p = TU<F_gpu_memory_inspector>()();
@@ -33,14 +43,13 @@ int main() {
 	auto spectator_camera_p = spectator_actor_p->template T_add_component<F_camera>();
 	auto spectator_p = spectator_actor_p->template T_add_component<F_spectator>();
 
-	auto spectator_view_p = spectator_camera_p->render_view_p().T_cast<F_abytek_scene_render_view>();
+	auto spectator_view_p = spectator_camera_p->render_view_p().T_cast<F_scene_render_view>();
 
 	spectator_p->position = F_vector3 { 0.0f, 0.0f, -10.0f };
 	spectator_p->euler_angles = F_vector3 { 0.45f, 0.0f, 0.0f };
 	spectator_p->move_speed = 4.0f;
 
 	spectator_view_p->bind_output(NRE_MAIN_SWAPCHAIN());
-	spectator_view_p->clear_color = F_vector3 { 0.75f, 0.75f, 0.75f };
 
 	// create mesh actor
 	auto mesh_actor_p = level_p->T_create_actor();
@@ -54,7 +63,7 @@ int main() {
 
 
 	//
-	auto mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/rock.obj").T_force_cast<F_static_mesh_asset>();
+	auto mesh_asset_p = NRE_ASSET_SYSTEM()->load_asset("models/cube.obj").T_force_cast<F_static_mesh_asset>();
 	auto mesh_p = mesh_asset_p->mesh_p;
 	auto mesh_buffer_p = mesh_p->buffer_p();
 
@@ -119,29 +128,39 @@ int main() {
 		);
 	};
 
-	auto scratch_resource_p = H_buffer::T_create_committed<u8>(
-		device_p,
-		eastl::max(topLevelPrebuildInfo.ScratchDataSizeInBytes, bottomLevelPrebuildInfo.ScratchDataSizeInBytes),
-		ED_resource_flag::UNORDERED_ACCESS
+	auto scratch_resource_p = forward_weak_object(
+		H_buffer::T_create_committed<u8>(
+			device_p,
+			eastl::max(topLevelPrebuildInfo.ScratchDataSizeInBytes, bottomLevelPrebuildInfo.ScratchDataSizeInBytes),
+			ED_resource_flag::UNORDERED_ACCESS
+		)
 	);
 	scratch_resource_p->set_debug_name("rt_scratch_resource");
-	auto dx12_scratch_resource_p = NCPP_FOH_VALID(scratch_resource_p).T_cast<F_directx12_resource>()->d3d12_resource_p();
+	auto dx12_scratch_resource_p = scratch_resource_p.T_cast<F_directx12_resource>()->d3d12_resource_p();
 
-	auto blas_buffer_p = H_buffer::T_create_committed<u8>(
-		device_p,
-		bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes,
-		ED_resource_flag::UNORDERED_ACCESS
+	auto blas_buffer_p = forward_weak_object(
+		H_buffer::T_create_committed<u8>(
+			device_p,
+			bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes,
+			ED_resource_flag::UNORDERED_ACCESS,
+			ED_resource_heap_type::DEFAULT,
+			ED_resource_state(D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE)
+		)
 	);
 	blas_buffer_p->set_debug_name("blas_buffer");
-	auto dx12_blas_buffer_p = NCPP_FOH_VALID(blas_buffer_p).T_cast<F_directx12_resource>()->d3d12_resource_p();
+	auto dx12_blas_buffer_p = blas_buffer_p.T_cast<F_directx12_resource>()->d3d12_resource_p();
 
-	auto tlas_buffer_p = H_buffer::T_create_committed<u8>(
-		device_p,
-		topLevelPrebuildInfo.ResultDataMaxSizeInBytes,
-		ED_resource_flag::UNORDERED_ACCESS
+	auto tlas_buffer_p = forward_weak_object(
+		H_buffer::T_create_committed<u8>(
+			device_p,
+			topLevelPrebuildInfo.ResultDataMaxSizeInBytes,
+			ED_resource_flag::UNORDERED_ACCESS,
+			ED_resource_heap_type::DEFAULT,
+			ED_resource_state(D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE)
+		)
 	);
 	tlas_buffer_p->set_debug_name("tlas_buffer");
-	auto dx12_tlas_buffer_p = NCPP_FOH_VALID(tlas_buffer_p).T_cast<F_directx12_resource>()->d3d12_resource_p();
+	auto dx12_tlas_buffer_p = tlas_buffer_p.T_cast<F_directx12_resource>()->d3d12_resource_p();
 
 	auto transform_node_to_instance_desc = [&](TKPA_valid<F_transform_node> transform_node_p)
 	{
@@ -163,12 +182,14 @@ int main() {
 	TG_vector<D3D12_RAYTRACING_INSTANCE_DESC> instance_descs = {
 		transform_node_to_instance_desc(mesh_transform_node_p)
 	};
-	auto instance_desc_buffer_p = H_buffer::T_create(
-		device_p,
-		TG_span<D3D12_RAYTRACING_INSTANCE_DESC>(instance_descs)
+	auto instance_desc_buffer_p = forward_weak_object(
+		H_buffer::T_create(
+			device_p,
+			TG_span<D3D12_RAYTRACING_INSTANCE_DESC>(instance_descs)
+		)
 	);
 	instance_desc_buffer_p->set_debug_name("instance_desc_buffer");
-	auto dx12_instance_desc_buffer_p = NCPP_FOH_VALID(instance_desc_buffer_p).T_cast<F_directx12_resource>()->d3d12_resource_p();
+	auto dx12_instance_desc_buffer_p = instance_desc_buffer_p.T_cast<F_directx12_resource>()->d3d12_resource_p();
 
 	// Bottom Level Acceleration Structure desc
 	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
@@ -207,14 +228,17 @@ int main() {
 
 			{
 				setup_initial_resource_state(main_command_list_p, scratch_resource_p, ED_resource_state::UNORDERED_ACCESS);
-				setup_initial_resource_state(main_command_list_p, blas_buffer_p, ED_resource_state::UNORDERED_ACCESS);
-				setup_initial_resource_state(main_command_list_p, tlas_buffer_p, ED_resource_state::UNORDERED_ACCESS);
 				
 				BuildAccelerationStructure(dx12_main_command_list_p);
 			}
 		};
 		NRE_APPLICATION_SHUTDOWN(application_p) {
 
+			for (auto& o : objects_to_defer_destroy)
+			{
+				o.reset();
+			}
+			
 			level_p.reset();
 			render_path_p.reset();
 		};
@@ -234,6 +258,41 @@ int main() {
 	{
 		NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER()
 		{
+			auto render_graph_p = F_render_graph::instance_p();
+			auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
+
+			H_scene_render_view::RG_begin_register_all();
+
+			H_scene_render_view::for_each(
+				[&](TKPA_valid<F_scene_render_view> scene_render_view_p)
+				{
+					auto size = scene_render_view_p->size();
+
+					auto output_rtv_descriptor_handle = scene_render_view_p->output_rtv_descriptor_handle();
+					auto output_texture_2d_p = scene_render_view_p->output_texture_2d_p();
+
+					F_render_resource* rg_output_buffer_p = render_graph_p->create_permanent_resource(
+						NCPP_FOH_VALID(output_texture_2d_p),
+						ED_resource_state::COMMON
+						NRE_OPTIONAL_DEBUG_PARAM(output_texture_2d_p->debug_name().c_str())
+					);
+					
+					F_render_bind_list rtv_bind_list(ED_descriptor_heap_type::RENDER_TARGET);
+					rtv_bind_list.enqueue_copy_permanent_descriptor(
+						{ output_rtv_descriptor_handle, 1 }
+					);
+					auto rtv_element = rtv_bind_list[0];
+
+					H_render_pass::clear_render_target(
+						rtv_element,
+						rg_output_buffer_p,
+						F_vector4_f32 { 0.5f, 0.5f, 0.5f, 1.0f }
+						NRE_OPTIONAL_DEBUG_PARAM("clear_rtv")
+					);
+				}
+			);
+
+			H_scene_render_view::RG_end_register_all();
 		};
 		NRE_NEWRG_RENDER_FOUNDATION_UPLOAD()
 		{
@@ -242,13 +301,6 @@ int main() {
 		{
 		};
 		NRE_NEWRG_RENDER_FOUNDATION_RELEASE()
-		{
-		};
-	}
-
-	// abytek render path events
-	{
-		NRE_NEWRG_ABYTEK_RENDER_PATH_RG_REGISTER_VIEW(view_p)
 		{
 		};
 	}
