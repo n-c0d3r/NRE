@@ -646,7 +646,7 @@ int main()
 					
 					H_render_pass::clear_render_target(
 						rtv_element,
-						rg_output_buffer_p,
+						ray_traced_texture_p,
 						clear_color
 						NRE_OPTIONAL_DEBUG_PARAM("clear_rtv")
 					);
