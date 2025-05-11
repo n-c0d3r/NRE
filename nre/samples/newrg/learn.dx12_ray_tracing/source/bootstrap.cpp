@@ -53,14 +53,14 @@ namespace GlobalRootSignatureParams {
 	enum Value { 
 		OutputViewSlot = 0,
 		AccelerationStructureSlot,
+		ViewportConstantSlot,
 		Count 
 	};
 }
 
 namespace LocalRootSignatureParams {
 	enum Value {
-		ViewportConstantSlot = 0,
-		Count 
+		Count = 0
 	};
 }
 
@@ -321,15 +321,17 @@ int main()
 		CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignatureParams::Count];
 		rootParameters[GlobalRootSignatureParams::OutputViewSlot].InitAsDescriptorTable(1, &UAVDescriptor);
 		rootParameters[GlobalRootSignatureParams::AccelerationStructureSlot].InitAsShaderResourceView(0);
+		rootParameters[GlobalRootSignatureParams::ViewportConstantSlot].InitAsConstantBufferView(0);
 		CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
 		SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &dx12_global_root_signature_p);
 	}
 
 	ID3D12RootSignature* dx12_local_root_signature_p = 0;
 	{
-		CD3DX12_ROOT_PARAMETER rootParameters[LocalRootSignatureParams::Count];
-		rootParameters[LocalRootSignatureParams::ViewportConstantSlot].InitAsConstants(SizeOfInUint32(RayGenConstantBuffer), 0, 0);
-		CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
+		// CD3DX12_ROOT_PARAMETER rootParameters[LocalRootSignatureParams::Count];
+		// rootParameters[LocalRootSignatureParams::ViewportConstantSlot].InitAsConstants(SizeOfInUint32(RayGenConstantBuffer), 0, 0);
+		// CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
+		CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(0, 0);
 		localRootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
 		SerializeAndCreateRaytracingRootSignature(localRootSignatureDesc, &dx12_local_root_signature_p);
 	}
@@ -438,7 +440,94 @@ int main()
     // Create the state object.
 	ID3D12StateObject* rt_pso_p = 0;
     ThrowIfFailed(dx12_device_p->CreateStateObject(raytracingPipeline, IID_PPV_ARGS(&rt_pso_p)), L"Couldn't create DirectX Raytracing state object.\n");
+	forward_directx_object(rt_pso_p);
+	
 
+
+	void* rayGenShaderIdentifier = 0;
+	void* missShaderIdentifier = 0;
+	void* hitGroupShaderIdentifier = 0;
+
+	auto GetShaderIdentifiers = [&](auto* stateObjectProperties)
+	{
+		rayGenShaderIdentifier = stateObjectProperties->GetShaderIdentifier(c_raygenShaderName);
+		missShaderIdentifier = stateObjectProperties->GetShaderIdentifier(c_missShaderName);
+		hitGroupShaderIdentifier = stateObjectProperties->GetShaderIdentifier(c_hitGroupName);
+	};
+
+	// Get shader identifiers.
+	{
+		ID3D12StateObjectProperties* stateObjectProperties;
+		ThrowIfFailed(rt_pso_p->QueryInterface(IID_PPV_ARGS(&stateObjectProperties)));
+		GetShaderIdentifiers(stateObjectProperties);
+	}
+
+	
+
+	struct F_shader_record_data
+	{
+		TF_vector<u8> binary;
+		sz size = 0;
+		sz stride = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
+
+		F_shader_record_data(sz in_size = 0, sz in_stride = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES) :
+			binary(in_size * in_stride),
+			size(in_size),
+			stride(in_stride)
+		{
+		}
+		F_shader_record_data(const F_shader_record_data& x) = default;
+		F_shader_record_data& operator = (const F_shader_record_data& x) = default;
+		F_shader_record_data(F_shader_record_data&& x) = default;
+		F_shader_record_data& operator = (F_shader_record_data&& x) = default;
+		
+		void resize(sz in_size)
+		{
+			binary.resize(in_size);
+			size = in_size;
+		}
+		void write_identifier(sz record_index, void* identifier_src_p)
+		{
+			memcpy(binary.data() + stride * record_index, identifier_src_p, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+		}
+	};
+	
+	F_shader_record_data ray_gen_record_data(1);
+	ray_gen_record_data.write_identifier(0, rayGenShaderIdentifier);
+	auto ray_gen_record_buffer_p = forward_weak_object(
+		H_buffer::T_create<u8>(
+			device_p,
+			ray_gen_record_data.binary
+		)
+	);
+	auto dx12_ray_gen_record_buffer_p = ray_gen_record_buffer_p.T_cast<F_directx12_resource>()->d3d12_resource_p();
+	auto ray_gen_record_data_size = ray_gen_record_data.size;
+	auto ray_gen_record_data_stride = ray_gen_record_data.stride;
+	
+	F_shader_record_data miss_record_data(1);
+	miss_record_data.write_identifier(0, missShaderIdentifier);
+	auto miss_record_buffer_p = forward_weak_object(
+		H_buffer::T_create<u8>(
+			device_p,
+			miss_record_data.binary
+		)
+	);
+	auto dx12_miss_record_buffer_p = miss_record_buffer_p.T_cast<F_directx12_resource>()->d3d12_resource_p();
+	auto miss_record_data_size = miss_record_data.size;
+	auto miss_record_data_stride = miss_record_data.stride;
+	
+	F_shader_record_data hit_group_record_data(1);
+	hit_group_record_data.write_identifier(0, hitGroupShaderIdentifier);
+	auto hit_group_record_buffer_p = forward_weak_object(
+		H_buffer::T_create<u8>(
+			device_p,
+			hit_group_record_data.binary
+		)
+	);
+	auto dx12_hit_group_record_buffer_p = hit_group_record_buffer_p.T_cast<F_directx12_resource>()->d3d12_resource_p();
+	auto hit_group_record_data_size = hit_group_record_data.size;
+	auto hit_group_record_data_stride = hit_group_record_data.stride;
+	
   
 
 	auto main_command_list_p = NRE_MAIN_COMMAND_LIST();
@@ -489,6 +578,16 @@ int main()
 			auto render_graph_p = F_render_graph::instance_p();
 			auto uniform_transient_resource_uploader_p = F_uniform_transient_resource_uploader::instance_p();
 
+			struct F_constants
+			{
+				F_matrix4x4_f32 view;
+				F_matrix4x4_f32 projection;
+				F_matrix4x4_f32 viewInverse;
+				F_matrix4x4_f32 projectionInverse;
+				F_vector3_f32 cameraPos;
+				float padding;
+			};
+
 			H_scene_render_view::RG_begin_register_all();
 
 			H_scene_render_view::for_each(
@@ -499,6 +598,13 @@ int main()
 					auto output_rtv_descriptor_handle = scene_render_view_p->output_rtv_descriptor_handle();
 					auto output_texture_2d_p = scene_render_view_p->output_texture_2d_p();
 
+					F_constants constants;
+					constants.view = spectator_view_p->view_matrix;
+					constants.projection = spectator_view_p->projection_matrix;
+					constants.viewInverse = invert(constants.view);
+					constants.projectionInverse = invert(constants.projection);
+					sz constants_resource_offset = uniform_transient_resource_uploader_p->T_enqueue_upload(constants);
+					
 					F_render_resource* rg_output_buffer_p = render_graph_p->create_permanent_resource(
 						NCPP_FOH_VALID(output_texture_2d_p),
 						ED_resource_state::COMMON
@@ -539,6 +645,68 @@ int main()
 						clear_color
 						NRE_OPTIONAL_DEBUG_PARAM("clear_rtv")
 					);
+					
+					F_render_bind_list rt_pass_bind_list(ED_descriptor_heap_type::CONSTANT_BUFFER_SHADER_RESOURCE_UNORDERED_ACCESS);
+					rt_pass_bind_list.enqueue_initialize_resource_view(
+						ray_traced_texture_p,
+						ED_resource_view_type::UNORDERED_ACCESS
+					);
+					auto rt_pass_element = rt_pass_bind_list[0];
+
+					F_render_pass* rt_render_pass_p = H_render_pass::T_compute(
+						[=](F_render_pass* render_pass_p, TKPA<A_command_list> command_list_p)
+						{
+							ID3D12GraphicsCommandList4* dx12_command_list_p = 0;
+							command_list_p.T_cast<F_directx12_command_list>()->d3d12_command_list_p()->QueryInterface(IID_PPV_ARGS(&dx12_command_list_p));
+
+							auto DispatchRays = [&](auto* stateObject, auto* dispatchDesc)
+							{
+								// Since each shader table has only one shader record, the stride is same as the size.
+								dispatchDesc->HitGroupTable.StartAddress = dx12_hit_group_record_buffer_p->GetGPUVirtualAddress();
+								dispatchDesc->HitGroupTable.SizeInBytes = hit_group_record_data_size;
+								dispatchDesc->HitGroupTable.StrideInBytes = hit_group_record_data_stride;
+								dispatchDesc->MissShaderTable.StartAddress = dx12_miss_record_buffer_p->GetGPUVirtualAddress();
+								dispatchDesc->MissShaderTable.SizeInBytes = miss_record_data_size;
+								dispatchDesc->MissShaderTable.StrideInBytes = miss_record_data_stride;
+								dispatchDesc->RayGenerationShaderRecord.StartAddress = dx12_ray_gen_record_buffer_p->GetGPUVirtualAddress();
+								dispatchDesc->RayGenerationShaderRecord.SizeInBytes = ray_gen_record_data_size;
+								dispatchDesc->Width = size.x;
+								dispatchDesc->Height = size.y;
+								dispatchDesc->Depth = 1;
+								dx12_command_list_p->SetPipelineState1(stateObject);
+								dx12_command_list_p->DispatchRays(dispatchDesc);
+							};
+
+							dx12_command_list_p->SetComputeRootSignature(dx12_global_root_signature_p);
+
+							// Bind the heaps, acceleration structure and dispatch rays.    
+							D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
+							ID3D12DescriptorHeap* dx12_descriptor_heap_p = render_graph_p->cbv_srv_uav_descriptor_heap_p().T_cast<F_directx12_descriptor_heap>()->d3d12_descriptor_heap_p();
+							dx12_command_list_p->SetDescriptorHeaps(
+								1,
+								&dx12_descriptor_heap_p
+							);
+							dx12_command_list_p->SetComputeRootDescriptorTable(
+								GlobalRootSignatureParams::OutputViewSlot,
+								{ rt_pass_element.handle().gpu_address }
+							);
+							dx12_command_list_p->SetComputeRootShaderResourceView(
+								GlobalRootSignatureParams::AccelerationStructureSlot,
+								dx12_tlas_buffer_p->GetGPUVirtualAddress()
+							);
+							dx12_command_list_p->SetComputeRootConstantBufferView(
+								GlobalRootSignatureParams::ViewportConstantSlot,
+								uniform_transient_resource_uploader_p->query_gpu_virtual_address(constants_resource_offset)
+							);
+							DispatchRays(rt_pso_p, &dispatchDesc);
+						},
+						0
+						NRE_OPTIONAL_DEBUG_PARAM("ray_tracing")
+					);
+					rt_render_pass_p->add_resource_state({
+						.resource_p = ray_traced_texture_p,
+						.states = ED_resource_state::UNORDERED_ACCESS
+					});
 					
 					H_render_pass::copy_resource(
 						rg_output_buffer_p,
