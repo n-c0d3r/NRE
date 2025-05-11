@@ -1,7 +1,72 @@
 // RayTracingCube.hlsl - Basic DX12 ray tracing shader for a cube demo
 
-#include "RayTracingHelper.hlsl"
-#include "RayTracingGeometry.hlsl"
+// Ray tracing defines
+#define RAY_FLAG_NONE                        0x00
+#define RAY_FLAG_FORCE_OPAQUE               0x01
+#define RAY_FLAG_FORCE_NON_OPAQUE           0x02
+#define RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH    0x04
+#define RAY_FLAG_SKIP_CLOSEST_HIT_SHADER     0x08
+#define RAY_FLAG_CULL_BACK_FACING_TRIANGLES  0x10
+#define RAY_FLAG_CULL_FRONT_FACING_TRIANGLES 0x20
+#define RAY_FLAG_CULL_OPAQUE                 0x40
+#define RAY_FLAG_CULL_NON_OPAQUE             0x80
+#define RAY_FLAG_SKIP_TRIANGLES              0x100
+#define RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES  0x200
+
+// Common utility functions
+float3 LinearToSRGB(float3 color)
+{
+    // This function approximates the sRGB transformation
+    return pow(abs(color), 1.0/2.2);
+}
+
+float3 SRGBToLinear(float3 color)
+{
+    // This function approximates the inverse sRGB transformation
+    return pow(abs(color), 2.2);
+}
+
+// Calculate reflection vector
+float3 Reflect(float3 incident, float3 normal)
+{
+    return incident - 2.0 * dot(incident, normal) * normal;
+}
+
+// Schlick's approximation for Fresnel
+float3 Fresnel(float3 F0, float cosTheta)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+struct Vertex
+{
+    float3 position;
+    float padding;
+};
+
+// Function to interpolate vertex attributes using barycentric coordinates
+float3 InterpolateAttribute(float3 v0, float3 v1, float3 v2, float2 barycentrics)
+{
+    float b0 = 1.0 - barycentrics.x - barycentrics.y;
+    float b1 = barycentrics.x;
+    float b2 = barycentrics.y;
+    
+    return b0 * v0 + b1 * v1 + b2 * v2;
+}
+
+// Function to calculate triangle hit position
+float3 HitPosition(float2 barycentrics)
+{
+    // This function requires the intrinsics provided by the DXR runtime
+    return WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
+}
+
+// Function to determine if a point is inside a cube
+bool IsInsideCube(float3 position, float3 cubeCenter, float3 cubeExtents)
+{
+    float3 d = abs(position - cubeCenter);
+    return all(d <= cubeExtents);
+}
 
 // Root signatures
 RaytracingAccelerationStructure SceneBVH : register(t0);
@@ -26,17 +91,10 @@ cbuffer Constants : register(b0)
 struct RayPayload
 {
     float4 color;
-    float3 hitPosition;
-    float3 normal;
-    float distance;
-    uint recursionDepth;
 };
 
 // Attributes output from hit
-struct Attributes
-{
-    float2 barycentrics;
-};
+typedef BuiltInTriangleIntersectionAttributes Attributes;
 
 // Ray generation shader
 [shader("raygeneration")]
@@ -67,8 +125,6 @@ void RayGen()
     
     RayPayload payload;
     payload.color = float4(0, 0, 0, 0);
-    payload.distance = 0;
-    payload.recursionDepth = 0;
     
     TraceRay(
         SceneBVH,                // Acceleration structure
@@ -111,29 +167,12 @@ void GetTriangleVertices(uint triangleIndex, out float3 v0, out float3 v1, out f
     v2 = Vertices[indices.z].position;
 }
 
-// Function to get vertex normals for the triangle
-void GetTriangleNormals(uint triangleIndex, out float3 n0, out float3 n1, out float3 n2)
-{
-    // Fetch indices
-    uint indexOffset = triangleIndex * 3;
-    uint3 indices = uint3(
-        Indices.Load(indexOffset * 4),
-        Indices.Load((indexOffset + 1) * 4),
-        Indices.Load((indexOffset + 2) * 4)
-    );
-    
-    // Fetch normals
-    n0 = Vertices[indices.x].normal;
-    n1 = Vertices[indices.y].normal;
-    n2 = Vertices[indices.z].normal;
-}
-
 // Closest hit shader
 [shader("closesthit")]
 void ClosestHit(inout RayPayload payload, in Attributes attrib)
 {
     // Get the hit position in world space
-    float3 hitPosition = HitPosition(attrib.barycentrics);
+    /*float3 hitPosition = HitPosition(attrib.barycentrics);
     
     // Get triangle vertices and compute/interpolate the normal
     float3 v0, v1, v2;
@@ -141,45 +180,11 @@ void ClosestHit(inout RayPayload payload, in Attributes attrib)
     uint triangleIndex = PrimitiveIndex();
     
     GetTriangleVertices(triangleIndex, v0, v1, v2);
-    GetTriangleNormals(triangleIndex, n0, n1, n2);
     
-    // Interpolate normal using barycentrics
-    float3 normal = InterpolateAttribute(n0, n1, n2, attrib.barycentrics);
-    normal = normalize(normal);
+    float3 position = InterpolateAttribute(v0, v1, v2, attrib.barycentrics);
     
-    // Basic lighting calculation
-    float3 lightDir = normalize(float3(1, 1, 1));
-    float3 viewDir = normalize(cameraPos - hitPosition);
-    float3 halfVec = normalize(lightDir + viewDir);
-    
-    // The cube is red
-    float3 albedo = float3(1.0, 0.2, 0.2);
-    float metallic = 0.0;
-    float roughness = 0.3;
-    float ambientOcclusion = 1.0;
-    
-    // Specular reflection
-    float NdotL = saturate(dot(normal, lightDir));
-    float NdotH = saturate(dot(normal, halfVec));
-    float NdotV = saturate(dot(normal, viewDir));
-    
-    // Simple Blinn-Phong
-    float specPower = (1.0 - roughness) * 100.0;
-    float specular = pow(NdotH, specPower) * 0.5;
-    
-    // Fresnel factor for reflections
-    float3 F0 = lerp(float3(0.04, 0.04, 0.04), albedo, metallic);
-    float3 fresnelFactor = Fresnel(F0, NdotV);
-    
-    // Combine lighting components
-    float3 diffuse = albedo * NdotL;
-    float3 ambient = albedo * 0.1 * ambientOcclusion;
-    
-    float3 finalColor = ambient + diffuse + specular * fresnelFactor;
+    float3 finalColor = position;*/
     
     // Store the results
-    payload.color = float4(finalColor, 1.0);
-    payload.hitPosition = hitPosition;
-    payload.normal = normal;
-    payload.distance = RayTCurrent();
+    payload.color = float4(HitPosition(attrib.barycentrics), 1.0);
 } 
