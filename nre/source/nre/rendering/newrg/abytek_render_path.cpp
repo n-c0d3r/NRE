@@ -4912,6 +4912,11 @@ namespace nre::newrg
         auto template_system_p = F_abytek_drawable_material_template_system::instance_p();
         u32 template_system_capacity = template_system_p->table().capacity();
 
+        if (!template_system_capacity)
+        {
+            return;
+        }
+        
         classified_instanced_cluster_range_data_batch = F_indirect_data_batch(
             main_indirect_data_stack_p,
             main_indirect_data_stack_p->push(
