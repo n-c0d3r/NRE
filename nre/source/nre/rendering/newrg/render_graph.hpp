@@ -107,7 +107,7 @@ namespace nre::newrg
         b8 is_rhi_available_ = false;
 
         TG_vector<F_render_resource_allocator> resource_allocators_;
-        ED_resource_heap_tier resource_heap_tier_ = ED_resource_heap_tier::A;
+        E_resource_heap_tier resource_heap_tier_ = E_resource_heap_tier::A;
         TG_unordered_map<u32, F_rhi_placed_resource_pool> rhi_placed_resource_pools_;
         F_rhi_frame_buffer_pool rhi_frame_buffer_pool_;
 
