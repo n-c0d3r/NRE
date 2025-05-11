@@ -490,6 +490,11 @@ int main()
 		{
 			memcpy(binary.data() + stride * record_index, identifier_src_p, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 		}
+
+		NCPP_FORCE_INLINE sz size_in_bytes() const noexcept
+		{
+			return size * stride;
+		}
 	};
 	
 	F_shader_record_data ray_gen_record_data(1);
@@ -501,7 +506,7 @@ int main()
 		)
 	);
 	auto dx12_ray_gen_record_buffer_p = ray_gen_record_buffer_p.T_cast<F_directx12_resource>()->d3d12_resource_p();
-	auto ray_gen_record_data_size = ray_gen_record_data.size;
+	auto ray_gen_record_data_size = ray_gen_record_data.size_in_bytes();
 	auto ray_gen_record_data_stride = ray_gen_record_data.stride;
 	
 	F_shader_record_data miss_record_data(1);
@@ -513,7 +518,7 @@ int main()
 		)
 	);
 	auto dx12_miss_record_buffer_p = miss_record_buffer_p.T_cast<F_directx12_resource>()->d3d12_resource_p();
-	auto miss_record_data_size = miss_record_data.size;
+	auto miss_record_data_size = miss_record_data.size_in_bytes();
 	auto miss_record_data_stride = miss_record_data.stride;
 	
 	F_shader_record_data hit_group_record_data(1);
@@ -525,7 +530,7 @@ int main()
 		)
 	);
 	auto dx12_hit_group_record_buffer_p = hit_group_record_buffer_p.T_cast<F_directx12_resource>()->d3d12_resource_p();
-	auto hit_group_record_data_size = hit_group_record_data.size;
+	auto hit_group_record_data_size = hit_group_record_data.size_in_bytes();
 	auto hit_group_record_data_stride = hit_group_record_data.stride;
 	
   
