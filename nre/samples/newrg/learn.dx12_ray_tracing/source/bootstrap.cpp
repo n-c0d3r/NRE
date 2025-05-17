@@ -258,7 +258,7 @@ int main()
 			}
 		}
 		result.InstanceMask = 1;
-		result.AccelerationStructure = dx12_tlas_buffer_p->GetGPUVirtualAddress();
+		result.AccelerationStructure = dx12_blas_buffer_p->GetGPUVirtualAddress();
 		return result;
 	};
 	
@@ -404,7 +404,10 @@ int main()
     auto shaderConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
     UINT payloadSize = 4 * sizeof(float);   // float4 color
     UINT attributeSize = 2 * sizeof(float); // float2 barycentrics
-    shaderConfig->Config(payloadSize, attributeSize);
+	shaderConfig->Config(payloadSize, attributeSize);
+    
+	auto rtPSOConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_PIPELINE_CONFIG_SUBOBJECT>();
+	rtPSOConfig->Config(1);
 
     // Local root signature and shader association
 	auto CreateLocalRootSignatureSubobjects = [&](CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
@@ -545,8 +548,6 @@ int main()
 
 			{
 				setup_initial_resource_state(main_command_list_p, scratch_resource_p, ED_resource_state::UNORDERED_ACCESS);
-				
-				BuildAccelerationStructure(dx12_main_command_list_p);
 			}
 		};
 		NRE_APPLICATION_SHUTDOWN(application_p) {
@@ -590,8 +591,9 @@ int main()
 				F_matrix4x4_f32 viewInverse;
 				F_matrix4x4_f32 projectionInverse;
 				F_vector3_f32 cameraPos;
-				float padding;
 			};
+			
+			BuildAccelerationStructure(dx12_main_command_list_p);
 
 			H_scene_render_view::RG_begin_register_all();
 
@@ -712,6 +714,10 @@ int main()
 						.resource_p = ray_traced_texture_p,
 						.states = ED_resource_state::UNORDERED_ACCESS
 					});
+					uniform_transient_resource_uploader_p->enqueue_resource_state(
+						rt_render_pass_p,
+						ED_resource_state::INPUT_AND_CONSTANT_BUFFER
+					);
 					
 					H_render_pass::copy_resource(
 						rg_output_buffer_p,

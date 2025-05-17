@@ -73,8 +73,8 @@ RaytracingAccelerationStructure SceneBVH : register(t0);
 RWTexture2D<float4> RenderTarget : register(u0);
 
 // Geometry data
-StructuredBuffer<Vertex> Vertices : register(t1);
-ByteAddressBuffer Indices : register(t2);
+// StructuredBuffer<Vertex> Vertices : register(t1);
+// ByteAddressBuffer Indices : register(t2);
 
 // Constants
 cbuffer Constants : register(b0) 
@@ -113,6 +113,8 @@ void RayGen()
     // Unproject the pixel coordinate into a ray
     float4 worldOrigin = mul(viewInverse, float4(0, 0, 0, 1));
     float4 worldDirection = mul(projectionInverse, float4(screenPos.x, screenPos.y, 1, 1));
+    worldDirection /= worldDirection.w;
+    worldDirection = normalize(worldDirection);
     worldDirection = mul(viewInverse, float4(worldDirection.xyz, 0));
     worldDirection = normalize(worldDirection);
     
@@ -120,8 +122,8 @@ void RayGen()
     RayDesc ray;
     ray.Origin = worldOrigin.xyz;
     ray.Direction = worldDirection.xyz;
-    ray.TMin = 0.001;
-    ray.TMax = 10000.0;
+    ray.TMin = 0.0;
+    ray.TMax = 1.0;
     
     RayPayload payload;
     payload.color = float4(0, 0, 0, 0);
@@ -131,7 +133,7 @@ void RayGen()
         RAY_FLAG_NONE,           // Ray flags
         0xFF,                    // Instance inclusion mask
         0,                       // Ray contribution to hit group index
-        0,                       // Multiplier for geometry contribution to hit group index
+        1,                       // Multiplier for geometry contribution to hit group index
         0,                       // Miss shader index
         ray,                     // Ray
         payload                  // Payload
@@ -142,49 +144,14 @@ void RayGen()
     RenderTarget[launchIndex] = float4(color, payload.color.a);
 }
 
-// Miss shader
 [shader("miss")]
 void Miss(inout RayPayload payload)
 {
-    // Return a blue sky color
     payload.color = float4(0.0, 0.5, 1.0, 1.0);
 }
 
-// Function to get vertex data for the triangle
-void GetTriangleVertices(uint triangleIndex, out float3 v0, out float3 v1, out float3 v2)
-{
-    // Fetch indices
-    uint indexOffset = triangleIndex * 3;
-    uint3 indices = uint3(
-        Indices.Load(indexOffset * 4),
-        Indices.Load((indexOffset + 1) * 4),
-        Indices.Load((indexOffset + 2) * 4)
-    );
-    
-    // Fetch vertices
-    v0 = Vertices[indices.x].position;
-    v1 = Vertices[indices.y].position;
-    v2 = Vertices[indices.z].position;
-}
-
-// Closest hit shader
 [shader("closesthit")]
 void ClosestHit(inout RayPayload payload, in Attributes attrib)
 {
-    // Get the hit position in world space
-    /*float3 hitPosition = HitPosition(attrib.barycentrics);
-    
-    // Get triangle vertices and compute/interpolate the normal
-    float3 v0, v1, v2;
-    float3 n0, n1, n2;
-    uint triangleIndex = PrimitiveIndex();
-    
-    GetTriangleVertices(triangleIndex, v0, v1, v2);
-    
-    float3 position = InterpolateAttribute(v0, v1, v2, attrib.barycentrics);
-    
-    float3 finalColor = position;*/
-    
-    // Store the results
     payload.color = float4(HitPosition(attrib.barycentrics), 1.0);
 } 
