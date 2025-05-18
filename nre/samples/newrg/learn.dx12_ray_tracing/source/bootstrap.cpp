@@ -141,6 +141,13 @@ int main()
 		* T_identity<F_matrix4x4_f32>()
 	);
 
+	
+
+	auto device_p = NRE_MAIN_DEVICE();
+	
+	ID3D12Device5* dx12_device_p = 0;
+	device_p.T_interface<F_directx12_device>()->d3d12_device_p()->QueryInterface(IID_PPV_ARGS(&dx12_device_p));
+
 
 
 	//
@@ -153,13 +160,39 @@ int main()
 	auto index_count = mesh_buffer_p->uploaded_index_count();
 	auto vertex_count = mesh_buffer_p->uploaded_vertex_count();
 
+	/*TG_vector<u32> indices({
+		0,
+		1,
+		2
+	});
+	TG_vector<F_vertex_position> positions({
+		F_vertex_position { -1, -1, 1 },
+		F_vertex_position { 1, -1, 1 },
+		F_vertex_position { 1, 1, 1 }
+	});
+	
+	auto index_buffer_p = forward_weak_object(
+		H_buffer::T_create<u32>(
+			device_p,
+			indices,
+			ED_format::R32_UINT,
+			ED_resource_flag::SHADER_RESOURCE
+			| ED_resource_flag::INDEX_BUFFER
+		)
+	);
+	auto position_buffer_p = forward_weak_object(
+		H_buffer::T_create<F_vertex_position>(
+			device_p,
+			positions,
+			ED_resource_flag::SHADER_RESOURCE
+			| ED_resource_flag::INPUT_BUFFER
+		)
+	);
+	auto index_count = 3;
+	auto vertex_count = 3;*/
+
 	auto dx12_index_buffer_p = index_buffer_p.T_interface<F_directx12_resource>()->d3d12_resource_p();
 	auto dx12_position_buffer_p = position_buffer_p.T_interface<F_directx12_resource>()->d3d12_resource_p();
-
-	auto device_p = NRE_MAIN_DEVICE();
-	
-	ID3D12Device5* dx12_device_p = 0;
-	device_p.T_interface<F_directx12_device>()->d3d12_device_p()->QueryInterface(IID_PPV_ARGS(&dx12_device_p));
 
 	
 
@@ -259,6 +292,7 @@ int main()
 		}
 		result.InstanceMask = 1;
 		result.AccelerationStructure = dx12_blas_buffer_p->GetGPUVirtualAddress();
+		result.InstanceContributionToHitGroupIndex = 0;
 		return result;
 	};
 	
@@ -577,6 +611,8 @@ int main()
 		};
 	}
 
+	b8 was_built_acceleration_structure = false;
+
 	// render_foundation event
 	{
 		NRE_NEWRG_RENDER_FOUNDATION_RG_REGISTER()
@@ -592,8 +628,13 @@ int main()
 				F_matrix4x4_f32 projectionInverse;
 				F_vector3_f32 cameraPos;
 			};
-			
-			BuildAccelerationStructure(dx12_main_command_list_p);
+
+			/*if (!was_built_acceleration_structure)
+			{
+				BuildAccelerationStructure(dx12_main_command_list_p);
+				was_built_acceleration_structure = true;
+				return;
+			}*/
 
 			H_scene_render_view::RG_begin_register_all();
 
@@ -665,6 +706,12 @@ int main()
 						{
 							ID3D12GraphicsCommandList4* dx12_command_list_p = 0;
 							command_list_p.T_cast<F_directx12_command_list>()->d3d12_command_list_p()->QueryInterface(IID_PPV_ARGS(&dx12_command_list_p));
+
+							BuildAccelerationStructure(dx12_command_list_p);
+							{
+								D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::UAV(dx12_tlas_buffer_p);
+								dx12_command_list_p->ResourceBarrier(1, &barrier);
+							}
 
 							auto DispatchRays = [&](auto* stateObject, auto* dispatchDesc)
 							{

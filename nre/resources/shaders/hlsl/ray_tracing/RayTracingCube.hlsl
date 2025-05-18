@@ -122,8 +122,8 @@ void RayGen()
     RayDesc ray;
     ray.Origin = worldOrigin.xyz;
     ray.Direction = worldDirection.xyz;
-    ray.TMin = 0.0;
-    ray.TMax = 1.0;
+    ray.TMin = 0.001;
+    ray.TMax = 10000.0;
     
     RayPayload payload;
     payload.color = float4(0, 0, 0, 0);
