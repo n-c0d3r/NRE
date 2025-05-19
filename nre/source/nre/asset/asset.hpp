@@ -11,14 +11,12 @@ namespace nre {
 
 
 
-	class NRE_API A_asset {
-
+	class NRE_API A_asset : public A_object
+	{
 	public:
 		friend class F_asset_system;
 		friend class A_asset_factory;
-
-
-
+	
 	private:
 		G_string abs_path_;
 
