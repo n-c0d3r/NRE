@@ -11,12 +11,10 @@ namespace nre {
 
 
 
-	class NRE_API A_actor_component {
-
+	class NRE_API A_actor_component : public A_object
+	{
 	public:
 		friend class F_actor;
-
-
 
 	private:
 		TK_valid<F_actor> actor_p_;

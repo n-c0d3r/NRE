@@ -11,12 +11,10 @@ namespace nre {
 
 
 
-	class NRE_API F_level final {
-
+	class NRE_API F_level final : public A_object
+	{
 	public:
 		friend class F_actor;
-
-
 
 	private:
 		TG_list<TU<F_actor>> actor_p_list_;

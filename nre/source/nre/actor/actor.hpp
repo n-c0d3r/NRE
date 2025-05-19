@@ -12,13 +12,11 @@ namespace nre {
 
 
 
-	class NRE_API F_actor {
-
+	class NRE_API F_actor : public A_object
+	{
 	public:
 		friend class F_level;
-
-
-
+	
 	private:
 		using F_handle = typename TG_list<TU<F_actor>>::iterator;
 		using F_gameplay_tick_handle = typename TG_list<TK_valid<F_actor>>::iterator;
