@@ -11,11 +11,20 @@ namespace dxrt
             OUTPUT_VIEW = 0,
             SCENE_BVH,
             VIEW_DATA,
-            Count
+            COUNT
         };
         enum class E_local_root_signature_param
         {
-            Count = 0
+            COUNT = 0
+        };
+
+        struct F_view_data
+        {
+            F_matrix4x4_f32 view;
+            F_matrix4x4_f32 projection;
+            F_matrix4x4_f32 viewInverse;
+            F_matrix4x4_f32 projectionInverse;
+            F_vector3_f32 cameraPos;
         };
         
     private:
@@ -41,7 +50,18 @@ namespace dxrt
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bottom_level_prebuild_info_ = {};
         D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC top_level_build_desc_ = {};
         D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottom_level_build_desc_ = {};
+
+        ID3D12RootSignature* global_root_signature_p_ = 0;
+        ID3D12RootSignature* local_root_signature_p_ = 0;
         
+        TG_vector<u8> shader_binary_;
+
+        ID3D12StateObject* rt_pso_p_ = 0;
+
+        U_buffer_handle ray_gen_record_buffer_p_;
+        U_buffer_handle hit_group_record_buffer_p_;
+        U_buffer_handle miss_record_buffer_p_;
+
     public:
 
     public:
@@ -71,5 +91,13 @@ namespace dxrt
     public:
         void release_acceleration_structure();
         void build_acceleration_structure();
+
+    public:
+        void create_root_signatures();
+        void release_root_signatures();
+        void create_pso();
+        void release_pso();
+        void create_record_buffers();
+        void release_record_buffers();
     };
 }
